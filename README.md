@@ -21,16 +21,21 @@ Mission → immutable Plan → fenced Attempt → exact Candidate
 A model saying “done,” a terminal going idle, a process exiting zero, or a
 pull request opening has **no completion authority**.
 
-## 5-minute start
+## Existing split-family start
 
 Prerequisites: Rust stable, Node 22+, `just`, Git.
 
 ```bash
-git clone https://github.com/neverhuman/bullet-farm
-cd bullet-farm
+cd /path/to/bullet/bullet-farm
+cargo run --locked --quiet --bin bullet-family -- doctor --json
 just setup
 just demo
 ```
+
+This alpha requires the four ordinary sibling checkouts listed in `repos.manifest.toml`. A hub-only
+clone is diagnosis-only because `family.lock` does not yet carry an authenticated source for each
+member. In that state, `doctor` reports `BLOCKED` and `just setup` refuses before changing the
+toolchain or filesystem. Do not create Git worktrees or infer source locations from local paths.
 
 `just demo` runs a deterministic ledger simulator (no provider process, forge
 credential, or network effect). It demonstrates component behavior only:
@@ -49,6 +54,8 @@ Readiness is intentionally explicit:
 | Component tests | Individual lease, workspace, verifier, broker, and portal primitives |
 | `just demo` | Deterministic ledger simulation; not a five-plane transaction |
 | `bullet demo-synthetic` | Simulator-only integration scaffolding with `transaction_gate_eligible=false` |
+| Gate 0 contracts | Canonical v1alpha1 policy/schema bundle, hostile fixtures, invariant registry, and exactly two bounded models |
+| Hub-only installer | Not yet achieved; authenticated member source metadata is a release blocker |
 | Transaction-ready | Not yet achieved; requires the signed Wave-4 offline receipt |
 | Production-ready | Not yet achieved; live providers and credentialed forges are quarantined |
 
@@ -110,8 +117,9 @@ Local fusion (the only place sibling path patches may appear):
 .fusion/dev.sh build
 ```
 
-Jeryu is consumed through pinned tags. The only permitted Jeryu family is
-`/home/ubuntu/jain-split/jeryu-split`. Do not recreate `~/jeryu-split`.
+Jeryu is consumed through pinned tags from the operator-configured canonical `jeryu-split` family.
+The family `AGENTS.md` policy identifies that checkout for local development; do not create a
+substitute checkout or commit sibling path dependencies.
 
 ## What we will not claim
 
@@ -130,7 +138,17 @@ non-execution.
 ```bash
 just fast          # hub onboarding checks
 bash scripts/ci-local.sh required
+just contract-check # generated policy/schema/client byte drift
+just model-check    # exactly two pinned TLC models and state locks
+just contract       # hub-only canonical contract + model gate
+just check-family   # hub plus every member required lane
+just family-contract # family required lanes + canonical contract + models
 ```
+
+Gate 0 sources live under `policy/`, `contracts/v1alpha1/`, `fixtures/`, and `formal/`. Reviewed
+prose is never runtime authority. The generated policy keeps live admission disabled, and Gate 0
+does not substitute for the signed authority, API authentication, sandbox, vector-budget, freeze,
+audit-anchor, and restore gates in Wave 2.
 
 There is deliberately no `demo-live` command. Later proof entrypoints are
 `proof-transaction-offline`, `proof-transaction-jeryu`, and

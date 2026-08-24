@@ -16,8 +16,9 @@ push, check, pull request, or integration.
 
 Many repo families depend on this Jeryu instance. Therefore:
 - NEVER stop, restart, upgrade, or reconfigure the `jeryu serve` process (pid-owned by the operator).
-- NEVER edit ~/.jeryu/, ~/.local/share/jeryu/, its --split-manifest files, or any
-  /home/ubuntu/jain-split/jeryu-split source as part of Bullet Farm work.
+- NEVER edit the operator's Jeryu configuration/data, its `--split-manifest` files, or the canonical
+  `jeryu-split` source family as part of Bullet Farm work. The family `AGENTS.md` identifies the
+  permitted checkout; no substitute family may be created.
 - Additive REST calls only: create root/bullet-* repositories, push branches, open PRs, post
   check-runs. Probe capabilities first; anything unsupported is recorded as Unsupported in the
   ForgeEffects descriptor — never worked around by touching the forge.
