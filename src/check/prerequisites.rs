@@ -2,23 +2,52 @@
 
 use super::model::{CheckModelError, CheckReport, CheckTier, GateClass, GateResult};
 
-pub(super) fn report(tier: CheckTier) -> Result<CheckReport, CheckModelError> {
-    let gates = match tier {
-        CheckTier::Fast => vec![blocked(
-            "catalog.fast",
-            GateClass::Component,
-            "the Rust fast gate catalog and bounded executor have not landed",
-            "implement the admitted Rust fast catalog, affected-path routing, and generated-drift gates",
-        )?],
-        CheckTier::Required => vec![blocked(
-            "catalog.required",
-            GateClass::Component,
-            "the Rust required gate catalog and proof parsers have not landed",
-            "implement the no-skip Rust required catalog, zero-test admission, and exact family subject checks",
-        )?],
-        CheckTier::Release => release_gates()?,
-    };
-    CheckReport::new(tier, gates)
+pub(super) fn report_release() -> Result<CheckReport, CheckModelError> {
+    CheckReport::new(CheckTier::Release, release_gates()?)
+}
+
+pub(super) fn required_blockers() -> Result<Vec<GateResult>, CheckModelError> {
+    [
+        (
+            "required.installable-lock",
+            GateClass::Release,
+            "the checked-in diagnostic schema-2 lock cannot authorize installation",
+            "publish signed immutable member tags and generate the authenticated schema-3 family lock",
+        ),
+        (
+            "required.jankurai-ratchet",
+            GateClass::Release,
+            "the family-wide pinned Jankurai required receipt is absent",
+            "run the pinned family audit with zero skips and register exact-subject score/cap/hard-finding results",
+        ),
+        (
+            "required.packaged-browser-e2e",
+            GateClass::Transaction,
+            "no authenticated browser test against an embedded Portal and packaged farmd is registered",
+            "run Playwright against the packaged real farmd with command/session/CSRF reconciliation",
+        ),
+        (
+            "required.pinned-scans",
+            GateClass::Release,
+            "pinned secret, dependency, license, and workflow scan receipts are absent",
+            "admit exact scanner versions and run every required scan against these exact subjects",
+        ),
+        (
+            "required.recovery-faults",
+            GateClass::Transaction,
+            "backup/restore and crash-boundary receipts are not registered",
+            "run the exact-subject SQLite/CAS/journal/generation fault and verified restore suites",
+        ),
+        (
+            "required.transaction-proof",
+            GateClass::Transaction,
+            "the deterministic demo remains synthetic component evidence, not a five-plane transaction proof",
+            "replace synthetic success with the signed exact Candidate, independent Evidence, reconciled effect, and truthful projection transaction",
+        ),
+    ]
+    .into_iter()
+    .map(|(id, class, detail, repair)| blocked(id, class, detail, repair))
+    .collect()
 }
 
 fn release_gates() -> Result<Vec<GateResult>, CheckModelError> {
@@ -200,21 +229,21 @@ mod tests {
     use crate::check::model::GateStatus;
 
     #[test]
-    fn every_foundation_profile_is_explicitly_blocked_with_repair() {
-        for tier in [CheckTier::Fast, CheckTier::Required, CheckTier::Release] {
-            let report = report(tier).unwrap();
-            assert_eq!(report.status(), GateStatus::Blocked);
-            assert_eq!(report.exit_code(), 3);
-            assert!(report.gates().iter().all(|gate| {
-                gate.status() == GateStatus::Blocked
-                    && gate.repair().is_some_and(|repair| !repair.is_empty())
-            }));
-        }
+    fn every_static_gate_is_blocked_with_repair() {
+        let required = required_blockers().unwrap();
+        let release = report_release().unwrap();
+        assert_eq!(required.len(), 6);
+        assert_eq!(release.status(), GateStatus::Blocked);
+        assert_eq!(release.exit_code(), 3);
+        assert!(required.iter().chain(release.gates()).all(|gate| {
+            gate.status() == GateStatus::Blocked
+                && gate.repair().is_some_and(|repair| !repair.is_empty())
+        }));
     }
 
     #[test]
     fn release_inventory_is_complete_and_cannot_be_cleared_by_input() {
-        let report = report(CheckTier::Release).unwrap();
+        let report = report_release().unwrap();
         let ids = report
             .gates()
             .iter()

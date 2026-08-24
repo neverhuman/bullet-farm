@@ -1,8 +1,11 @@
 use std::{
     fs,
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::{Command, Output},
+    sync::atomic::{AtomicU64, Ordering},
 };
+
+static FIXTURE_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 fn command(args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_bullet-family"))
@@ -10,6 +13,100 @@ fn command(args: &[&str]) -> Output {
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .output()
         .expect("run bullet-family")
+}
+
+struct FamilyFixture {
+    root: PathBuf,
+}
+
+impl FamilyFixture {
+    fn new(kernel_fast: &str) -> Self {
+        let sequence = FIXTURE_SEQUENCE.fetch_add(1, Ordering::Relaxed);
+        let root = std::env::temp_dir().join(format!(
+            "bullet-check-cli-{}-{sequence}",
+            std::process::id()
+        ));
+        if root.exists() {
+            fs::remove_dir_all(&root).expect("remove stale exact fixture");
+        }
+        fs::create_dir_all(&root).expect("fixture root");
+        write(
+            &root.join("repos.manifest.toml"),
+            "required_repos = [\"bullet-farm\", \"bullet-kernel\", \"bullet-git\", \"bullet-portal\"]\n",
+        );
+        for name in [
+            "bullet-farm",
+            "bullet-kernel",
+            "bullet-git",
+            "bullet-portal",
+        ] {
+            let repo = root.join(name);
+            fs::create_dir_all(&repo).expect("repository fixture");
+            if name == "bullet-farm" {
+                write(
+                    &repo.join("Cargo.toml"),
+                    "[package]\nname='fixture-hub'\nversion='0.0.0'\n",
+                );
+                write(&repo.join("family.lock"), "schema_version = \"2\"\n");
+                write(&repo.join("scripts/setup.sh"), "#!/bin/sh\nexit 1\n");
+                write(&repo.join("scripts/ci-local.sh"), "#!/bin/sh\nexit 0\n");
+                write(
+                    &repo.join("scripts/sync-family-contracts.sh"),
+                    "#!/bin/sh\nexit 0\n",
+                );
+                write(&repo.join("scripts/demo.sh"), "#!/bin/sh\nexit 0\n");
+                write(
+                    &repo.join("ops/ci/family-contract.sh"),
+                    "#!/bin/sh\nexit 0\n",
+                );
+            } else {
+                let script = if name == "bullet-kernel" {
+                    kernel_fast
+                } else {
+                    "#!/bin/sh\nexit 0\n"
+                };
+                write(&repo.join("scripts/ci-local.sh"), script);
+            }
+            git(&repo, &["init", "-q"]);
+            git(&repo, &["config", "user.name", "Check Fixture"]);
+            git(&repo, &["config", "user.email", "check@example.invalid"]);
+            git(&repo, &["add", "."]);
+            git(&repo, &["commit", "-q", "-m", "fixture"]);
+        }
+        Self { root }
+    }
+
+    fn args<'a>(&'a self, tail: &'a [&'a str]) -> Vec<&'a str> {
+        let mut args = vec!["--root", self.root.to_str().expect("UTF-8 fixture")];
+        args.extend_from_slice(tail);
+        args
+    }
+}
+
+impl Drop for FamilyFixture {
+    fn drop(&mut self) {
+        fs::remove_dir_all(&self.root).expect("remove exact fixture");
+    }
+}
+
+fn write(path: &Path, content: &str) {
+    fs::create_dir_all(path.parent().expect("fixture parent")).expect("fixture directories");
+    fs::write(path, content).expect("fixture file");
+}
+
+fn git(repository: &Path, args: &[&str]) {
+    let output = Command::new("/usr/bin/git")
+        .arg("-C")
+        .arg(repository)
+        .args(args)
+        .env_clear()
+        .env("HOME", "/")
+        .env("LC_ALL", "C")
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .output()
+        .expect("fixture Git");
+    assert!(output.status.success(), "fixture Git failed: {output:?}");
 }
 
 fn unsupported_lock_fixture() -> PathBuf {
@@ -47,34 +144,139 @@ fn unsupported_lock_fixture() -> PathBuf {
 }
 
 #[test]
-fn blocked_report_is_printed_before_nonzero_exit() {
-    let output = command(&["check", "fast"]);
-    assert_eq!(output.status.code(), Some(3));
-    assert!(output.stderr.is_empty());
-    let stdout = String::from_utf8(output.stdout).unwrap();
-    assert!(stdout.starts_with("check FAST: BLOCKED\n"));
-    assert!(stdout.contains("repair:"));
-
-    let explicit = command(&[
-        "--root",
-        env!("CARGO_MANIFEST_DIR"),
-        "check",
-        "fast",
-        "--json",
-    ]);
-    assert_eq!(explicit.status.code(), Some(3));
-    assert!(explicit.stderr.is_empty());
+fn fast_catalog_passes_only_on_clean_unchanged_exact_subjects() {
+    let fixture = FamilyFixture::new("#!/bin/sh\nexit 0\n");
+    let first = command(&fixture.args(&["check", "fast", "--json"]));
+    let second = command(&fixture.args(&["check", "fast", "--json"]));
+    assert_eq!(first.status.code(), Some(0));
+    assert_eq!(first.stdout, second.stdout);
+    assert!(first.stderr.is_empty());
+    let report: serde_json::Value = serde_json::from_slice(&first.stdout).unwrap();
+    assert_eq!(report["schema_version"], 2);
+    assert_eq!(report["tier"], "FAST");
+    assert_eq!(report["status"], "PASS");
+    let gates = report["gates"].as_array().unwrap();
+    assert_eq!(gates.len(), 7);
+    assert!(gates.iter().all(|gate| gate["status"] == "PASS"));
+    assert!(gates.iter().all(|gate| {
+        gate["subjects"].as_array().is_some_and(|subjects| {
+            !subjects.is_empty()
+                && subjects.iter().all(|subject| {
+                    subject["commit_oid"]
+                        .as_str()
+                        .is_some_and(|oid| oid.starts_with("sha1:"))
+                        && subject["tree_oid"]
+                            .as_str()
+                            .is_some_and(|oid| oid.starts_with("sha1:"))
+                })
+        })
+    }));
 }
 
 #[test]
-fn json_is_stable_sorted_and_every_selected_release_gate_is_blocked() {
+fn required_executes_components_but_retains_real_blockers() {
+    let fixture = FamilyFixture::new("#!/bin/sh\nexit 0\n");
+    let output = command(&fixture.args(&["check", "required", "--json"]));
+    assert_eq!(output.status.code(), Some(3));
+    assert!(output.stderr.is_empty());
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(report["status"], "BLOCKED");
+    let gates = report["gates"].as_array().unwrap();
+    assert_eq!(gates.len(), 8);
+    for id in ["required.demo-component", "required.family-contract"] {
+        let gate = gates.iter().find(|gate| gate["id"] == id).unwrap();
+        assert_eq!(gate["status"], "PASS");
+        assert_eq!(gate["subjects"].as_array().unwrap().len(), 4);
+    }
+    assert_eq!(
+        gates
+            .iter()
+            .filter(|gate| gate["status"] == "BLOCKED")
+            .count(),
+        6
+    );
+}
+
+#[test]
+fn dirty_or_mutated_subjects_never_pass() {
+    let dirty = FamilyFixture::new("#!/bin/sh\nexit 0\n");
+    write(&dirty.root.join("bullet-kernel/UNTRACKED"), "dirty\n");
+    let output = command(&dirty.args(&["check", "fast", "--json"]));
+    assert_eq!(output.status.code(), Some(3));
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert!(
+        report["gates"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|gate| { gate["id"] == "catalog.exact-subjects" && gate["status"] == "BLOCKED" })
+    );
+
+    let mutated = FamilyFixture::new("#!/bin/sh\ntouch CHECK_MUTATION\nexit 0\n");
+    let output = command(&mutated.args(&["check", "fast", "--json"]));
+    assert_eq!(output.status.code(), Some(1));
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert!(
+        report["gates"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|gate| { gate["id"] == "fast.kernel" && gate["status"] == "UNKNOWN" })
+    );
+}
+
+#[test]
+fn nonzero_command_is_fail_and_invalid_manifest_is_blocked() {
+    let failed = FamilyFixture::new("#!/bin/sh\nexit 7\n");
+    let output = command(&failed.args(&["check", "fast", "--json"]));
+    assert_eq!(output.status.code(), Some(1));
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let gate = report["gates"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|gate| gate["id"] == "fast.kernel")
+        .unwrap();
+    assert_eq!(gate["status"], "FAIL");
+    assert_eq!(gate["subjects"].as_array().unwrap().len(), 1);
+
+    let invalid = FamilyFixture::new("#!/bin/sh\nexit 0\n");
+    write(
+        &invalid.root.join("repos.manifest.toml"),
+        "required_repos = [\"bullet-farm\", \"bullet-farm\"]\n",
+    );
+    let output = command(&invalid.args(&["check", "fast", "--json"]));
+    assert_eq!(output.status.code(), Some(3));
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(report["gates"][0]["id"], "catalog.family-layout");
+    assert_eq!(report["gates"][0]["status"], "BLOCKED");
+}
+
+#[cfg(unix)]
+#[test]
+fn linked_git_metadata_is_blocked_before_execution() {
+    use std::os::unix::fs::symlink;
+
+    let fixture = FamilyFixture::new("#!/bin/sh\nexit 0\n");
+    let repo = fixture.root.join("bullet-kernel");
+    fs::rename(repo.join(".git"), repo.join(".git-real")).unwrap();
+    symlink(".git-real", repo.join(".git")).unwrap();
+    let output = command(&fixture.args(&["check", "fast", "--json"]));
+    assert_eq!(output.status.code(), Some(3));
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(report["gates"][0]["id"], "catalog.family-layout");
+    assert_eq!(report["gates"][0]["status"], "BLOCKED");
+}
+
+#[test]
+fn release_inventory_is_stable_sorted_and_blocked() {
     let first = command(&["check", "release", "--json"]);
     let second = command(&["check", "release", "--json"]);
     assert_eq!(first.status.code(), Some(3));
     assert_eq!(first.stdout, second.stdout);
     assert!(first.stderr.is_empty());
     let report: serde_json::Value = serde_json::from_slice(&first.stdout).unwrap();
-    assert_eq!(report["schema_version"], 1);
+    assert_eq!(report["schema_version"], 2);
     assert_eq!(report["command"], "check");
     assert_eq!(report["tier"], "RELEASE");
     assert_eq!(report["status"], "BLOCKED");
@@ -94,11 +296,7 @@ fn json_is_stable_sorted_and_every_selected_release_gate_is_blocked() {
 }
 
 #[test]
-fn required_is_blocked_and_arguments_are_strict() {
-    assert_eq!(
-        command(&["check", "required", "--json"]).status.code(),
-        Some(3)
-    );
+fn arguments_are_strict() {
     for args in [
         vec!["check"],
         vec!["check", "other"],

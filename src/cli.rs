@@ -61,8 +61,8 @@ fn execute_check(
     }
     let explicit_root = remove_root(&mut args)?;
     let current_dir = current_dir.map_err(CoordError::io)?;
-    crate::doctor::discover_hub(&current_dir, explicit_root.as_deref())?;
-    let execution = crate::check::run(&args[1..])?;
+    let hub = crate::doctor::discover_hub(&current_dir, explicit_root.as_deref())?;
+    let execution = crate::check::run(&hub, &args[1..])?;
     Ok(CliOutcome {
         output: execution.output()?,
         exit_code: execution.exit_code(),

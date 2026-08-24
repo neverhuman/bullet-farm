@@ -1,11 +1,15 @@
-//! Rust-owned check command foundation. Execution catalogs intentionally do not exist yet.
+//! Rust-owned, exact-subject local check catalogs.
 
+mod catalog;
+mod executor;
 mod prerequisites;
+mod subject;
 
 pub mod model;
 
 use crate::coord::CoordError;
 use model::{CheckReport, CheckTier};
+use std::path::Path;
 
 const USAGE: &str = "usage: bullet-family [--root PATH] check <fast|required|release> [--json]";
 
@@ -33,10 +37,9 @@ impl CheckExecution {
     }
 }
 
-pub fn run(args: &[String]) -> Result<CheckExecution, CoordError> {
+pub fn run(hub: &Path, args: &[String]) -> Result<CheckExecution, CoordError> {
     let (tier, json) = parse(args)?;
-    let report = prerequisites::report(tier)
-        .map_err(|error| CoordError::new(error.code(), error.to_string()))?;
+    let report = executor::report(hub, tier)?;
     Ok(CheckExecution { report, json })
 }
 
@@ -65,8 +68,8 @@ mod tests {
     #[test]
     fn parsing_is_exact() {
         for tier in ["fast", "required", "release"] {
-            assert!(run(&[tier.into()]).is_ok());
-            assert!(run(&[tier.into(), "--json".into()]).is_ok());
+            assert!(parse(&[tier.into()]).is_ok());
+            assert!(parse(&[tier.into(), "--json".into()]).is_ok());
         }
         for invalid in [
             vec![],
@@ -75,7 +78,7 @@ mod tests {
             vec!["fast".into(), "--json".into(), "--json".into()],
             vec!["--json".into(), "fast".into()],
         ] {
-            assert_eq!(run(&invalid).unwrap_err().code(), "USAGE");
+            assert_eq!(parse(&invalid).unwrap_err().code(), "USAGE");
         }
     }
 }
