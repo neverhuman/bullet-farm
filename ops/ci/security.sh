@@ -3,9 +3,12 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 cd "$REPO_ROOT"
 log "security lane"
-if command -v gitleaks >/dev/null 2>&1; then
-  gitleaks detect --source . --no-git --redact
-else
-  log "gitleaks not installed; skip (install for hosted CI)"
-fi
-log "security lane finished"
+for tool in gitleaks cargo-deny; do
+  command -v "$tool" >/dev/null 2>&1 || {
+    echo "[ci] missing required tool: $tool" >&2
+    exit 1
+  }
+done
+gitleaks detect --source . --no-git --redact --no-banner
+cargo deny check bans
+log "security lane passed"

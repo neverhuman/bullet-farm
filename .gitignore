@@ -1,5 +1,6 @@
 .fusion/
 .bullet-family/
+.jankurai/
 target/
 *.sqlite
 *.sqlite-wal

@@ -1,7 +1,9 @@
 name: ci
 
-# Hub only. Never compiles Rust and never installs Playwright.
-# Member PRs run in their own repos (path-filtered by repository boundary).
+# Thin hub workflow. Every job delegates to an ops/ci entrypoint used locally.
+# The hub compiles its Rust CLI and wire crate; member repositories run their
+# own workflows. Security/audit runners must provide the pinned external tools;
+# their absence fails closed. Third-party actions are pinned to full SHAs.
 
 on:
   push:
@@ -24,6 +26,10 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+      - uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b # pinned action
+        with:
+          toolchain: 1.95.0
+          components: rustfmt, clippy
       - name: Required
         run: bash scripts/ci-local.sh required
 
@@ -35,6 +41,9 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+      - uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b # pinned action
+        with:
+          toolchain: 1.95.0
       - name: Family lock
         run: bash scripts/ci-local.sh contract
 
@@ -47,3 +56,20 @@ jobs:
           persist-credentials: false
       - name: Security
         run: bash scripts/ci-local.sh security
+
+  audit:
+    name: jankurai-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Audit (ratcheted floor)
+        run: bash ops/ci/audit.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: repo-score
+          path: |
+            .jankurai/repo-score.json
+            .jankurai/repo-score.md
