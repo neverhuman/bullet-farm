@@ -32,18 +32,41 @@ just setup
 just demo
 ```
 
-`just demo` runs the first mandatory scenario against **simulators** (no live
-provider keys, no GitHub App):
+`just demo` runs a deterministic ledger simulator (no provider process, forge
+credential, or network effect). It demonstrates component behavior only:
 
 1. One Mission materializes once.
-2. Two independent planning proposals are fused into one provenance-preserving Plan.
-3. One Variant receives a never-reused fence.
-4. A stale duplicate Attempt cannot mutate state or create an Effect.
-5. Useful work survives process death.
-6. A Candidate is exact; a clean verifier emits qualifying Evidence.
-7. One protected integration is recorded with a read-back receipt.
+2. A released Variant receives a higher, never-reused fence on reacquisition.
+3. A stale Attempt is refused.
+4. Ambiguous effect execution remains `UNKNOWN`.
 
 Receipts print to the terminal and are written under `bullet-kernel/target/demo/`.
+
+`just demo-live` runs the same story end to end with real machinery: a
+planning council (claude and codex propose, cursor fuses with per-step
+provenance, failures degrade honestly), an idempotent Mission materialized
+from the fused plan's digest, fence 1 superseded with its stale heartbeat
+and token refused live, a fenced runner over a private clone written solely
+by bullet-gitd, a separate clean-room verifier that must report a typed E2
+PASS, and a candidate ref landed on a local bare forge through the durable
+effect broker with an independent read-back receipt. Live forges stay typed
+(`LIVE_FORGE_QUARANTINED`) until the operator re-auths — never painted
+green. `BULLET_PROVIDER=sim just demo-live` proves the identical path fully
+offline via the kernel's `demo-synthetic` scaffold. Live provider execution
+is default-denied mechanically; it runs only when the operator supplies the
+explicit `BULLET_LIVE_ADMISSION` token, and refuses with a typed
+`LIVE_ADMISSION_UNAVAILABLE` without it.
+
+Readiness is intentionally explicit:
+
+| Surface | Current meaning |
+| --- | --- |
+| Component tests | Individual lease, workspace, verifier, broker, and portal primitives |
+| `just demo` | Deterministic ledger simulation; not a five-plane transaction |
+| `bullet demo-synthetic` | Simulator-only integration scaffolding with `transaction_gate_eligible=false` |
+| `bullet demo-live` | The same path with real providers; default-denied unless the operator sets `BULLET_LIVE_ADMISSION`; receipt stays non-gating |
+| Transaction-ready | Not yet achieved; requires the signed Wave-4 offline receipt |
+| Production-ready | Not yet achieved; live providers and credentialed forges are quarantined |
 
 Then start the local control plane and portal:
 
@@ -125,8 +148,23 @@ just fast          # hub onboarding checks
 bash scripts/ci-local.sh required
 ```
 
+There is deliberately no `demo-live` command. Later proof entrypoints are
+`proof-transaction-offline`, `proof-transaction-jeryu`, and
+`proof-transaction-github`; they are unavailable until their prerequisite
+waves can emit independently verifiable signed receipts.
+
 Member repos use the same Jankurai shape: `AGENTS.md`, owner-map, test-map,
 generated zones, `ops/ci/*.sh`, and `just fast`.
+
+Concurrent agents claim exact repository-relative paths through the Rust coordinator:
+
+```bash
+just coord status --json --all
+just coord claim --agent codex-a --lane docs --repo bullet-farm --path docs
+```
+
+The coordinator keeps a locked append-only ledger at the discovered family root and rejects active
+path overlaps before product edits begin.
 
 Target stack: Rust control plane, TypeScript/React/Vite portal, SQLite WAL
 locally (PostgreSQL in team mode later), generated contracts. No Python

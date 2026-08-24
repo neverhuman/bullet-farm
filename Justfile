@@ -6,8 +6,14 @@ default:
 setup:
     bash scripts/setup.sh
 
+coord *args:
+    cargo run --locked --quiet --bin bullet-family -- coord {{args}}
+
 demo:
     bash scripts/demo.sh
+
+demo-live:
+    bash scripts/demo-live.sh
 
 fast:
     bash scripts/ci-local.sh fast

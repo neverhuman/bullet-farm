@@ -11,6 +11,7 @@ REQUIRED_README = [
     "Many minds. One verified line to main.",
     "just setup",
     "just demo",
+    "just demo-live",
     "What we will not claim",
     "Gastown",
     "BulletGit",
@@ -21,13 +22,18 @@ REQUIRED_FILES = [
     "AGENTS.md",
     "SPLIT.md",
     "Justfile",
+    "Cargo.toml",
+    "Cargo.lock",
     "repos.manifest.toml",
     "family.lock",
     "scripts/fuse.sh",
     "scripts/demo.sh",
+    "scripts/demo-live.sh",
     "scripts/check-path-deps.py",
     "ops/ci/family.sh",
     "docs/architecture/overview.md",
+    "src/main.rs",
+    "src/coord/store.rs",
 ]
 
 
