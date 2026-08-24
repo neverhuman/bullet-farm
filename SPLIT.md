@@ -1,6 +1,6 @@
 # bullet-farm
 
-Status: first-build split-family hub
+Status: pre-transaction split-family hub; not release-ready
 Owner: Bullet Farm maintainers
 Last reviewed: 2026-08-24
 Applies to: bullet-farm
@@ -8,17 +8,18 @@ Applies to: bullet-farm
 ## Role
 
 Public hub, installer, family manifest, lock, fusion script, onboarding, and
-Centerrail design corpus.
+historical Centerrail design provenance.
 
 ## Repositories
 
-- Local authoritative repo: `root/bullet-farm`
-- Public mirror target: `neverhuman/bullet-farm`
+- Initial source authority: Jeryu repository `root/bullet-farm`
+- Public GitHub mirror: not configured; no namespace is assumed
 - Release tag pattern: `bullet-farm-v0.1.0-split.0`
 
 ## Split Rules
 
-- Jeryu remains the local forge; GitHub is the public mirror.
+- Jeryu is the initial source forge; GitHub is a configurable effect adapter,
+  not source authority.
 - Release builds depend on immutable tags, not branches.
 - Local development uses `scripts/fuse.sh` output under `.fusion/`.
 - Committed manifests must not depend on sibling checkout paths.

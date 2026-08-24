@@ -4,10 +4,11 @@ Standard version: `0.9.0`
 Target stack: Rust core, TypeScript/React/Vite product surface, SQLite local
 truth (PostgreSQL later), generated contracts. No Python product truth.
 
-Read the family copy of the operating standard before editing:
-
-- `/home/ubuntu/jankurai-split/jankurai-standard/docs/agent-native-standard.md`
-- `/home/ubuntu/jankurai-split/jankurai-standard/docs/audit-rubric.md`
+The repository binding is this file plus `agent/standard-version.toml`,
+`agent/owner-map.json`, `agent/test-map.json`, and
+`agent/generated-zones.toml`. An installed auditor may expose its full
+operating standard through `jankurai doctor`; never commit a machine-local
+auditor checkout path as public project authority.
 
 Hard rules for this repository:
 

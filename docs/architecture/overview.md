@@ -19,5 +19,7 @@ Three sovereign truths:
 
 The portal is a projection. It is never an authority source.
 
-See `docs/spec/` for the Centerrail design contract, the Gastown risk audit,
-the BulletGit note, and the IEEE paper abstract.
+See `docs/spec/` for historical Centerrail design provenance, the Gastown risk
+audit, the BulletGit note, and the IEEE paper abstract. Those documents explain
+the design lineage; generated contracts and the Kernel ledger are runtime
+authority.
