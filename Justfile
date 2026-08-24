@@ -21,8 +21,23 @@ check:
 contract:
     bash scripts/ci-local.sh contract
 
+family-contract:
+    bash scripts/ci-local.sh family-contract
+
+contract-generate:
+    cargo run --locked --quiet -p bullet-wire --bin bullet-contract -- generate --root .
+
+contract-check:
+    cargo run --locked --quiet -p bullet-wire --bin bullet-contract -- check --root .
+
+model-check:
+    bash formal/model-check.sh
+
 security:
     bash scripts/ci-local.sh security
+
+audit:
+    bash scripts/ci-local.sh audit
 
 family:
     bash scripts/ci-local.sh family
