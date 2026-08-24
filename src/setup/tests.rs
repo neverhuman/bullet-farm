@@ -176,6 +176,50 @@ fn signed_local_family_installs_twice_without_drift() {
     fs::remove_dir_all(fixture).expect("remove signed fixture");
 }
 
+#[test]
+fn missing_tool_authority_blocks_signed_setup_before_install_mutation() {
+    let fixture = fixture_root("missing-tool-authority");
+    let sources = fixture.join("sources");
+    let install_root = fixture.join("install");
+    let home = fixture.join("home");
+    fs::create_dir(&sources).expect("source root");
+    fs::create_dir(&install_root).expect("install root");
+    fs::create_dir(&home).expect("fresh HOME");
+    let signing_key = create_signing_key(&fixture);
+    create_source_family(&sources, &home, &signing_key);
+
+    let hub = install_root.join("bullet-farm");
+    clone_repository(sources.join("bullet-farm").as_os_str(), &hub, true)
+        .expect("clone signed hub");
+    test_git(&hub, &home, &["checkout", "--detach", "--force", TAG]);
+    fs::create_dir(hub.join("scripts")).expect("hub scripts marker");
+    fs::write(
+        hub.join("Cargo.toml"),
+        "[package]\nname = \"fixture-hub\"\nversion = \"0.0.0\"\n",
+    )
+    .expect("hub Cargo marker");
+    fs::write(hub.join("scripts/setup.sh"), "#!/bin/sh\nexit 1\n").expect("hub setup marker");
+
+    let error = run(
+        &hub,
+        None,
+        &[
+            "--root".into(),
+            install_root.to_string_lossy().into_owned(),
+            "--source".into(),
+            "jeryu".into(),
+        ],
+    )
+    .expect_err("missing explicit tool authority must block setup");
+    assert_eq!(error.code(), "SETUP_TOOL_MISSING");
+    for member in ["bullet-kernel", "bullet-git", "bullet-portal"] {
+        assert!(!install_root.join(member).exists(), "created {member}");
+    }
+    assert!(!install_root.join("repos.manifest.toml").exists());
+    assert_no_staging(&install_root);
+    fs::remove_dir_all(fixture).expect("remove missing tool fixture");
+}
+
 struct LocalTransport {
     sources: PathBuf,
     clone_count: Cell<usize>,

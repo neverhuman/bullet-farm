@@ -6,7 +6,7 @@ use crate::coord::{
     discover_family_root, unix_millis,
 };
 
-const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu [--offline]|checkout verify|hub check|deps check|lock <generate|check> --tag VERSION|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]>";
+const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|checkout verify|hub check|deps check|lock <generate|check> --tag VERSION|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]>";
 
 pub fn run(
     args: impl IntoIterator<Item = OsString>,

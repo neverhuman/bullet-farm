@@ -1,5 +1,6 @@
 //! Fail-closed installation of the exact family described by `family.lock`.
 
+mod args;
 mod command;
 
 use std::{
@@ -18,18 +19,12 @@ use crate::{
     coord::CoordError,
     family_lock::{self, FamilyLock, LockedMember},
 };
-use command::{run_git, run_tool};
+use args::parse_args;
+use command::{SetupEnvironment, Toolchain, run_git};
 
-const USAGE: &str = "usage: bullet-family setup --root PATH --source jeryu [--offline]";
 const GIT_BIN: &str = "/usr/bin/git";
 const BASH_BIN: &str = "/bin/bash";
 const STAGING_PREFIX: &str = ".bullet-family-setup.";
-
-#[derive(Debug)]
-struct SetupArgs {
-    root: PathBuf,
-    offline: bool,
-}
 
 pub fn run(
     current_dir: &Path,
@@ -53,6 +48,12 @@ pub fn run(
         ));
     }
     let lock = family_lock::load(&hub_root.join("family.lock"))?;
+    let toolchain = Toolchain::admit(
+        options.cargo_bin.as_deref(),
+        options.node_bin.as_deref(),
+        options.npm_cli.as_deref(),
+    )?;
+    let environment = SetupEnvironment::create(&family_root, &toolchain)?;
     install(
         &family_root,
         &hub_root,
@@ -60,7 +61,13 @@ pub fn run(
         options.offline,
         &JeryuTransport,
     )?;
-    install_dependencies(&family_root, &hub_root, options.offline)?;
+    install_dependencies(
+        &family_root,
+        &hub_root,
+        options.offline,
+        &toolchain,
+        &environment,
+    )?;
     verify_family(&family_root, &hub_root, &lock)?;
     Ok(format!(
         "setup complete: {} members at {}",
@@ -80,44 +87,6 @@ fn require_setup_containment() -> Result<(), CoordError> {
         "UNSUPPORTED_PLATFORM_CONTAINMENT",
         "setup cannot mutate on this platform until process-tree termination and atomic no-replace publication have equivalent release evidence",
     ))
-}
-
-fn parse_args(explicit_root: Option<&str>, args: &[String]) -> Result<SetupArgs, CoordError> {
-    let mut root = explicit_root.map(PathBuf::from);
-    let mut source = None;
-    let mut offline = false;
-    let mut index = 0;
-    while index < args.len() {
-        match args[index].as_str() {
-            "--offline" if !offline => {
-                offline = true;
-                index += 1;
-            }
-            "--root" | "--source" => {
-                let option = args[index].as_str();
-                let value = args.get(index + 1).ok_or_else(|| {
-                    CoordError::new("MISSING_VALUE", format!("{option} needs a value"))
-                })?;
-                match option {
-                    "--root" if root.is_none() => root = Some(PathBuf::from(value)),
-                    "--source" if source.is_none() => source = Some(value.clone()),
-                    _ => return Err(CoordError::new("DUPLICATE_OPTION", USAGE)),
-                }
-                index += 2;
-            }
-            _ => return Err(CoordError::new("USAGE", USAGE)),
-        }
-    }
-    if source.as_deref() != Some("jeryu") {
-        return Err(CoordError::new(
-            "UNSUPPORTED_SOURCE",
-            "--source jeryu is required; no branch or sibling-path source is permitted",
-        ));
-    }
-    Ok(SetupArgs {
-        root: root.ok_or_else(|| CoordError::new("MISSING_OPTION", "--root is required"))?,
-        offline,
-    })
 }
 
 fn canonical_family_root(root: &Path) -> Result<PathBuf, CoordError> {
@@ -361,6 +330,8 @@ fn install_dependencies(
     family_root: &Path,
     hub_root: &Path,
     offline: bool,
+    toolchain: &Toolchain,
+    environment: &SetupEnvironment,
 ) -> Result<(), CoordError> {
     for repo in [
         hub_root.to_path_buf(),
@@ -371,17 +342,16 @@ fn install_dependencies(
         if offline {
             args.push("--offline");
         }
-        run_tool(&repo, "cargo", &args)?;
+        toolchain.run_cargo(&repo, &args, environment)?;
     }
     let portal = family_root.join("bullet-portal");
     let mut npm_args = vec!["ci", "--ignore-scripts", "--no-audit", "--no-fund"];
     if offline {
         npm_args.push("--offline");
     }
-    run_tool(&portal, "npm", &npm_args)?;
-    run_tool(
+    toolchain.run_npm(&portal, &npm_args, environment)?;
+    toolchain.run_cargo(
         hub_root,
-        "cargo",
         &[
             "run",
             "--locked",
@@ -395,10 +365,10 @@ fn install_dependencies(
             "--root",
             ".",
         ],
+        environment,
     )?;
-    run_tool(
+    toolchain.run_cargo(
         &family_root.join("bullet-kernel"),
-        "cargo",
         &[
             "run",
             "--locked",
@@ -409,11 +379,12 @@ fn install_dependencies(
             "contracts",
             "check",
         ],
+        environment,
     )?;
-    run_tool(
+    toolchain.run_bash(
         hub_root,
-        BASH_BIN,
         &["scripts/sync-family-contracts.sh", "check"],
+        environment,
     )
 }
 

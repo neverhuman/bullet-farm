@@ -93,6 +93,12 @@ The release installer starts from a hub-only clone and must:
 8. be idempotent; and
 9. leave exact clean member OIDs and zero tracked changes after two runs in a fresh home.
 
+`scripts/setup.sh` is a source-development bootstrap convenience: it must launch Cargo before the
+Rust admission boundary exists, so running it is not authenticated installer or release evidence.
+Release installation requires a signed prebuilt `bullet-family` binary whose release manifest and
+checksums have been verified. Before any mutation, that binary must bind the canonical absolute Cargo,
+Node, and npm CLI subjects it admits.
+
 The Rust setup/checkout mechanism and its signed local four-repository fixture implement these
 rules, including two idempotent core installs with exact clean ordinary clones. All production Git,
 tool, doctor, and coordination children use bounded capture; Unix timeout and output-flood tests
