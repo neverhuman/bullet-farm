@@ -25,6 +25,8 @@ REQUIRED_FILES = [
     "family.lock",
     "scripts/fuse.sh",
     "scripts/demo.sh",
+    "scripts/check-path-deps.py",
+    "ops/ci/family.sh",
     "docs/architecture/overview.md",
 ]
 

@@ -16,6 +16,8 @@ need node
 need npm
 need python3
 need git
+need rustup
+need just
 
 rustup component add rustfmt clippy >/dev/null
 
@@ -25,6 +27,7 @@ echo "fetching rust crates"
 
 echo "installing portal dependencies"
 (cd "$FAMILY/bullet-portal" && npm install --no-fund --no-audit)
+(cd "$FAMILY/bullet-portal" && npx playwright install chromium)
 
 echo "generating portal client from kernel contract"
 python3 "$FAMILY/bullet-kernel/scripts/generate-types.py"

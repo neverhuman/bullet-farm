@@ -4,12 +4,20 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-SOURCE="${1:-local}"
-if [[ "${1:-}" == "--source" ]]; then
-  SOURCE="${2:-local}"
-fi
+SOURCE="local"
+ALL=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --source) SOURCE="${2:?--source requires a value}"; shift 2 ;;
+    --all)    ALL=1; shift ;;
+    --*)      echo "unknown flag: $1" >&2; exit 2 ;;
+    *)        SOURCE="$1"; shift ;;
+  esac
+done
+export ALL
 
 ROOT="$(cd .. && pwd)"
+python3 scripts/check-path-deps.py
 OUT=".fusion"
 rm -rf "$OUT"
 mkdir -p "$OUT"

@@ -22,8 +22,12 @@
       "purpose": "verify local CI parity scripts"
     },
     "scripts/": {
-      "command": "just fast",
+      "command": "just check",
       "purpose": "verify fuse and onboarding scripts"
+    },
+    ".github/": {
+      "command": "bash scripts/ci-local.sh required",
+      "purpose": "prove hosted lanes match local scripts"
     }
   }
 }

@@ -11,6 +11,7 @@
     "agent/": "agent",
     "docs/": "docs",
     "ops/": "ops",
-    "scripts/": "ops"
+    "scripts/": "ops",
+    ".github/": "ops"
   }
 }

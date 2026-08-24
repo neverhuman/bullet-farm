@@ -15,6 +15,15 @@ fast:
 check:
     bash scripts/ci-local.sh required
 
+contract:
+    bash scripts/ci-local.sh contract
+
+security:
+    bash scripts/ci-local.sh security
+
+family:
+    bash scripts/ci-local.sh family
+
 verify: check
 
 farmd:
