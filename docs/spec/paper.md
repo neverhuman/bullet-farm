@@ -1,17 +1,23 @@
-# Bullet Farm — IEEE White Paper
+# Bullet Farm — IEEE white-paper record
 
-Completed as a formal **11-page IEEE two-column paper** with **55 references** and approximately **7,250 words**:
+Status: **historical summary; non-authoritative**  
+Artifact availability: **the PDF, TeX, bibliography, and ZIP are not distributed by this repository**
+
+This page records a separately produced **11-page IEEE two-column paper** with
+**55 references** and approximately **7,250 words**:
 
 > **Bullet Farm: A Transactional Multi-Frontier Architecture for Verified Autonomous Software Engineering**
 
 The paper preserves the proposal’s defining contract—immutable planning, isolated writable attempts, permanent fencing, exact-Candidate evidence, protected delivery, and post-integration survival—while incorporating the subsequent lineage, independent-verification, sandbox, provider-governance, and external-effect corrections.  
 
-## Deliverables
+## Artifact record
 
-* [Download the complete IEEE paper — PDF](sandbox:/mnt/data/bullet_farm_ieee_release/bullet_farm_ieee_whitepaper.pdf)
-* [Download the complete IEEE LaTeX source — TEX](sandbox:/mnt/data/bullet_farm_ieee_release/bullet_farm_ieee_whitepaper.tex)
-* [Download the complete bibliography — BibTeX](sandbox:/mnt/data/bullet_farm_ieee_release/bullet_farm_refs.bib)
-* [Download the complete source package — ZIP](sandbox:/mnt/data/bullet_farm_ieee_release.zip)
+Earlier working material linked four machine-local `sandbox:` paths. Those
+paths were never portable repository artifacts and have been removed. The
+recorded hashes below are retained as historical metadata, not as verification
+of files present in this checkout. A future publication must add the actual
+files through the release process, verify them against their declared hashes,
+and provide stable repository or release links.
 
 ## What the paper contains
 
@@ -113,7 +119,7 @@ Final artifact checks included:
 * validated wide tables and the five-plane architecture figure;
 * PDF preflight confirming a readable, unencrypted, non-scanned document.
 
-### Release hashes
+### Historically recorded hashes
 
 ```text
 PDF:
@@ -130,4 +136,3 @@ ZIP:
 ```
 
 [1]: https://developers.openai.com/codex/cli "https://developers.openai.com/codex/cli"
-
