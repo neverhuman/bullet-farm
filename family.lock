@@ -1,21 +1,36 @@
-# Generated pin file for the Bullet Farm split family.
-# Source: repos.manifest.toml. Regenerate with scripts/fuse.sh after a release.
-schema_version = "1"
+schema_version = "2"
 family = "bullet-farm"
-tag = "bullet-farm-v0.1.0-split.0"
+tag = "v0.1.0-alpha.2"
+schema_bundle_hash = "blake3:c7240e1644dfdfe59b2f19fccd897417093971616d562d5bb2e2bfafaddeb3c7"
 
 [[member]]
 name = "bullet-farm"
-tag = "bullet-farm-v0.1.0-split.0"
+tag = "v0.1.0-alpha.2"
+commit_oid = "9786458854fb52a2c68737c991a1ed62a33f7885"
+schema_bundle_hash = "blake3:c7240e1644dfdfe59b2f19fccd897417093971616d562d5bb2e2bfafaddeb3c7"
+release_signing_identity = "bot@jekko.ai|ed25519|SHA256:+FbqtZF+hPgrjJRh5Oq5gNUKUmtCykur2ZEUKAFRv+Y"
+generated_client_hash = "blake3:7c32a710809167c6af53cbc6c1fb6bf1a474b04abf2833369407c97a1607365c"
 
 [[member]]
 name = "bullet-kernel"
-tag = "bullet-kernel-v0.1.0-split.0"
+tag = "v0.1.0-alpha.2"
+commit_oid = "90ffb7eab1b50aae8b48e143b2f9fe50891b21f4"
+schema_bundle_hash = "blake3:c7240e1644dfdfe59b2f19fccd897417093971616d562d5bb2e2bfafaddeb3c7"
+release_signing_identity = "bot@jekko.ai|ed25519|SHA256:+FbqtZF+hPgrjJRh5Oq5gNUKUmtCykur2ZEUKAFRv+Y"
+generated_client_hash = "blake3:244fe449462b88563f49731f448c71bed4730fc02a11a19245001a4cb6d60355"
 
 [[member]]
 name = "bullet-git"
-tag = "bullet-git-v0.1.0-split.0"
+tag = "v0.1.0-alpha.2"
+commit_oid = "24901b327985abc162375834c593052505453d86"
+schema_bundle_hash = "blake3:c7240e1644dfdfe59b2f19fccd897417093971616d562d5bb2e2bfafaddeb3c7"
+release_signing_identity = "bot@jekko.ai|ed25519|SHA256:+FbqtZF+hPgrjJRh5Oq5gNUKUmtCykur2ZEUKAFRv+Y"
+generated_client_hash = "blake3:7c32a710809167c6af53cbc6c1fb6bf1a474b04abf2833369407c97a1607365c"
 
 [[member]]
 name = "bullet-portal"
-tag = "bullet-portal-v0.1.0-split.0"
+tag = "v0.1.0-alpha.2"
+commit_oid = "4101d69e4fb945df527a37d7c4740536925e8e95"
+schema_bundle_hash = "blake3:c7240e1644dfdfe59b2f19fccd897417093971616d562d5bb2e2bfafaddeb3c7"
+release_signing_identity = "bot@jekko.ai|ed25519|SHA256:+FbqtZF+hPgrjJRh5Oq5gNUKUmtCykur2ZEUKAFRv+Y"
+generated_client_hash = "blake3:fcd3e7286cdeaeaf48d2576ebc2bc24d7dcc47991175da89928fa0acf24c1287"
