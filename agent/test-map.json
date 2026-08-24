@@ -1,0 +1,29 @@
+{
+  "workspace": "bullet-farm",
+  "tests": {
+    "AGENTS.md": {
+      "command": "just fast",
+      "purpose": "verify root routing remains visible"
+    },
+    "README.md": {
+      "command": "just fast",
+      "purpose": "verify the public onboarding page stays complete"
+    },
+    "agent/": {
+      "command": "just fast",
+      "purpose": "verify manifests remain parseable"
+    },
+    "docs/": {
+      "command": "just fast",
+      "purpose": "verify spec corpus and architecture docs remain routed"
+    },
+    "ops/": {
+      "command": "just fast",
+      "purpose": "verify local CI parity scripts"
+    },
+    "scripts/": {
+      "command": "just fast",
+      "purpose": "verify fuse and onboarding scripts"
+    }
+  }
+}

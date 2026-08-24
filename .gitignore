@@ -1,0 +1,6 @@
+.fusion/
+target/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+.DS_Store

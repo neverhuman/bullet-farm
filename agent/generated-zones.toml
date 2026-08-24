@@ -1,0 +1,10 @@
+# Generated artifacts that must be repaired from their source, never hand-edited.
+[[zone]]
+path = "family.lock"
+source = "scripts/fuse.sh"
+owner = "ops"
+
+[[zone]]
+path = ".fusion/"
+source = "scripts/fuse.sh"
+owner = "ops"

@@ -1,0 +1,21 @@
+# Generated pin file for the Bullet Farm split family.
+# Source: repos.manifest.toml. Regenerate with scripts/fuse.sh after a release.
+schema_version = "1"
+family = "bullet-farm"
+tag = "bullet-farm-v0.1.0-split.0"
+
+[[member]]
+name = "bullet-farm"
+tag = "bullet-farm-v0.1.0-split.0"
+
+[[member]]
+name = "bullet-kernel"
+tag = "bullet-kernel-v0.1.0-split.0"
+
+[[member]]
+name = "bullet-git"
+tag = "bullet-git-v0.1.0-split.0"
+
+[[member]]
+name = "bullet-portal"
+tag = "bullet-portal-v0.1.0-split.0"
