@@ -25,16 +25,17 @@ pull request is never release evidence by itself. `UNKNOWN`, timeout, zero
 tests, unsupported, skipped, flaky, or infrastructure error never equals
 `VERIFIED`.
 
-## Release profiles
+## Deployment stages
 
-| Profile | Required conformant providers | Additional requirement |
+| Stage | Required baseline | Additional requirement |
 | --- | --- | --- |
-| Core GA | Claude and Codex | Exact offline transaction plus Jeryu and GitHub effect receipts |
-| Safety-Complete V1 | Claude, Codex, Cursor, and Antigravity | Every provider has a version/profile-specific conformance receipt |
+| Self-hosted single host | Exact offline transaction and one separately admitted low-cost provider canary | Local Jeryu protected integration plus the Wave 5 install, recovery, security, and release gates |
+| GitHub adapter | Self-hosted production baseline | Separately certified exact-subject GitHub effect, check, integration, read-back, and reconciliation receipts |
+| Distributed team mode | Self-hosted production baseline | PostgreSQL and workload-mTLS conformance plus the Wave 10 partition, failover, freeze, and restore gates |
 
-Cursor or Antigravity instability cannot be hidden inside a generic provider
-badge. It blocks the Safety-Complete profile but does not rewrite Core-GA
-evidence.
+Multi-tenant SaaS is outside this roadmap. A provider/model/adapter/profile is
+eligible only under its own exact, unexpired certification; one provider's
+receipt never certifies another provider or profile.
 
 ## Current hard blockers
 
@@ -46,7 +47,7 @@ evidence.
 | Offline five-plane proof | `BLOCKED` | One signed `TRANSACTION_PROOF` covering authority, runner death/salvage, independent verification, ambiguous-effect reconciliation, protected integration, preservation, and truthful portal projection |
 | Jeryu live effect | `BLOCKED` | Operator-restored authentication and read-back/reconciliation receipt; the running forge must not be modified to work around missing capability |
 | GitHub live effect | `BLOCKED` | Configured GitHub App test repository and exact-subject integration/reconciliation receipt |
-| Provider conformance | `BLOCKED` | Claude, Codex, Cursor, and Antigravity isolation, canary-secret, malformed/crash/cancel/timeout, quota, and exact-patch receipts at pinned versions |
+| Provider conformance | `BLOCKED` | Isolation, canary-secret, malformed/crash/cancel/timeout, quota, and exact-patch receipts for every provider/model/adapter/profile selected for activation |
 | Security quality | `BLOCKED` | Jankurai at least 90 with zero caps/hard findings, plus pinned secret, dependency, license, workflow, and generated-drift gates |
 | Release supply chain | `BLOCKED` | Reproducible archives, SBOM, checksums, signatures, provenance, installer smoke, and final non-circular signed release manifest |
 | Platform containment | `BLOCKED` | Linux production containment plus fail-closed proof on every other packaged platform until an equivalent native backend passes |

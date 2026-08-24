@@ -13,7 +13,8 @@ belongs under `Unreleased`.
 - Rust family coordination, lock verification, doctor, hub validation, and
   repository-path dependency checks.
 - Explicit component, synthetic, transaction, live, and release evidence
-  classes with separate Core-GA and Safety-Complete profiles.
+  classes with self-hosted, separately certified GitHub, and later distributed
+  deployment stages.
 
 ### Security
 

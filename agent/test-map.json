@@ -9,6 +9,10 @@
       "command": "just fast",
       "purpose": "verify the public onboarding page stays complete"
     },
+    "CHANGELOG.md": {
+      "command": "just audit",
+      "purpose": "verify release language remains evidence-backed and honestly blocked"
+    },
     "agent/": {
       "command": "just fast",
       "purpose": "verify manifests remain parseable"
@@ -16,6 +20,10 @@
     "docs/": {
       "command": "just fast",
       "purpose": "verify spec corpus and architecture docs remain routed"
+    },
+    "docs/release.md": {
+      "command": "just audit",
+      "purpose": "verify the public release contract remains evidence-backed and fail-closed"
     },
     "contracts/": {
       "command": "just contract-check",
