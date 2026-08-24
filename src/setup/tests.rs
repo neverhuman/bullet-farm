@@ -6,9 +6,10 @@ use std::{
 };
 
 use super::*;
+use crate::checkout::verify_family;
 
-const TAG: &str = "v1.0.0";
-const MEMBERS: [&str; 4] = [
+pub(super) const TAG: &str = "v1.0.0";
+pub(super) const MEMBERS: [&str; 4] = [
     "bullet-farm",
     "bullet-kernel",
     "bullet-git",
@@ -220,9 +221,9 @@ fn missing_tool_authority_blocks_signed_setup_before_install_mutation() {
     fs::remove_dir_all(fixture).expect("remove missing tool fixture");
 }
 
-struct LocalTransport {
-    sources: PathBuf,
-    clone_count: Cell<usize>,
+pub(super) struct LocalTransport {
+    pub(super) sources: PathBuf,
+    pub(super) clone_count: Cell<usize>,
 }
 
 impl CloneTransport for LocalTransport {
@@ -254,7 +255,7 @@ impl CloneTransport for LocalTransport {
     }
 }
 
-fn create_source_family(root: &Path, home: &Path, signing_key: &Path) {
+pub(super) fn create_source_family(root: &Path, home: &Path, signing_key: &Path) {
     for member in MEMBERS {
         let repo = root.join(member);
         fs::create_dir(&repo).expect("member directory");
@@ -302,6 +303,7 @@ fn write_member_files(repo: &Path, member: &str) {
     )
     .expect("generated zones");
     fs::write(repo.join("generated/out.txt"), format!("{member}\n")).expect("artifact");
+    fs::write(repo.join(".gitignore"), "target/\nnode_modules/\n").expect("ignored tool outputs");
     if member == "bullet-portal" {
         fs::write(repo.join("package-lock.json"), "{}\n").expect("npm lock");
     } else {
@@ -353,7 +355,7 @@ fn write_rich_manifest(root: &Path) {
     fs::write(root.join("repos.manifest.toml"), text).expect("rich manifest");
 }
 
-fn create_signing_key(root: &Path) -> PathBuf {
+pub(super) fn create_signing_key(root: &Path) -> PathBuf {
     let key = root.join("signing");
     let status = Command::new("/usr/bin/ssh-keygen")
         .args(["-q", "-t", "ed25519", "-N", "", "-f"])
@@ -364,7 +366,7 @@ fn create_signing_key(root: &Path) -> PathBuf {
     key
 }
 
-fn installed_heads(root: &Path, home: &Path) -> Vec<String> {
+pub(super) fn installed_heads(root: &Path, home: &Path) -> Vec<String> {
     MEMBERS
         .iter()
         .map(|member| {
@@ -379,7 +381,7 @@ fn installed_heads(root: &Path, home: &Path) -> Vec<String> {
         .collect()
 }
 
-fn assert_no_staging(root: &Path) {
+pub(super) fn assert_no_staging(root: &Path) {
     let leftovers = fs::read_dir(root)
         .expect("family root")
         .filter_map(Result::ok)
@@ -389,7 +391,7 @@ fn assert_no_staging(root: &Path) {
     assert!(leftovers.is_empty(), "staging leftovers: {leftovers:?}");
 }
 
-fn test_git(repo: &Path, home: &Path, args: &[&str]) {
+pub(super) fn test_git(repo: &Path, home: &Path, args: &[&str]) {
     let output = git_command(repo, home, args).output().expect("run Git");
     assert!(
         output.status.success(),
@@ -422,7 +424,7 @@ fn git_command(repo: &Path, home: &Path, args: &[&str]) -> Command {
     command
 }
 
-fn fixture_root(name: &str) -> PathBuf {
+pub(super) fn fixture_root(name: &str) -> PathBuf {
     let root = std::env::temp_dir().join(format!("bullet-setup-{name}-{}", std::process::id()));
     if root.exists() {
         fs::remove_dir_all(&root).expect("remove stale fixture");
