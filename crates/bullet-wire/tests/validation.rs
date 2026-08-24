@@ -100,8 +100,8 @@ fn actual_scope_cannot_exceed_grant() {
     );
 }
 
-fn bullet_wire_test_candidate() -> bullet_wire::CandidateManifest {
-    bullet_wire::CandidateManifest {
+fn bullet_wire_test_candidate() -> bullet_wire::ComponentCandidateManifest {
+    bullet_wire::ComponentCandidateManifest {
         schema_version: SCHEMA_VERSION,
         repository_id: id("rep_", '1'),
         change_id: id("chg_", '2'),

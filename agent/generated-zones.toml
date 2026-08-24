@@ -8,3 +8,48 @@ owner = "ops"
 path = ".fusion/"
 source = "scripts/fuse.sh"
 owner = "ops"
+
+[[zone]]
+path = "contracts/v1alpha1/schema-bundle.json"
+source = "contracts/v1alpha1/contract-catalog.json"
+owner = "contracts"
+
+[[zone]]
+path = "contracts/v1alpha1/bundle-manifest.json"
+source = "contracts/v1alpha1/contract-catalog.json"
+owner = "contracts"
+
+[[zone]]
+path = "contracts/generated/"
+source = "contracts/v1alpha1/contract-catalog.json + policy/v1alpha1/invariant-registry.json + policy/v1alpha1/policy-template.json"
+owner = "contracts"
+
+[[zone]]
+path = "policy/v1alpha1/policy.json"
+source = "policy/v1alpha1/policy-template.json + policy/v1alpha1/invariant-registry.json + contracts/v1alpha1/contract-catalog.json"
+owner = "policy"
+
+[[zone]]
+path = "fixtures/hostile/cases/"
+source = "crates/bullet-wire/src/contract_tool.rs"
+owner = "contracts"
+
+[[zone]]
+path = "fixtures/hostile/fixture-manifest.json"
+source = "fixtures/hostile/team-original.bin"
+owner = "contracts"
+
+[[zone]]
+path = "fixtures/canonical/canonical-golden.json"
+source = "crates/bullet-wire/src/contract_tool.rs"
+owner = "contracts"
+
+[[zone]]
+path = "docs/assurance/invariant-crosswalk.generated.md"
+source = "policy/v1alpha1/invariant-registry.json"
+owner = "policy"
+
+[[zone]]
+path = "formal/traces/"
+source = "formal/LeaseFence.tla + formal/LeaseFence.cfg + formal/EffectCheck.tla + formal/EffectCheck.cfg"
+owner = "contracts"

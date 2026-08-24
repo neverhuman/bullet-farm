@@ -1,8 +1,8 @@
 use std::str::FromStr;
 
 use bullet_wire::{
-    Blake3Digest, CandidateId, CandidateManifest, ChangeId, CheckpointId, ContentId, GitOid,
-    GraphRevisionId, PlanRevisionId, RepoPath, RepositoryId, SCHEMA_VERSION, VariantId,
+    Blake3Digest, CandidateId, ChangeId, CheckpointId, ComponentCandidateManifest, ContentId,
+    GitOid, GraphRevisionId, PlanRevisionId, RepoPath, RepositoryId, SCHEMA_VERSION, VariantId,
     WorkPackageId, canonical_json, hash_canonical,
 };
 
@@ -19,8 +19,8 @@ where
         .unwrap()
 }
 
-fn candidate() -> CandidateManifest {
-    CandidateManifest {
+fn candidate() -> ComponentCandidateManifest {
+    ComponentCandidateManifest {
         schema_version: SCHEMA_VERSION,
         repository_id: id::<RepositoryId>("rep_", '1'),
         change_id: id::<ChangeId>("chg_", '2'),

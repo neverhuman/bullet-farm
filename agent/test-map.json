@@ -17,9 +17,21 @@
       "command": "just fast",
       "purpose": "verify spec corpus and architecture docs remain routed"
     },
+    "contracts/": {
+      "command": "just contract-check",
+      "purpose": "reject canonical schema-bundle and generated binding drift"
+    },
     "crates/": {
       "command": "cargo test --locked -p bullet-wire",
       "purpose": "prove canonical cross-repository wire identities and encodings"
+    },
+    "fixtures/": {
+      "command": "cargo test --locked -p bullet-wire --test canonical_hostile --test policy_registry",
+      "purpose": "prove hostile byte refusal and forensic source preservation"
+    },
+    "formal/": {
+      "command": "just model-check",
+      "purpose": "check exactly two pinned bounded models and their locked state counts"
     },
     "ops/": {
       "command": "just fast",
@@ -28,6 +40,10 @@
     "release/": {
       "command": "cargo test --locked",
       "purpose": "verify release signer and family-lock policy"
+    },
+    "policy/": {
+      "command": "cargo test --locked -p bullet-wire --test policy_registry",
+      "purpose": "prove strict policy decoding, registry completeness, and offline safety"
     },
     "scripts/": {
       "command": "just check",
@@ -40,6 +56,10 @@
     "tests/": {
       "command": "cargo test --locked",
       "purpose": "verify coordination races and fail-closed behavior"
+    },
+    "tests/doctor.rs": {
+      "command": "cargo test --locked --test doctor",
+      "purpose": "prove standalone-hub diagnosis remains read-only and fail-closed"
     },
     "Cargo.toml": {
       "command": "cargo test --locked",

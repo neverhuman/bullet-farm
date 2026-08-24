@@ -81,6 +81,21 @@ pub fn hash_canonical<T: Serialize>(
     domain: &'static str,
     value: &T,
 ) -> Result<Blake3Digest, WireError> {
+    validate_domain(domain)?;
+    let canonical = canonical_json(value)?;
+    hash_framed_bytes(domain, &canonical)
+}
+
+pub fn hash_framed_bytes(domain: &'static str, bytes: &[u8]) -> Result<Blake3Digest, WireError> {
+    validate_domain(domain)?;
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"bullet-wire.v1\0");
+    frame(&mut hasher, domain.as_bytes());
+    frame(&mut hasher, bytes);
+    Ok(Blake3Digest::from_bytes(*hasher.finalize().as_bytes()))
+}
+
+fn validate_domain(domain: &str) -> Result<(), WireError> {
     if domain.is_empty()
         || !domain
             .bytes()
@@ -91,12 +106,7 @@ pub fn hash_canonical<T: Serialize>(
             "hash domain must use lowercase ASCII labels",
         ));
     }
-    let canonical = canonical_json(value)?;
-    let mut hasher = blake3::Hasher::new();
-    hasher.update(b"bullet-wire.v1\0");
-    frame(&mut hasher, domain.as_bytes());
-    frame(&mut hasher, &canonical);
-    Ok(Blake3Digest::from_bytes(*hasher.finalize().as_bytes()))
+    Ok(())
 }
 
 fn frame(hasher: &mut blake3::Hasher, bytes: &[u8]) {

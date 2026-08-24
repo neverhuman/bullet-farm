@@ -11,6 +11,7 @@ blake3 = "1"
 serde = { version = "1", features = ["derive"] }
 serde_jcs = "0.2"
 serde_json = "1"
+sha2 = "0.10"
 unicode-normalization = "0.1"
 
 [lints.rust]
@@ -18,4 +19,3 @@ unsafe_code = "forbid"
 
 [lints.clippy]
 all = "deny"
-
