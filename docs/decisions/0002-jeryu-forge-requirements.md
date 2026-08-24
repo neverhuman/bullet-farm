@@ -41,3 +41,12 @@ Many repo families depend on this Jeryu instance. Therefore:
 
 Gaps become a proposal for a NEW Jeryu release rolled out to git.neverhuman.org (work happens in the
 jeryu-split family, not here), so bullet users can create free accounts or self-host their own binaries.
+
+## Probe results (2026-08-24, unauthenticated GET)
+
+The forge is healthy: `/` serves the SPA (200) and `/api/v3` answers with GitHub-style JSON
+(`401 {"documentation_url":"/docs/rest","message":"Requires authentication"}`), as does the git
+smart-HTTP endpoint (`/git/<org>/<repo>.git/info/refs` → 401). Every REST capability probe in the
+table above therefore requires a valid token first. Blocking user action: `gh auth login -h
+127.0.0.1:8787` (the stored token for user `jeryu` is invalid). Until then the effects lane runs
+against `LocalBareForge` and the table stays TBD.
