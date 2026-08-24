@@ -14,7 +14,6 @@ need rustc
 need cargo
 need node
 need npm
-need python3
 need git
 need rustup
 need just
@@ -30,7 +29,7 @@ echo "installing portal dependencies"
 (cd "$FAMILY/bullet-portal" && npx playwright install chromium)
 
 echo "generating portal client from kernel contract"
-python3 "$FAMILY/bullet-kernel/scripts/generate-types.py"
+(cd "$FAMILY/bullet-kernel" && cargo run -q -p bullet -- contracts generate)
 cp "$FAMILY/bullet-kernel/contracts/generated/api.ts" \
   "$FAMILY/bullet-portal/src/generated/api.ts"
 
