@@ -1,4 +1,5 @@
 .fusion/
+/.fusion.stage.*
 .bullet-family/
 .jankurai/
 target/

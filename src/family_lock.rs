@@ -266,6 +266,10 @@ pub fn verify_hub_checkout(
     verify_tag(repo, &lock.tag, allowed_signers)
 }
 
+pub(crate) fn checkout_subject(repo: &Path) -> Result<(String, String), CoordError> {
+    Ok((git::head_commit(repo)?, git::head_tree(repo)?))
+}
+
 fn verification_repos(
     root: &Path,
     lock: &FamilyLock,

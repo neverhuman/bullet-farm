@@ -117,7 +117,7 @@ repos, declared in `repos.manifest.toml` and pinned by `family.lock`.
 Local fusion (the only place sibling path patches may appear):
 
 ```bash
-./scripts/fuse.sh --source local --all
+./scripts/fuse.sh --source local
 .fusion/dev.sh build
 ```
 
