@@ -273,9 +273,20 @@ mod tests {
 
     #[test]
     fn family_root_resolves_from_split_root_and_hub_checkout() {
-        let hub = Path::new(env!("CARGO_MANIFEST_DIR"));
-        let outer = hub.parent().unwrap();
-        assert_eq!(resolve_family_root(hub).unwrap(), outer);
-        assert_eq!(resolve_family_root(outer).unwrap(), outer);
+        let outer =
+            std::env::temp_dir().join(format!("bullet-family-lock-root-{}", std::process::id()));
+        if outer.exists() {
+            fs::remove_dir_all(&outer).unwrap();
+        }
+        let hub = outer.join("bullet-farm");
+        fs::create_dir_all(&hub).unwrap();
+        fs::write(
+            outer.join("repos.manifest.toml"),
+            "family = \"bullet-farm\"\n",
+        )
+        .unwrap();
+        assert_eq!(resolve_family_root(&hub).unwrap(), outer);
+        assert_eq!(resolve_family_root(&outer).unwrap(), outer);
+        fs::remove_dir_all(outer).unwrap();
     }
 }

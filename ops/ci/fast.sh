@@ -10,7 +10,7 @@ require_file "repos.manifest.toml"
 require_file "family.lock"
 require_file "agent/owner-map.json"
 require_file "agent/test-map.json"
-python3 scripts/check-hub.py
+cargo run --quiet --locked --bin bullet-family -- hub check
 log "Rust family CLI"
 cargo fmt --all --check
 cargo clippy --locked --all-targets -- -D warnings

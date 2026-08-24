@@ -17,7 +17,7 @@ done
 export ALL
 
 ROOT="$(cd .. && pwd)"
-python3 scripts/check-path-deps.py
+cargo run --quiet --locked --bin bullet-family -- deps check
 OUT=".fusion"
 rm -rf "$OUT"
 mkdir -p "$OUT"
@@ -28,8 +28,8 @@ set -euo pipefail
 cmd="\${1:-help}"
 case "\$cmd" in
   build)
-    (cd "$ROOT/bullet-kernel" && cargo test --workspace --offline --locked || cargo test --workspace)
-    (cd "$ROOT/bullet-git" && cargo test --workspace --offline --locked || cargo test --workspace)
+    (cd "$ROOT/bullet-kernel" && cargo test --workspace --offline --locked)
+    (cd "$ROOT/bullet-git" && cargo test --workspace --offline --locked)
     ;;
   help|*)
     echo "usage: .fusion/dev.sh build"

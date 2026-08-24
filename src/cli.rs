@@ -6,7 +6,7 @@ use crate::coord::{
     discover_family_root, unix_millis,
 };
 
-const USAGE: &str = "usage: bullet-family [--root PATH] coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]";
+const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|hub check|deps check|lock <generate|check> --tag VERSION|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]>";
 
 pub fn run(
     args: impl IntoIterator<Item = OsString>,
@@ -24,6 +24,15 @@ pub fn run(
     }
     let explicit_root = remove_root(&mut args)?;
     let current_dir = current_dir.map_err(CoordError::io)?;
+    if args.first().is_some_and(|arg| arg == "doctor") {
+        return crate::doctor::run(&current_dir, explicit_root.as_deref(), &args[1..]);
+    }
+    if args.first().is_some_and(|arg| arg == "hub") {
+        return crate::hub_check::run(&current_dir, explicit_root.as_deref(), &args[1..]);
+    }
+    if args.first().is_some_and(|arg| arg == "deps") {
+        return crate::deps_check::run(&current_dir, explicit_root.as_deref(), &args[1..]);
+    }
     let root = discover_family_root(&current_dir, explicit_root.map(OsString::from))?;
     if args.first().is_some_and(|arg| arg == "lock") {
         return crate::family_lock::run(&root, &args[1..]);
