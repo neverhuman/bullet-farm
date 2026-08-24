@@ -6,12 +6,18 @@
     "README.md": "docs",
     "LICENSE": "workspace",
     "Justfile": "ops",
+    "Cargo.toml": "ops",
+    "Cargo.lock": "ops",
     "family.lock": "ops",
     "repos.manifest.toml": "split",
     "agent/": "agent",
     "docs/": "docs",
+    "crates/": "contracts",
     "ops/": "ops",
+    "release/": "ops",
     "scripts/": "ops",
+    "src/": "ops",
+    "tests/": "ops",
     ".github/": "ops"
   }
 }

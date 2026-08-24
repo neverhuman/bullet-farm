@@ -11,4 +11,8 @@ require_file "family.lock"
 require_file "agent/owner-map.json"
 require_file "agent/test-map.json"
 python3 scripts/check-hub.py
+log "Rust family CLI"
+cargo fmt --all --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
 log "fast lane passed"

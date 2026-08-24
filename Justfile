@@ -12,9 +12,6 @@ coord *args:
 demo:
     bash scripts/demo.sh
 
-demo-live:
-    bash scripts/demo-live.sh
-
 fast:
     bash scripts/ci-local.sh fast
 
@@ -40,3 +37,9 @@ portal:
 
 check-family:
     bash scripts/ci-local.sh family
+
+lock-generate tag:
+    cargo run --locked --quiet --bin bullet-family -- lock generate --tag {{tag}}
+
+lock-check tag:
+    cargo run --locked --quiet --bin bullet-family -- lock check --tag {{tag}}

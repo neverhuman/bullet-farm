@@ -1,7 +1,7 @@
 # Generated artifacts that must be repaired from their source, never hand-edited.
 [[zone]]
 path = "family.lock"
-source = "scripts/fuse.sh"
+source = "cargo run --locked --quiet --bin bullet-family -- lock generate --tag <version>"
 owner = "ops"
 
 [[zone]]

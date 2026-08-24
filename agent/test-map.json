@@ -17,13 +17,37 @@
       "command": "just fast",
       "purpose": "verify spec corpus and architecture docs remain routed"
     },
+    "crates/": {
+      "command": "cargo test --locked -p bullet-wire",
+      "purpose": "prove canonical cross-repository wire identities and encodings"
+    },
     "ops/": {
       "command": "just fast",
       "purpose": "verify local CI parity scripts"
     },
+    "release/": {
+      "command": "cargo test --locked",
+      "purpose": "verify release signer and family-lock policy"
+    },
     "scripts/": {
       "command": "just check",
       "purpose": "verify fuse and onboarding scripts"
+    },
+    "src/": {
+      "command": "cargo test --locked",
+      "purpose": "verify the family coordination and onboarding CLI"
+    },
+    "tests/": {
+      "command": "cargo test --locked",
+      "purpose": "verify coordination races and fail-closed behavior"
+    },
+    "Cargo.toml": {
+      "command": "cargo test --locked",
+      "purpose": "verify the Rust family tool dependency graph"
+    },
+    "Cargo.lock": {
+      "command": "cargo test --locked",
+      "purpose": "verify the pinned Rust dependency graph"
     },
     ".github/": {
       "command": "bash scripts/ci-local.sh required",

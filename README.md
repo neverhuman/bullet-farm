@@ -42,21 +42,6 @@ credential, or network effect). It demonstrates component behavior only:
 
 Receipts print to the terminal and are written under `bullet-kernel/target/demo/`.
 
-`just demo-live` runs the same story end to end with real machinery: a
-planning council (claude and codex propose, cursor fuses with per-step
-provenance, failures degrade honestly), an idempotent Mission materialized
-from the fused plan's digest, fence 1 superseded with its stale heartbeat
-and token refused live, a fenced runner over a private clone written solely
-by bullet-gitd, a separate clean-room verifier that must report a typed E2
-PASS, and a candidate ref landed on a local bare forge through the durable
-effect broker with an independent read-back receipt. Live forges stay typed
-(`LIVE_FORGE_QUARANTINED`) until the operator re-auths — never painted
-green. `BULLET_PROVIDER=sim just demo-live` proves the identical path fully
-offline via the kernel's `demo-synthetic` scaffold. Live provider execution
-is default-denied mechanically; it runs only when the operator supplies the
-explicit `BULLET_LIVE_ADMISSION` token, and refuses with a typed
-`LIVE_ADMISSION_UNAVAILABLE` without it.
-
 Readiness is intentionally explicit:
 
 | Surface | Current meaning |
@@ -64,7 +49,6 @@ Readiness is intentionally explicit:
 | Component tests | Individual lease, workspace, verifier, broker, and portal primitives |
 | `just demo` | Deterministic ledger simulation; not a five-plane transaction |
 | `bullet demo-synthetic` | Simulator-only integration scaffolding with `transaction_gate_eligible=false` |
-| `bullet demo-live` | The same path with real providers; default-denied unless the operator sets `BULLET_LIVE_ADMISSION`; receipt stays non-gating |
 | Transaction-ready | Not yet achieved; requires the signed Wave-4 offline receipt |
 | Production-ready | Not yet achieved; live providers and credentialed forges are quarantined |
 

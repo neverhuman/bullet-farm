@@ -1,6 +1,6 @@
 # 0001 — Provider execution mode: read-only providers, kernel applies patches
 
-Status: Accepted
+Status: Accepted architecture; execution quarantined at Wave 0
 Owner: Bullet Farm maintainers
 Last reviewed: 2026-08-24
 Applies to: bullet-kernel (harness-*, runner), bullet-git (bullet-gitd)
@@ -9,10 +9,19 @@ Applies to: bullet-kernel (harness-*, runner), bullet-git (bullet-gitd)
 
 Every provider turn runs READ-ONLY inside the private clone. The model proposes; the kernel writes.
 
+The command lines below are compatibility evidence, not executable admission. Until the Wave-2
+signed validator and sandbox are green, the shared argv boundary returns
+`LIVE_ADMISSION_UNAVAILABLE` for every known provider executable. Environment flags, OAuth state,
+and an opt-in test feature cannot bypass that denial.
+
 - claude 2.1.241: `claude -p --permission-mode plan --output-format stream-json --json-schema <PatchProposal> --session-id <uuid> --max-budget-usd <cap>` (no --cwd: spawn with cwd; no --max-turns).
 - codex 0.149.0: `codex exec -C <clone> --sandbox read-only --ask-for-approval never --json --output-schema patch-proposal.json -o <file> --skip-git-repo-check` (no --full-auto; -p = --profile).
 - cursor-agent 2026.08.11: `cursor-agent -p --workspace <clone> --mode plan --output-format stream-json --trust`.
-- agy 1.0.7: `agy -p --sandbox --print-timeout 10m` — text only; `structured_output_schema = Unsupported`; excluded from structured dispatch.
+- agy 1.1.19: `agy --sandbox --mode plan --print-timeout 10m -p='<prompt>'` — flags **before** `-p=`.
+  The 1.0.7 line `agy -p --sandbox …` is wrong on 1.1.19 (`-p` consumes `--sandbox` as the prompt).
+  `--json-schema` exists; V1 still treats `structured_output_schema` as Unsupported and excludes
+  agy from structured dispatch until the conformance ladder says `CONTRACT_PASS` for schema.
+  Host OAuth state is not admitted by the Wave-0 runtime.
 
 The only accepted structured output is a `PatchProposal`
 (bullet-kernel/contracts/schemas/patch-proposal.json): full-file contents per changed path
@@ -31,11 +40,10 @@ bounded by max_repair_loops = 2 and per-run invocation/time caps.
   required for V1; app-server/ACP transports can add it later.
 - Argv builders HARD-DENY -w/--worktree/--worktree-base/--tmux (claude, cursor create git worktrees;
   the family zero-new-worktree rule is absolute), with unit tests asserting the denial.
-- Enclave env: inherit HOME plus ~/.claude, ~/.codex, ~/.cursor, ~/.gemini (subscription OAuth —
-  API keys are not configured); strip GH_TOKEN, GITHUB_TOKEN, SSH_AUTH_SOCK, GIT_*; the private
-  clone has no remote and no credential helper, so a model-issued `git push` cannot succeed.
-- Spend bounds until a quota subsystem exists: wall-clock timeout, max-invocations-per-run,
-  claude --max-budget-usd, BULLET_PROVIDER_KILL=1 kill switch.
+- Wave 2 replaces inherited host state with a provider-specific short-lived credential projection,
+  private HOME/XDG/cache, an immutable binary digest, and policy egress.
+- Wall-clock and invocation limits remain defense in depth. They are not admission, quota truth, or
+  spend authorization; unknown quota abstains.
 
 ## Spec readings fixed by this ADR (so parallel lanes build compatible enums)
 

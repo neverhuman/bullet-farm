@@ -1,0 +1,359 @@
+use std::{collections::BTreeMap, ffi::OsString, path::PathBuf};
+
+use crate::coord::{
+    ClaimInput, ClaimState, CommitReceiptGroupInput, CommitReceiptInput, CoordError, CoordStore,
+    DEFAULT_TTL_SECONDS, HandoffInput, HeartbeatInput, ReceiptCorrectionInput,
+    discover_family_root, unix_millis,
+};
+
+const USAGE: &str = "usage: bullet-family [--root PATH] coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]";
+
+pub fn run(
+    args: impl IntoIterator<Item = OsString>,
+    current_dir: Result<PathBuf, std::io::Error>,
+) -> Result<String, CoordError> {
+    let mut args = args
+        .into_iter()
+        .map(|arg| {
+            arg.into_string()
+                .map_err(|_| CoordError::new("INVALID_ARGUMENT", "arguments must be valid UTF-8"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    if !args.is_empty() {
+        args.remove(0);
+    }
+    let explicit_root = remove_root(&mut args)?;
+    let current_dir = current_dir.map_err(CoordError::io)?;
+    let root = discover_family_root(&current_dir, explicit_root.map(OsString::from))?;
+    if args.first().is_some_and(|arg| arg == "lock") {
+        return crate::family_lock::run(&root, &args[1..]);
+    }
+    if args.len() < 2 || args[0] != "coord" {
+        return Err(CoordError::new("USAGE", USAGE));
+    }
+    let action = args[1].clone();
+    let options = Options::parse(&args[2..])?;
+    let store = CoordStore::new(root);
+    let now = unix_millis()?;
+
+    match action.as_str() {
+        "claim" => claim(&store, &options, now),
+        "heartbeat" => heartbeat(&store, &options, now),
+        "handoff" => handoff(&store, &options, now),
+        "receipt" => receipt(&store, &options, now),
+        "receipt-group" => receipt_group(&store, &options, now),
+        "correct-receipt" => correct_receipt(&store, &options, now),
+        "status" => status(&store, &options, now),
+        _ => Err(CoordError::new("USAGE", USAGE)),
+    }
+}
+
+fn claim(store: &CoordStore, options: &Options, now: u64) -> Result<String, CoordError> {
+    options.reject_flags()?;
+    options.reject_unknown_values(&["agent", "lane", "repo", "path", "ttl-seconds"])?;
+    let claim = store.claim(
+        &ClaimInput {
+            agent: options.one("agent")?,
+            lane: options.one("lane")?,
+            repo: options.one("repo")?,
+            paths: options.many("path")?,
+            ttl_seconds: options.u64_or("ttl-seconds", DEFAULT_TTL_SECONDS)?,
+        },
+        now,
+    )?;
+    serde_json::to_string_pretty(&claim).map_err(CoordError::json)
+}
+
+fn heartbeat(store: &CoordStore, options: &Options, now: u64) -> Result<String, CoordError> {
+    options.reject_flags()?;
+    options.reject_unknown_values(&["claim", "agent", "ttl-seconds", "note"])?;
+    let claim = store.heartbeat(
+        &HeartbeatInput {
+            claim_id: options.one("claim")?,
+            agent: options.one("agent")?,
+            ttl_seconds: options.u64_or("ttl-seconds", DEFAULT_TTL_SECONDS)?,
+            note: options.optional_one("note")?,
+        },
+        now,
+    )?;
+    serde_json::to_string_pretty(&claim).map_err(CoordError::json)
+}
+
+fn handoff(store: &CoordStore, options: &Options, now: u64) -> Result<String, CoordError> {
+    options.reject_flags()?;
+    options.reject_unknown_values(&["claim", "agent", "proof", "exit-code", "changed-path"])?;
+    let claim = store.handoff(
+        &HandoffInput {
+            claim_id: options.one("claim")?,
+            agent: options.one("agent")?,
+            proof_command: options.one("proof")?,
+            proof_exit_code: options.i32_or("exit-code", 0)?,
+            changed_paths: options.many("changed-path")?,
+            commit_oid: None,
+        },
+        now,
+    )?;
+    serde_json::to_string_pretty(&claim).map_err(CoordError::json)
+}
+
+fn receipt(store: &CoordStore, options: &Options, now: u64) -> Result<String, CoordError> {
+    options.reject_flags()?;
+    options.reject_unknown_values(&["claim", "orchestrator", "commit", "committed-path"])?;
+    let claim = store.receipt(
+        &CommitReceiptInput {
+            claim_id: options.one("claim")?,
+            orchestrator: options.one("orchestrator")?,
+            commit_oid: options.one("commit")?,
+            committed_paths: options.many("committed-path")?,
+        },
+        now,
+    )?;
+    serde_json::to_string_pretty(&claim).map_err(CoordError::json)
+}
+
+fn receipt_group(store: &CoordStore, options: &Options, now: u64) -> Result<String, CoordError> {
+    options.reject_flags()?;
+    options.reject_unknown_values(&["claim", "orchestrator", "commit"])?;
+    let claims = store.receipt_group(
+        &CommitReceiptGroupInput {
+            claim_ids: options.many("claim")?,
+            orchestrator: options.one("orchestrator")?,
+            commit_oid: options.one("commit")?,
+        },
+        now,
+    )?;
+    serde_json::to_string_pretty(&claims).map_err(CoordError::json)
+}
+
+fn correct_receipt(store: &CoordStore, options: &Options, now: u64) -> Result<String, CoordError> {
+    options.reject_flags()?;
+    options.reject_unknown_values(&[
+        "claim",
+        "orchestrator",
+        "previous-commit",
+        "commit",
+        "committed-path",
+        "reason",
+    ])?;
+    let claim = store.correct_receipt(
+        &ReceiptCorrectionInput {
+            claim_id: options.one("claim")?,
+            orchestrator: options.one("orchestrator")?,
+            previous_commit_oid: options.one("previous-commit")?,
+            commit_oid: options.one("commit")?,
+            committed_paths: options.many("committed-path")?,
+            reason: options.one("reason")?,
+        },
+        now,
+    )?;
+    serde_json::to_string_pretty(&claim).map_err(CoordError::json)
+}
+
+fn status(store: &CoordStore, options: &Options, now: u64) -> Result<String, CoordError> {
+    options.reject_values()?;
+    options.reject_unknown_flags(&["json", "all"])?;
+    let include_all = options.flag("all");
+    let mut status = store.status(now)?;
+    if !include_all {
+        status
+            .claims
+            .retain(|claim| claim.state == ClaimState::Active);
+    }
+    if options.flag("json") {
+        return serde_json::to_string_pretty(&status).map_err(CoordError::json);
+    }
+    let mut output = format!("coord source: {}\n", status.source);
+    if status.claims.is_empty() {
+        output.push_str("no active claims");
+    } else {
+        for claim in status.claims {
+            output.push_str(&format!(
+                "{} {:?} {} {}:{} [{}]\n",
+                claim.claim_id,
+                claim.state,
+                claim.agent,
+                claim.repo,
+                claim.paths.join(","),
+                claim.lane
+            ));
+        }
+        output.pop();
+    }
+    Ok(output)
+}
+
+fn remove_root(args: &mut Vec<String>) -> Result<Option<String>, CoordError> {
+    if args.first().is_none_or(|value| value != "--root") {
+        return Ok(None);
+    }
+    if args.len() < 2 {
+        return Err(CoordError::new("MISSING_VALUE", "--root needs a path"));
+    }
+    let value = args.remove(1);
+    args.remove(0);
+    Ok(Some(value))
+}
+
+#[derive(Default)]
+struct Options {
+    values: BTreeMap<String, Vec<String>>,
+    flags: Vec<String>,
+}
+
+impl Options {
+    fn parse(args: &[String]) -> Result<Self, CoordError> {
+        let mut options = Self::default();
+        let mut index = 0;
+        while index < args.len() {
+            let name = args[index].strip_prefix("--").ok_or_else(|| {
+                CoordError::new("INVALID_ARGUMENT", format!("unexpected {}", args[index]))
+            })?;
+            if matches!(name, "json" | "all") {
+                if options.flags.iter().any(|flag| flag == name) {
+                    return Err(CoordError::new(
+                        "DUPLICATE_OPTION",
+                        format!("--{name} repeated"),
+                    ));
+                }
+                options.flags.push(name.to_owned());
+                index += 1;
+                continue;
+            }
+            let value = args.get(index + 1).ok_or_else(|| {
+                CoordError::new("MISSING_VALUE", format!("--{name} needs a value"))
+            })?;
+            options
+                .values
+                .entry(name.to_owned())
+                .or_default()
+                .push(value.clone());
+            index += 2;
+        }
+        Ok(options)
+    }
+
+    fn one(&self, name: &str) -> Result<String, CoordError> {
+        let values = self
+            .values
+            .get(name)
+            .ok_or_else(|| CoordError::new("MISSING_OPTION", format!("--{name} is required")))?;
+        if values.len() != 1 {
+            return Err(CoordError::new(
+                "DUPLICATE_OPTION",
+                format!("--{name} must appear once"),
+            ));
+        }
+        Ok(values[0].clone())
+    }
+
+    fn optional_one(&self, name: &str) -> Result<Option<String>, CoordError> {
+        match self.values.get(name) {
+            None => Ok(None),
+            Some(values) if values.len() == 1 => Ok(Some(values[0].clone())),
+            Some(_) => Err(CoordError::new(
+                "DUPLICATE_OPTION",
+                format!("--{name} must appear at most once"),
+            )),
+        }
+    }
+
+    fn many(&self, name: &str) -> Result<Vec<String>, CoordError> {
+        self.values
+            .get(name)
+            .cloned()
+            .ok_or_else(|| CoordError::new("MISSING_OPTION", format!("--{name} is required")))
+    }
+
+    fn u64_or(&self, name: &str, default: u64) -> Result<u64, CoordError> {
+        self.parse_or(name, default)
+    }
+
+    fn i32_or(&self, name: &str, default: i32) -> Result<i32, CoordError> {
+        self.parse_or(name, default)
+    }
+
+    fn parse_or<T>(&self, name: &str, default: T) -> Result<T, CoordError>
+    where
+        T: std::str::FromStr,
+    {
+        let Some(value) = self.optional_one(name)? else {
+            return Ok(default);
+        };
+        value.parse().map_err(|_| {
+            CoordError::new("INVALID_OPTION", format!("--{name} has an invalid value"))
+        })
+    }
+
+    fn flag(&self, name: &str) -> bool {
+        self.flags.iter().any(|flag| flag == name)
+    }
+
+    fn reject_flags(&self) -> Result<(), CoordError> {
+        if self.flags.is_empty() {
+            Ok(())
+        } else {
+            Err(CoordError::new(
+                "UNKNOWN_OPTION",
+                format!("unexpected --{}", self.flags[0]),
+            ))
+        }
+    }
+
+    fn reject_values(&self) -> Result<(), CoordError> {
+        if self.values.is_empty() {
+            Ok(())
+        } else {
+            let name = self.values.keys().next().expect("checked non-empty");
+            Err(CoordError::new(
+                "UNKNOWN_OPTION",
+                format!("unexpected --{name}"),
+            ))
+        }
+    }
+
+    fn reject_unknown_flags(&self, allowed: &[&str]) -> Result<(), CoordError> {
+        if let Some(flag) = self
+            .flags
+            .iter()
+            .find(|flag| !allowed.contains(&flag.as_str()))
+        {
+            return Err(CoordError::new(
+                "UNKNOWN_OPTION",
+                format!("unexpected --{flag}"),
+            ));
+        }
+        Ok(())
+    }
+
+    fn reject_unknown_values(&self, allowed: &[&str]) -> Result<(), CoordError> {
+        if let Some(name) = self
+            .values
+            .keys()
+            .find(|name| !allowed.contains(&name.as_str()))
+        {
+            return Err(CoordError::new(
+                "UNKNOWN_OPTION",
+                format!("unexpected --{name}"),
+            ));
+        }
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Options;
+
+    #[test]
+    fn action_allowlists_reject_unused_options() {
+        let options = Options::parse(&[
+            "--agent".to_owned(),
+            "agent-a".to_owned(),
+            "--untrusted".to_owned(),
+            "value".to_owned(),
+        ])
+        .unwrap();
+        let error = options.reject_unknown_values(&["agent"]).unwrap_err();
+        assert_eq!(error.code(), "UNKNOWN_OPTION");
+    }
+}
