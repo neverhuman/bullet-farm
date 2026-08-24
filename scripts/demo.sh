@@ -5,8 +5,14 @@ HUB="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FAMILY="$(cd "$HUB/.." && pwd)"
 KERNEL="$FAMILY/bullet-kernel"
 PORTAL="$FAMILY/bullet-portal"
-DATA="${BULLET_DATA_DIR:-$KERNEL/target/demo}"
-mkdir -p "$DATA"
+if [[ -n "${BULLET_DATA_DIR:-}" ]]; then
+  DATA="$BULLET_DATA_DIR"
+  mkdir -p "$DATA"
+else
+  DEMO_ROOT="$KERNEL/target/demo"
+  mkdir -p "$DEMO_ROOT"
+  DATA="$(mktemp -d "$DEMO_ROOT/run.XXXXXXXX")"
+fi
 
 echo "== Bullet Farm demo =="
 echo "kernel: $KERNEL"
