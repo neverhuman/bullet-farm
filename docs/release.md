@@ -1,0 +1,113 @@
+# Bullet Farm release contract
+
+Status: **BLOCKED — no V1 release candidate is authorized**  
+Owner: Bullet Farm maintainers  
+Last reviewed: 2026-08-24  
+Applies to: the four-repository Bullet Farm family
+
+This document is the short release index. It does not replace generated wire
+contracts, the family lock, policy registry, test maps, or signed receipts.
+Historical design material under `docs/spec/` has no release authority.
+Unreleased product changes are recorded in the [changelog](../CHANGELOG.md).
+
+## Evidence classes
+
+| Class | Proves | Does not prove |
+| --- | --- | --- |
+| `COMPONENT_PROOF` | One crate, service, or portal surface passed its mapped tests | Cross-process transaction safety |
+| `SYNTHETIC_PROOF` | Deterministic simulator behavior | A provider, forge, or production mutation |
+| `TRANSACTION_PROOF` | One exact offline five-plane transaction with independent receipts | External provider or forge conformance |
+| `LIVE_PROOF` | An admitted provider or effect adapter passed the same exact-subject transaction | A release on every platform |
+| `RELEASE_PROOF` | Packages, installer, recovery, security, signatures, provenance, and required live profiles passed from tagged bytes | Future versions or untested environments |
+
+An exit code, model statement, process shutdown, HTTP success, branch push, or
+pull request is never release evidence by itself. `UNKNOWN`, timeout, zero
+tests, unsupported, skipped, flaky, or infrastructure error never equals
+`VERIFIED`.
+
+## Release profiles
+
+| Profile | Required conformant providers | Additional requirement |
+| --- | --- | --- |
+| Core GA | Claude and Codex | Exact offline transaction plus Jeryu and GitHub effect receipts |
+| Safety-Complete V1 | Claude, Codex, Cursor, and Antigravity | Every provider has a version/profile-specific conformance receipt |
+
+Cursor or Antigravity instability cannot be hidden inside a generic provider
+badge. It blocks the Safety-Complete profile but does not rewrite Core-GA
+evidence.
+
+## Current hard blockers
+
+| Gate | Status | Evidence needed to clear it |
+| --- | --- | --- |
+| Hub-only installation | `BLOCKED` | Authenticated Jeryu URL/slug, signed tag, exact commit/tree, lockfile digests, and artifact checksums for every non-hub member; two clean installs in a fresh home |
+| Production Kernel transaction | `BLOCKED` | Durable normalized migrations, atomic command/event/outbox state, monotonic leases/fences, backup/restore, and crash-boundary receipts |
+| Production BulletGit transaction | `BLOCKED` | Online authority check, durable journal/CAS, generation-atomic apply, exact Candidate/proof manifests, preservation-bound cleanup, and reviewed tagged `jeryu-gitd` capability |
+| Offline five-plane proof | `BLOCKED` | One signed `TRANSACTION_PROOF` covering authority, runner death/salvage, independent verification, ambiguous-effect reconciliation, protected integration, preservation, and truthful portal projection |
+| Jeryu live effect | `BLOCKED` | Operator-restored authentication and read-back/reconciliation receipt; the running forge must not be modified to work around missing capability |
+| GitHub live effect | `BLOCKED` | Configured GitHub App test repository and exact-subject integration/reconciliation receipt |
+| Provider conformance | `BLOCKED` | Claude, Codex, Cursor, and Antigravity isolation, canary-secret, malformed/crash/cancel/timeout, quota, and exact-patch receipts at pinned versions |
+| Security quality | `BLOCKED` | Jankurai at least 90 with zero caps/hard findings, plus pinned secret, dependency, license, workflow, and generated-drift gates |
+| Release supply chain | `BLOCKED` | Reproducible archives, SBOM, checksums, signatures, provenance, installer smoke, and final non-circular signed release manifest |
+| Platform containment | `BLOCKED` | Linux production containment plus fail-closed proof on every other packaged platform until an equivalent native backend passes |
+
+Missing credentials produce a neutral, unregistered live lane only when that
+lane is not required for the requested profile. Missing required tools,
+adapters, receipts, or signatures fail the release.
+
+## Local pre-release gates
+
+Run from the public hub in the canonical ordinary-clone family:
+
+```bash
+just fast
+just contract
+just check-family
+just family-contract
+just security
+just audit
+```
+
+These commands prove repository and family prerequisites only. They do not
+authorize a release until the transaction, live, recovery, packaging, and
+signing receipts above exist. There is intentionally no green no-op nightly
+and no `release` command while those mechanisms are absent.
+
+The release build must compile at MSRV Rust 1.95 and pinned Rust 1.97.1, use
+`cargo --locked` and `npm ci`, verify generated output in a temporary directory,
+and start from clean signed tags matching `family.lock`.
+
+## Installer acceptance
+
+The release installer starts from a hub-only clone and must:
+
+1. verify the hub tag and lock before creating member directories;
+2. use Jeryu source metadata from the lock, never a sibling-path guess;
+3. create ordinary clones, never Git worktrees, at exact locked commits;
+4. reject dirty, symlinked, non-empty, or conflicting destinations before mutation;
+5. verify signed tags, commit/tree identities, lockfiles, and generated digests;
+6. use locked/offline dependency modes when requested;
+7. be idempotent; and
+8. leave exact clean member OIDs and zero tracked changes after two runs in a fresh home.
+
+Until the lock carries authenticated source metadata, setup must fail before
+mutation with repair guidance. That refusal is honest onboarding behavior, not
+installer completion.
+
+## Package matrix
+
+Release archives are required for Linux x86_64/aarch64, macOS x86_64/arm64,
+and Windows x64. The built portal is embedded in the Rust distribution. Linux
+is the initial production runner. Other packages must refuse real mutation
+unless their native containment backend has equivalent release evidence.
+
+Every archive is bound to the same hub tag and family lock and carries an SBOM,
+checksum, signature, and provenance statement. The final manifest binds the
+hub tag without embedding its own digest.
+
+## Tagging rule
+
+Do not create or advertise a V1 release tag while any required row above is
+`BLOCKED`, `UNKNOWN`, or supported only by component/synthetic evidence. When a
+gate changes, update this index in the same reviewed transaction that adds its
+independently verifiable receipt; prose alone cannot change status.
