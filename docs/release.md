@@ -41,7 +41,7 @@ receipt never certifies another provider or profile.
 
 | Gate | Status | Evidence needed to clear it |
 | --- | --- | --- |
-| Hub-only installation | `BLOCKED` | Authenticated Jeryu URL/slug, signed tag, exact commit/tree, lockfile digests, and artifact checksums for every non-hub member; two clean installs in a fresh home |
+| Hub-only installation | `BLOCKED` | Publish a real schema-3 lock with authenticated Jeryu URL/slug and signed exact subjects, then reproduce the already-tested two-run clean-install invariant from tagged release bytes in a fresh home |
 | Production Kernel transaction | `BLOCKED` | Durable normalized migrations, atomic command/event/outbox state, monotonic leases/fences, backup/restore, and crash-boundary receipts |
 | Production BulletGit transaction | `BLOCKED` | Online authority check, durable journal/CAS, generation-atomic apply, exact Candidate/proof manifests, preservation-bound cleanup, and reviewed tagged `jeryu-gitd` capability |
 | Offline five-plane proof | `BLOCKED` | One signed `TRANSACTION_PROOF` covering authority, runner death/salvage, independent verification, ambiguous-effect reconciliation, protected integration, preservation, and truthful portal projection |
@@ -91,9 +91,11 @@ The release installer starts from a hub-only clone and must:
 7. be idempotent; and
 8. leave exact clean member OIDs and zero tracked changes after two runs in a fresh home.
 
-Until the lock carries authenticated source metadata, setup must fail before
-mutation with repair guidance. That refusal is honest onboarding behavior, not
-installer completion.
+The Rust setup/checkout mechanism and its signed local four-repository fixture implement these
+rules, including two idempotent core installs with exact clean ordinary clones. The checked-in
+alpha.4 lock remains schema 2, so the public command must still fail before mutation with explicit
+schema-3 regeneration guidance. Installer release evidence is incomplete until authenticated
+Jeryu subjects are published and the same invariant is reproduced from the signed release bytes.
 
 ## Package matrix
 

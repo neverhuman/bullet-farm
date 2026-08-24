@@ -33,9 +33,13 @@ just demo
 ```
 
 This alpha requires the four ordinary sibling checkouts listed in `repos.manifest.toml`. A hub-only
-clone is diagnosis-only because `family.lock` does not yet carry an authenticated source for each
-member. In that state, `doctor` reports `BLOCKED` and `just setup` refuses before changing the
-toolchain or filesystem. Do not create Git worktrees or infer source locations from local paths.
+clone is diagnosis-only because the checked-in `family.lock` is the legacy schema-2 snapshot and
+does not carry install authority. The Rust installer and `checkout verify` command are implemented:
+they require a signed schema-3 lock with an authenticated Jeryu URL/slug, exact commit/tree,
+signer, dependency-lock digest, and generated-artifact manifest for every non-hub member. Until
+those release inputs are published, `doctor` reports `BLOCKED` and `just setup` returns
+`UNSUPPORTED_SCHEMA` before creating member directories or running dependency tools. Do not create
+Git worktrees or infer source locations from local paths.
 
 `just demo` runs a deterministic ledger simulator (no provider process, forge
 credential, or network effect). It demonstrates component behavior only:
@@ -55,7 +59,7 @@ Readiness is intentionally explicit:
 | `just demo` | Deterministic ledger simulation; not a five-plane transaction |
 | `bullet demo-synthetic` | Simulator-only integration scaffolding with `transaction_gate_eligible=false` |
 | Gate 0 contracts | Canonical v1alpha1 policy/schema bundle, hostile fixtures, invariant registry, and exactly two bounded models |
-| Hub-only installer | Not yet achieved; authenticated member source metadata is a release blocker |
+| Hub-only installer | Mechanism and signed two-run local fixture implemented; real schema-3 Jeryu lock/tag publication remains blocked |
 | Transaction-ready | Not yet achieved; requires the signed Wave-4 offline receipt |
 | Production-ready | Not yet achieved; live providers and credentialed forges are quarantined |
 

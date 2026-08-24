@@ -19,19 +19,46 @@ fn fixture_root(name: &str) -> PathBuf {
     .expect("Cargo fixture");
     fs::write(hub.join("scripts/setup.sh"), "#!/bin/sh\nexit 1\n").expect("setup fixture");
     fs::write(
-        hub.join("family.lock"),
+        hub.join("repos.manifest.toml"),
         concat!(
-            "schema_version = \"2\"\n",
-            "[[member]]\n",
-            "name = \"bullet-farm\"\n",
-            "commit_oid = \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n",
-            "[[member]]\n",
-            "name = \"bullet-kernel\"\n",
-            "commit_oid = \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"\n",
+            "schema_version = \"1.2.0\"\n",
+            "family = \"bullet-farm\"\n",
+            "umbrella_repo = \"bullet-farm\"\n",
+            "required_repos = [\"bullet-farm\", \"bullet-kernel\"]\n",
         ),
     )
-    .expect("lock fixture");
+    .expect("hub manifest fixture");
+    fs::write(hub.join("family.lock"), legacy_lock("")).expect("lock fixture");
     root
+}
+
+fn legacy_lock(extra: &str) -> String {
+    format!(
+        concat!(
+            "schema_version = \"2\"\n",
+            "family = \"bullet-farm\"\n",
+            "tag = \"v0.1.0-alpha.4\"\n",
+            "schema_bundle_hash = \"blake3:{digest}\"\n",
+            "{extra}",
+            "[[member]]\n",
+            "name = \"bullet-farm\"\n",
+            "tag = \"v0.1.0-alpha.4\"\n",
+            "commit_oid = \"{commit}\"\n",
+            "schema_bundle_hash = \"blake3:{digest}\"\n",
+            "release_signing_identity = \"bot@invalid.example|ed25519|SHA256:fixture\"\n",
+            "generated_client_hash = \"blake3:{digest}\"\n",
+            "[[member]]\n",
+            "name = \"bullet-kernel\"\n",
+            "tag = \"v0.1.0-alpha.4\"\n",
+            "commit_oid = \"{commit}\"\n",
+            "schema_bundle_hash = \"blake3:{digest}\"\n",
+            "release_signing_identity = \"bot@invalid.example|ed25519|SHA256:fixture\"\n",
+            "generated_client_hash = \"blake3:{digest}\"\n",
+        ),
+        digest = "a".repeat(64),
+        commit = "b".repeat(40),
+        extra = extra,
+    )
 }
 
 fn snapshot(root: &Path) -> BTreeMap<PathBuf, Vec<u8>> {
@@ -114,5 +141,24 @@ fn doctor_rejects_non_json_and_invalid_roots() {
     )
     .expect_err("invalid explicit root");
     assert_eq!(invalid.code(), "COORD_IO_FAILED");
+    fs::remove_dir_all(root).expect("remove fixture");
+}
+
+#[test]
+fn doctor_rejects_unknown_legacy_lock_fields() {
+    let root = fixture_root("unknown-lock-field");
+    let hub = root.join("bullet-farm");
+    fs::write(hub.join("family.lock"), legacy_lock("unexpected = true\n"))
+        .expect("hostile lock fixture");
+    let error = bullet_family::cli::run(
+        [
+            OsString::from("bullet-family"),
+            OsString::from("doctor"),
+            OsString::from("--json"),
+        ],
+        Ok(hub),
+    )
+    .expect_err("unknown lock field must fail closed");
+    assert_eq!(error.code(), "INVALID_FAMILY_LOCK");
     fs::remove_dir_all(root).expect("remove fixture");
 }

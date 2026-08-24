@@ -3,8 +3,8 @@
 default:
     @just --list
 
-setup:
-    bash scripts/setup.sh
+setup *args:
+    bash scripts/setup.sh {{args}}
 
 coord *args:
     cargo run --locked --quiet --bin bullet-family -- coord {{args}}

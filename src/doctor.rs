@@ -7,7 +7,10 @@ mod model;
 use std::path::Path;
 
 use crate::coord::CoordError;
-use checks::{check_family_layout, check_hub_checkout, check_source_metadata, check_tools};
+use checks::{
+    check_exact_family_authority, check_family_layout, check_hub_checkout, check_source_metadata,
+    check_tools,
+};
 use discovery::{discover_hub as resolve_hub, read_lock};
 use model::{CheckStatus, DoctorReport};
 
@@ -30,6 +33,11 @@ pub fn run(
     let mut checks = vec![check_hub_checkout(&hub_root), check_tools()];
     checks.push(check_source_metadata(&lock));
     checks.extend(check_family_layout(
+        &hub_root,
+        family_root.as_deref(),
+        &lock,
+    ));
+    checks.push(check_exact_family_authority(
         &hub_root,
         family_root.as_deref(),
         &lock,

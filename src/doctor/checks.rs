@@ -1,6 +1,6 @@
 use std::{path::Path, process::Command};
 
-use super::model::{DoctorCheck, FamilyLock};
+use super::model::{DoctorCheck, DoctorFamilyLock};
 
 const GIT_BIN: &str = "/usr/bin/git";
 
@@ -57,15 +57,22 @@ pub(super) fn check_tools() -> DoctorCheck {
     }
 }
 
-pub(super) fn check_source_metadata(lock: &FamilyLock) -> DoctorCheck {
+pub(super) fn check_source_metadata(lock: &DoctorFamilyLock) -> DoctorCheck {
+    if !lock.installable_schema {
+        return DoctorCheck::blocked(
+            "source_metadata",
+            format!(
+                "family.lock schema {} is diagnostic-only and lacks the complete install authority",
+                lock.schema_version
+            ),
+            "restore authenticated Jeryu sources, publish signed member tags, and generate schema 3 with exact trees, lockfiles, and artifact checksums",
+        );
+    }
     let missing = lock
         .member
         .iter()
         .filter(|member| member.name != "bullet-farm")
-        .filter(|member| {
-            member.jeryu_url.as_deref().is_none_or(str::is_empty)
-                && member.source_url.as_deref().is_none_or(str::is_empty)
-        })
+        .filter(|member| member.jeryu_url.as_deref().is_none_or(str::is_empty))
         .map(|member| member.name.as_str())
         .collect::<Vec<_>>();
     let missing_slugs = lock
@@ -96,19 +103,33 @@ pub(super) fn check_source_metadata(lock: &FamilyLock) -> DoctorCheck {
 pub(super) fn check_family_layout(
     hub_root: &Path,
     family_root: Option<&Path>,
-    lock: &FamilyLock,
+    lock: &DoctorFamilyLock,
 ) -> Vec<DoctorCheck> {
     let Some(family_root) = family_root else {
         return vec![DoctorCheck::blocked(
             "family_layout",
             "only the hub checkout is present; no outer repos.manifest.toml was found",
-            "safe hub-only setup is not available until the lock carries verified sources and bullet-family setup is implemented; do not treat scripts/setup.sh as a fresh-clone installer",
+            "publish a signed schema-3 lock with authenticated Jeryu sources, then run bullet-family setup; the current diagnostic lock cannot authorize member creation",
         )];
     };
     let mut absent = Vec::new();
     let mut worktrees = Vec::new();
     let mut wrong_heads = Vec::new();
     let mut dirty = Vec::new();
+    let mut unsafe_metadata = Vec::new();
+    if !lock
+        .member
+        .iter()
+        .any(|member| member.name == "bullet-farm")
+    {
+        match crate::checkout::admit_repository_metadata(hub_root, None) {
+            Ok(()) => match crate::checkout::verify_exact_worktree(hub_root) {
+                Ok(()) => {}
+                Err(error) => dirty.push(format!("bullet-farm ({error})")),
+            },
+            Err(error) => unsafe_metadata.push(format!("bullet-farm ({error})")),
+        }
+    }
     for member in &lock.member {
         let repo = if member.name == "bullet-farm" {
             hub_root.to_path_buf()
@@ -123,6 +144,12 @@ pub(super) fn check_family_layout(
             worktrees.push(member.name.clone());
             continue;
         }
+        if let Err(error) =
+            crate::checkout::admit_repository_metadata(&repo, member.jeryu_url.as_deref())
+        {
+            unsafe_metadata.push(format!("{} ({error})", member.name));
+            continue;
+        }
         if member.name != "bullet-farm" {
             match git(&repo, &["rev-parse", "HEAD"]) {
                 Ok(head) if head.trim() == member.commit_oid => {}
@@ -135,24 +162,56 @@ pub(super) fn check_family_layout(
                 Err(reason) => wrong_heads.push(format!("{} ({reason})", member.name)),
             }
         }
-        match git(
-            &repo,
-            &["status", "--porcelain=v2", "--untracked-files=all"],
-        ) {
-            Ok(status) if status.is_empty() => {}
-            Ok(_) => dirty.push(member.name.clone()),
-            Err(reason) => dirty.push(format!("{} ({reason})", member.name)),
+        match crate::checkout::verify_exact_worktree(&repo) {
+            Ok(()) => {}
+            Err(error) => dirty.push(format!("{} ({error})", member.name)),
         }
     }
     vec![
-        layout_result(&absent, &worktrees),
+        layout_result(&absent, &worktrees, &unsafe_metadata),
         oid_result(&wrong_heads),
         cleanliness_result(&dirty),
     ]
 }
 
-fn layout_result(absent: &[String], worktrees: &[String]) -> DoctorCheck {
-    if absent.is_empty() && worktrees.is_empty() {
+pub(super) fn check_exact_family_authority(
+    hub_root: &Path,
+    family_root: Option<&Path>,
+    lock: &DoctorFamilyLock,
+) -> DoctorCheck {
+    let Some(current) = &lock.current else {
+        return DoctorCheck::blocked(
+            "exact_family_authority",
+            "the diagnostic schema-2 lock cannot authenticate an install",
+            "publish signed non-hub subjects, generate schema 3, commit it, and sign the exact hub tag",
+        );
+    };
+    let Some(family_root) = family_root else {
+        return DoctorCheck::blocked(
+            "exact_family_authority",
+            "the complete family is not installed",
+            "run bullet-family setup from the signed hub after schema-3 source authority is published",
+        );
+    };
+    match crate::checkout::verify_family(family_root, hub_root, current) {
+        Ok(()) => DoctorCheck::pass(
+            "exact_family_authority",
+            "hub and members match the signed schema-3 lock, exact subjects, and clean checkouts",
+        ),
+        Err(error) => DoctorCheck::blocked(
+            "exact_family_authority",
+            error.to_string(),
+            "restore clean ordinary clones at the signed exact subjects; never reset a dirty shared checkout",
+        ),
+    }
+}
+
+fn layout_result(
+    absent: &[String],
+    worktrees: &[String],
+    unsafe_metadata: &[String],
+) -> DoctorCheck {
+    if absent.is_empty() && worktrees.is_empty() && unsafe_metadata.is_empty() {
         DoctorCheck::pass(
             "family_layout",
             "all locked members are ordinary sibling checkouts",
@@ -161,9 +220,10 @@ fn layout_result(absent: &[String], worktrees: &[String]) -> DoctorCheck {
         DoctorCheck::blocked(
             "family_layout",
             format!(
-                "missing members [{}]; forbidden worktrees [{}]",
+                "missing members [{}]; forbidden worktrees [{}]; unsafe Git metadata [{}]",
                 absent.join(", "),
-                worktrees.join(", ")
+                worktrees.join(", "),
+                unsafe_metadata.join("; ")
             ),
             "create ordinary canonical clones for missing members; never create Git worktrees",
         )
@@ -218,9 +278,23 @@ fn git(repo: &Path, args: &[&str]) -> Result<String, String> {
     let output = Command::new(GIT_BIN)
         .arg("-C")
         .arg(repo)
+        .args([
+            "-c",
+            "core.fsmonitor=false",
+            "-c",
+            "core.attributesFile=/dev/null",
+            "-c",
+            "core.excludesFile=/dev/null",
+        ])
         .args(args)
         .env_clear()
         .env("LC_ALL", "C")
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env("GIT_OPTIONAL_LOCKS", "0")
+        .env("GIT_NO_REPLACE_OBJECTS", "1")
+        .env("GIT_NO_LAZY_FETCH", "1")
+        .env("GIT_TERMINAL_PROMPT", "0")
         .output()
         .map_err(|error| error.to_string())?;
     if !output.status.success() {

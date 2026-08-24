@@ -1,11 +1,31 @@
-//! Signed-tag verification and tagged-tree hashing for family lock generation.
+//! Signed-tag verification and tagged-object hashing for family locks.
 
-use std::path::Path;
-use std::process::Command;
+use std::{collections::BTreeSet, path::Path, process::Command};
 
+use serde::Deserialize;
+
+use super::schema::{LockedFile, LockedMember, validate_repository_path};
 use crate::coord::CoordError;
 
 const GIT_BIN: &str = "/usr/bin/git";
+const GENERATED_ZONES: &str = "agent/generated-zones.toml";
+const MAX_GIT_OUTPUT_BYTES: usize = 16 * 1024 * 1024;
+const MAX_HASHED_FILE_BYTES: u64 = 16 * 1024 * 1024;
+const MAX_GENERATED_ARTIFACTS: usize = 4096;
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct GeneratedZones {
+    zone: Vec<GeneratedZone>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct GeneratedZone {
+    path: String,
+    source: String,
+    owner: String,
+}
 
 pub(super) fn tag_commit(repo: &Path, tag: &str) -> Result<String, CoordError> {
     let object_type = git(repo, &["cat-file", "-t", &format!("refs/tags/{tag}")])?;
@@ -15,18 +35,47 @@ pub(super) fn tag_commit(repo: &Path, tag: &str) -> Result<String, CoordError> {
             format!("{tag} in {} is not an annotated tag", repo.display()),
         ));
     }
-    let oid = git(
-        repo,
-        &["rev-parse", "--verify", &format!("{tag}^{{commit}}")],
-    )?;
+    tagged_oid(repo, &format!("{tag}^{{commit}}"))
+}
+
+pub(super) fn tag_tree(repo: &Path, tag: &str) -> Result<String, CoordError> {
+    tagged_oid(repo, &format!("{tag}^{{tree}}"))
+}
+
+pub(super) fn head_commit(repo: &Path) -> Result<String, CoordError> {
+    tagged_oid(repo, "HEAD^{commit}")
+}
+
+pub(super) fn head_tree(repo: &Path) -> Result<String, CoordError> {
+    tagged_oid(repo, "HEAD^{tree}")
+}
+
+fn tagged_oid(repo: &Path, revision: &str) -> Result<String, CoordError> {
+    let algorithm = git(repo, &["rev-parse", "--show-object-format"])?;
+    let algorithm = algorithm.trim();
+    let expected = match algorithm {
+        "sha1" => 40,
+        "sha256" => 64,
+        _ => {
+            return Err(CoordError::new(
+                "UNSUPPORTED_GIT_OBJECT_FORMAT",
+                format!("unsupported Git object format {algorithm:?}"),
+            ));
+        }
+    };
+    let oid = git(repo, &["rev-parse", "--verify", revision])?;
     let oid = oid.trim();
-    if oid.len() != 40 || !oid.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+    if oid.len() != expected
+        || !oid
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    {
         return Err(CoordError::new(
-            "INVALID_TAG_COMMIT",
-            format!("{tag} resolved to an invalid commit OID"),
+            "INVALID_GIT_OID",
+            format!("{revision} resolved to an invalid {algorithm} OID"),
         ));
     }
-    Ok(oid.to_owned())
+    Ok(format!("{algorithm}:{oid}"))
 }
 
 pub(super) fn verify_tag(
@@ -34,6 +83,16 @@ pub(super) fn verify_tag(
     tag: &str,
     allowed_signers: &Path,
 ) -> Result<String, CoordError> {
+    let signer_metadata = std::fs::symlink_metadata(allowed_signers).map_err(CoordError::io)?;
+    if !signer_metadata.file_type().is_file()
+        || signer_metadata.file_type().is_symlink()
+        || signer_metadata.len() > 64 * 1024
+    {
+        return Err(CoordError::new(
+            "INVALID_ALLOWED_SIGNERS",
+            "allowed-signers must be a regular non-symlink file no larger than 64 KiB",
+        ));
+    }
     let allowed = allowed_signers.to_str().ok_or_else(|| {
         CoordError::new("INVALID_SIGNER_PATH", "allowed-signers path is not UTF-8")
     })?;
@@ -95,8 +154,7 @@ pub(super) fn digest_tagged_tree(
     tag: &str,
     prefix: &str,
 ) -> Result<String, CoordError> {
-    let listing = git(repo, &["ls-tree", "-r", "--name-only", tag, "--", prefix])?;
-    let paths: Vec<_> = listing.lines().filter(|path| !path.is_empty()).collect();
+    let paths = tracked_regular_files(repo, tag, prefix)?;
     if paths.is_empty() {
         return Err(CoordError::new(
             "SCHEMA_BUNDLE_MISSING",
@@ -106,39 +164,211 @@ pub(super) fn digest_tagged_tree(
     digest_tagged_files(repo, tag, "bullet.family.schema-bundle.v1", &paths)
 }
 
-pub(super) fn digest_generated_client(
+pub(super) fn digest_dependency_lockfiles(
     repo: &Path,
     tag: &str,
     name: &str,
-) -> Result<String, CoordError> {
-    let paths: &[&str] = match name {
-        "bullet-kernel" => &["contracts/generated/api.ts"],
-        "bullet-portal" => &["src/generated/api.ts"],
-        "bullet-farm" | "bullet-git" => &[],
-        _ => {
+) -> Result<Vec<LockedFile>, CoordError> {
+    let path = if name == "bullet-portal" {
+        "package-lock.json"
+    } else {
+        "Cargo.lock"
+    };
+    Ok(vec![digest_file(repo, tag, path)?])
+}
+
+pub(super) fn digest_generated_artifacts(
+    repo: &Path,
+    tag: &str,
+) -> Result<Vec<LockedFile>, CoordError> {
+    let definition = git_bytes(repo, &["show", &format!("{tag}:{GENERATED_ZONES}")])?;
+    let definition = std::str::from_utf8(&definition).map_err(|_| {
+        CoordError::new(
+            "INVALID_GENERATED_ZONES",
+            "generated-zone metadata is not UTF-8",
+        )
+    })?;
+    let zones: GeneratedZones = toml::from_str(definition).map_err(|error| {
+        CoordError::new(
+            "INVALID_GENERATED_ZONES",
+            format!("{GENERATED_ZONES}: {error}"),
+        )
+    })?;
+    if zones.zone.len() > 256 {
+        return Err(CoordError::new(
+            "INVALID_GENERATED_ZONES",
+            "generated-zone count exceeds 256",
+        ));
+    }
+    let mut paths = BTreeSet::new();
+    for zone in zones.zone {
+        if zone.source.is_empty() || zone.owner.is_empty() {
             return Err(CoordError::new(
-                "UNSUPPORTED_FAMILY_MEMBER",
-                format!("no generated-client policy for {name}"),
+                "INVALID_GENERATED_ZONES",
+                "generated zones require source and owner",
             ));
         }
-    };
-    digest_tagged_files(repo, tag, "bullet.family.generated-client.v1", paths)
+        if matches!(zone.path.as_str(), ".fusion" | ".fusion/") {
+            continue;
+        }
+        let query = zone.path.strip_suffix('/').unwrap_or(&zone.path);
+        validate_repository_path(query)?;
+        let expanded = tracked_regular_files(repo, tag, query)?;
+        if expanded.is_empty() {
+            return Err(CoordError::new(
+                "GENERATED_ARTIFACT_MISSING",
+                format!("generated zone {} is empty at {tag}", zone.path),
+            ));
+        }
+        for path in expanded {
+            if !paths.insert(path.clone()) {
+                return Err(CoordError::new(
+                    "DUPLICATE_GENERATED_ARTIFACT",
+                    format!("generated zones overlap at {path}"),
+                ));
+            }
+        }
+    }
+    paths
+        .into_iter()
+        .map(|path| digest_file(repo, tag, &path))
+        .collect()
+}
+
+pub(super) fn verify_locked_checkout(
+    member: &LockedMember,
+    repo: &Path,
+    allowed_signers: &Path,
+) -> Result<(), CoordError> {
+    if head_commit(repo)? != member.commit_oid {
+        return Err(CoordError::new(
+            "LOCKED_COMMIT_MISMATCH",
+            format!("{} HEAD does not match its locked commit", member.name),
+        ));
+    }
+    if head_tree(repo)? != member.tree_oid {
+        return Err(CoordError::new(
+            "LOCKED_TREE_MISMATCH",
+            format!("{} tree does not match its locked tree", member.name),
+        ));
+    }
+    if tag_commit(repo, &member.tag)? != member.commit_oid
+        || tag_tree(repo, &member.tag)? != member.tree_oid
+    {
+        return Err(CoordError::new(
+            "LOCKED_TAG_SUBJECT_MISMATCH",
+            format!("{} tag does not resolve to its locked subject", member.name),
+        ));
+    }
+    if verify_tag(repo, &member.tag, allowed_signers)? != member.release_signing_identity {
+        return Err(CoordError::new(
+            "LOCKED_SIGNER_MISMATCH",
+            format!("{} tag signer does not match the lock", member.name),
+        ));
+    }
+    let lockfiles = digest_dependency_lockfiles(repo, &member.tag, &member.name)?;
+    if lockfiles != member.lockfile {
+        return Err(CoordError::new(
+            "LOCKED_LOCKFILE_MISMATCH",
+            format!("{} dependency lockfile digest differs", member.name),
+        ));
+    }
+    let artifacts = digest_generated_artifacts(repo, &member.tag)?;
+    if artifacts != member.artifact {
+        return Err(CoordError::new(
+            "LOCKED_ARTIFACT_MISMATCH",
+            format!("{} generated artifact manifest differs", member.name),
+        ));
+    }
+    Ok(())
+}
+
+fn digest_file(repo: &Path, revision: &str, path: &str) -> Result<LockedFile, CoordError> {
+    validate_repository_path(path)?;
+    let bytes = verified_blob(repo, revision, path)?;
+    Ok(LockedFile {
+        path: path.to_owned(),
+        digest: format!("blake3:{}", blake3::hash(&bytes).to_hex()),
+    })
+}
+
+pub(super) fn verified_blob(
+    repo: &Path,
+    revision: &str,
+    path: &str,
+) -> Result<Vec<u8>, CoordError> {
+    validate_repository_path(path)?;
+    let size = git(repo, &["cat-file", "-s", &format!("{revision}:{path}")])?;
+    let size = size
+        .trim()
+        .parse::<u64>()
+        .map_err(|_| CoordError::new("INVALID_GIT_OUTPUT", "Git emitted an invalid object size"))?;
+    if size > MAX_HASHED_FILE_BYTES {
+        return Err(CoordError::new(
+            "TAGGED_FILE_TOO_LARGE",
+            format!("{path} exceeds the 16 MiB verification limit"),
+        ));
+    }
+    git_bytes(repo, &["show", &format!("{revision}:{path}")])
 }
 
 fn digest_tagged_files(
     repo: &Path,
     tag: &str,
     domain: &str,
-    paths: &[&str],
+    paths: &[String],
 ) -> Result<String, CoordError> {
     let mut hasher = blake3::Hasher::new();
     frame(&mut hasher, domain.as_bytes());
     for path in paths {
         frame(&mut hasher, path.as_bytes());
-        let bytes = git_bytes(repo, &["show", &format!("{tag}:{path}")])?;
+        let bytes = verified_blob(repo, tag, path)?;
         frame(&mut hasher, &bytes);
     }
     Ok(format!("blake3:{}", hasher.finalize().to_hex()))
+}
+
+fn tracked_regular_files(
+    repo: &Path,
+    revision: &str,
+    prefix: &str,
+) -> Result<Vec<String>, CoordError> {
+    validate_repository_path(prefix)?;
+    let listing = git_bytes(repo, &["ls-tree", "-r", "-z", revision, "--", prefix])?;
+    let mut paths = Vec::new();
+    for record in listing
+        .split(|byte| *byte == 0)
+        .filter(|record| !record.is_empty())
+    {
+        let record = std::str::from_utf8(record)
+            .map_err(|_| CoordError::new("INVALID_GIT_OUTPUT", "Git tree path is not UTF-8"))?;
+        let (metadata, path) = record
+            .split_once('\t')
+            .ok_or_else(|| CoordError::new("INVALID_GIT_OUTPUT", "Git tree entry is malformed"))?;
+        let mode = metadata.split_whitespace().next().unwrap_or_default();
+        if !matches!(mode, "100644" | "100755") {
+            return Err(CoordError::new(
+                "UNSAFE_TAGGED_ARTIFACT",
+                format!("{path} is not a regular tracked file"),
+            ));
+        }
+        validate_repository_path(path)?;
+        paths.push(path.to_owned());
+    }
+    paths.sort();
+    if paths.len() > MAX_GENERATED_ARTIFACTS {
+        return Err(CoordError::new(
+            "TOO_MANY_TAGGED_ARTIFACTS",
+            "tagged artifact count exceeds 4096",
+        ));
+    }
+    if paths.windows(2).any(|pair| pair[0] == pair[1]) {
+        return Err(CoordError::new(
+            "DUPLICATE_TAGGED_PATH",
+            "Git returned duplicate artifact paths",
+        ));
+    }
+    Ok(paths)
 }
 
 pub(super) fn frame(hasher: &mut blake3::Hasher, bytes: &[u8]) {
@@ -156,12 +386,30 @@ fn git_bytes(repo: &Path, args: &[&str]) -> Result<Vec<u8>, CoordError> {
 }
 
 fn git_output(repo: &Path, args: &[&str]) -> Result<std::process::Output, CoordError> {
+    let repo_metadata = std::fs::symlink_metadata(repo).map_err(CoordError::io)?;
+    let git_metadata = std::fs::symlink_metadata(repo.join(".git")).map_err(CoordError::io)?;
+    if !repo_metadata.file_type().is_dir()
+        || repo_metadata.file_type().is_symlink()
+        || !git_metadata.file_type().is_dir()
+        || git_metadata.file_type().is_symlink()
+    {
+        return Err(CoordError::new(
+            "FORBIDDEN_GIT_LAYOUT",
+            format!("{} is not an ordinary non-symlink checkout", repo.display()),
+        ));
+    }
     let output = Command::new(GIT_BIN)
         .arg("-C")
         .arg(repo)
         .args(args)
         .env_clear()
         .env("LC_ALL", "C")
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env("GIT_NO_REPLACE_OBJECTS", "1")
+        .env("GIT_OPTIONAL_LOCKS", "0")
+        .env("GIT_TERMINAL_PROMPT", "0")
+        .env("GIT_NO_LAZY_FETCH", "1")
         .output()
         .map_err(CoordError::io)?;
     if !output.status.success() {
@@ -172,6 +420,12 @@ fn git_output(repo: &Path, args: &[&str]) -> Result<std::process::Output, CoordE
                 repo.display(),
                 args
             ),
+        ));
+    }
+    if output.stdout.len() > MAX_GIT_OUTPUT_BYTES || output.stderr.len() > MAX_GIT_OUTPUT_BYTES {
+        return Err(CoordError::new(
+            "GIT_OUTPUT_TOO_LARGE",
+            "Git verification output exceeded 16 MiB",
         ));
     }
     Ok(output)

@@ -1,4 +1,6 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
+
+use crate::family_lock::FamilyLock;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -49,20 +51,18 @@ pub(super) struct DoctorReport {
     pub(super) checks: Vec<DoctorCheck>,
 }
 
-#[derive(Debug, Deserialize)]
-pub(super) struct FamilyLock {
+#[derive(Debug)]
+pub(super) struct DoctorFamilyLock {
     pub(super) schema_version: String,
-    pub(super) member: Vec<LockedMember>,
+    pub(super) installable_schema: bool,
+    pub(super) current: Option<FamilyLock>,
+    pub(super) member: Vec<DoctorLockedMember>,
 }
 
-#[derive(Debug, Deserialize)]
-pub(super) struct LockedMember {
+#[derive(Debug)]
+pub(super) struct DoctorLockedMember {
     pub(super) name: String,
     pub(super) commit_oid: String,
-    #[serde(default)]
     pub(super) jeryu_url: Option<String>,
-    #[serde(default)]
-    pub(super) source_url: Option<String>,
-    #[serde(default)]
     pub(super) jeryu_slug: Option<String>,
 }
