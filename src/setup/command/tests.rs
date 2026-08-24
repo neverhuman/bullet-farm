@@ -50,7 +50,11 @@ fn tool_admission_rejects_missing_relative_noncanonical_and_mismatched_inputs() 
     );
     let error = Toolchain::admit(Some(&wrong), Some(&node), Some(&npm_cli))
         .expect_err("wrong Cargo identity must fail closed");
-    assert_eq!(error.code(), "SETUP_TOOL_IDENTITY_MISMATCH");
+    assert_eq!(
+        error.code(),
+        "SETUP_TOOL_IDENTITY_MISMATCH",
+        "unexpected tool-admission error: {error}"
+    );
 
     fs::remove_dir_all(fixture).expect("remove tool admission fixture");
 }
