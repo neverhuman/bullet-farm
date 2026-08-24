@@ -1,5 +1,5 @@
-# Hub copy of the family manifest. The container copy at
-# /home/ubuntu/bullet/repos.manifest.toml is the family index.
+# Hub copy of the family manifest. The container-level manifest is the family
+# index.
 # This file must not depend on sibling checkout paths.
 
 schema_version = "1.2.0"
