@@ -72,28 +72,28 @@ The committed subjects observed immediately before this plan edit were:
 
 | Repository | Commit | Tree | Checkout truth |
 | --- | --- | --- | --- |
-| Hub | `59675c8b10daf9b81590d505bddc5ecbd1c6cfca` | `467994d7b62b77d6f72f539683d1c1f0cc9ba818` | Clean before this claimed documentation edit |
-| Kernel | `63285a0bb599919c411d6a7cd65fe6ac2d55d2f3` | `7f01413900cd2cdcb24ac899fa8446e4637eac41` | Clean |
-| BulletGit | `7df926c16be3e3c42c3fffe3fc74f57aabceeb41` | `598271b4f83cb18be6dd38c6c9aa0b742bb5ac80` | Dirty only under active immutable-CAS claim; HEAD is not the CAS result |
+| Hub | `24d05af9db762a72bd4a54cddbb1807c9800ea64` | `4b7207a14a58a2e23862e7164b084b0d1727df2a` | Clean before this claimed documentation edit |
+| Kernel | `544f43ff50b92ab864cb4bcfc31c2f0d880c36f6` | `e47e7f5698a0f5831e3b4ba50c496f5758a06677` | Clean before the active admitted-gate claim |
+| BulletGit | `dff6dd143fd91d539c0c98b0fb2cd0ad6dd643ba` | `1bd7e7f7ba6f5fa89abea9871cc91d339a829487` | Clean before the active generation-publication claim |
 | Portal | `3ef6e7f4458a3ad2982f2231efae410f555d5eda` | `2fe6fe842c50f194bcd75c738279771b62b23b1c` | Clean |
 
-The latest complete family-wide receipt is **R3**, not the current-head table.
-At Hub `8e5a968`, Kernel `9d0e5c2`, BulletGit `7df926c`, and Portal `1f6dfb9`,
-`just family-contract` passed Hub required/contracts, Kernel 260/260, BulletGit
-82/82, Portal 43/43 plus production build, generated drift, and exactly the two
-pinned TLC models (378 and 128,913 distinct states). Newer per-repository proof
-does not create a newer family receipt by inference.
+The latest exact-subject family component receipt is **R4**. On the four heads
+above, `check fast --json` passed seven bounded gates within 60 seconds; required
+ran the family contract and `SYNTHETIC` demo, then exited 3/`BLOCKED` on six
+missing receipt classes. It is not a transaction or release receipt.
 
 | Receipt | Status | Exact evidence | Boundary |
 | --- | --- | --- | --- |
 | Pure signed wire | `COMPLETE` | Hub `c07efb10639d500c3e82ccc282265090ff63a4aa` | DTO/canonical/signature/golden proof; no running issuer or published immutable tag |
 | Tool admission | `COMPLETE` | Hub `68d0fb92b52df8d4631ac346428f341f0bb492bc` | Bounded admitted Cargo/Node/npm/Bash component path; not signed installation |
-| Fail-closed Rust check foundation | `COMPLETE` | Hub `e7d22cc888c5a9b6bfe00cbb536b1a20f65894f8`; 105/105 required and 46/46 contract | Typed reports and 26 release blockers; fast/required catalogs still intentionally `BLOCKED` |
+| Bounded JSON-RPC session contract | `COMPLETE` | Hub `b0b9be55199d7d58bc795c5252b27106a5c310b3`; wire 57/57, hostile IPC 11/11 | Pure hello/frame/deadline/cancel/correlation state machines; runtime consumers still use legacy boundaries |
+| Executable exact-subject checks | `COMPLETE` | Hub `24d05af9db762a72bd4a54cddbb1807c9800ea64`; R4 fast PASS and required BLOCKED on six named receipts | Fixed bounded commands and unchanged clean subjects; synthetic/component results cannot promote release |
 | Same-origin development | `COMPLETE` | Hub `59675c8`; launcher regression and Hub required pass | Vite development proxy only; no browser command/auth or embedded production proof |
 | Checksummed SQLite schema | `COMPLETE` | Kernel `9d0e5c2232342789dc889d25b34c4035059d6e4b`; 260/260 required | Migration/FK/disposable-schema component proof; not full normalized recovery |
 | Database-clock lease authority | `COMPLETE` | Kernel `63285a0`; 271/271 required, clock 6/6, farmd lease 4/4 | TTL `1..=15`, DB-owned windows, restart fence, bounded heartbeat; no public command/auth or live final check |
+| Atomic lease command/outbox | `COMPLETE` | Kernel `544f43ff50b92ab864cb4bcfc31c2f0d880c36f6`; required 277/277 | Fence, Attempt, lease, graph, event, exact result, and correlated outbox commit once; public wire command/auth remains open |
 | BulletGit fail-closed gateway | `COMPLETE` | BulletGit `79bf1e2129fbe50ed85d424fe6e4416407bb17f4`; 82/82 required at consumer head `7df926c` | Production refuses unavailable authority; no positive checker or Jeryu backend |
-| Immutable CAS substrate | `IN PROGRESS` | Active primary claim `clm_5c485cf6fa3cc647e44392d3f6ec02238c2263b77892a34cfc703ad90d538f58` and helper `clm_eb5fafa74349a98138723a22cf5684b2160ae914dba40f4831bf33a7d68d4acb`; focused integration 10/10, boundary 2/2, owner policy 1/1 | Uncommitted and not yet full-proofed; not integrated with journal, generations, daemon, or Jeryu |
+| Immutable CAS/journal/checkpoint | `COMPLETE` | BulletGit `dff6dd143fd91d539c0c98b0fb2cd0ad6dd643ba`; required 100/100 | CAS-first journal objects and exact checkpoint tree/root; active generation switch, daemon authority, and Jeryu remain open |
 | Cursor/projection truth | `COMPLETE` | Portal `5aa21708c808e6afd39537e9f5148679a0ce674b`; current consumer/docs head `3ef6e7f` passes 43/43 plus build | STALE/watermark and honest component prose; no command reconciliation or packaged E2E |
 
 Last recorded Jankurai component scores are Hub 54, Kernel 58, BulletGit 58,
@@ -146,8 +146,9 @@ fail closed; a commit containing an unclaimed path cannot receive a receipt.
 
 ## V1-S1 — frozen cross-repository contracts and IPC
 
-Status: `LOCAL-BLOCKED`. The Hub wire is strong component evidence, but it has
-no immutable signed Jeryu publication and consumers still duplicate semantics.
+Status: `LOCAL-BLOCKED`. Hub wire and JSON-RPC session machines are component
+evidence; no immutable Jeryu publication exists, and consumers still duplicate
+semantics or use legacy framing.
 
 Required work:
 
@@ -181,9 +182,9 @@ generation leaves zero tracked drift.
 
 ## V1-S2 — Kernel durable authority, commands, and recovery
 
-Status: `LOCAL-BLOCKED`. Checksummed migrations/FKs and database-owned lease
-time are complete components; public commands, normalized truth, capability
-issuance, recovery, and durable CAS remain.
+Status: `LOCAL-BLOCKED`. Checksummed migrations/FKs, database lease time, and
+the atomic lease-command/event/outbox transaction are complete components;
+public wire commands, normalized truth, capabilities, recovery, and CAS remain.
 
 Required work:
 
@@ -219,16 +220,16 @@ complete-new durable state.
 
 ## V1-S3 — BulletGit durable subjects and Jeryu capability service
 
-Status: `IN PROGRESS` for the isolated CAS; otherwise `LOCAL-BLOCKED`. Positive
-production authority and `jeryu-gitd` promotion are also `EXTERNAL-BLOCKED` on
+Status: `LOCAL-BLOCKED`. Immutable CAS, journal bindings, and exact checkpoint
+identity are complete; generations, manifests, preservation, and the wire
+consumer remain. Authority and `jeryu-gitd` promotion are `EXTERNAL-BLOCKED` on
 a reviewed capability tag and operator authentication.
 
 Required work, in order:
 
-1. Finish and commit the isolated immutable CAS only after its full required,
-   strict Clippy/fmt/diff/Jankurai proof. Then bind journal before/after records
-   to CAS objects.
-2. Fix exact checkpoint identity, then stage changes in a new workspace
+1. Preserve the committed CAS-first journal and exact checkpoint identity.
+   Reopen must continue to reject a missing or altered referenced object.
+2. Stage changes in a new workspace
    generation, fsync tree/journal/CAS, and atomically publish the active pointer.
 3. Consume the immutable `bullet-wire` proposal and enforce base checkpoint,
    absent/digest preimages, duplicate/conflict/path/scope/content constraints.
@@ -359,9 +360,11 @@ and cannot be rewritten into the selected Candidate.
 
 ## V1-S7 — installer, checks, CI, packaging, and documentation
 
-Status: `LOCAL-BLOCKED`. Rust coordination/setup and a fail-closed check model
-exist, but the checked-in schema-2 lock intentionally makes public setup return
-`UNSUPPORTED_SCHEMA`; there is no authenticated prebuilt installer or release.
+Status: `LOCAL-BLOCKED`. Rust coordination, exact-subject checks, strict
+schema-3 verification, bounded ordinary-clone setup, and a signed two-run fixture
+exist. Schema 2 correctly returns `UNSUPPORTED_SCHEMA`; no authenticated binary
+or release exists. Dependency/drift work still follows publication, and
+multi-member crash recovery lacks a prior-or-complete-next receipt.
 
 Required command surface:
 
@@ -464,21 +467,22 @@ may be neutral only when the requested release profile does not require them.
 
 ## Immediate closure queue
 
-1. Finish, independently review, commit, and receipt the active BulletGit CAS;
-   do not count its focused tests as a completed substrate.
-2. Replay `just family-contract` at the resulting exact four committed heads and
-   record a new family receipt; until then R3 remains the latest family proof.
-3. Complete `V1-S1` publication/consumer convergence, then `V1-S2` public
+1. Complete the active BulletGit generation-atomic publication, Kernel
+   `gate_ids` admission, and Portal gap/watermark truth slices; replay R4 on the
+   resulting exact committed subjects.
+2. Complete `V1-S1` immutable publication and runtime-consumer convergence,
+   then `V1-S2` public
    command/auth/CAS/backup-recovery before enabling positive BulletGit authority.
-4. Complete `V1-S3` journal/checkpoint/generation/proposal/proof/preservation
+3. Complete `V1-S3` generation/proposal/proof/preservation
    chain, then consume the reviewed tagged `jeryu-gitd` capability.
-5. Produce the `V1-S4` credential-free five-plane transaction receipt; replace,
+4. Produce the `V1-S4` credential-free five-plane transaction receipt; replace,
    rather than rename, synthetic success.
-6. Land `V1-S5` authenticated command/SSE/snapshot semantics and packaged
+5. Land `V1-S5` authenticated command/SSE/snapshot semantics and packaged
    Portal E2E, then `V1-S6` cognitive routing/fusion and four-provider harnesses.
-7. In parallel where dependencies permit, finish `V1-S7` Rust gate catalogs,
-   schema-3 setup/fuse/recovery, five packages, supply chain, and organized docs.
-8. Run `V1-S8` only with operator-provided Jeryu, GitHub App, provider, platform,
+6. In parallel where dependencies permit, move dependency/drift work before
+   installer publication or persist typed retry truth, prove crash recovery,
+   replace shell-owned fuse, then build five packages and supply-chain evidence.
+7. Run `V1-S8` only with operator-provided Jeryu, GitHub App, provider, platform,
    and signing authority.
 
 ## Terminal definition of done
