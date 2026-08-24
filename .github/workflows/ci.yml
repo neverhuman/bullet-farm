@@ -3,8 +3,9 @@ name: ci
 # Thin hub workflow. Every job delegates to an ops/ci entrypoint used locally.
 # The hub compiles its Rust CLI and wire crate; member repositories run their
 # own workflows. Hosted security provisions checksum-pinned scanners before it
-# delegates to the local lane. Jankurai remains a fail-closed local/release gate
-# and is not registered here until a portable pinned distribution exists.
+# delegates to the exact local entrypoint. Jankurai remains a fail-closed local
+# audit: the installed 1.6.11 binary is a machine-local path build, so hosted
+# registration is blocked until an authoritative portable artifact is pinned.
 # Third-party actions are pinned to full SHAs.
 
 on:
@@ -21,7 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  required:
+  fast:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -32,8 +33,23 @@ jobs:
         with:
           toolchain: 1.95.0
           components: rustfmt, clippy
+      - name: Fast
+        run: bash ops/ci/fast.sh
+
+  required:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: fast
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b # pinned action
+        with:
+          toolchain: 1.95.0
+          components: rustfmt, clippy
       - name: Required
-        run: bash scripts/ci-local.sh required
+        run: bash ops/ci/required.sh
 
   contract:
     runs-on: ubuntu-latest
@@ -51,7 +67,7 @@ jobs:
           distribution: temurin
           java-version: "21"
       - name: Family lock
-        run: bash scripts/ci-local.sh contract
+        run: bash ops/ci/contract.sh
 
   security:
     runs-on: ubuntu-latest
@@ -63,6 +79,10 @@ jobs:
       - uses: taiki-e/install-action@81ee1d48d9194cdcab880cbdc7d36e87d39874cb # v2.62.45
         with:
           tool: cargo-deny@0.19.8
+          fallback: none
+      - uses: taiki-e/install-action@81ee1d48d9194cdcab880cbdc7d36e87d39874cb # v2.62.45
+        with:
+          tool: zizmor@1.25.2
           fallback: none
       - name: Install gitleaks 8.21.2
         env:
@@ -79,4 +99,4 @@ jobs:
           tar -xzf "$archive" -C "$tools" gitleaks
           printf '%s\n' "$tools" >> "$GITHUB_PATH"
       - name: Security
-        run: bash scripts/ci-local.sh security
+        run: bash ops/ci/security.sh

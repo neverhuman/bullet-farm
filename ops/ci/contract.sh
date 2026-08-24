@@ -3,6 +3,7 @@
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 cd "$REPO_ROOT"
+bash scripts/ci-doctor.sh contract
 log "contract lane: canonical v1alpha1 bundle and hostile fixtures"
 cargo run --locked --quiet -p bullet-wire --bin bullet-contract -- check --root "$REPO_ROOT"
 cargo test --locked -p bullet-wire

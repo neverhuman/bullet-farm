@@ -39,6 +39,12 @@ security:
 audit:
     bash scripts/ci-local.sh audit
 
+ci-doctor lane="all":
+    bash scripts/ci-doctor.sh {{lane}}
+
+hooks-install:
+    git config --local core.hooksPath ops/git-hooks
+
 family:
     bash scripts/ci-local.sh family
 

@@ -21,7 +21,7 @@ Mission → immutable Plan → fenced Attempt → exact Candidate
 A model saying “done,” a terminal going idle, a process exiting zero, or a
 pull request opening has **no completion authority**.
 
-## Existing split-family start
+## Quick start
 
 Prerequisites: Rust stable, Node 22+, `just`, Git.
 
@@ -31,6 +31,16 @@ cargo run --locked --quiet --bin bullet-family -- doctor --json
 just setup
 just demo
 ```
+
+Install the repository-owned pre-push proof hook once per clone:
+
+```bash
+just hooks-install
+```
+
+The hook runs the same deterministic fast lane used by CI. `just ci-doctor`
+reports missing local tools before a lane starts; `just ci-doctor audit`
+additionally requires the exact locally admitted Jankurai 1.6.11 binary.
 
 This alpha requires the four ordinary sibling checkouts listed in `repos.manifest.toml`. A hub-only
 clone is diagnosis-only because the checked-in `family.lock` is the legacy schema-2 snapshot and

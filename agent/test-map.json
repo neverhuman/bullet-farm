@@ -5,6 +5,30 @@
       "command": "just fast",
       "purpose": "verify root routing remains visible"
     },
+    "SPLIT.md": {
+      "command": "just fast",
+      "purpose": "verify the split-family boundary remains explicit"
+    },
+    "LICENSE": {
+      "command": "just fast",
+      "purpose": "verify the public hub metadata remains complete"
+    },
+    "Justfile": {
+      "command": "just fast",
+      "purpose": "verify public proof recipes still route to executable local lanes"
+    },
+    ".gitignore": {
+      "command": "just fast",
+      "purpose": "verify generated local state remains outside source authority"
+    },
+    ".fusion/": {
+      "command": "just contract-check",
+      "purpose": "verify fusion output remains derived local state"
+    },
+    ".jankurai/": {
+      "command": "just audit",
+      "purpose": "recreate ignored audit reports from the pinned local auditor"
+    },
     "README.md": {
       "command": "just fast",
       "purpose": "verify the public onboarding page stays complete"
@@ -76,6 +100,22 @@
     "Cargo.lock": {
       "command": "cargo test --locked",
       "purpose": "verify the pinned Rust dependency graph"
+    },
+    "rust-toolchain.toml": {
+      "command": "just fast",
+      "purpose": "verify the pinned MSRV toolchain, rustfmt, and Clippy lane"
+    },
+    "family.lock": {
+      "command": "just contract",
+      "purpose": "verify the family lock remains a fail-closed generated authority input"
+    },
+    "repos.manifest.toml": {
+      "command": "just fast",
+      "purpose": "verify the public family membership manifest"
+    },
+    "tools/": {
+      "command": "just security",
+      "purpose": "verify security adapters delegate to the canonical local lane"
     },
     ".github/": {
       "command": "bash scripts/ci-local.sh required",

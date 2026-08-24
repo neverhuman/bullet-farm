@@ -1,0 +1,34 @@
+[[lane]]
+name = "fast"
+command = "just fast"
+purpose = "deterministic Hub metadata, Rust format, Clippy, and test proof"
+
+[[lane]]
+name = "required"
+command = "just check"
+purpose = "canonical local Hub merge gate"
+
+[[lane]]
+name = "contract-drift"
+command = "just contract-check"
+purpose = "canonical policy, schema, generated binding, and fixture drift proof"
+
+[[lane]]
+name = "contract"
+command = "just contract"
+purpose = "contract drift plus exactly two pinned bounded formal models"
+
+[[lane]]
+name = "security"
+command = "just security"
+purpose = "required secret, dependency, and workflow scans"
+
+[[lane]]
+name = "audit"
+command = "just audit"
+purpose = "local Jankurai full-score ratchet with JSON, Markdown, and repair artifacts"
+
+[[lane]]
+name = "family"
+command = "just family"
+purpose = "Hub and exact sibling required lanes"

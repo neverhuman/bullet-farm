@@ -1,55 +1,72 @@
 # Generated artifacts that must be repaired from their source, never hand-edited.
 [[zone]]
 path = "family.lock"
-source = "cargo run --locked --quiet --bin bullet-family -- lock generate --tag <version>"
-owner = "ops"
+source = "repos.manifest.toml + signed immutable member tags"
+command = "cargo run --locked --quiet --bin bullet-family -- lock generate --tag <version>"
+read_only = true
 
 [[zone]]
 path = ".fusion/"
-source = "scripts/fuse.sh"
-owner = "ops"
+source = "repos.manifest.toml + family.lock + exact member checkouts"
+command = "bash scripts/fuse.sh --source local"
+read_only = true
 
 [[zone]]
 path = "contracts/v1alpha1/schema-bundle.json"
 source = "contracts/v1alpha1/contract-catalog.json"
-owner = "contracts"
+command = "just contract-generate"
+read_only = true
 
 [[zone]]
 path = "contracts/v1alpha1/bundle-manifest.json"
 source = "contracts/v1alpha1/contract-catalog.json"
-owner = "contracts"
+command = "just contract-generate"
+read_only = true
 
 [[zone]]
 path = "contracts/generated/"
 source = "contracts/v1alpha1/contract-catalog.json + policy/v1alpha1/invariant-registry.json + policy/v1alpha1/policy-template.json"
-owner = "contracts"
+command = "just contract-generate"
+read_only = true
 
 [[zone]]
 path = "policy/v1alpha1/policy.json"
 source = "policy/v1alpha1/policy-template.json + policy/v1alpha1/invariant-registry.json + contracts/v1alpha1/contract-catalog.json"
-owner = "policy"
+command = "just contract-generate"
+read_only = true
 
 [[zone]]
 path = "fixtures/hostile/cases/"
 source = "crates/bullet-wire/src/contract_tool.rs"
-owner = "contracts"
+command = "just contract-generate"
+read_only = true
 
 [[zone]]
 path = "fixtures/hostile/fixture-manifest.json"
 source = "fixtures/hostile/team-original.bin"
-owner = "contracts"
+command = "just contract-generate"
+read_only = true
 
 [[zone]]
 path = "fixtures/canonical/canonical-golden.json"
 source = "crates/bullet-wire/src/contract_tool.rs"
-owner = "contracts"
+command = "just contract-generate"
+read_only = true
+
+[[zone]]
+path = "fixtures/canonical/authority-golden.json"
+source = "crates/bullet-wire/src/contract_tool.rs"
+command = "just contract-generate"
+read_only = true
 
 [[zone]]
 path = "docs/assurance/invariant-crosswalk.generated.md"
 source = "policy/v1alpha1/invariant-registry.json"
-owner = "policy"
+command = "just contract-generate"
+read_only = true
 
 [[zone]]
 path = "formal/traces/"
-source = "formal/LeaseFence.tla + formal/LeaseFence.cfg + formal/EffectCheck.tla + formal/EffectCheck.cfg"
-owner = "contracts"
+source = "formal/*.tla + formal/*.cfg + formal/toolchain.lock.json + formal/model-lock.json"
+command = "just model-check"
+read_only = true

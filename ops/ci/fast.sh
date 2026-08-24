@@ -3,6 +3,7 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 cd "$REPO_ROOT"
 
+bash scripts/ci-doctor.sh fast
 log "fast lane: hub metadata and onboarding checks"
 require_file "README.md"
 require_file "AGENTS.md"
