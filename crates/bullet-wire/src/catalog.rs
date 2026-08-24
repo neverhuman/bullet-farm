@@ -5,18 +5,86 @@ use serde_json::{Map, Value, json};
 
 use crate::{WireError, policy::POLICY_SCHEMA_VERSION};
 
+mod constraints;
+use constraints::conditional_constraints;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FieldTypeV1 {
     String,
+    SchemaVersion,
     Identifier,
     Digest,
+    OrganizationId,
+    RepositoryId,
+    MissionId,
+    AcceptanceContractId,
+    PlanRevisionId,
+    GraphRevisionId,
+    WorkPackageId,
+    SelectionGroupId,
+    VariantId,
+    AttemptId,
+    RunnerId,
+    WorkspaceId,
+    PrincipalId,
+    ProviderProfileId,
+    ContentId,
+    MutationId,
+    MutationReservationId,
+    ScopeGrantId,
+    SourceDescriptorId,
+    ChangeId,
+    CheckpointId,
+    CandidateId,
+    GateId,
+    EffectIntentId,
+    CandidateProofRoot,
+    IntegrationProofRoot,
+    GitOid,
+    RepoPath,
+    AuthorityAudience,
+    MutationOperation,
+    AuthorityDecision,
+    ReplayDisposition,
+    MutationResultState,
+    MutationOutcome,
+    SettlementStatus,
+    PatchPreimageKind,
+    PatchMutationKind,
+    KeyId,
+    KeyPurpose,
+    KeyAlgorithm,
+    PasetoV4Public,
     U64,
     Timestamp,
+    OptionalTimestamp,
+    OptionalDigest,
+    OptionalString,
+    OptionalMutationReservationId,
     Boolean,
     Object,
     StringArray,
     ObjectArray,
+    AuthorityAudienceArray,
+    IssuerKeyArray,
+    RiskPolicy,
+    EvidencePolicy,
+    SandboxPolicy,
+    BudgetPolicy,
+    RoutePolicy,
+    SignedAuthorityEnvelope,
+    SignedMutationPermit,
+    OptionalSignedMutationPermit,
+    MutationReplayResult,
+    OptionalMutationReplayResult,
+    ScopeGrant,
+    PatchProposal,
+    PatchOperationArray,
+    CandidateIdArray,
+    GateIdArray,
+    RepoPathArray,
+    CleanupAuthorization,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -153,7 +221,7 @@ fn record_schema(record: &ContractRecordV1) -> Value {
         .iter()
         .map(|field| Value::String(field.name.clone()))
         .collect::<Vec<_>>();
-    json!({
+    let mut schema = json!({
         "$id": format!("https://schemas.bullet.farm/v1alpha1/{}.json", record.name),
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -163,28 +231,169 @@ fn record_schema(record: &ContractRecordV1) -> Value {
         "type": "object",
         "x-bullet-security-class": record.security_class,
         "x-bullet-unknown-fields": record.unknown_fields,
-    })
+    });
+    if let Some(constraints) = conditional_constraints(&record.name) {
+        schema["allOf"] = constraints;
+    }
+    schema
 }
 
 fn field_schema(field: &ContractFieldV1) -> Value {
     match field.field_type {
         FieldTypeV1::String => json!({"type": "string", "minLength": 1}),
+        FieldTypeV1::SchemaVersion => json!({"type": "string", "const": "v1alpha1"}),
         FieldTypeV1::Identifier => json!({
             "type": "string",
             "pattern": "^[a-z][a-z0-9-]{1,15}_[0-9a-f]{64}$"
         }),
         FieldTypeV1::Digest => json!({"type": "string", "pattern": "^[0-9a-f]{64}$"}),
+        FieldTypeV1::OrganizationId => digest_id_schema("org"),
+        FieldTypeV1::RepositoryId => digest_id_schema("rep"),
+        FieldTypeV1::MissionId => digest_id_schema("mis"),
+        FieldTypeV1::AcceptanceContractId => digest_id_schema("acc"),
+        FieldTypeV1::PlanRevisionId => digest_id_schema("pln"),
+        FieldTypeV1::GraphRevisionId => digest_id_schema("grf"),
+        FieldTypeV1::WorkPackageId => digest_id_schema("wpk"),
+        FieldTypeV1::SelectionGroupId => digest_id_schema("sel"),
+        FieldTypeV1::VariantId => digest_id_schema("var"),
+        FieldTypeV1::AttemptId => digest_id_schema("atm"),
+        FieldTypeV1::RunnerId => digest_id_schema("run"),
+        FieldTypeV1::WorkspaceId => digest_id_schema("wsp"),
+        FieldTypeV1::PrincipalId => digest_id_schema("pri"),
+        FieldTypeV1::ProviderProfileId => digest_id_schema("prf"),
+        FieldTypeV1::ContentId => digest_id_schema("cnt"),
+        FieldTypeV1::MutationId => digest_id_schema("mut"),
+        FieldTypeV1::MutationReservationId => digest_id_schema("rsv"),
+        FieldTypeV1::ScopeGrantId => digest_id_schema("sgr"),
+        FieldTypeV1::SourceDescriptorId => digest_id_schema("src"),
+        FieldTypeV1::ChangeId => digest_id_schema("chg"),
+        FieldTypeV1::CheckpointId => digest_id_schema("ckp"),
+        FieldTypeV1::CandidateId => digest_id_schema("can"),
+        FieldTypeV1::GateId => digest_id_schema("gat"),
+        FieldTypeV1::EffectIntentId => digest_id_schema("efi"),
+        FieldTypeV1::CandidateProofRoot => digest_id_schema("cpr"),
+        FieldTypeV1::IntegrationProofRoot => digest_id_schema("ipr"),
+        FieldTypeV1::GitOid => json!({
+            "type": "string", "pattern": "^(sha1:[0-9a-f]{40}|sha256:[0-9a-f]{64})$"
+        }),
+        FieldTypeV1::RepoPath => json!({
+            "type": "string", "minLength": 1, "maxLength": 4096,
+            "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*(?:^|/)\\.git(?:/|$)).+$"
+        }),
+        FieldTypeV1::AuthorityAudience => json!({
+            "type": "string", "enum": ["bullet-gitd", "effect-broker"]
+        }),
+        FieldTypeV1::MutationOperation => json!({
+            "type": "string",
+            "enum": [
+                "clone-workspace", "read-workspace", "apply-patch", "checkpoint",
+                "prepare-candidate", "preserve-workspace", "cleanup-workspace",
+                "dispatch-effect", "reconcile-effect"
+            ]
+        }),
+        FieldTypeV1::AuthorityDecision => json!({
+            "type": "string", "enum": ["authorized", "settled", "refused"]
+        }),
+        FieldTypeV1::ReplayDisposition => json!({
+            "type": "string", "enum": ["fresh", "exact-replay", "conflict"]
+        }),
+        FieldTypeV1::MutationResultState => json!({
+            "type": "string", "enum": ["in-flight", "committed", "aborted", "unknown"]
+        }),
+        FieldTypeV1::MutationOutcome => json!({
+            "type": "string", "enum": ["committed", "aborted", "unknown"]
+        }),
+        FieldTypeV1::SettlementStatus => json!({
+            "type": "string", "enum": ["accepted", "exact-replay", "conflict", "refused"]
+        }),
+        FieldTypeV1::PatchPreimageKind => json!({
+            "type": "string", "enum": ["absent", "digest"]
+        }),
+        FieldTypeV1::PatchMutationKind => json!({
+            "type": "string", "enum": ["write", "delete"]
+        }),
+        FieldTypeV1::KeyId => json!({
+            "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"
+        }),
+        FieldTypeV1::KeyPurpose => json!({
+            "type": "string", "enum": ["authority-signing", "release-signing"]
+        }),
+        FieldTypeV1::KeyAlgorithm => json!({
+            "type": "string", "enum": ["paseto-v4.public", "ssh-ed25519"]
+        }),
+        FieldTypeV1::PasetoV4Public => json!({
+            "type": "string", "pattern": "^v4\\.public\\.", "maxLength": 32768
+        }),
         FieldTypeV1::U64 => {
             json!({"type": "integer", "minimum": 0, "maximum": 9007199254740991_u64})
         }
         FieldTypeV1::Timestamp => {
             json!({"type": "integer", "minimum": 0, "maximum": 9007199254740991_u64})
         }
+        FieldTypeV1::OptionalTimestamp => json!({
+            "type": ["integer", "null"], "minimum": 0, "maximum": 9007199254740991_u64
+        }),
+        FieldTypeV1::OptionalDigest => json!({
+            "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"
+        }),
+        FieldTypeV1::OptionalString => json!({"type": ["string", "null"]}),
+        FieldTypeV1::OptionalMutationReservationId => optional_digest_id_schema("rsv"),
         FieldTypeV1::Boolean => json!({"type": "boolean"}),
         FieldTypeV1::Object => json!({"type": "object"}),
         FieldTypeV1::StringArray => json!({"type": "array", "items": {"type": "string"}}),
         FieldTypeV1::ObjectArray => json!({"type": "array", "items": {"type": "object"}}),
+        FieldTypeV1::AuthorityAudienceArray => json!({
+            "type": "array", "items": {
+                "type": "string", "enum": ["bullet-gitd", "effect-broker"]
+            }
+        }),
+        FieldTypeV1::IssuerKeyArray => ref_array("IssuerKeyV1"),
+        FieldTypeV1::RiskPolicy => schema_ref("RiskPolicyV1"),
+        FieldTypeV1::EvidencePolicy => schema_ref("EvidencePolicyV1"),
+        FieldTypeV1::SandboxPolicy => schema_ref("SandboxPolicyV1"),
+        FieldTypeV1::BudgetPolicy => schema_ref("BudgetPolicyV1"),
+        FieldTypeV1::RoutePolicy => schema_ref("RoutePolicyV1"),
+        FieldTypeV1::SignedAuthorityEnvelope => schema_ref("SignedAuthorityEnvelopeV1"),
+        FieldTypeV1::SignedMutationPermit => schema_ref("SignedMutationPermitV1"),
+        FieldTypeV1::OptionalSignedMutationPermit => optional_schema_ref("SignedMutationPermitV1"),
+        FieldTypeV1::MutationReplayResult => schema_ref("MutationReplayResultV1"),
+        FieldTypeV1::OptionalMutationReplayResult => optional_schema_ref("MutationReplayResultV1"),
+        FieldTypeV1::ScopeGrant => schema_ref("ScopeGrantV1"),
+        FieldTypeV1::PatchProposal => schema_ref("PatchProposalV1"),
+        FieldTypeV1::PatchOperationArray => ref_array("PatchOperationV1"),
+        FieldTypeV1::CandidateIdArray => typed_string_array("^can_[0-9a-f]{64}$"),
+        FieldTypeV1::GateIdArray => typed_string_array("^gat_[0-9a-f]{64}$"),
+        FieldTypeV1::RepoPathArray => json!({
+            "type": "array", "items": field_schema(&ContractFieldV1 {
+                name: "path".to_owned(), field_type: FieldTypeV1::RepoPath
+            })
+        }),
+        FieldTypeV1::CleanupAuthorization => schema_ref("CleanupAuthorizationV1"),
     }
+}
+
+fn digest_id_schema(prefix: &str) -> Value {
+    json!({"type": "string", "pattern": format!("^{prefix}_[0-9a-f]{{64}}$")})
+}
+
+fn optional_digest_id_schema(prefix: &str) -> Value {
+    json!({"type": ["string", "null"], "pattern": format!("^{prefix}_[0-9a-f]{{64}}$")})
+}
+
+fn schema_ref(name: &str) -> Value {
+    json!({"$ref": format!("#/schemas/{name}")})
+}
+
+fn ref_array(name: &str) -> Value {
+    json!({"type": "array", "items": {"$ref": format!("#/schemas/{name}")}})
+}
+
+fn optional_schema_ref(name: &str) -> Value {
+    json!({"anyOf": [{"$ref": format!("#/schemas/{name}")}, {"type": "null"}]})
+}
+
+fn typed_string_array(pattern: &str) -> Value {
+    json!({"type": "array", "items": {"type": "string", "pattern": pattern}})
 }
 
 fn required_records() -> BTreeSet<&'static str> {
@@ -197,23 +406,49 @@ fn required_records() -> BTreeSet<&'static str> {
 
 const TRANSACTION_RECORDS: &[&str] = &[
     "AcceptanceContractV1",
+    "AuthorityClaimsV1",
+    "ApplyPatchRequestV1",
     "AuditBatchV1",
+    "BudgetPolicyV1",
     "CandidateManifestV1",
     "CheckIntentV1",
+    "CheckpointRequestV1",
+    "CleanupAuthorizationV1",
+    "CleanupWorkspaceRequestV1",
+    "CloneWorkspaceRequestV1",
     "DeliveryGrantV1",
     "EffectIntentV1",
     "EvidenceV1",
+    "EvidencePolicyV1",
+    "FinalAuthorityCheckRequestV1",
+    "FinalAuthorityDecisionV1",
     "GateReceiptV1",
     "GraphDeltaV1",
     "IntegrationIntentV1",
     "InterventionV1",
+    "IssuerKeyV1",
     "LaunchGrantV1",
+    "MutationPermitClaimsV1",
+    "MutationReplayResultV1",
+    "MutationSettlementRequestV1",
+    "MutationSettlementResultV1",
     "ObservationV1",
     "PlanRevisionV1",
     "PolicySnapshotV1",
+    "PatchOperationV1",
+    "PatchProposalV1",
+    "PrepareCandidateRequestV1",
+    "PreserveWorkspaceRequestV1",
     "ProofBundleV1",
     "ScopeGrantV1",
+    "RiskPolicyV1",
+    "RoutePolicyV1",
+    "SandboxPolicyV1",
     "SignedAuthorityEnvelopeV1",
+    "SignedMutationPermitV1",
+    "DispatchEffectRequestV1",
+    "ReadWorkspaceRequestV1",
+    "ReconcileEffectRequestV1",
     "VerificationIntentV1",
 ];
 

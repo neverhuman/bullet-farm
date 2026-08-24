@@ -1,8 +1,8 @@
 use std::{fs, path::PathBuf};
 
 use bullet_wire::{
-    ContractCatalogV1, ContractMode, InvariantRegistryV1, PolicySnapshotV1, canonical_json,
-    decode_canonical, execute_contract_tool,
+    AuthorityAudience, ContractCatalogV1, ContractMode, InvariantRegistryV1, PolicySnapshotV1,
+    canonical_json, decode_canonical, execute_contract_tool,
 };
 use sha2::{Digest, Sha256};
 
@@ -74,12 +74,21 @@ fn catalog_names_cannot_inject_generated_languages() {
 
 #[test]
 fn policy_and_catalog_are_strict_complete_and_offline() {
-    let policy = decode_canonical::<PolicySnapshotV1>(
-        &fs::read(root().join("policy/v1alpha1/policy.json")).unwrap(),
-    )
-    .unwrap();
+    let policy_bytes = fs::read(root().join("policy/v1alpha1/policy.json")).unwrap();
+    let policy = decode_canonical::<PolicySnapshotV1>(&policy_bytes).unwrap();
     policy.validate().unwrap();
     assert!(!policy.sandbox_policy.live_admission_enabled);
+    let generated =
+        serde_json::from_slice::<bullet_wire::v1alpha1::PolicySnapshotV1>(&policy_bytes).unwrap();
+    assert_eq!(generated.route_policy.universal_incumbent, "T0");
+    assert_eq!(generated.issuer_keys.len(), 1);
+    assert_eq!(generated.issuer_keys[0].key_id, "release-signing-alpha");
+
+    let mut unknown_nested = serde_json::from_slice::<serde_json::Value>(&policy_bytes).unwrap();
+    unknown_nested["route_policy"]["surprise"] = serde_json::json!(true);
+    assert!(
+        serde_json::from_value::<bullet_wire::v1alpha1::PolicySnapshotV1>(unknown_nested).is_err()
+    );
 
     let catalog = decode_canonical::<ContractCatalogV1>(
         &fs::read(root().join("contracts/v1alpha1/contract-catalog.json")).unwrap(),
@@ -94,6 +103,140 @@ fn policy_and_catalog_are_strict_complete_and_offline() {
     assert_eq!(
         bundle["schemas"]["RouteDecision"]["additionalProperties"],
         false
+    );
+    assert_eq!(
+        bundle["schemas"]["ApplyPatchRequestV1"]["properties"]["proposal"]["$ref"],
+        "#/schemas/PatchProposalV1"
+    );
+    assert_eq!(
+        bundle["schemas"]["CloneWorkspaceRequestV1"]["properties"]["scope_grant"]["$ref"],
+        "#/schemas/ScopeGrantV1"
+    );
+    assert_eq!(
+        bundle["schemas"]["FinalAuthorityDecisionV1"]["allOf"]
+            .as_array()
+            .unwrap()
+            .len(),
+        3
+    );
+    assert_eq!(
+        bundle["schemas"]["MutationSettlementResultV1"]["allOf"]
+            .as_array()
+            .unwrap()
+            .len(),
+        4
+    );
+    assert_eq!(
+        bundle["schemas"]["PatchOperationV1"]["allOf"]
+            .as_array()
+            .unwrap()
+            .len(),
+        4
+    );
+}
+
+#[test]
+fn policy_key_purpose_lifecycle_and_identity_fail_closed() {
+    let bytes = fs::read(root().join("policy/v1alpha1/policy.json")).unwrap();
+    let policy = decode_canonical::<PolicySnapshotV1>(&bytes).unwrap();
+
+    let mut wrong_use = policy.clone();
+    wrong_use.issuer_keys[0].key_purpose = bullet_wire::KeyPurposeV1::AuthoritySigning;
+    assert_eq!(wrong_use.validate().unwrap_err().code(), "INVALID_KEY_USE");
+
+    let mut duplicate = policy.clone();
+    duplicate.issuer_keys.push(duplicate.issuer_keys[0].clone());
+    assert_eq!(
+        duplicate.validate().unwrap_err().code(),
+        "INVALID_ISSUER_KEY_LIFECYCLE"
+    );
+
+    let mut short_retention = policy;
+    short_retention.issuer_keys[0].retain_until_unix_ms =
+        short_retention.issuer_keys[0].expires_at_unix_ms;
+    assert_eq!(
+        short_retention.validate().unwrap_err().code(),
+        "INVALID_ISSUER_KEY_LIFECYCLE"
+    );
+}
+
+#[test]
+fn authority_key_lookup_enforces_lifecycle_audience_and_material() {
+    let bytes = fs::read(root().join("policy/v1alpha1/policy.json")).unwrap();
+    let mut policy = decode_canonical::<PolicySnapshotV1>(&bytes).unwrap();
+    let mut authority = policy.issuer_keys[0].clone();
+    authority.issuer = "fixture-only-kernel".to_owned();
+    authority.key_id = "fixture-only-authority".to_owned();
+    authority.key_purpose = bullet_wire::KeyPurposeV1::AuthoritySigning;
+    authority.algorithm = bullet_wire::KeyAlgorithmV1::PasetoV4Public;
+    authority.public_key =
+        "1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2".to_owned();
+    authority.audiences = vec![AuthorityAudience::BulletGitd];
+    policy.issuer_keys.push(authority);
+    policy.validate().unwrap();
+
+    let key = policy
+        .authority_key_at(
+            "fixture-only-kernel",
+            "fixture-only-authority",
+            AuthorityAudience::BulletGitd,
+            policy.activation_at_unix_ms,
+        )
+        .unwrap();
+    assert_eq!(key.key_id, "fixture-only-authority");
+    assert_eq!(
+        policy
+            .authority_key_at(
+                "fixture-only-kernel",
+                "fixture-only-authority",
+                AuthorityAudience::EffectBroker,
+                policy.activation_at_unix_ms,
+            )
+            .unwrap_err()
+            .code(),
+        "AUTHORITY_KEY_AUDIENCE_MISMATCH"
+    );
+    assert_eq!(
+        policy
+            .authority_key_at(
+                "fixture-only-kernel",
+                "fixture-only-authority",
+                AuthorityAudience::BulletGitd,
+                policy.expires_at_unix_ms,
+            )
+            .unwrap_err()
+            .code(),
+        "POLICY_NOT_ACTIVE"
+    );
+
+    let authority_index = policy.issuer_keys.len() - 1;
+    policy.issuer_keys[authority_index].revoked_at_unix_ms = Some(policy.activation_at_unix_ms + 1);
+    assert_eq!(
+        policy
+            .authority_key_at(
+                "fixture-only-kernel",
+                "fixture-only-authority",
+                AuthorityAudience::BulletGitd,
+                policy.activation_at_unix_ms + 1,
+            )
+            .unwrap_err()
+            .code(),
+        "AUTHORITY_KEY_INACTIVE"
+    );
+
+    policy.issuer_keys[authority_index].revoked_at_unix_ms = None;
+    policy.issuer_keys[authority_index]
+        .audiences
+        .push(AuthorityAudience::BulletGitd);
+    assert_eq!(
+        policy.validate().unwrap_err().code(),
+        "INVALID_ISSUER_KEY_LIFECYCLE"
+    );
+    policy.issuer_keys[authority_index].audiences.pop();
+    policy.issuer_keys[authority_index].public_key = "0".repeat(64);
+    assert_eq!(
+        policy.validate().unwrap_err().code(),
+        "INVALID_AUTHORITY_KEY"
     );
 }
 

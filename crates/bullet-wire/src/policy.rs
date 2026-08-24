@@ -2,7 +2,9 @@ use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{Blake3Digest, WireError};
+use crate::{AuthorityAudience, Blake3Digest, WireError};
+
+mod keys;
 
 pub const POLICY_SCHEMA_VERSION: &str = "v1alpha1";
 
@@ -199,19 +201,40 @@ fn duplicate(kind: &str, value: &str) -> WireError {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum KeyPurposeV1 {
+    AuthoritySigning,
+    ReleaseSigning,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum KeyAlgorithmV1 {
+    #[serde(rename = "paseto-v4.public")]
+    PasetoV4Public,
+    #[serde(rename = "ssh-ed25519")]
+    SshEd25519,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct IssuerKeyV1 {
+    pub schema_version: String,
     pub issuer: String,
     pub key_id: String,
-    pub algorithm: String,
+    pub key_purpose: KeyPurposeV1,
+    pub algorithm: KeyAlgorithmV1,
     pub public_key: String,
+    pub audiences: Vec<AuthorityAudience>,
     pub activates_at_unix_ms: u64,
     pub expires_at_unix_ms: u64,
+    pub revoked_at_unix_ms: Option<u64>,
+    pub retain_until_unix_ms: u64,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RiskPolicyV1 {
+    pub schema_version: String,
     pub automatic_integration_max_risk: String,
     pub signed_human_approval_min_risk: String,
 }
@@ -219,6 +242,7 @@ pub struct RiskPolicyV1 {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct EvidencePolicyV1 {
+    pub schema_version: String,
     pub r2_requires_sealed_product_holdout: bool,
     pub author_evidence_is_independent: bool,
     pub unknown_satisfies_gate: bool,
@@ -227,6 +251,7 @@ pub struct EvidencePolicyV1 {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SandboxPolicyV1 {
+    pub schema_version: String,
     pub production_reference: String,
     pub arbitrary_shell_gates: bool,
     pub network_default: String,
@@ -236,6 +261,7 @@ pub struct SandboxPolicyV1 {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct BudgetPolicyV1 {
+    pub schema_version: String,
     pub maximum_lease_ttl_seconds: u64,
     pub unknown_quota_is_headroom: bool,
     pub maximum_changed_paths: u64,
@@ -245,6 +271,7 @@ pub struct BudgetPolicyV1 {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RoutePolicyV1 {
+    pub schema_version: String,
     pub universal_incumbent: String,
     pub deterministic_abstention_target: String,
     pub evolutionary_authority: bool,
@@ -294,6 +321,8 @@ impl PolicySnapshotV1 {
                 "policy requires a generation, issuer key, and ordered validity window",
             ));
         }
+        validate_nested_policy_versions(self)?;
+        keys::validate_issuer_keys(&self.issuer_keys)?;
         if self.budget_policy.maximum_lease_ttl_seconds > 15
             || self.budget_policy.unknown_quota_is_headroom
             || self.sandbox_policy.live_admission_enabled
@@ -311,6 +340,28 @@ impl PolicySnapshotV1 {
         }
         Ok(())
     }
+}
+
+fn validate_nested_policy_versions(policy: &PolicySnapshotV1) -> Result<(), WireError> {
+    for (name, version) in [
+        ("risk_policy", policy.risk_policy.schema_version.as_str()),
+        (
+            "evidence_policy",
+            policy.evidence_policy.schema_version.as_str(),
+        ),
+        (
+            "sandbox_policy",
+            policy.sandbox_policy.schema_version.as_str(),
+        ),
+        (
+            "budget_policy",
+            policy.budget_policy.schema_version.as_str(),
+        ),
+        ("route_policy", policy.route_policy.schema_version.as_str()),
+    ] {
+        require_v1alpha1(version, name)?;
+    }
+    Ok(())
 }
 
 fn require_v1alpha1(actual: &str, kind: &str) -> Result<(), WireError> {

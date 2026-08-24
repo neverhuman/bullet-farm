@@ -13,7 +13,14 @@ mod policy;
 mod proposal;
 
 pub use authority::{
-    AuthorityClaims as ComponentAuthorityClaims, MutationOperation, PreservationDecision,
+    AUTHORITY_IMPLICIT_ASSERTION, AUTHORITY_SCHEMA_VERSION, AuthorityAudience, AuthorityClaims,
+    AuthorityDecisionKind, AuthorityExpectation, AuthorityRequest, AuthorityRequestBinding,
+    AuthoritySigningKey, AuthorityVerificationKey, FinalAuthorityCheckRequest,
+    FinalAuthorityDecision, MAX_AUTHORITY_TTL_MS, MAX_MUTATION_PERMIT_TTL_MS,
+    MUTATION_PERMIT_IMPLICIT_ASSERTION, MutationOperation, MutationOutcome, MutationPermitClaims,
+    MutationPermitExpectation, MutationPermitSubject, MutationReplayResult, MutationResultState,
+    MutationSettlementRequest, MutationSettlementResult, PreservationDecision, ReplayDisposition,
+    SettlementStatus, SignedAuthorityEnvelope, SignedMutationPermit, authority_request_digest,
 };
 pub use canonical::{MAX_CANONICAL_DOCUMENT_BYTES, decode_canonical, decode_canonical_value};
 pub use catalog::*;

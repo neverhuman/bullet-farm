@@ -8,6 +8,7 @@ pub(crate) fn rust_constants(
     policy: Blake3Digest,
     golden_json: &str,
     golden_hash: Blake3Digest,
+    authority_golden_hash: Blake3Digest,
     catalog: &ContractCatalogV1,
 ) -> String {
     let mut output = RUST_TEMPLATE
@@ -15,7 +16,11 @@ pub(crate) fn rust_constants(
         .replace("@REGISTRY@", &registry.to_string())
         .replace("@POLICY@", &policy.to_string())
         .replace("@GOLDEN_JSON@", golden_json)
-        .replace("@GOLDEN_HASH@", &golden_hash.to_string());
+        .replace("@GOLDEN_HASH@", &golden_hash.to_string())
+        .replace(
+            "@AUTHORITY_GOLDEN_HASH@",
+            &authority_golden_hash.to_string(),
+        );
     render_rust_records(&mut output, catalog);
     output
 }
@@ -26,6 +31,7 @@ pub(crate) fn typescript_constants(
     policy: Blake3Digest,
     golden_json: &str,
     golden_hash: Blake3Digest,
+    authority_golden_hash: Blake3Digest,
     catalog: &ContractCatalogV1,
 ) -> String {
     let encoded_golden = serde_json::to_string(golden_json)
@@ -40,7 +46,19 @@ export const SCHEMA_BUNDLE_HASH = \"{schema}\" as const;\n\
 export const INVARIANT_REGISTRY_HASH = \"{registry}\" as const;\n\
 export const POLICY_SNAPSHOT_HASH = \"{policy}\" as const;\n\
 export const CANONICAL_GOLDEN_JSON = {encoded_golden} as const;\n\
-export const CANONICAL_GOLDEN_HASH = \"{golden_hash}\" as const;\n"
+export const CANONICAL_GOLDEN_HASH = \"{golden_hash}\" as const;\n\
+export const AUTHORITY_GOLDEN_HASH = \"{authority_golden_hash}\" as const;\n\
+export type AuthorityAudienceV1 = \"bullet-gitd\" | \"effect-broker\";\n\
+export type MutationOperationV1 = \"clone-workspace\" | \"read-workspace\" | \"apply-patch\" | \"checkpoint\" | \"prepare-candidate\" | \"preserve-workspace\" | \"cleanup-workspace\" | \"dispatch-effect\" | \"reconcile-effect\";\n\
+export type AuthorityDecisionV1 = \"authorized\" | \"settled\" | \"refused\";\n\
+export type ReplayDispositionV1 = \"fresh\" | \"exact-replay\" | \"conflict\";\n\
+export type MutationResultStateV1 = \"in-flight\" | \"committed\" | \"aborted\" | \"unknown\";\n\
+export type MutationOutcomeV1 = \"committed\" | \"aborted\" | \"unknown\";\n\
+export type SettlementStatusV1 = \"accepted\" | \"exact-replay\" | \"conflict\" | \"refused\";\n\
+export type PatchPreimageKindV1 = \"absent\" | \"digest\";\n\
+export type PatchMutationKindV1 = \"write\" | \"delete\";\n\
+export type KeyPurposeV1 = \"authority-signing\" | \"release-signing\";\n\
+export type KeyAlgorithmV1 = \"paseto-v4.public\" | \"ssh-ed25519\";\n"
     );
     render_typescript_records(&mut output, catalog);
     output
@@ -88,23 +106,156 @@ fn render_typescript_records(output: &mut String, catalog: &ContractCatalogV1) {
 
 const fn rust_type(field_type: FieldTypeV1) -> &'static str {
     match field_type {
-        FieldTypeV1::String | FieldTypeV1::Identifier | FieldTypeV1::Digest => "String",
+        FieldTypeV1::String
+        | FieldTypeV1::SchemaVersion
+        | FieldTypeV1::Identifier
+        | FieldTypeV1::Digest
+        | FieldTypeV1::OrganizationId
+        | FieldTypeV1::RepositoryId
+        | FieldTypeV1::MissionId
+        | FieldTypeV1::AcceptanceContractId
+        | FieldTypeV1::PlanRevisionId
+        | FieldTypeV1::GraphRevisionId
+        | FieldTypeV1::WorkPackageId
+        | FieldTypeV1::SelectionGroupId
+        | FieldTypeV1::VariantId
+        | FieldTypeV1::AttemptId
+        | FieldTypeV1::RunnerId
+        | FieldTypeV1::WorkspaceId
+        | FieldTypeV1::PrincipalId
+        | FieldTypeV1::ProviderProfileId
+        | FieldTypeV1::ContentId
+        | FieldTypeV1::MutationId
+        | FieldTypeV1::MutationReservationId
+        | FieldTypeV1::ScopeGrantId
+        | FieldTypeV1::SourceDescriptorId
+        | FieldTypeV1::ChangeId
+        | FieldTypeV1::CheckpointId
+        | FieldTypeV1::CandidateId
+        | FieldTypeV1::GateId
+        | FieldTypeV1::EffectIntentId
+        | FieldTypeV1::CandidateProofRoot
+        | FieldTypeV1::IntegrationProofRoot
+        | FieldTypeV1::GitOid
+        | FieldTypeV1::RepoPath
+        | FieldTypeV1::KeyId
+        | FieldTypeV1::PasetoV4Public => "String",
+        FieldTypeV1::AuthorityAudience => "AuthorityAudienceV1",
+        FieldTypeV1::MutationOperation => "MutationOperationV1",
+        FieldTypeV1::AuthorityDecision => "AuthorityDecisionV1",
+        FieldTypeV1::ReplayDisposition => "ReplayDispositionV1",
+        FieldTypeV1::MutationResultState => "MutationResultStateV1",
+        FieldTypeV1::MutationOutcome => "MutationOutcomeV1",
+        FieldTypeV1::SettlementStatus => "SettlementStatusV1",
+        FieldTypeV1::PatchPreimageKind => "PatchPreimageKindV1",
+        FieldTypeV1::PatchMutationKind => "PatchMutationKindV1",
+        FieldTypeV1::KeyPurpose => "KeyPurposeV1",
+        FieldTypeV1::KeyAlgorithm => "KeyAlgorithmV1",
         FieldTypeV1::U64 | FieldTypeV1::Timestamp => "u64",
+        FieldTypeV1::OptionalTimestamp => "Option<u64>",
+        FieldTypeV1::OptionalDigest | FieldTypeV1::OptionalString => "Option<String>",
+        FieldTypeV1::OptionalMutationReservationId => "Option<String>",
         FieldTypeV1::Boolean => "bool",
         FieldTypeV1::Object => "serde_json::Value",
         FieldTypeV1::StringArray => "Vec<String>",
         FieldTypeV1::ObjectArray => "Vec<serde_json::Value>",
+        FieldTypeV1::AuthorityAudienceArray => "Vec<AuthorityAudienceV1>",
+        FieldTypeV1::IssuerKeyArray => "Vec<IssuerKeyV1>",
+        FieldTypeV1::RiskPolicy => "RiskPolicyV1",
+        FieldTypeV1::EvidencePolicy => "EvidencePolicyV1",
+        FieldTypeV1::SandboxPolicy => "SandboxPolicyV1",
+        FieldTypeV1::BudgetPolicy => "BudgetPolicyV1",
+        FieldTypeV1::RoutePolicy => "RoutePolicyV1",
+        FieldTypeV1::SignedAuthorityEnvelope => "SignedAuthorityEnvelopeV1",
+        FieldTypeV1::SignedMutationPermit => "SignedMutationPermitV1",
+        FieldTypeV1::OptionalSignedMutationPermit => "Option<SignedMutationPermitV1>",
+        FieldTypeV1::MutationReplayResult => "MutationReplayResultV1",
+        FieldTypeV1::OptionalMutationReplayResult => "Option<MutationReplayResultV1>",
+        FieldTypeV1::ScopeGrant => "ScopeGrantV1",
+        FieldTypeV1::PatchProposal => "PatchProposalV1",
+        FieldTypeV1::PatchOperationArray => "Vec<PatchOperationV1>",
+        FieldTypeV1::CandidateIdArray | FieldTypeV1::GateIdArray | FieldTypeV1::RepoPathArray => {
+            "Vec<String>"
+        }
+        FieldTypeV1::CleanupAuthorization => "CleanupAuthorizationV1",
     }
 }
 
 const fn typescript_type(field_type: FieldTypeV1) -> &'static str {
     match field_type {
-        FieldTypeV1::String | FieldTypeV1::Identifier | FieldTypeV1::Digest => "string",
+        FieldTypeV1::String
+        | FieldTypeV1::SchemaVersion
+        | FieldTypeV1::Identifier
+        | FieldTypeV1::Digest
+        | FieldTypeV1::OrganizationId
+        | FieldTypeV1::RepositoryId
+        | FieldTypeV1::MissionId
+        | FieldTypeV1::AcceptanceContractId
+        | FieldTypeV1::PlanRevisionId
+        | FieldTypeV1::GraphRevisionId
+        | FieldTypeV1::WorkPackageId
+        | FieldTypeV1::SelectionGroupId
+        | FieldTypeV1::VariantId
+        | FieldTypeV1::AttemptId
+        | FieldTypeV1::RunnerId
+        | FieldTypeV1::WorkspaceId
+        | FieldTypeV1::PrincipalId
+        | FieldTypeV1::ProviderProfileId
+        | FieldTypeV1::ContentId
+        | FieldTypeV1::MutationId
+        | FieldTypeV1::MutationReservationId
+        | FieldTypeV1::ScopeGrantId
+        | FieldTypeV1::SourceDescriptorId
+        | FieldTypeV1::ChangeId
+        | FieldTypeV1::CheckpointId
+        | FieldTypeV1::CandidateId
+        | FieldTypeV1::GateId
+        | FieldTypeV1::EffectIntentId
+        | FieldTypeV1::CandidateProofRoot
+        | FieldTypeV1::IntegrationProofRoot
+        | FieldTypeV1::GitOid
+        | FieldTypeV1::RepoPath
+        | FieldTypeV1::KeyId
+        | FieldTypeV1::PasetoV4Public => "string",
+        FieldTypeV1::AuthorityAudience => "AuthorityAudienceV1",
+        FieldTypeV1::MutationOperation => "MutationOperationV1",
+        FieldTypeV1::AuthorityDecision => "AuthorityDecisionV1",
+        FieldTypeV1::ReplayDisposition => "ReplayDispositionV1",
+        FieldTypeV1::MutationResultState => "MutationResultStateV1",
+        FieldTypeV1::MutationOutcome => "MutationOutcomeV1",
+        FieldTypeV1::SettlementStatus => "SettlementStatusV1",
+        FieldTypeV1::PatchPreimageKind => "PatchPreimageKindV1",
+        FieldTypeV1::PatchMutationKind => "PatchMutationKindV1",
+        FieldTypeV1::KeyPurpose => "KeyPurposeV1",
+        FieldTypeV1::KeyAlgorithm => "KeyAlgorithmV1",
         FieldTypeV1::U64 | FieldTypeV1::Timestamp => "number",
+        FieldTypeV1::OptionalTimestamp => "number | null",
+        FieldTypeV1::OptionalDigest
+        | FieldTypeV1::OptionalString
+        | FieldTypeV1::OptionalMutationReservationId => "string | null",
         FieldTypeV1::Boolean => "boolean",
         FieldTypeV1::Object => "Record<string, unknown>",
         FieldTypeV1::StringArray => "string[]",
         FieldTypeV1::ObjectArray => "Record<string, unknown>[]",
+        FieldTypeV1::AuthorityAudienceArray => "AuthorityAudienceV1[]",
+        FieldTypeV1::IssuerKeyArray => "IssuerKeyV1[]",
+        FieldTypeV1::RiskPolicy => "RiskPolicyV1",
+        FieldTypeV1::EvidencePolicy => "EvidencePolicyV1",
+        FieldTypeV1::SandboxPolicy => "SandboxPolicyV1",
+        FieldTypeV1::BudgetPolicy => "BudgetPolicyV1",
+        FieldTypeV1::RoutePolicy => "RoutePolicyV1",
+        FieldTypeV1::SignedAuthorityEnvelope => "SignedAuthorityEnvelopeV1",
+        FieldTypeV1::SignedMutationPermit => "SignedMutationPermitV1",
+        FieldTypeV1::OptionalSignedMutationPermit => "SignedMutationPermitV1 | null",
+        FieldTypeV1::MutationReplayResult => "MutationReplayResultV1",
+        FieldTypeV1::OptionalMutationReplayResult => "MutationReplayResultV1 | null",
+        FieldTypeV1::ScopeGrant => "ScopeGrantV1",
+        FieldTypeV1::PatchProposal => "PatchProposalV1",
+        FieldTypeV1::PatchOperationArray => "PatchOperationV1[]",
+        FieldTypeV1::CandidateIdArray | FieldTypeV1::GateIdArray | FieldTypeV1::RepoPathArray => {
+            "string[]"
+        }
+        FieldTypeV1::CleanupAuthorization => "CleanupAuthorizationV1",
     }
 }
 
@@ -122,6 +273,100 @@ pub const POLICY_SNAPSHOT_HASH: &str =
 pub const CANONICAL_GOLDEN_JSON: &str = r##"@GOLDEN_JSON@"##;
 pub const CANONICAL_GOLDEN_HASH: &str =
     "@GOLDEN_HASH@";
+pub const AUTHORITY_GOLDEN_HASH: &str =
+    "@AUTHORITY_GOLDEN_HASH@";
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum AuthorityAudienceV1 {
+    BulletGitd,
+    EffectBroker,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum MutationOperationV1 {
+    CloneWorkspace,
+    ReadWorkspace,
+    ApplyPatch,
+    Checkpoint,
+    PrepareCandidate,
+    PreserveWorkspace,
+    CleanupWorkspace,
+    DispatchEffect,
+    ReconcileEffect,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum AuthorityDecisionV1 {
+    Authorized,
+    Settled,
+    Refused,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReplayDispositionV1 {
+    Fresh,
+    ExactReplay,
+    Conflict,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum MutationResultStateV1 {
+    InFlight,
+    Committed,
+    Aborted,
+    Unknown,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum MutationOutcomeV1 {
+    Committed,
+    Aborted,
+    Unknown,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SettlementStatusV1 {
+    Accepted,
+    ExactReplay,
+    Conflict,
+    Refused,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum PatchPreimageKindV1 {
+    Absent,
+    Digest,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum PatchMutationKindV1 {
+    Write,
+    Delete,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum KeyPurposeV1 {
+    AuthoritySigning,
+    ReleaseSigning,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+pub enum KeyAlgorithmV1 {
+    #[serde(rename = "paseto-v4.public")]
+    PasetoV4Public,
+    #[serde(rename = "ssh-ed25519")]
+    SshEd25519,
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PinnedContract {

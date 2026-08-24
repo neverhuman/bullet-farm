@@ -107,7 +107,7 @@ fn validate_number(number: &Number) -> Result<(), WireError> {
 fn validate_string(value: &str) -> Result<(), WireError> {
     for character in value.chars() {
         let codepoint = character as u32;
-        if character.is_control() {
+        if character.is_control() && !matches!(character, '\t' | '\n' | '\r') {
             return Err(WireError::new(
                 "CONTROL_CHARACTER_FORBIDDEN",
                 format!("string contains control character U+{codepoint:04X}"),

@@ -77,16 +77,13 @@ pub fn canonical_json<T: Serialize>(value: &T) -> Result<Vec<u8>, WireError> {
     })
 }
 
-pub fn hash_canonical<T: Serialize>(
-    domain: &'static str,
-    value: &T,
-) -> Result<Blake3Digest, WireError> {
+pub fn hash_canonical<T: Serialize>(domain: &str, value: &T) -> Result<Blake3Digest, WireError> {
     validate_domain(domain)?;
     let canonical = canonical_json(value)?;
     hash_framed_bytes(domain, &canonical)
 }
 
-pub fn hash_framed_bytes(domain: &'static str, bytes: &[u8]) -> Result<Blake3Digest, WireError> {
+pub fn hash_framed_bytes(domain: &str, bytes: &[u8]) -> Result<Blake3Digest, WireError> {
     validate_domain(domain)?;
     let mut hasher = blake3::Hasher::new();
     hasher.update(b"bullet-wire.v1\0");
