@@ -6,6 +6,7 @@ lane="${1:-all}"
 case "$lane" in
   required) bash ops/ci/required.sh ;;
   fast)     bash ops/ci/fast.sh ;;
+  family)   bash ops/ci/family.sh ;;
   contract) bash ops/ci/contract.sh ;;
   security) bash ops/ci/security.sh ;;
   nightly)  bash ops/ci/nightly.sh ;;

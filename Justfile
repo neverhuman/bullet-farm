@@ -31,3 +31,6 @@ farmd:
 
 portal:
     bash scripts/portal.sh
+
+check-family:
+    bash scripts/ci-local.sh family
