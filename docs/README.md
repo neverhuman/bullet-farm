@@ -30,6 +30,8 @@ green through documentation.
 - [`runbooks/`](runbooks/) describes operator procedures; a runbook does not
   bypass an API or policy gate.
 - [`assurance/`](assurance/) maps claims to code, schemas, and tests.
+- [`assurance/v1-closure-plan.md`](assurance/v1-closure-plan.md) is the
+  dependency-ordered implementation and proof map for the remaining V1 work.
 - [`decisions/`](decisions/) records reviewed design choices and their status.
 - [`spec/`](spec/) is historical Centerrail/Bullet Farm design provenance. It
   is useful context and never runtime or release authority.
