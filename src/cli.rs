@@ -6,7 +6,68 @@ use crate::coord::{
     discover_family_root, unix_millis,
 };
 
-const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|checkout verify|hub check|deps check|lock <generate|check> --tag VERSION|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]>";
+const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|checkout verify|hub check|deps check|lock <generate|check> --tag VERSION|check <fast|required|release> [--json]|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]>";
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CliOutcome {
+    output: String,
+    exit_code: u8,
+}
+
+impl CliOutcome {
+    pub const fn exit_code(&self) -> u8 {
+        self.exit_code
+    }
+
+    pub fn output(&self) -> &str {
+        &self.output
+    }
+}
+
+/// Process-facing command execution. Existing [`run`] callers retain their exact behavior.
+pub fn execute(
+    args: impl IntoIterator<Item = OsString>,
+    current_dir: Result<PathBuf, std::io::Error>,
+) -> Result<CliOutcome, CoordError> {
+    let args = args.into_iter().collect::<Vec<_>>();
+    if is_check_command(&args) {
+        return execute_check(args, current_dir);
+    }
+    run(args, current_dir).map(|output| CliOutcome {
+        output,
+        exit_code: 0,
+    })
+}
+
+fn is_check_command(args: &[OsString]) -> bool {
+    args.get(1).is_some_and(|arg| arg == "check")
+        || (args.get(1).is_some_and(|arg| arg == "--root")
+            && args.get(3).is_some_and(|arg| arg == "check"))
+}
+
+fn execute_check(
+    args: Vec<OsString>,
+    current_dir: Result<PathBuf, std::io::Error>,
+) -> Result<CliOutcome, CoordError> {
+    let mut args = args
+        .into_iter()
+        .map(|arg| {
+            arg.into_string()
+                .map_err(|_| CoordError::new("INVALID_ARGUMENT", "arguments must be valid UTF-8"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    if !args.is_empty() {
+        args.remove(0);
+    }
+    let explicit_root = remove_root(&mut args)?;
+    let current_dir = current_dir.map_err(CoordError::io)?;
+    crate::doctor::discover_hub(&current_dir, explicit_root.as_deref())?;
+    let execution = crate::check::run(&args[1..])?;
+    Ok(CliOutcome {
+        output: execution.output()?,
+        exit_code: execution.exit_code(),
+    })
+}
 
 pub fn run(
     args: impl IntoIterator<Item = OsString>,

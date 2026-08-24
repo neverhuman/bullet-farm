@@ -1,3 +1,4 @@
+pub mod check;
 pub mod checkout;
 pub mod cli;
 pub mod coord;
