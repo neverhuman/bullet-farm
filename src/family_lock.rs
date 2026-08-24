@@ -50,8 +50,9 @@ struct LockedMember {
 
 pub fn run(root: &Path, args: &[String]) -> Result<String, CoordError> {
     let (action, tag) = parse_args(args)?;
-    let bytes = render(root, &tag)?;
-    let path = root.join(LOCK_FILE);
+    let family_root = resolve_family_root(root)?;
+    let bytes = render(&family_root, &tag)?;
+    let path = family_root.join("bullet-farm").join(LOCK_FILE);
     match action.as_str() {
         "generate" => {
             atomic_write(&path, &bytes)?;
@@ -69,6 +70,26 @@ pub fn run(root: &Path, args: &[String]) -> Result<String, CoordError> {
         }
         _ => Err(CoordError::new("USAGE", lock_usage())),
     }
+}
+
+fn resolve_family_root(root: &Path) -> Result<PathBuf, CoordError> {
+    if root.file_name().and_then(|name| name.to_str()) == Some("bullet-farm")
+        && let Some(parent) = root
+            .parent()
+            .filter(|path| path.join("repos.manifest.toml").is_file())
+    {
+        return Ok(parent.to_path_buf());
+    }
+    if root.join("repos.manifest.toml").is_file() {
+        return Ok(root.to_path_buf());
+    }
+    Err(CoordError::new(
+        "FAMILY_MANIFEST_MISSING",
+        format!(
+            "{} is neither a split-family root nor its bullet-farm checkout",
+            root.display()
+        ),
+    ))
 }
 
 fn parse_args(args: &[String]) -> Result<(String, String), CoordError> {
@@ -113,7 +134,7 @@ fn render(root: &Path, tag: &str) -> Result<Vec<u8>, CoordError> {
         )
     })?;
     let schema_bundle_hash = digest_tagged_tree(farm, tag, SCHEMA_PREFIX)?;
-    let allowed_signers = root.join(ALLOWED_SIGNERS);
+    let allowed_signers = farm.join(ALLOWED_SIGNERS);
     if !allowed_signers.is_file() {
         return Err(CoordError::new(
             "ALLOWED_SIGNERS_MISSING",
@@ -248,5 +269,13 @@ mod tests {
         ] {
             assert!(git::signer_identity(denied, "v1").is_err());
         }
+    }
+
+    #[test]
+    fn family_root_resolves_from_split_root_and_hub_checkout() {
+        let hub = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let outer = hub.parent().unwrap();
+        assert_eq!(resolve_family_root(hub).unwrap(), outer);
+        assert_eq!(resolve_family_root(outer).unwrap(), outer);
     }
 }
