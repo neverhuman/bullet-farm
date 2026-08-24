@@ -88,14 +88,19 @@ The release installer starts from a hub-only clone and must:
 4. reject dirty, symlinked, non-empty, or conflicting destinations before mutation;
 5. verify signed tags, commit/tree identities, lockfiles, and generated digests;
 6. use locked/offline dependency modes when requested;
-7. be idempotent; and
-8. leave exact clean member OIDs and zero tracked changes after two runs in a fresh home.
+7. on the supported Linux path, bound every child process by a deadline and per-stream output cap,
+   terminating its full process group when either bound is crossed;
+8. be idempotent; and
+9. leave exact clean member OIDs and zero tracked changes after two runs in a fresh home.
 
 The Rust setup/checkout mechanism and its signed local four-repository fixture implement these
-rules, including two idempotent core installs with exact clean ordinary clones. The checked-in
-alpha.4 lock remains schema 2, so the public command must still fail before mutation with explicit
-schema-3 regeneration guidance. Installer release evidence is incomplete until authenticated
-Jeryu subjects are published and the same invariant is reproduced from the signed release bytes.
+rules, including two idempotent core installs with exact clean ordinary clones. All production Git,
+tool, doctor, and coordination children use bounded capture; Unix timeout and output-flood tests
+prove prompt process-group termination, including a spawned grandchild. Setup rejects unsupported
+platforms before any clone or dependency child starts. The checked-in alpha.4 lock remains schema
+2, so the public command must still fail before mutation with explicit schema-3 regeneration
+guidance. Installer release evidence is incomplete until authenticated Jeryu subjects are published
+and the same invariant is reproduced from the signed release bytes.
 
 ## Package matrix
 

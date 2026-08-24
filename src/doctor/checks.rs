@@ -1,8 +1,19 @@
-use std::{path::Path, process::Command};
+use std::{path::Path, process::Command, time::Duration};
 
 use super::model::{DoctorCheck, DoctorFamilyLock};
+use crate::process::{Limits, run_bounded};
 
 const GIT_BIN: &str = "/usr/bin/git";
+const VERSION_LIMITS: Limits = Limits {
+    timeout: Duration::from_secs(10),
+    stdout_bytes: 64 * 1024,
+    stderr_bytes: 64 * 1024,
+};
+const GIT_LIMITS: Limits = Limits {
+    timeout: Duration::from_secs(120),
+    stdout_bytes: 16 * 1024 * 1024,
+    stderr_bytes: 16 * 1024 * 1024,
+};
 
 pub(super) fn check_hub_checkout(hub_root: &Path) -> DoctorCheck {
     let dot_git = hub_root.join(".git");
@@ -258,9 +269,7 @@ fn cleanliness_result(dirty: &[String]) -> DoctorCheck {
 }
 
 fn command_version(command: &str, args: &[&str]) -> Result<String, String> {
-    let output = Command::new(command)
-        .args(args)
-        .output()
+    let output = run_bounded(Command::new(command).args(args), command, VERSION_LIMITS)
         .map_err(|error| error.to_string())?;
     if !output.status.success() {
         return Err(format!("exit {:?}", output.status.code()));
@@ -275,28 +284,31 @@ fn command_version(command: &str, args: &[&str]) -> Result<String, String> {
 }
 
 fn git(repo: &Path, args: &[&str]) -> Result<String, String> {
-    let output = Command::new(GIT_BIN)
-        .arg("-C")
-        .arg(repo)
-        .args([
-            "-c",
-            "core.fsmonitor=false",
-            "-c",
-            "core.attributesFile=/dev/null",
-            "-c",
-            "core.excludesFile=/dev/null",
-        ])
-        .args(args)
-        .env_clear()
-        .env("LC_ALL", "C")
-        .env("GIT_CONFIG_NOSYSTEM", "1")
-        .env("GIT_CONFIG_GLOBAL", "/dev/null")
-        .env("GIT_OPTIONAL_LOCKS", "0")
-        .env("GIT_NO_REPLACE_OBJECTS", "1")
-        .env("GIT_NO_LAZY_FETCH", "1")
-        .env("GIT_TERMINAL_PROMPT", "0")
-        .output()
-        .map_err(|error| error.to_string())?;
+    let output = run_bounded(
+        Command::new(GIT_BIN)
+            .arg("-C")
+            .arg(repo)
+            .args([
+                "-c",
+                "core.fsmonitor=false",
+                "-c",
+                "core.attributesFile=/dev/null",
+                "-c",
+                "core.excludesFile=/dev/null",
+            ])
+            .args(args)
+            .env_clear()
+            .env("LC_ALL", "C")
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .env("GIT_OPTIONAL_LOCKS", "0")
+            .env("GIT_NO_REPLACE_OBJECTS", "1")
+            .env("GIT_NO_LAZY_FETCH", "1")
+            .env("GIT_TERMINAL_PROMPT", "0"),
+        "Git doctor check",
+        GIT_LIMITS,
+    )
+    .map_err(|error| error.to_string())?;
     if !output.status.success() {
         return Err(format!("git exited {:?}", output.status.code()));
     }

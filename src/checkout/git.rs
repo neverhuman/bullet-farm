@@ -5,13 +5,22 @@ use std::{
     fs,
     path::{Path, PathBuf},
     process::Command,
+    time::Duration,
 };
 
-use crate::{checkout::ensure_regular_file, coord::CoordError};
+use crate::{
+    checkout::ensure_regular_file,
+    coord::CoordError,
+    process::{Limits, run_bounded},
+};
 
 const GIT_BIN: &str = "/usr/bin/git";
 const MAX_GIT_CONFIG_BYTES: u64 = 64 * 1024;
-const MAX_GIT_OUTPUT_BYTES: usize = 16 * 1024 * 1024;
+const GIT_LIMITS: Limits = Limits {
+    timeout: Duration::from_secs(120),
+    stdout_bytes: 16 * 1024 * 1024,
+    stderr_bytes: 16 * 1024 * 1024,
+};
 const MAX_ADMIN_ENTRIES: usize = 1_000_000;
 const MAX_TRACKED_ENTRIES: usize = 1_000_000;
 
@@ -297,20 +306,15 @@ fn run_text(repo: &Path, args: &[&str]) -> Result<String, CoordError> {
 }
 
 fn run(repo: &Path, args: &[&str]) -> Result<Vec<u8>, CoordError> {
-    let output = git_command(repo)
-        .args(args)
-        .output()
-        .map_err(CoordError::io)?;
+    let output = run_bounded(
+        git_command(repo).args(args),
+        "Git checkout verification",
+        GIT_LIMITS,
+    )?;
     if !output.status.success() {
         return Err(CoordError::new(
             "GIT_VERIFICATION_FAILED",
             format!("Git verification failed in {}", repo.display()),
-        ));
-    }
-    if output.stdout.len() > MAX_GIT_OUTPUT_BYTES || output.stderr.len() > MAX_GIT_OUTPUT_BYTES {
-        return Err(CoordError::new(
-            "GIT_OUTPUT_TOO_LARGE",
-            "Git verification output exceeded 16 MiB",
         ));
     }
     Ok(output.stdout)

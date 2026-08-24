@@ -1,9 +1,14 @@
-use std::path::Path;
-use std::process::Command;
+use std::{path::Path, process::Command, time::Duration};
 
 use super::{CoordError, validate_path, validate_repo_name};
+use crate::process::{Limits, run_bounded};
 
 const GIT_BIN: &str = "/usr/bin/git";
+const GIT_LIMITS: Limits = Limits {
+    timeout: Duration::from_secs(120),
+    stdout_bytes: 16 * 1024 * 1024,
+    stderr_bytes: 16 * 1024 * 1024,
+};
 
 pub(super) fn verify_commit_paths(
     family_root: &Path,
@@ -53,14 +58,16 @@ pub(super) fn verify_commit_paths(
 }
 
 fn git(repo_root: &Path, args: &[&str]) -> Result<String, CoordError> {
-    let output = Command::new(GIT_BIN)
-        .arg("-C")
-        .arg(repo_root)
-        .args(args)
-        .env_clear()
-        .env("LC_ALL", "C")
-        .output()
-        .map_err(CoordError::io)?;
+    let output = run_bounded(
+        Command::new(GIT_BIN)
+            .arg("-C")
+            .arg(repo_root)
+            .args(args)
+            .env_clear()
+            .env("LC_ALL", "C"),
+        "Git coordination receipt check",
+        GIT_LIMITS,
+    )?;
     if !output.status.success() {
         return Err(CoordError::new(
             "COMMIT_NOT_FOUND",

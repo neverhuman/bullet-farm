@@ -1,11 +1,12 @@
 //! Fail-closed installation of the exact family described by `family.lock`.
 
+mod command;
+
 use std::{
     ffi::OsStr,
     fs::{self, OpenOptions},
     io::{ErrorKind, Write},
     path::{Path, PathBuf},
-    process::Command,
     time::{SystemTime, UNIX_EPOCH},
 };
 
@@ -17,6 +18,7 @@ use crate::{
     coord::CoordError,
     family_lock::{self, FamilyLock, LockedMember},
 };
+use command::{run_git, run_tool};
 
 const USAGE: &str = "usage: bullet-family setup --root PATH --source jeryu [--offline]";
 const GIT_BIN: &str = "/usr/bin/git";
@@ -35,6 +37,7 @@ pub fn run(
     args: &[String],
 ) -> Result<String, CoordError> {
     let options = parse_args(explicit_root, args)?;
+    require_setup_containment()?;
     let hub_root = crate::doctor::discover_hub(current_dir, None)?;
     let family_root = canonical_family_root(&options.root)?;
     let expected_hub = family_root.join("bullet-farm");
@@ -63,6 +66,19 @@ pub fn run(
         "setup complete: {} members at {}",
         lock.member.len() + 1,
         lock.tag
+    ))
+}
+
+#[cfg(all(target_os = "linux", target_env = "gnu"))]
+fn require_setup_containment() -> Result<(), CoordError> {
+    Ok(())
+}
+
+#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
+fn require_setup_containment() -> Result<(), CoordError> {
+    Err(CoordError::new(
+        "UNSUPPORTED_PLATFORM_CONTAINMENT",
+        "setup cannot mutate on this platform until process-tree termination and atomic no-replace publication have equivalent release evidence",
     ))
 }
 
@@ -399,46 +415,6 @@ fn install_dependencies(
         BASH_BIN,
         &["scripts/sync-family-contracts.sh", "check"],
     )
-}
-
-fn run_tool(repo: &Path, program: &str, args: &[&str]) -> Result<(), CoordError> {
-    let status = Command::new(program)
-        .current_dir(repo)
-        .args(args)
-        .status()
-        .map_err(CoordError::io)?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(CoordError::new(
-            "SETUP_COMMAND_FAILED",
-            format!("{program} failed in {} with {status}", repo.display()),
-        ))
-    }
-}
-
-fn run_git(repo: Option<&Path>, args: &[&OsStr]) -> Result<(), CoordError> {
-    let mut command = Command::new(GIT_BIN);
-    if let Some(repo) = repo {
-        command.arg("-C").arg(repo);
-    }
-    let status = command
-        .args(args)
-        .env_clear()
-        .env("LC_ALL", "C")
-        .env("GIT_CONFIG_NOSYSTEM", "1")
-        .env("GIT_CONFIG_GLOBAL", "/dev/null")
-        .env("GIT_TERMINAL_PROMPT", "0")
-        .status()
-        .map_err(CoordError::io)?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(CoordError::new(
-            "GIT_SETUP_FAILED",
-            format!("Git setup operation failed with {status}"),
-        ))
-    }
 }
 
 fn sync_directory(path: &Path) -> Result<(), CoordError> {

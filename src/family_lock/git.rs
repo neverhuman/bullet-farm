@@ -1,15 +1,22 @@
 //! Signed-tag verification and tagged-object hashing for family locks.
 
-use std::{collections::BTreeSet, path::Path, process::Command};
+use std::{collections::BTreeSet, path::Path, process::Command, time::Duration};
 
 use serde::Deserialize;
 
 use super::schema::{LockedFile, LockedMember, validate_repository_path};
-use crate::coord::CoordError;
+use crate::{
+    coord::CoordError,
+    process::{Limits, run_bounded},
+};
 
 const GIT_BIN: &str = "/usr/bin/git";
 const GENERATED_ZONES: &str = "agent/generated-zones.toml";
-const MAX_GIT_OUTPUT_BYTES: usize = 16 * 1024 * 1024;
+const GIT_LIMITS: Limits = Limits {
+    timeout: Duration::from_secs(120),
+    stdout_bytes: 16 * 1024 * 1024,
+    stderr_bytes: 16 * 1024 * 1024,
+};
 const MAX_HASHED_FILE_BYTES: u64 = 16 * 1024 * 1024;
 const MAX_GENERATED_ARTIFACTS: usize = 4096;
 
@@ -398,20 +405,22 @@ fn git_output(repo: &Path, args: &[&str]) -> Result<std::process::Output, CoordE
             format!("{} is not an ordinary non-symlink checkout", repo.display()),
         ));
     }
-    let output = Command::new(GIT_BIN)
-        .arg("-C")
-        .arg(repo)
-        .args(args)
-        .env_clear()
-        .env("LC_ALL", "C")
-        .env("GIT_CONFIG_NOSYSTEM", "1")
-        .env("GIT_CONFIG_GLOBAL", "/dev/null")
-        .env("GIT_NO_REPLACE_OBJECTS", "1")
-        .env("GIT_OPTIONAL_LOCKS", "0")
-        .env("GIT_TERMINAL_PROMPT", "0")
-        .env("GIT_NO_LAZY_FETCH", "1")
-        .output()
-        .map_err(CoordError::io)?;
+    let output = run_bounded(
+        Command::new(GIT_BIN)
+            .arg("-C")
+            .arg(repo)
+            .args(args)
+            .env_clear()
+            .env("LC_ALL", "C")
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .env("GIT_NO_REPLACE_OBJECTS", "1")
+            .env("GIT_OPTIONAL_LOCKS", "0")
+            .env("GIT_TERMINAL_PROMPT", "0")
+            .env("GIT_NO_LAZY_FETCH", "1"),
+        "Git family-lock verification",
+        GIT_LIMITS,
+    )?;
     if !output.status.success() {
         return Err(CoordError::new(
             "GIT_VERIFICATION_FAILED",
@@ -420,12 +429,6 @@ fn git_output(repo: &Path, args: &[&str]) -> Result<std::process::Output, CoordE
                 repo.display(),
                 args
             ),
-        ));
-    }
-    if output.stdout.len() > MAX_GIT_OUTPUT_BYTES || output.stderr.len() > MAX_GIT_OUTPUT_BYTES {
-        return Err(CoordError::new(
-            "GIT_OUTPUT_TOO_LARGE",
-            "Git verification output exceeded 16 MiB",
         ));
     }
     Ok(output)
