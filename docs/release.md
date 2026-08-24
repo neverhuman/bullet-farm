@@ -42,13 +42,13 @@ receipt never certifies another provider or profile.
 | Gate | Status | Evidence needed to clear it |
 | --- | --- | --- |
 | Hub-only installation | `BLOCKED` | Publish a real schema-3 lock with authenticated Jeryu URL/slug and signed exact subjects, then reproduce the already-tested two-run clean-install invariant from tagged release bytes in a fresh home |
-| Production Kernel transaction | `BLOCKED` | Durable normalized migrations, atomic command/event/outbox state, monotonic leases/fences, backup/restore, and crash-boundary receipts |
-| Production BulletGit transaction | `BLOCKED` | Online authority check, durable journal/CAS, generation-atomic apply, exact Candidate/proof manifests, preservation-bound cleanup, and reviewed tagged `jeryu-gitd` capability |
+| Production Kernel transaction | `BLOCKED` | Atomic lease/command/event/outbox, snapshots, authenticated ingress, and typed operation decisions are committed; no internal worker exists, and normalized truth, signed capabilities, CAS, backup/restore, and crash receipts remain |
+| Production BulletGit transaction | `BLOCKED` | Durable CAS/journal, generation-atomic apply, and preservation-bound cleanup are committed; online authority, complete Candidate/Integration manifests, shared-wire consumption, and reviewed tagged `jeryu-gitd` remain |
 | Offline five-plane proof | `BLOCKED` | One signed `TRANSACTION_PROOF` covering authority, runner death/salvage, independent verification, ambiguous-effect reconciliation, protected integration, preservation, and truthful portal projection |
 | Jeryu live effect | `BLOCKED` | Operator-restored authentication and read-back/reconciliation receipt; the running forge must not be modified to work around missing capability |
 | GitHub live effect | `BLOCKED` | Configured GitHub App test repository and exact-subject integration/reconciliation receipt |
-| Provider conformance | `BLOCKED` | Isolation, canary-secret, malformed/crash/cancel/timeout, quota, and exact-patch receipts for every provider/model/adapter/profile selected for activation |
-| Security quality | `BLOCKED` | Jankurai at least 90 with zero caps/hard findings, plus pinned secret, dependency, license, workflow, and generated-drift gates |
+| Provider conformance | `BLOCKED` | Offline binary/environment/OAuth/canary/process-tree admission is committed but dispatch fails closed without signed authority and egress; four protocol adapters and live receipts remain |
+| Security quality | `BLOCKED` | Pinned scanners are executable, but current Hub Jankurai is 57/raw 57 with 9 caps/36 findings/25 hard; release needs at least 90 and zero caps/hard plus all required scans |
 | Release supply chain | `BLOCKED` | Reproducible archives, SBOM, checksums, signatures, provenance, installer smoke, and final non-circular signed release manifest |
 | Platform containment | `BLOCKED` | Linux production containment plus fail-closed proof on every other packaged platform until an equivalent native backend passes |
 
@@ -100,13 +100,14 @@ checksums have been verified. Before any mutation, that binary must bind the can
 Node, and npm CLI subjects it admits.
 
 The Rust setup/checkout mechanism and its signed local four-repository fixture implement these
-rules, including two idempotent core installs with exact clean ordinary clones. All production Git,
-tool, doctor, and coordination children use bounded capture; Unix timeout and output-flood tests
-prove prompt process-group termination, including a spawned grandchild. Setup rejects unsupported
-platforms before any clone or dependency child starts. The checked-in alpha.4 lock remains schema
-2, so the public command must still fail before mutation with explicit schema-3 regeneration
-guidance. Installer release evidence is incomplete until authenticated Jeryu subjects are published
-and the same invariant is reproduced from the signed release bytes.
+rules, including two idempotent exact installs. Fallible dependency, generated-contract, and exact-
+family checks now complete before Linux no-replace member publication, and the outer manifest is the
+final durable marker; injected transaction boundaries recover to prior or complete next state. All
+production Git/tool/doctor/coordination children use bounded capture, and local Rust fusion replays
+byte-identically without tracked drift. Setup rejects unsupported platforms before mutation. The
+checked-in alpha.4 lock remains schema 2, so the public command still fails before mutation with
+schema-3 regeneration guidance. Release evidence remains blocked until authenticated Jeryu subjects
+and a signed prebuilt binary exist and the invariant is replayed from those exact release bytes.
 
 ## Package matrix
 

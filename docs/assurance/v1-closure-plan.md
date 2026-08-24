@@ -4,13 +4,10 @@ Status: **ACTIVE — pre-release; release authority is blocked**
 Owner: Bullet Farm maintainers
 Last reconciled: 2026-08-24
 Scope: four repositories, local-first, single-user V1
-
-This document is the dependency graph, current evidence register, and closure
-checklist for V1. It is not runtime authority. Generated contracts, exact Git
-subjects, the Kernel ledger, independently reconstructed Evidence, observed
-effect receipts, and signed release receipts are the only things that can make
-a gate green. HTTP success, a passing component test, model output, or prose
-never promotes itself to transaction, live, or release proof.
+This is the V1 dependency graph, evidence register, and closure checklist, not
+runtime authority. Only generated contracts, exact Git subjects, the Kernel
+ledger, independent Evidence, observed effects, and signed release receipts can
+make a gate green; HTTP/component/model/prose success cannot promote itself.
 
 ## Status vocabulary
 
@@ -72,33 +69,39 @@ The committed subjects observed immediately before this plan edit were:
 
 | Repository | Commit | Tree | Checkout truth |
 | --- | --- | --- | --- |
-| Hub | `24d05af9db762a72bd4a54cddbb1807c9800ea64` | `4b7207a14a58a2e23862e7164b084b0d1727df2a` | Clean before this claimed documentation edit |
-| Kernel | `544f43ff50b92ab864cb4bcfc31c2f0d880c36f6` | `e47e7f5698a0f5831e3b4ba50c496f5758a06677` | Clean before the active admitted-gate claim |
-| BulletGit | `dff6dd143fd91d539c0c98b0fb2cd0ad6dd643ba` | `1bd7e7f7ba6f5fa89abea9871cc91d339a829487` | Clean before the active generation-publication claim |
-| Portal | `3ef6e7f4458a3ad2982f2231efae410f555d5eda` | `2fe6fe842c50f194bcd75c738279771b62b23b1c` | Clean |
+| Hub | `0440d446190c20c2be24620fa1d91d1b39fa3073` | `03a814100a6548b55c0c280dc86ca73bf39fb70d` | Clean before this claimed documentation edit |
+| Kernel | `e697f8aa457ed6289e82cf51428f5e9de809436d` | `24f2a88dc891db21cb3526e9c164fd2002f051b3` | Clean |
+| BulletGit | `9d527b9e2d8da2fe4ca76c45787851f6d6dab8c2` | `ae9c0118e8221ead4dfe8bc02a877553e618c01c` | Clean |
+| Portal | `3f651ad76a0488452ea1361e36ed72b5faa3d887` | `99c203f7c0c01d9ad1da8f883f90f13fd2b9ba7f` | Clean |
 
-The latest exact-subject family component receipt is **R4**. On the four heads
-above, `check fast --json` passed seven bounded gates within 60 seconds; required
-ran the family contract and `SYNTHETIC` demo, then exited 3/`BLOCKED` on six
-missing receipt classes. It is not a transaction or release receipt.
+The heads above have current component receipts. There is no family transaction
+or release receipt: `check release` still names missing transaction, live,
+recovery, package, security, and signing evidence.
 
 | Receipt | Status | Exact evidence | Boundary |
 | --- | --- | --- | --- |
 | Pure signed wire | `COMPLETE` | Hub `c07efb10639d500c3e82ccc282265090ff63a4aa` | DTO/canonical/signature/golden proof; no running issuer or published immutable tag |
 | Tool admission | `COMPLETE` | Hub `68d0fb92b52df8d4631ac346428f341f0bb492bc` | Bounded admitted Cargo/Node/npm/Bash component path; not signed installation |
 | Bounded JSON-RPC session contract | `COMPLETE` | Hub `b0b9be55199d7d58bc795c5252b27106a5c310b3`; wire 57/57, hostile IPC 11/11 | Pure hello/frame/deadline/cancel/correlation state machines; runtime consumers still use legacy boundaries |
-| Executable exact-subject checks | `COMPLETE` | Hub `24d05af9db762a72bd4a54cddbb1807c9800ea64`; R4 fast PASS and required BLOCKED on six named receipts | Fixed bounded commands and unchanged clean subjects; synthetic/component results cannot promote release |
+| Executable exact-subject checks | `COMPLETE` | Hub `24d05af9db762a72bd4a54cddbb1807c9800ea64`; local fusion `17aa92885b2fdd1807100ad8b1ab335de8b72e5b` | Fixed bounded commands and unchanged subjects; synthetic/component results cannot promote release |
 | Same-origin development | `COMPLETE` | Hub `59675c8`; launcher regression and Hub required pass | Vite development proxy only; no browser command/auth or embedded production proof |
 | Checksummed SQLite schema | `COMPLETE` | Kernel `9d0e5c2232342789dc889d25b34c4035059d6e4b`; 260/260 required | Migration/FK/disposable-schema component proof; not full normalized recovery |
 | Database-clock lease authority | `COMPLETE` | Kernel `63285a0`; 271/271 required, clock 6/6, farmd lease 4/4 | TTL `1..=15`, DB-owned windows, restart fence, bounded heartbeat; no public command/auth or live final check |
 | Atomic lease command/outbox | `COMPLETE` | Kernel `544f43ff50b92ab864cb4bcfc31c2f0d880c36f6`; required 277/277 | Fence, Attempt, lease, graph, event, exact result, and correlated outbox commit once; public wire command/auth remains open |
+| Admitted gates and authoritative snapshots | `COMPLETE` | Kernel `cdfd6f2a085faeb8201a52745bec13ce444047db`, `20032074526605e1708aa72789defbd87fa75b58`, `fef4aba1f687d67107e5bafffa9adba8545becc3`; required 293/293 | Provider text cannot name shell; atomic SQLite projections carry source/time/watermark; empty ready is verified `data:null` |
+| Provider process admission | `COMPLETE` | Kernel `03baa0ed7bd6746f7e7458cca6f56a60ddfda617`; focused 55/55 plus strict checks | Absolute binary/digest, 0700 HOME, 0400 OAuth copy, positive environment, canary scan, cleanup; dispatch remains blocked without signed authority and egress |
+| Authenticated command ingress | `COMPLETE` | Kernel `19d1d47cb03956eb92dfa3f27e409c87d1ab5203`; required 307/307 | Loopback bootstrap/session/origin/CSRF and atomic PENDING command/outbox/event; no internal worker, so no command can yet complete |
+| Operation-specific local authority | `COMPLETE` | Kernel `e697f8aa457ed6289e82cf51428f5e9de809436d`; required 311/311 | Exact typed mutation/terminal/preservation decisions; signed request capabilities, daemon receipt validation, and online cleanup settlement remain open |
 | BulletGit fail-closed gateway | `COMPLETE` | BulletGit `79bf1e2129fbe50ed85d424fe6e4416407bb17f4`; 82/82 required at consumer head `7df926c` | Production refuses unavailable authority; no positive checker or Jeryu backend |
-| Immutable CAS/journal/checkpoint | `COMPLETE` | BulletGit `dff6dd143fd91d539c0c98b0fb2cd0ad6dd643ba`; required 100/100 | CAS-first journal objects and exact checkpoint tree/root; active generation switch, daemon authority, and Jeryu remain open |
-| Cursor/projection truth | `COMPLETE` | Portal `5aa21708c808e6afd39537e9f5148679a0ce674b`; current consumer/docs head `3ef6e7f` passes 43/43 plus build | STALE/watermark and honest component prose; no command reconciliation or packaged E2E |
+| Atomic generations and preservation | `COMPLETE` | BulletGit `61bf76dd06753df1ce37715582ab56fbf5d75cff`, `9d527b9e2d8da2fe4ca76c45787851f6d6dab8c2`; required 105/105 | Prior-or-complete-next generation plus sealed exact-state salvage before cleanup; positive online authority and Jeryu remain open |
+| Projection and real-process browser truth | `COMPLETE` | Portal `cfba6f72f6fd55cc0477182b74b63ade49821d07`; unit 51/51, mocked browser 10/10, real farmd browser 1/1 | Strict snapshots, STALE recovery, server provenance, ready-null; packaging remains open |
+| Strict browser command reconciliation | `COMPLETE` | Portal `3f651ad76a0488452ea1361e36ed72b5faa3d887`; 60/60 unit, 6/6 focused browser, 1/1 real farmd browser | Exact ID/kind/digest and five durable states; real farmd remains honestly PENDING without a worker |
+| Transaction-safe source setup | `COMPLETE` | Hub `5148a52a122da46e749be3e2169f81bd6d4b8116`; Hub required 34/34 plus integrations | Fallible validation precedes no-replace publication and final durable manifest; signed schema-3 inputs and prebuilt installer remain open |
+| Pinned assurance controls | `COMPLETE` | Hub `0440d446190c20c2be24620fa1d91d1b39fa3073`; required 34/34 | Pinned secret/dependency/license/workflow scans and release blocker report; passing components do not promote a release |
 
-Last recorded Jankurai component scores are Hub 54, Kernel 58, BulletGit 58,
-and Portal 60. They meet local ratchet floors only. They are not a current
-release receipt and do not meet V1's at-least-90, zero-cap, zero-hard gate.
+Current Hub Jankurai is 57/raw 57 with 9 caps, 36 findings, and 25 hard
+findings. Older component reports also fail the gate. None meets V1's
+at-least-90, zero-cap, zero-hard requirement.
 
 ## Dependency graph
 
@@ -182,9 +185,11 @@ generation leaves zero tracked drift.
 
 ## V1-S2 — Kernel durable authority, commands, and recovery
 
-Status: `LOCAL-BLOCKED`. Checksummed migrations/FKs, database lease time, and
-the atomic lease-command/event/outbox transaction are complete components;
-public wire commands, normalized truth, capabilities, recovery, and CAS remain.
+Status: `LOCAL-BLOCKED`. Checksummed migrations/FKs, database lease time,
+atomic lease-command/event/outbox, admitted gates, and authoritative snapshots
+are complete components. Authenticated public command admission and typed local
+operation decisions are complete; the worker, normalized truth, signed
+capabilities, recovery, and CAS remain.
 
 Required work:
 
@@ -194,9 +199,9 @@ Required work:
 2. Preserve lease/fence allocation in one SQLite `BEGIN IMMEDIATE` transaction
    using database time. Fence counters never rewind across replay, expiry,
    supersession, restart, backup, or restore.
-3. Add authenticated command admission/reconciliation. Persist command result,
-   state transition, event, and outbox intent atomically; reads reconstruct the
-   exact stored receipt or return `UNKNOWN`.
+3. Preserve authenticated admission, then add an internal authenticated worker.
+   Persist each result, transition, event, and outbox settlement atomically;
+   reads reconstruct exact stored truth or return `UNKNOWN`.
 4. Mint short-lived PASETO v4.public capabilities from the durable active lease
    only. Bind audience, operation/request digest, Mission/repository/graph/
    package/Variant/Attempt/fence/runner/workspace/scope/context/configuration/
@@ -205,7 +210,8 @@ Required work:
 5. Put WAL and filesystem CAS under platform data directories; add fsync/rename
    boundaries, restore epochs, verified backup/restore, retention classes,
    orphan-safe GC, and append-only audit anchors.
-6. Delete every hard-coded SHA, PASS, verified, or demo-success branch.
+6. Preserve operation-specific decisions and delete every remaining hard-coded
+   SHA/PASS/demo-success branch.
 
 Exit gates: Kernel `bash scripts/ci-local.sh required`, locked Rust 1.95 strict
 Clippy, generated drift, backup/restore/fault suites, and Hub `just model-check`
@@ -220,26 +226,24 @@ complete-new durable state.
 
 ## V1-S3 — BulletGit durable subjects and Jeryu capability service
 
-Status: `LOCAL-BLOCKED`. Immutable CAS, journal bindings, and exact checkpoint
-identity are complete; generations, manifests, preservation, and the wire
-consumer remain. Authority and `jeryu-gitd` promotion are `EXTERNAL-BLOCKED` on
-a reviewed capability tag and operator authentication.
+Status: `LOCAL-BLOCKED`. Immutable CAS/journal/checkpoints, prior-or-complete-next
+generations, and preservation-bound cleanup are complete. Complete shared-wire
+manifests and online authority remain. `jeryu-gitd` promotion is
+`EXTERNAL-BLOCKED` on a reviewed capability tag and operator authentication.
 
 Required work, in order:
 
 1. Preserve the committed CAS-first journal and exact checkpoint identity.
    Reopen must continue to reject a missing or altered referenced object.
-2. Stage changes in a new workspace
-   generation, fsync tree/journal/CAS, and atomically publish the active pointer.
+2. Preserve generation-atomic publication and sealed-cleanup negative coverage.
 3. Consume the immutable `bullet-wire` proposal and enforce base checkpoint,
    absent/digest preimages, duplicate/conflict/path/scope/content constraints.
 4. Harden an absolute verified Git binary, hostile config/attributes/filters/
    hooks/alternates, all sequencer states, exact `-z` status parsing, no-follow
    writes, validated IDs, and safe cleanup targets.
-5. Emit complete Checkpoint/Candidate/Preservation manifests, separate Candidate
-   and Integration proof roots, and daemon-issued unforgeable preservation
-   receipts bound to Attempt/fence/nonce/tree/dirty/untracked/journal/CAS and an
-   external destination.
+5. Complete Checkpoint/Candidate/Integration proof manifests; retain the sealed
+   preservation receipt binding Attempt/fence/nonce/tree/dirty/journal/CAS and
+   an external destination.
 6. Add Kernel online final check and durable settlement immediately around each
    mutation. Keep the current local Git backend simulator-only. Production calls
    versioned `jeryu-gitd` from a separately reviewed immutable Jeryu tag.
@@ -292,9 +296,10 @@ and cleanup-before-preservation never become PASS or cause a duplicate effect.
 
 ## V1-S5 — authenticated API, SSE, and projection truth
 
-Status: `LOCAL-BLOCKED`. SSE gap recovery and same-origin development are
-complete components; the browser still calls direct `/v1/demo/run` and has no
-command ledger, session, CSRF, or packaged-production proof.
+Status: `LOCAL-BLOCKED`. Atomic snapshots, bounded SSE recovery, strict Portal
+validation/provenance, authenticated commands, and real built-farmd browser E2E
+are complete components. The real command remains honestly `PENDING` because no
+worker exists; broader projections and packaged-production proof remain.
 
 Required work:
 
@@ -302,9 +307,9 @@ Required work:
    atomic ledger read. SSE emits only generated default `EventEnvelope` values;
    `after` and `Last-Event-ID` are exclusive, conflicting cursors fail, replay is
    bounded/ordered, and live tail includes keepalives.
-2. Add one-time CLI bootstrap exchange, HttpOnly/SameSite session, CSRF tokens,
-   loopback/origin checks, and no wildcard CORS.
-3. Generate the TypeScript client and AJV validators. Correlate each displayed
+2. Preserve the one-time bootstrap, HttpOnly/SameSite session, CSRF,
+   loopback/origin, and no-wildcard-CORS boundary.
+3. Preserve generated client/AJV validation. Correlate each displayed
    receipt to its command ID; timeout is `UNKNOWN`, and an old green receipt
    cannot satisfy a new failed command.
 4. Implement Mission Graph, Attempts/Sessions, Router/Quota, Context/Fusion,
@@ -323,8 +328,9 @@ green result, and farmd restart. None may render false green.
 
 ## V1-S6 — cognitive plane and four provider adapters
 
-Status: `LOCAL-BLOCKED` for durable cognition/conformance harnesses and
-`EXTERNAL-BLOCKED` for registered live provider receipts.
+Status: `LOCAL-BLOCKED` for durable cognition and protocol adapters. Offline
+provider process admission is complete but blocks dispatch without signed
+authority/egress; live receipts remain `EXTERNAL-BLOCKED`.
 
 Required work:
 
@@ -360,11 +366,10 @@ and cannot be rewritten into the selected Candidate.
 
 ## V1-S7 — installer, checks, CI, packaging, and documentation
 
-Status: `LOCAL-BLOCKED`. Rust coordination, exact-subject checks, strict
-schema-3 verification, bounded ordinary-clone setup, and a signed two-run fixture
-exist. Schema 2 correctly returns `UNSUPPORTED_SCHEMA`; no authenticated binary
-or release exists. Dependency/drift work still follows publication, and
-multi-member crash recovery lacks a prior-or-complete-next receipt.
+Status: `LOCAL-BLOCKED`. Rust coordination/checks/fusion, strict schema-3
+verification, and transaction-safe ordinary-clone setup with fault replay and a
+signed two-run fixture exist. Schema 2 correctly returns `UNSUPPORTED_SCHEMA`;
+no authenticated binary, real schema-3 lock, packages, or release exists.
 
 Required command surface:
 
@@ -387,13 +392,11 @@ Installer closure, in dependency order:
 3. Verify hub tag, non-circular manifest, schema-3 lock, authenticated member
    URL/slug, signed tags, exact commit/tree, lockfiles, artifacts, and canonical
    Git/Bash/Cargo/Node/npm binary digests and admitted versions before mutation.
-4. Separate prebuilt install from source dependency preparation; use a verified
-   family-owned cache instead of deleting a successful Cargo cache. Stage all
-   fallible work before no-replace publication or persist a typed setup result
-   with deterministic retry/cleanup.
+4. Preserve the committed rule that dependency/generated/exact-family checks
+   finish before no-replace member publication and the final manifest marker.
 5. Create ordinary clones at exact OIDs; reject dirty/symlinked/conflicting
    paths; use `cargo --locked` and `npm ci`; generate/diff in temporary trees.
-   Replace shell-owned fuse behavior with validated Rust atomic publication.
+   Preserve validated Rust fusion and its byte-idempotent ignored output.
 6. Run hub-only setup twice in a fresh HOME and crash-inject every clone,
    checkout, fsync, publish, dependency, and drift boundary. End at exact clean
    member OIDs with no worktree and either prior or complete setup state.
@@ -467,21 +470,19 @@ may be neutral only when the requested release profile does not require them.
 
 ## Immediate closure queue
 
-1. Complete the active BulletGit generation-atomic publication, Kernel
-   `gate_ids` admission, and Portal gap/watermark truth slices; replay R4 on the
-   resulting exact committed subjects.
-2. Complete `V1-S1` immutable publication and runtime-consumer convergence,
-   then `V1-S2` public
-   command/auth/CAS/backup-recovery before enabling positive BulletGit authority.
-3. Complete `V1-S3` generation/proposal/proof/preservation
-   chain, then consume the reviewed tagged `jeryu-gitd` capability.
+1. Add the authenticated internal command worker without synthetic VERIFIED,
+   then persist effect ambiguity/read-back and independent verification.
+2. Complete `V1-S1` immutable publication/runtime-consumer convergence and
+   `V1-S2` normalized truth, capability, CAS, backup/restore, and fault receipts.
+3. Complete shared-wire manifests and positive online BulletGit authority, then
+   consume the reviewed tagged `jeryu-gitd` capability.
 4. Produce the `V1-S4` credential-free five-plane transaction receipt; replace,
    rather than rename, synthetic success.
-5. Land `V1-S5` authenticated command/SSE/snapshot semantics and packaged
-   Portal E2E, then `V1-S6` cognitive routing/fusion and four-provider harnesses.
-6. In parallel where dependencies permit, move dependency/drift work before
-   installer publication or persist typed retry truth, prove crash recovery,
-   replace shell-owned fuse, then build five packages and supply-chain evidence.
+5. Embed Portal and implement durable cognitive routing/fusion plus all four
+   provider protocols and conformance receipts.
+6. Publish signed schema-3 install subjects and a prebuilt installer, then build
+   five packages with installer smoke, SBOM, checksums, signatures, provenance,
+   containment, and Jankurai/security evidence.
 7. Run `V1-S8` only with operator-provided Jeryu, GitHub App, provider, platform,
    and signing authority.
 
