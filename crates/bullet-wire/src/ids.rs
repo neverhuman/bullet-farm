@@ -103,6 +103,7 @@ digest_id!(EffectIntentId, "efi_");
 digest_id!(EffectReceiptId, "efr_");
 digest_id!(EventId, "evt_");
 digest_id!(CommandId, "cmd_");
+digest_id!(RpcRequestId, "rpc_");
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum GitOid {

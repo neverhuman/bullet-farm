@@ -7,6 +7,7 @@ mod digest;
 mod error;
 mod event;
 mod ids;
+mod ipc;
 mod manifest;
 mod outcome;
 mod policy;
@@ -29,6 +30,7 @@ pub use digest::{Blake3Digest, canonical_json, hash_canonical, hash_framed_bytes
 pub use error::WireError;
 pub use event::{CommandEnvelope, CommandState, EventEnvelope, Snapshot};
 pub use ids::*;
+pub use ipc::*;
 pub use manifest::{
     CandidateManifest as ComponentCandidateManifest,
     CandidateProofManifest as ComponentCandidateProofManifest,
