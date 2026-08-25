@@ -4,7 +4,7 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 cd "$REPO_ROOT"
 
-AUDIT_FLOOR=57
+AUDIT_FLOOR=58
 bash scripts/ci-doctor.sh audit
 mkdir -p .jankurai
 rm -f .jankurai/repo-score.json .jankurai/repo-score.md .jankurai/repair-queue.jsonl
