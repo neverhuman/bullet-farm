@@ -73,6 +73,18 @@ fn execute_check(
     let explicit_root = remove_root(&mut args)?;
     let current_dir = current_dir.map_err(CoordError::io)?;
     let hub = crate::doctor::discover_hub(&current_dir, explicit_root.as_deref())?;
+    if args.get(1).map(String::as_str) == Some("scorecard") {
+        let report = crate::scorecard::evaluate(&hub)?;
+        let output = if args.iter().any(|arg| arg == "--json") {
+            serde_json::to_string_pretty(&report).map_err(CoordError::json)?
+        } else {
+            crate::scorecard::render_markdown(&report)
+        };
+        return Ok(CliOutcome {
+            output,
+            exit_code: 0,
+        });
+    }
     let execution = crate::check::run(&hub, &args[1..])?;
     Ok(CliOutcome {
         output: execution.output()?,
