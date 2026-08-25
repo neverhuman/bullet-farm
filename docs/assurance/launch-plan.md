@@ -44,18 +44,27 @@ path-exactly with receipts. IDs refer to the inventory.
 | R-36, R-37 | This plan; paper value/risk framing (R5) | this file; R5 lane in flight |
 | R-01 | Reconcile the stale "seven unprojected / five projections" truth after Context Lineage | done in this commit: source, golden, and generated page say six/six |
 | R-27 | All four checkouts dirty with other lanes' work | continuous: commit or hand off; no audit or paper snapshot is admissible until clean |
-| R-11 | `bullet-git` fails its own audit floor (54 < 56) | lane `claude-git-audit` in flight |
+| R-11 | `bullet-git` fails its own audit floor (54 < 56) | **done** — git `e1b47ff1`: 54 → 65, floor ratcheted to 65, caps 9 → 3 |
 
 ### M1 (agent half)
 | Item | What | Lane |
 | --- | --- | --- |
-| R-03, R-50 | `deny.toml` (licenses, advisories, bans, sources) in all Rust repos; `zizmor` family-wide | `claude-security-lanes` in flight |
-| R-15, R-16 | Explicit MSRV-1.95 and pinned-1.97.1 lanes; resolve the toolchain contradiction; emit observation JSON in the receipt schema | `claude-toolchains` in flight |
+| R-03, R-50 | `deny.toml` (licenses, advisories, bans, sources) in all Rust repos; `zizmor` family-wide | **done** — hub `f9edeef7`, kernel `81d549de`, git `858c533b`, portal `3aa0ec69`; plus a fail-closed advisory-freshness proof (cargo-deny 0.19.8 reports a failed fetch as success) |
+| R-15, R-16 | Explicit MSRV-1.95 and pinned-1.97.1 lanes; resolve the toolchain contradiction; emit observation JSON in the receipt schema | **done** — hub `9a7237e4`, kernel `b5863b03`, git `c64b7f85`; finding: no MSRV incompatibility exists anywhere |
 | R-21, WI-34, WI-30 | **LANDED** (hub `3728e798`, kernel `bb420f46`, git `54d1338b`): `NoNewDispatchAfterStop` checked as a property while `NoDispatchAfterStop` is documented as a state predicate TLC refutes at depth 4; STONITH `grace < TTL` mirrored in both validators, closing the formerly accepted zero-maximum hole; GC-under-load tests mutation-proven; reflink remains designed, not implemented | done |
 | R-43…R-46, R-42 | Jankurai hygiene caps (proof-lane mapping, pre-push parity, dead markers outside contract strings, zyal sentinel, supply-chain manifest) and LOC splits — per repo | git: in flight; kernel/hub/portal: next |
 | R-10 | Publish per-repo Jankurai numbers (kernel 57 / git 54 / portal 60) in `release.md` | BLOCKED diff for the holder |
 | R-25 | Root `docs/paper.md` sanitized to the hub copy | done (family root) |
 | then | `bullet-family lock generate --tag <tag>` once OD-D exists | after OD-D |
+
+
+### Wave 1 from the capability study (2026-08-25 10:11Z–11:03Z) — landed
+| Item | What | Status |
+| --- | --- | --- |
+| L-04 | A crashed runner blocked its Variant forever: `expire_leases` had no production caller | **done** — kernel `4effc37d`: reclaim inside the acquisition transaction, `LeaseService::expire_due`, `bullet farm reap`; mutation-proved. farmd tick: `claude-farmd-tick` in flight |
+| L-01 | `doctor` exited 0 while reporting BLOCKED | **done** — hub `f00171ff`: exits 3 on BLOCKED; required lane asserts exit/JSON agreement |
+| L-03 | OD-B told the operator to run `gh auth login` (Jeryu: do-not-run) | **done** — hub `f00171ff` (ADR 0013 OD-B: `jeryu gh-setup --token-file`); corrected in every out-of-repo copy |
+| Jankurai | hub 58 / kernel 57 / portal 60 vs ≥ 90 | `claude-audit-caps` in flight; hosted half EXTERNAL |
 
 ### M2 (agent-only, the pivot) — ordered
 1. **R-07 / RUNNER-FARMD-LEASE-ROUTE-AUDIT** — promote the quarantined `SignedLeaseService`: durable nonce ledger, persistent `last_acquire`, `advance_attempt_with_authority`, full-subject release check in one SQLite transaction, `/internal/v1` mount only, hardened bounded client. (cursor-grok holds the WIP today.)
@@ -71,7 +80,7 @@ path-exactly with receipts. IDs refer to the inventory.
 ### M4/M5 (agent half)
 | Item | What | Lane |
 | --- | --- | --- |
-| R-05 / V1-S5-d | Embed the manifest-verified Portal bundle in farmd; Playwright against the packaged origin | `claude-portal-embed` in flight |
+| R-05 / V1-S5-d | Embed the manifest-verified Portal bundle in farmd; Playwright against the packaged origin | **done** — kernel `d59c5a72` + `0c10cd9e`, portal `f4b8975e`; browser suite 2/2 against farmd's own origin |
 | R-02 | `bullet-family release build` for the exact five-target matrix; checksums; SBOM (Rust + npm); provenance producer; non-circular manifest generator; release workflow (R-13) | next, after R-05 |
 | V1-S7-a…d | Signed admission of the wrapper-selected executable; clone-transport helper subjects; transaction-wide repository stability; allowed-signers admission | next |
 | Post-V1 evolution | Frozen T0/T3 study, deterministic allocation/evaluation, external confirmation, R0/R1 canary and rollback evidence | explicitly post-V1; keep `evolutionary_authority=false` |
