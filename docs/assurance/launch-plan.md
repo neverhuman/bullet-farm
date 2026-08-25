@@ -27,6 +27,9 @@ names the strongest claim that is true at that point; nothing earlier is "shippe
 | **M4 — Linux preview package** | A signed, SBOM- and provenance-bearing archive installs twice from tagged bytes on Ubuntu 24.04 x86_64, exercises systemd lifecycle/recovery, and refuses unsupported mutation platforms. This is explicitly a non-release `linux-preview`. | diagnostic Linux package, installer, operations, recovery, supply-chain, fault, and quality evidence | agents + **OD-E**, root descriptor, hosted Jankurai artifact |
 | **M5 — Canonical V1 GA** | The exact five signed archives pass their release smoke, all 26 canonical gates have current admitted receipts, and the unprofiled command returns green. | every canonical V1 gate | agents + operators; five-platform builders/signers and all live approvals |
 
+Beyond the V1 contract, the full route to a fair 100/100 on the twelve-dimension scorecard — per-dimension exit
+criteria, phases P0–P4, the Jeryu release lanes, and the scoring protocol — is [`path-to-100.md`](path-to-100.md).
+
 The frozen V1 contract requires all four providers, Jeryu and GitHub effect receipts, and exactly five signed
 archives: Linux x86_64/aarch64, macOS x86_64/arm64, and Windows x64. Linux is the full production runner; other
 platforms fail closed on real mutation until their native containment passes. No live mutation occurs without a
