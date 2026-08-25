@@ -183,7 +183,14 @@ and larger councils are post-V1. They require holdouts, causal evaluation,
 rollback, drift detection, guardrail non-regression, and an explainable signed
 decision record before influencing production admission.
 
-## Dependency-gated team evolution
+## Post-V1 dependency-gated team evolution
+
+The mechanisms in this section—`TeamRecipe` campaigns, quality-diversity
+archives, promotion ladders, islands, and adaptive champion/challenger
+routing—are post-V1 design. V1's durable routing, context, dissent, fusion,
+Evidence, and outcome records are their prerequisite substrate, not a running
+optimizer. The transaction proof below is necessary before this program can
+start; it is not sufficient to authorize evolution or promote a recipe.
 
 The evolutionary program begins only after one real single-lane transaction
 can acquire authority, produce and apply a proposal, construct an exact
@@ -290,7 +297,7 @@ The implementation is not conformant until tests prove:
 - quota, budget, repair, and verifier-backlog limits stop new work; and
 - ambiguous effects reconcile by read-back without a second write.
 
-After the dependency gate opens, conformance additionally requires that a
+Post-V1 evolutionary conformance additionally requires that a
 multi-agent challenger cannot displace the incumbent without comparable
 independent evidence, a hard-constraint failure cannot enter an archive cell,
 sealed holdout content cannot reach a recipe or author context, selection and
