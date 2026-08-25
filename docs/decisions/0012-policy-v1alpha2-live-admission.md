@@ -1,6 +1,6 @@
 # 0012 — Policy v1alpha2: operator-ratified live provider admission
 
-Status: Proposed — pending operator ratification (hub validator and contract landed; no committed policy enables live admission)
+Status: Proposed — pending operator ratification (hub validator `bf5c642` and Kernel loader mirror `0d848f6` landed; no committed policy enables live admission)
 Owner: Bullet Farm maintainers
 Related: 0005 (signed authority and key lifecycle), 0011 (signed launch grants and provider egress isolation)
 
@@ -53,6 +53,6 @@ The only live-enabled example is the fixture `crates/bullet-wire/tests/fixtures/
 which registers the golden fixture-only key (`bullet-kernel-local` / `authority-test-1`); normative policy must never
 trust it (ADR 0005). Enabling live admission is an operator act: a separately generated and protected v1alpha2
 policy at generation ≥ 2 registering a real `provider-runner` authority key, recorded in the coordination log,
-never an agent edit. The Kernel loader (`crates/application/src/policy_snapshot*`) still accepts v1alpha1 only and
-therefore keeps refusing `POLICY_LIVE_ADMISSION_DISABLED`; mirroring this rule there is a Kernel-lane follow-up after
-`claude-live-conformance` lands, because that lane holds those paths.
+never an agent edit. The Kernel loader (`crates/application/src/policy_snapshot*`) mirrors this rule since
+bullet-kernel `0d848f6` and the live-conformance `POLICY` step reads it through the production loader; under the
+committed generation-1 policy it keeps refusing `POLICY_LIVE_ADMISSION_DISABLED`.

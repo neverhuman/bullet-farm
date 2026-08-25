@@ -109,8 +109,12 @@ Readiness is intentionally explicit:
 | Gate 0 contracts | Canonical v1alpha1 policy/schema bundle, hostile fixtures, invariant registry, and exactly two bounded models |
 | Hub source setup | Descriptor-relative publication and a signed two-run local fixture are implemented on Linux; real schema-3 Jeryu lock/tag publication remains blocked |
 | Release bundle components | Signed five-target integrity verification and constrained one-target extraction are implemented on Linux/glibc; package production, activation, semantic artifact validation, and installer smoke remain blocked |
+| Signed launch grant | `SignedLaunchGrantV1` contract and Kernel verification with a single-use nonce (ADR 0011) are `COMPONENT_PROOF`; no grant has admitted a real provider |
+| Provider egress isolation | Linux user+net namespace, nftables default-drop, and host CONNECT proxy (`bullet-harness-egress`; Kernel `egress` lane, neutral 78 without tools) are `COMPONENT_PROOF` on this host class only |
+| Live-conformance refusal | `bullet provider live-conformance` refuses at step `POLICY` with exit 78 under the committed generation-1 policy; the thirteen-step path is exercised only against a fake provider process (component evidence); `LIVE_PROOF` is absent for every provider |
+| farmd projections and Portal views | Fleet, sessions, merge rail, quality lab, and audit are read-only projections (`COMPONENT_PROOF`); a projection holds no authority and seven designed Portal surfaces remain `UNKNOWN` |
 | Trusted public installer | Not available; no published schema-3 authority, signed package set, or activation transaction exists |
-| Transaction-ready | Not yet achieved; requires the signed Wave-4 offline receipt |
+| Transaction-ready | Not yet achieved; requires the signed V1-S4 `TRANSACTION_PROOF` (the historical "Wave 4" offline receipt) |
 | Production-ready | Not yet achieved; live providers and credentialed forges are quarantined |
 
 Then start the local control plane and portal:
@@ -197,12 +201,14 @@ just model-check    # exactly two pinned TLC models and state locks
 just contract       # hub-only canonical contract + model gate
 just check-family   # hub plus every member required lane
 just family-contract # family required lanes + canonical contract + models
+just release-truth  # regenerate docs/assurance/release-truth.generated.md (decision exit 3 kept)
+cargo run --locked --quiet --bin bullet-family -- check release --report   # 26-gate operator brief, exit 3 while BLOCKED
 ```
 
 Gate 0 sources live under `policy/`, `contracts/v1alpha1/`, `fixtures/`, and `formal/`. Reviewed
 prose is never runtime authority. The generated policy keeps live admission disabled, and Gate 0
 does not substitute for the signed authority, API authentication, sandbox, vector-budget, freeze,
-audit-anchor, and restore gates in Wave 2.
+audit-anchor, and restore gates of the later V1-S stages (historically "Wave 2").
 
 There is deliberately no `demo-live` command. Later proof entrypoints are
 `proof-transaction-offline`, `proof-transaction-jeryu`, and
@@ -217,10 +223,21 @@ Concurrent agents claim exact repository-relative paths through the Rust coordin
 ```bash
 just coord status --json --all
 just coord claim --agent codex-a --lane docs --repo bullet-farm --path docs
+just coord heartbeat --claim clm_... --agent codex-a --note proof-started
+just coord handoff --claim clm_... --agent codex-a --proof 'bash scripts/ci-local.sh required' \
+  --exit-code 0 --changed-path docs/README.md
+just coord receipt --claim clm_... --orchestrator codex-root --commit <40-hex> --committed-path docs/README.md
+just coord receipt-group --claim clm_a... --claim clm_b... --orchestrator codex-root --commit <40-hex>
+just coord correct-receipt --claim clm_... --orchestrator codex-root --previous-commit <40-hex> \
+  --commit <40-hex> --committed-path docs/README.md --reason 'amended commit'
 ```
 
 The coordinator keeps a locked append-only ledger at the discovered family root and rejects active
-path overlaps before product edits begin.
+path overlaps before product edits begin. `handoff` requires green proof and refuses changed paths
+outside the claim; `receipt`/`receipt-group` bind a claim to the exact path set of one commit;
+`correct-receipt` rebinds an already-receipted claim to a replacement commit only when
+`--previous-commit` equals the recorded OID and the new commit's actual paths equal
+`--committed-path`, appending a reasoned correction record rather than rewriting history.
 
 Target stack: Rust control plane, TypeScript/React/Vite portal, SQLite WAL
 locally (PostgreSQL in team mode later), generated contracts. No Python

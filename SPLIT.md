@@ -2,12 +2,16 @@
 
 Status: pre-transaction split-family hub; not release-ready
 Owner: Bullet Farm maintainers
-Last reviewed: 2026-08-24
+Last reviewed: 2026-08-25
 Applies to: bullet-farm
 
 ## Role
 
-Public hub, installer, family manifest, lock, fusion script, onboarding, and
+Public hub, installer, family manifest and lock, fusion script, onboarding,
+frozen wire contracts (`crates/bullet-wire`), canonical policy (`policy/`),
+release verification (`bullet-family release verify|extract|receipt-verify`),
+family coordination (`bullet-family coord`), the fail-closed release-truth
+report (`bullet-family check release --report`, `just release-truth`), and
 historical Centerrail design provenance.
 
 ## Repositories

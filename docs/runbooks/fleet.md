@@ -20,6 +20,10 @@ bullet-family coord receipt --claim clm_... --orchestrator codex-root \
   --committed-path crates/runner/src/lib.rs
 bullet-family coord receipt-group --claim clm_a... --claim clm_b... \
   --orchestrator codex-root --commit 0123456789abcdef0123456789abcdef01234567
+bullet-family coord correct-receipt --claim clm_... --orchestrator codex-root \
+  --previous-commit 0123456789abcdef0123456789abcdef01234567 \
+  --commit 89abcdef0123456789abcdef0123456789abcdef \
+  --committed-path crates/runner/src/lib.rs --reason 'amended commit after path-exact fixup'
 bullet-family coord status --json --all
 ```
 
@@ -28,8 +32,18 @@ overlap when either repository-relative path contains the other on a segment bou
 claims stop blocking and cannot be revived; claim again. Handoff requires green proof and rejects
 every changed path outside the claim. After an exact-path commit, the orchestrator records either a
 single-claim `receipt` with every committed path or a `receipt-group` whose handed-off path union
-exactly matches the commit. Run a heartbeat at least every five minutes and on proof, blocker,
-commit, or handoff.
+exactly matches the commit. `correct-receipt` rebinds one already-receipted claim to a different
+commit: it refuses unless `--previous-commit` equals the commit OID currently recorded on that claim
+(`RECEIPT_CORRECTION_MISMATCH`), requires the `--committed-path` set to match the handed-off changed
+paths (`COMMITTED_PATH_MISMATCH`) and to equal the new commit's actual path set, and appends a
+`CommitReceiptCorrection` record carrying the mandatory `--reason`; nothing is rewritten or deleted.
+Run a heartbeat at least every five minutes and on proof, blocker, commit, or handoff.
+
+Handed-off claims are committed by whichever orchestrator reaches them first (codex-root or
+claude-orch): that orchestrator commits the claim path-exactly and records its receipt; the other
+verifies the recorded commit OID and moves on instead of committing again
+(`AGENT_CHAT.md`, 2026-08-25T05:46:14Z). A claim whose `commit_oid` is already set is never staged a
+second time.
 
 Only the orchestrator commits. Proof commands are per-repo
 `bash scripts/ci-local.sh required` plus the lane-specific Cargo/npm commands. Zero Git worktrees,

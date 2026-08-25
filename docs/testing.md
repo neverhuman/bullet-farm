@@ -24,15 +24,32 @@ release profile.
 
 There are two deliberately different command layers:
 
-- `scripts/ci-local.sh fast|required|contract|security|audit` and the thin
-  repository `just`/workflow wrappers are component merge lanes. A green local
-  `required` proves the checks that repository currently implements; it is not
-  product readiness.
+- `scripts/ci-local.sh <lane>` and the thin repository `just`/workflow
+  wrappers are component merge lanes. A green local `required` proves the
+  checks that repository currently implements; it is not product readiness.
 - `bullet-family check fast|required|release` is the family/product gate
-  runner. It executes only its sealed command catalog, adds immutable missing-
-  receipt inventory, and stays nonzero while a required product receipt is
-  absent. Today, component CI can be green while product `required` and
-  `release` correctly remain `BLOCKED`.
+  runner. It executes only its sealed command catalog
+  (`src/check/catalog.rs`: `fast` = 5 commands, the four member `fast` lanes
+  plus `scripts/sync-family-contracts.sh check`; `required` = 2 commands,
+  `ops/ci/family-contract.sh` and `scripts/demo.sh`; `release` executes
+  nothing and inventories 26 gates), adds immutable missing-receipt inventory,
+  and stays nonzero while a required product receipt is absent. Today,
+  component CI can be green while product `required` and `release` correctly
+  remain `BLOCKED`.
+
+### Lanes
+
+| Lane | Where | What it proves |
+| --- | --- | --- |
+| `fast`, `required`, `contract`, `security`, `audit` | every repository `scripts/ci-local.sh` | Component checks of that repository only |
+| `family` | hub only (`just check-family`) | Hub plus every member `required` lane from the sibling checkouts |
+| `family-contract` | hub only (`just family-contract`; also `required.family-contract` in the sealed `check required` catalog) | Family `required` lanes plus the canonical contract and the two pinned models |
+| `egress` | bullet-kernel `ops/ci/egress.sh` | Linux user+net namespace, `slirp4netns` uplink, in-namespace nftables default-drop, host CONNECT proxy; exits 78 (neutral) when a tool or unprivileged namespaces are absent, never green without running the probes |
+| `nightly` | bullet-kernel `ops/ci/nightly.sh` | Per provider in `BULLET_LIVE_PROVIDERS`: the feature-gated refusal test plus the positive live-conformance half. Default marker mode points the positive half at a marker script, so any spawn under the committed policy fails the lane and `POLICY_LIVE_ADMISSION_DISABLED` (exit 78) is the expected neutral outcome. `BULLET_LIVE_REAL=1` with an absolute `BULLET_POLICY_PATH` is operator real mode: the resolved real binary is used and receipts are kept under `target/live/<provider>/<utc>/` |
+| `release-truth` | hub `just release-truth` (`scripts/release-truth.sh write`) | Renders `check release --report --portable` into `docs/assurance/release-truth.generated.md`; `scripts/release-truth.sh check` runs inside the hub `required` lane as a drift gate. The decision exit (3 = `BLOCKED`) is preserved; the page is a projection, not a receipt |
+
+`nightly` and `egress` have no hub or family wrapper; run them from the Kernel
+checkout. Neither produces `LIVE_PROOF` today: no provider has a live receipt.
 
 A contract check generates into a temporary directory and diffs tracked
 output; it does not repair drift while claiming to verify it. Neither command
@@ -111,6 +128,25 @@ Live conformance requires all of:
 Each provider/version/profile certifies only itself. Claude, Codex, Cursor, and
 Antigravity all need separate conformant live receipts for V1 GA.
 
+### Implemented path
+
+The positive live-conformance path is implemented in
+`bullet-kernel/crates/application/src/live_conformance/` (`mod.rs`, `steps.rs`;
+kernel `ba485d5`, loader mirror `0d848f6`) and driven by the operator entry
+point `bullet provider live-conformance --data-dir <abs> --provider
+{claude,codex,cursor,agy} [--executable <abs>]`. It records thirteen ordered
+step statuses, never collapsed: `POLICY`, `OPERATOR_KEY`, `LEASE`, `ADMISSION`,
+`MINT`, `VERIFY_GRANT`, `ADMIT_SIGNED`, `EGRESS_PREPARE`, `ADMIT_EGRESS`,
+`REQUIRE_DISPATCH`, `DISPATCH`, `CANARY_SCAN`, `PONG_MATCH`; a step that did not
+run is `NOT_RUN`. Exit 0 is a sealed `PONG` receipt; exit 78 is a neutral policy
+refusal (`POLICY_LIVE_ADMISSION_DISABLED` under the committed generation-1
+policy, before any key read, probe, namespace, or spawn); any other exit names
+the failing step in the receipt. The policy step reads the production loader
+(v1alpha1, or an operator-ratified v1alpha2 generation per ADR 0012 loaded from
+`BULLET_POLICY_PATH`). The Kernel suite exercises the full path only against a
+fake provider process; no `LIVE_PROOF` receipt exists for any provider. The
+operator procedure is [`runbooks/live-conformance.md`](runbooks/live-conformance.md).
+
 ## Live forge and effect tests
 
 Live tests never alter the running Jeryu service to make a test pass. They use a
@@ -133,9 +169,10 @@ checksum. Thin shell/Just/workflow wrappers may dispatch; policy, lock,
 generation, proof, and release decisions remain in Rust/TypeScript.
 
 Nightly exists only for meaningful fuzz, soak, or admitted live-adapter work.
-There is intentionally no green no-op nightly. Platform packages may be built
-for Linux x86_64/aarch64, macOS x86_64/arm64, and Windows x64, but non-Linux
-mutation remains fail-closed until equivalent containment passes.
+There is intentionally no green no-op nightly; the Kernel `nightly` lane above
+fails on any provider spawn under the committed policy. Platform packages may
+be built for Linux x86_64/aarch64, macOS x86_64/arm64, and Windows x64, but
+non-Linux mutation remains fail-closed until equivalent containment passes.
 
 ## Local verification order
 
@@ -147,9 +184,12 @@ bullet-family lock verify --tag <version>
 bullet-family check fast
 bullet-family check required
 bullet-family check release
+bullet-family check release --report
 ```
 
 `release` is currently a diagnostic and must remain nonzero while required live,
-package, signing, recovery, security, or platform receipts are absent. Current
+package, signing, recovery, security, or platform receipts are absent;
+`--report` renders the same 26-gate decision as an operator brief and keeps
+exit 3. Current
 subjects, receipt counts, and blockers are maintained in the
 [V1 closure plan](assurance/v1-closure-plan.md) and [release index](release.md).
