@@ -1,5 +1,6 @@
 use std::{
-    fs,
+    fs::{self, OpenOptions},
+    io::Write,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -154,12 +155,18 @@ fn setup_environment_detects_root_replacement_and_cleans_only_the_pinned_root() 
     let moved = fixture.with_extension("original");
     let _ = fs::remove_dir_all(&moved);
     tool_fixtures(&fixture);
-    let toolchain = Toolchain::admit(
-        Some(&fixture.join("cargo-real")),
-        Some(&fixture.join("node-real")),
-        Some(&fixture.join("npm-cli.js")),
-    )
-    .expect("admit exact fixture tools");
+    let cargo = fixture.join("cargo-real");
+    let node = fixture.join("node-real");
+    let npm_cli = fixture.join("npm-cli.js");
+    let admit = |attempt| {
+        Toolchain::admit(Some(&cargo), Some(&node), Some(&npm_cli)).unwrap_or_else(|error| {
+            panic!("admit exact fixture tools on attempt {attempt}: {error}")
+        })
+    };
+    let mut toolchain = admit(0);
+    for attempt in 1..64 {
+        toolchain = admit(attempt);
+    }
     let root = AdmittedRoot::open(&fixture).expect("admit command fixture root");
     let environment = SetupEnvironment::create(&root, &toolchain).expect("isolated setup HOME");
 
@@ -221,8 +228,24 @@ fn executable(root: &Path, name: &str, contents: &str) -> PathBuf {
     use std::os::unix::fs::PermissionsExt;
 
     let path = root.join(name);
-    fs::write(&path, contents).expect("write executable fixture");
-    fs::set_permissions(&path, fs::Permissions::from_mode(0o755)).expect("fixture permissions");
+    let publishing = root.join(format!(".{name}.publishing"));
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&publishing)
+        .expect("create private executable fixture");
+    file.write_all(contents.as_bytes())
+        .expect("write executable fixture");
+    file.set_permissions(fs::Permissions::from_mode(0o755))
+        .expect("fixture permissions");
+    file.sync_all().expect("sync executable fixture");
+    drop(file);
+    fs::hard_link(&publishing, &path).expect("publish executable fixture without replacement");
+    fs::remove_file(&publishing).expect("remove private executable fixture name");
+    fs::File::open(root)
+        .expect("open executable fixture directory")
+        .sync_all()
+        .expect("sync executable fixture directory");
     path
 }
 
