@@ -44,11 +44,18 @@ pub enum FieldTypeV1 {
     ChangeId,
     CheckpointId,
     CandidateId,
+    GateReceiptId,
+    ReleaseRegistryId,
     GateId,
     EffectIntentId,
     CandidateProofRoot,
     IntegrationProofRoot,
     GitOid,
+    TaggedBlake3Digest,
+    ReleaseGateId,
+    ReleaseTag,
+    SigningIdentity,
+    SshEd25519PublicKey,
     RepoPath,
     AuthorityAudience,
     MutationOperation,
@@ -59,6 +66,10 @@ pub enum FieldTypeV1 {
     SettlementStatus,
     PatchPreimageKind,
     PatchMutationKind,
+    ReleaseReceiptKind,
+    ReleaseEvidenceKind,
+    ReleaseSignerRole,
+    ReleaseRepositoryName,
     KeyId,
     KeyPurpose,
     KeyAlgorithm,
@@ -90,8 +101,15 @@ pub enum FieldTypeV1 {
     PatchOperationArray,
     CandidateIdArray,
     GateIdArray,
+    ReleaseProfileIdArray,
     RepoPathArray,
     CleanupAuthorization,
+    ReleaseFamilySubject,
+    ReleaseRepositorySubjectArray,
+    ReleaseEvidenceSubjectArray,
+    ReleaseSignerKeyArray,
+    ReleaseRegistryEntryArray,
+    ReleaseReplayBindingArray,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -279,12 +297,32 @@ fn field_schema(field: &ContractFieldV1) -> Value {
         FieldTypeV1::ChangeId => digest_id_schema("chg"),
         FieldTypeV1::CheckpointId => digest_id_schema("ckp"),
         FieldTypeV1::CandidateId => digest_id_schema("can"),
+        FieldTypeV1::GateReceiptId => digest_id_schema("grc"),
+        FieldTypeV1::ReleaseRegistryId => digest_id_schema("rrg"),
         FieldTypeV1::GateId => digest_id_schema("gat"),
         FieldTypeV1::EffectIntentId => digest_id_schema("efi"),
         FieldTypeV1::CandidateProofRoot => digest_id_schema("cpr"),
         FieldTypeV1::IntegrationProofRoot => digest_id_schema("ipr"),
         FieldTypeV1::GitOid => json!({
             "type": "string", "pattern": "^(sha1:[0-9a-f]{40}|sha256:[0-9a-f]{64})$"
+        }),
+        FieldTypeV1::TaggedBlake3Digest => json!({
+            "type": "string", "pattern": "^blake3:[0-9a-f]{64}$"
+        }),
+        FieldTypeV1::ReleaseGateId => json!({
+            "type": "string", "pattern": "^release\\.[a-z0-9][a-z0-9._-]{0,119}$"
+        }),
+        FieldTypeV1::ReleaseTag => json!({
+            "type": "string", "maxLength": 128,
+            "pattern": "^v[0-9](?:[A-Za-z0-9.-]{0,126}[A-Za-z0-9])?$"
+        }),
+        FieldTypeV1::SigningIdentity => json!({
+            "type": "string", "maxLength": 256,
+            "pattern": "^[A-Za-z0-9._@+-]{1,128}\\|ed25519\\|SHA256:[A-Za-z0-9+/=]{16,96}$"
+        }),
+        FieldTypeV1::SshEd25519PublicKey => json!({
+            "type": "string", "maxLength": 384,
+            "pattern": "^ssh-ed25519 [A-Za-z0-9+/=]{40,256}$"
         }),
         FieldTypeV1::RepoPath => json!({
             "type": "string", "minLength": 1, "maxLength": 4096,
@@ -321,6 +359,34 @@ fn field_schema(field: &ContractFieldV1) -> Value {
         }),
         FieldTypeV1::PatchMutationKind => json!({
             "type": "string", "enum": ["write", "delete"]
+        }),
+        FieldTypeV1::ReleaseReceiptKind => json!({
+            "type": "string",
+            "enum": [
+                "artifact", "containment", "forge", "operations", "profile-closure",
+                "provider", "rust-toolchain", "scanner", "transaction"
+            ]
+        }),
+        FieldTypeV1::ReleaseEvidenceKind => json!({
+            "type": "string",
+            "enum": [
+                "artifact", "audit-anchor", "candidate", "check", "configuration",
+                "effect", "environment", "evidence", "integration", "jeryu",
+                "observation", "platform", "policy", "profile-graph", "proof-bundle",
+                "provider", "provenance", "sandbox", "sbom", "scanner", "schema",
+                "toolchain", "transaction"
+            ]
+        }),
+        FieldTypeV1::ReleaseSignerRole => json!({
+            "type": "string",
+            "enum": [
+                "artifact-release", "gate-attestor", "registry-curator", "source-tag",
+                "trusted-time"
+            ]
+        }),
+        FieldTypeV1::ReleaseRepositoryName => json!({
+            "type": "string",
+            "enum": ["bullet-farm", "bullet-git", "bullet-kernel", "bullet-portal"]
         }),
         FieldTypeV1::KeyId => json!({
             "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"
@@ -373,12 +439,19 @@ fn field_schema(field: &ContractFieldV1) -> Value {
         FieldTypeV1::PatchOperationArray => ref_array("PatchOperationV1"),
         FieldTypeV1::CandidateIdArray => typed_string_array("^can_[0-9a-f]{64}$"),
         FieldTypeV1::GateIdArray => typed_string_array("^gat_[0-9a-f]{64}$"),
+        FieldTypeV1::ReleaseProfileIdArray => typed_string_array("^[a-z][a-z0-9-]{0,62}[a-z0-9]$"),
         FieldTypeV1::RepoPathArray => json!({
             "type": "array", "items": field_schema(&ContractFieldV1 {
                 name: "path".to_owned(), field_type: FieldTypeV1::RepoPath
             })
         }),
         FieldTypeV1::CleanupAuthorization => schema_ref("CleanupAuthorizationV1"),
+        FieldTypeV1::ReleaseFamilySubject => schema_ref("ReleaseFamilySubjectV1"),
+        FieldTypeV1::ReleaseRepositorySubjectArray => ref_array("ReleaseRepositorySubjectV1"),
+        FieldTypeV1::ReleaseEvidenceSubjectArray => ref_array("ReleaseEvidenceSubjectV1"),
+        FieldTypeV1::ReleaseSignerKeyArray => ref_array("ReleaseSignerKeyV1"),
+        FieldTypeV1::ReleaseRegistryEntryArray => ref_array("ReleaseRegistryEntryV1"),
+        FieldTypeV1::ReleaseReplayBindingArray => ref_array("ReleaseReplayBindingV1"),
     }
 }
 

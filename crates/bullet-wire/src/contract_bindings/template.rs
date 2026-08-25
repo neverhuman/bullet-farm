@@ -97,6 +97,67 @@ pub enum PatchMutationKindV1 {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
+pub enum ReleaseReceiptKindV1 {
+    Artifact,
+    Containment,
+    Forge,
+    Operations,
+    ProfileClosure,
+    Provider,
+    RustToolchain,
+    Scanner,
+    Transaction,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReleaseEvidenceKindV1 {
+    Artifact,
+    AuditAnchor,
+    Candidate,
+    Check,
+    Configuration,
+    Effect,
+    Environment,
+    Evidence,
+    Integration,
+    Jeryu,
+    Observation,
+    Platform,
+    Policy,
+    ProfileGraph,
+    ProofBundle,
+    Provider,
+    Provenance,
+    Sandbox,
+    Sbom,
+    Scanner,
+    Schema,
+    Toolchain,
+    Transaction,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReleaseSignerRoleV1 {
+    ArtifactRelease,
+    GateAttestor,
+    RegistryCurator,
+    SourceTag,
+    TrustedTime,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReleaseRepositoryNameV1 {
+    BulletFarm,
+    BulletGit,
+    BulletKernel,
+    BulletPortal,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum KeyPurposeV1 {
     AuthoritySigning,
     ReleaseSigning,

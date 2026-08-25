@@ -12,6 +12,7 @@ mod manifest;
 mod outcome;
 mod policy;
 mod proposal;
+mod release;
 
 pub use authority::{
     AUTHORITY_IMPLICIT_ASSERTION, AUTHORITY_SCHEMA_VERSION, AuthorityAudience, AuthorityClaims,
@@ -47,6 +48,7 @@ pub use manifest::{
 pub use outcome::*;
 pub use policy::*;
 pub use proposal::*;
+pub use release::{ReleaseWireRecord, decode_release_record};
 
 /// Normative generated wire records. Security-sensitive consumers must decode this namespace.
 pub mod v1alpha1 {

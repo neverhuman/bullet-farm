@@ -71,6 +71,10 @@ export type MutationOutcomeV1 = \"committed\" | \"aborted\" | \"unknown\";\n\
 export type SettlementStatusV1 = \"accepted\" | \"exact-replay\" | \"conflict\" | \"refused\";\n\
 export type PatchPreimageKindV1 = \"absent\" | \"digest\";\n\
 export type PatchMutationKindV1 = \"write\" | \"delete\";\n\
+export type ReleaseReceiptKindV1 = \"artifact\" | \"containment\" | \"forge\" | \"operations\" | \"profile-closure\" | \"provider\" | \"rust-toolchain\" | \"scanner\" | \"transaction\";\n\
+export type ReleaseEvidenceKindV1 = \"artifact\" | \"audit-anchor\" | \"candidate\" | \"check\" | \"configuration\" | \"effect\" | \"environment\" | \"evidence\" | \"integration\" | \"jeryu\" | \"observation\" | \"platform\" | \"policy\" | \"profile-graph\" | \"proof-bundle\" | \"provider\" | \"provenance\" | \"sandbox\" | \"sbom\" | \"scanner\" | \"schema\" | \"toolchain\" | \"transaction\";\n\
+export type ReleaseSignerRoleV1 = \"artifact-release\" | \"gate-attestor\" | \"registry-curator\" | \"source-tag\" | \"trusted-time\";\n\
+export type ReleaseRepositoryNameV1 = \"bullet-farm\" | \"bullet-git\" | \"bullet-kernel\" | \"bullet-portal\";\n\
 export type KeyPurposeV1 = \"authority-signing\" | \"release-signing\";\n\
 export type KeyAlgorithmV1 = \"paseto-v4.public\" | \"ssh-ed25519\";\n"
     );
@@ -147,11 +151,18 @@ const fn rust_type(field_type: FieldTypeV1) -> &'static str {
         | FieldTypeV1::ChangeId
         | FieldTypeV1::CheckpointId
         | FieldTypeV1::CandidateId
+        | FieldTypeV1::GateReceiptId
+        | FieldTypeV1::ReleaseRegistryId
         | FieldTypeV1::GateId
         | FieldTypeV1::EffectIntentId
         | FieldTypeV1::CandidateProofRoot
         | FieldTypeV1::IntegrationProofRoot
         | FieldTypeV1::GitOid
+        | FieldTypeV1::TaggedBlake3Digest
+        | FieldTypeV1::ReleaseGateId
+        | FieldTypeV1::ReleaseTag
+        | FieldTypeV1::SigningIdentity
+        | FieldTypeV1::SshEd25519PublicKey
         | FieldTypeV1::RepoPath
         | FieldTypeV1::KeyId
         | FieldTypeV1::PasetoV4Public => "String",
@@ -164,6 +175,10 @@ const fn rust_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::SettlementStatus => "SettlementStatusV1",
         FieldTypeV1::PatchPreimageKind => "PatchPreimageKindV1",
         FieldTypeV1::PatchMutationKind => "PatchMutationKindV1",
+        FieldTypeV1::ReleaseReceiptKind => "ReleaseReceiptKindV1",
+        FieldTypeV1::ReleaseEvidenceKind => "ReleaseEvidenceKindV1",
+        FieldTypeV1::ReleaseSignerRole => "ReleaseSignerRoleV1",
+        FieldTypeV1::ReleaseRepositoryName => "ReleaseRepositoryNameV1",
         FieldTypeV1::KeyPurpose => "KeyPurposeV1",
         FieldTypeV1::KeyAlgorithm => "KeyAlgorithmV1",
         FieldTypeV1::U64 | FieldTypeV1::Timestamp => "u64",
@@ -189,10 +204,17 @@ const fn rust_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::ScopeGrant => "ScopeGrantV1",
         FieldTypeV1::PatchProposal => "PatchProposalV1",
         FieldTypeV1::PatchOperationArray => "Vec<PatchOperationV1>",
-        FieldTypeV1::CandidateIdArray | FieldTypeV1::GateIdArray | FieldTypeV1::RepoPathArray => {
-            "Vec<String>"
-        }
+        FieldTypeV1::CandidateIdArray
+        | FieldTypeV1::GateIdArray
+        | FieldTypeV1::ReleaseProfileIdArray
+        | FieldTypeV1::RepoPathArray => "Vec<String>",
         FieldTypeV1::CleanupAuthorization => "CleanupAuthorizationV1",
+        FieldTypeV1::ReleaseFamilySubject => "ReleaseFamilySubjectV1",
+        FieldTypeV1::ReleaseRepositorySubjectArray => "Vec<ReleaseRepositorySubjectV1>",
+        FieldTypeV1::ReleaseEvidenceSubjectArray => "Vec<ReleaseEvidenceSubjectV1>",
+        FieldTypeV1::ReleaseSignerKeyArray => "Vec<ReleaseSignerKeyV1>",
+        FieldTypeV1::ReleaseRegistryEntryArray => "Vec<ReleaseRegistryEntryV1>",
+        FieldTypeV1::ReleaseReplayBindingArray => "Vec<ReleaseReplayBindingV1>",
     }
 }
 
@@ -225,11 +247,18 @@ const fn typescript_type(field_type: FieldTypeV1) -> &'static str {
         | FieldTypeV1::ChangeId
         | FieldTypeV1::CheckpointId
         | FieldTypeV1::CandidateId
+        | FieldTypeV1::GateReceiptId
+        | FieldTypeV1::ReleaseRegistryId
         | FieldTypeV1::GateId
         | FieldTypeV1::EffectIntentId
         | FieldTypeV1::CandidateProofRoot
         | FieldTypeV1::IntegrationProofRoot
         | FieldTypeV1::GitOid
+        | FieldTypeV1::TaggedBlake3Digest
+        | FieldTypeV1::ReleaseGateId
+        | FieldTypeV1::ReleaseTag
+        | FieldTypeV1::SigningIdentity
+        | FieldTypeV1::SshEd25519PublicKey
         | FieldTypeV1::RepoPath
         | FieldTypeV1::KeyId
         | FieldTypeV1::PasetoV4Public => "string",
@@ -242,6 +271,10 @@ const fn typescript_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::SettlementStatus => "SettlementStatusV1",
         FieldTypeV1::PatchPreimageKind => "PatchPreimageKindV1",
         FieldTypeV1::PatchMutationKind => "PatchMutationKindV1",
+        FieldTypeV1::ReleaseReceiptKind => "ReleaseReceiptKindV1",
+        FieldTypeV1::ReleaseEvidenceKind => "ReleaseEvidenceKindV1",
+        FieldTypeV1::ReleaseSignerRole => "ReleaseSignerRoleV1",
+        FieldTypeV1::ReleaseRepositoryName => "ReleaseRepositoryNameV1",
         FieldTypeV1::KeyPurpose => "KeyPurposeV1",
         FieldTypeV1::KeyAlgorithm => "KeyAlgorithmV1",
         FieldTypeV1::U64 | FieldTypeV1::Timestamp => "number",
@@ -268,9 +301,16 @@ const fn typescript_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::ScopeGrant => "ScopeGrantV1",
         FieldTypeV1::PatchProposal => "PatchProposalV1",
         FieldTypeV1::PatchOperationArray => "PatchOperationV1[]",
-        FieldTypeV1::CandidateIdArray | FieldTypeV1::GateIdArray | FieldTypeV1::RepoPathArray => {
-            "string[]"
-        }
+        FieldTypeV1::CandidateIdArray
+        | FieldTypeV1::GateIdArray
+        | FieldTypeV1::ReleaseProfileIdArray
+        | FieldTypeV1::RepoPathArray => "string[]",
         FieldTypeV1::CleanupAuthorization => "CleanupAuthorizationV1",
+        FieldTypeV1::ReleaseFamilySubject => "ReleaseFamilySubjectV1",
+        FieldTypeV1::ReleaseRepositorySubjectArray => "ReleaseRepositorySubjectV1[]",
+        FieldTypeV1::ReleaseEvidenceSubjectArray => "ReleaseEvidenceSubjectV1[]",
+        FieldTypeV1::ReleaseSignerKeyArray => "ReleaseSignerKeyV1[]",
+        FieldTypeV1::ReleaseRegistryEntryArray => "ReleaseRegistryEntryV1[]",
+        FieldTypeV1::ReleaseReplayBindingArray => "ReleaseReplayBindingV1[]",
     }
 }

@@ -4,11 +4,11 @@
 // DO NOT EDIT BY HAND.
 pub const SCHEMA_VERSION: &str = "v1alpha1";
 pub const SCHEMA_BUNDLE_HASH: &str =
-    "10b1d059d7a621a7bc65492ae87715c14a8e41eaa9d52b773d7ae96a67806103";
+    "039cc7c285432997ec602a4b396dfe13d1f907048fb7ed406313e7b2b6d2798d";
 pub const INVARIANT_REGISTRY_HASH: &str =
     "978a8b4ebb14ff0c978afb431c154647adef2f9839de322356a765c59a0c3858";
 pub const POLICY_SNAPSHOT_HASH: &str =
-    "5b007a784003f42a2e4f7781718178f533b899df334afad5127cd466d192ed31";
+    "9db09c2fd9abfa941c86ceeecc2da471793a998671d536ec960b8b0d1116835c";
 pub const CANONICAL_GOLDEN_JSON: &str = r##"{"a":"é","array":[true,null,17],"z":"last"}"##;
 pub const CANONICAL_GOLDEN_HASH: &str =
     "1d800cb94962906f78d42cb8cc84c2c078311a50e35ca515240b800abc3d2263";
@@ -93,6 +93,67 @@ pub enum PatchPreimageKindV1 {
 pub enum PatchMutationKindV1 {
     Write,
     Delete,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReleaseReceiptKindV1 {
+    Artifact,
+    Containment,
+    Forge,
+    Operations,
+    ProfileClosure,
+    Provider,
+    RustToolchain,
+    Scanner,
+    Transaction,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReleaseEvidenceKindV1 {
+    Artifact,
+    AuditAnchor,
+    Candidate,
+    Check,
+    Configuration,
+    Effect,
+    Environment,
+    Evidence,
+    Integration,
+    Jeryu,
+    Observation,
+    Platform,
+    Policy,
+    ProfileGraph,
+    ProofBundle,
+    Provider,
+    Provenance,
+    Sandbox,
+    Sbom,
+    Scanner,
+    Schema,
+    Toolchain,
+    Transaction,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReleaseSignerRoleV1 {
+    ArtifactRelease,
+    GateAttestor,
+    RegistryCurator,
+    SourceTag,
+    TrustedTime,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReleaseRepositoryNameV1 {
+    BulletFarm,
+    BulletGit,
+    BulletKernel,
+    BulletPortal,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -718,16 +779,20 @@ pub struct FinalAuthorityDecisionV1 {
 pub struct GateReceiptV1 {
     pub schema_version: String,
     pub gate_receipt_id: String,
-    pub gate: String,
-    pub gate_version: String,
-    pub repository_commits: Vec<serde_json::Value>,
-    pub policy_hash: String,
-    pub schema_hash: String,
-    pub toolchain_hash: String,
-    pub executed_tests: Vec<String>,
-    pub artifacts: Vec<serde_json::Value>,
-    pub result: String,
-    pub signature: String,
+    pub gate_id: String,
+    pub gate_version: u64,
+    pub receipt_kind: ReleaseReceiptKindV1,
+    pub profile_ids: Vec<String>,
+    pub evidence_nonce: String,
+    pub request_digest: String,
+    pub profile_graph_digest: String,
+    pub gate_policy_digest: String,
+    pub family_subject: ReleaseFamilySubjectV1,
+    pub evidence_subjects: Vec<ReleaseEvidenceSubjectV1>,
+    pub attestor_key_id: String,
+    pub started_at_unix_ms: u64,
+    pub completed_at_unix_ms: u64,
+    pub expires_at_unix_ms: u64,
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -1143,6 +1208,122 @@ pub struct ReconcileEffectRequestV1 {
 
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct ReleaseEvidenceSubjectV1 {
+    pub schema_version: String,
+    pub subject_kind: ReleaseEvidenceKindV1,
+    pub subject_id: String,
+    pub subject_digest: String,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseFamilySubjectV1 {
+    pub schema_version: String,
+    pub family: String,
+    pub family_lock_digest: String,
+    pub schema_bundle_digest: String,
+    pub repositories: Vec<ReleaseRepositorySubjectV1>,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseRegistryEntryV1 {
+    pub schema_version: String,
+    pub gate_id: String,
+    pub gate_receipt_id: String,
+    pub receipt_digest: String,
+    pub receipt_path: String,
+    pub receipt_signature_digest: String,
+    pub receipt_signature_path: String,
+    pub trusted_time_digest: String,
+    pub trusted_time_path: String,
+    pub trusted_time_signature_digest: String,
+    pub trusted_time_signature_path: String,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseRegistryManifestV1 {
+    pub schema_version: String,
+    pub registry_id: String,
+    pub generation: u64,
+    pub previous_registry_digest: String,
+    pub signer_policy_digest: String,
+    pub profile_graph_digest: String,
+    pub family_lock_digest: String,
+    pub created_at_unix_ms: u64,
+    pub expires_at_unix_ms: u64,
+    pub registry_signer_key_id: String,
+    pub entries: Vec<ReleaseRegistryEntryV1>,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseReplayBindingV1 {
+    pub schema_version: String,
+    pub evidence_nonce: String,
+    pub gate_receipt_id: String,
+    pub gate_id: String,
+    pub request_digest: String,
+    pub receipt_digest: String,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseReplayStateV1 {
+    pub schema_version: String,
+    pub registry_id: String,
+    pub generation: u64,
+    pub registry_manifest_digest: String,
+    pub previous_state_digest: String,
+    pub restore_epoch: u64,
+    pub trusted_time_floor_unix_ms: u64,
+    pub bindings: Vec<ReleaseReplayBindingV1>,
+    pub registry_signer_key_id: String,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseRepositorySubjectV1 {
+    pub schema_version: String,
+    pub repository: ReleaseRepositoryNameV1,
+    pub tag: String,
+    pub commit_oid: String,
+    pub tree_oid: String,
+    pub release_signing_identity: String,
+    pub dependency_lock_digest: String,
+    pub artifact_manifest_digest: String,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseSignerKeyV1 {
+    pub schema_version: String,
+    pub key_id: String,
+    pub role: ReleaseSignerRoleV1,
+    pub signing_identity: String,
+    pub public_key: String,
+    pub activates_at_unix_ms: u64,
+    pub expires_at_unix_ms: u64,
+    pub revoked_at_unix_ms: Option<u64>,
+    pub retain_until_unix_ms: u64,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseSignerPolicyV1 {
+    pub schema_version: String,
+    pub family: String,
+    pub policy_generation: u64,
+    pub activates_at_unix_ms: u64,
+    pub expires_at_unix_ms: u64,
+    pub registry_signer_key_id: String,
+    pub trusted_time_key_id: String,
+    pub signer_keys: Vec<ReleaseSignerKeyV1>,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ReviewReceipt {
     pub schema_version: String,
     pub review_receipt_id: String,
@@ -1347,6 +1528,21 @@ pub struct TeamRecipeV1 {
     pub edges: Vec<serde_json::Value>,
     pub budgets: serde_json::Value,
     pub policy_hash: String,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TrustedTimeObservationV1 {
+    pub schema_version: String,
+    pub family: String,
+    pub gate_receipt_id: String,
+    pub receipt_digest: String,
+    pub evidence_nonce: String,
+    pub signer_policy_digest: String,
+    pub observed_at_unix_ms: u64,
+    pub valid_until_unix_ms: u64,
+    pub restore_epoch: u64,
+    pub trusted_time_key_id: String,
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]

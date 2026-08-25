@@ -55,6 +55,15 @@ const TRANSACTION_RECORDS: &[&str] = &[
     "DispatchEffectRequestV1",
     "ReadWorkspaceRequestV1",
     "ReconcileEffectRequestV1",
+    "ReleaseEvidenceSubjectV1",
+    "ReleaseFamilySubjectV1",
+    "ReleaseRegistryEntryV1",
+    "ReleaseRegistryManifestV1",
+    "ReleaseReplayBindingV1",
+    "ReleaseReplayStateV1",
+    "ReleaseRepositorySubjectV1",
+    "ReleaseSignerKeyV1",
+    "ReleaseSignerPolicyV1",
     "VerificationIntentV1",
 ];
 
@@ -95,4 +104,5 @@ const RESEARCH_RECORDS: &[&str] = &[
     "TaskCorpusManifestV1",
     "TaskSpecV1",
     "TeamRecipeV1",
+    "TrustedTimeObservationV1",
 ];
