@@ -23,6 +23,7 @@ Candidate, Evidence result, effect, or release true.
 | Which competitor subjects are pinned? | [`assurance/competitor-snapshot.md`](assurance/competitor-snapshot.md) |
 | How do agents coordinate? | [`runbooks/fleet.md`](runbooks/fleet.md) |
 | What is post-V1? | [`phase-9-10.md`](phase-9-10.md) |
+| Which paper-driven opportunities remain? | [`workplan.md`](workplan.md) (non-authoritative; the V1 closure plan wins) |
 | What is the canonical byte pipeline? | [`assurance/canonicalization.md`](assurance/canonicalization.md) |
 
 The release index is deliberately fail-closed. `BLOCKED`, `UNKNOWN`, a missing
@@ -33,6 +34,9 @@ green through documentation.
 
 - [`paper/`](paper/) is the IEEEtran arXiv preprint source. A compile is not
   a release, installer, or benchmark receipt.
+- [`workplan.md`](workplan.md) is an opportunity backlog for paper evidence,
+  forge publication, and post-V1 hardening. It cannot change V1 scope or gate
+  status; [`assurance/v1-closure-plan.md`](assurance/v1-closure-plan.md) wins.
 - [`brand/mascots/`](brand/mascots/) is sticker-first image-generator briefs.
   Generated art is not a receipt.
 - [`architecture/overview.md`](architecture/overview.md) is the concise system

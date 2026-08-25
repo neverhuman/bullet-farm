@@ -44,6 +44,12 @@ release-truth:
 audit:
     bash scripts/ci-local.sh audit
 
+paper:
+    bash scripts/paper-build.sh
+
+paper-check:
+    bash scripts/paper-check.sh
+
 [positional-arguments]
 ci-doctor lane="all":
     bash scripts/ci-doctor.sh "$1"
