@@ -2,12 +2,10 @@
 
 Status: **ACTIVE — pre-release; release authority is blocked**
 Owner: Bullet Farm maintainers
-Last reconciled: 2026-08-24
+Last reconciled: 2026-08-25
 Scope: four repositories, local-first, single-user V1
-This is the V1 dependency graph, evidence register, and closure checklist, not
-runtime authority. Only generated contracts, exact Git subjects, the Kernel
-ledger, independent Evidence, observed effects, and signed release receipts can
-make a gate green; HTTP/component/model/prose success cannot promote itself.
+This is a dependency graph and evidence register, not runtime authority. Only
+exact generated/ledger/Git/Evidence/effect/release subjects can make a gate green.
 
 ## Status vocabulary
 
@@ -18,9 +16,7 @@ make a gate green; HTTP/component/model/prose success cannot promote itself.
 | `LOCAL-BLOCKED` | Implementable offline work remains or a predecessor safety gate is not green |
 | `EXTERNAL-BLOCKED` | Promotion needs operator-controlled service, credential, signer, or platform evidence |
 
-`BLOCKED`, `UNKNOWN`, zero tests, timeout, skipped, flaky, unsupported, or
-infrastructure error never equals `PASS`. A newer subject invalidates an older
-receipt until the mapped gate is replayed against the newer subject.
+A newer subject invalidates its receipt until the mapped gate is replayed.
 
 ## Frozen Safety-Complete V1 contract
 
@@ -51,17 +47,17 @@ receipt until the mapped gate is replayed against the newer subject.
   versioned JSON-RPC 2.0 over JSONL stdio. Stdout is protocol-only.
 - Local V1 is single-user and loopback-only. PostgreSQL, distributed teams,
   remote runners, cross-repository sagas, semantic merge synthesis, and online
-  learning are post-V1; versioned ports may exist, speculative implementations
-  do not.
-- Exactly **two** protocols are model-checked: lease/fence/reclaim and
-  command/effect ambiguity under timeout. No third formal model is a V1 gate.
-- GA requires conformant **Claude, Codex, Cursor, and Antigravity** adapters.
+  learning are post-V1; versioned ports may exist, speculative code does not.
+- Exactly **two** protocols are model-checked: lease/fence/reclaim and command/
+  effect ambiguity under timeout. No third formal model is a V1 gate.
+- GA requires conformant **Claude, Codex, Cursor, and Antigravity** adapters;
   `TEAM.md` critique C8's any-two recommendation is superseded for this V1.
-- Release has exactly **five** archives: Linux x86_64, Linux aarch64, macOS
-  x86_64, macOS arm64, and Windows x64. Linux is the production runner; other
-  packages fail closed on mutation until equivalent native containment passes.
+- Release has exactly **five** archives: Linux x86_64/aarch64, macOS x86_64/
+  arm64, and Windows x64. Non-Linux mutation fails until containment passes.
 - Pre-1.0 schemas are disposable. Unknown/legacy databases fail with typed
   `UNSUPPORTED_SCHEMA` plus explicit export/removal guidance.
+- Product comparison is [commit/date-pinned](competitor-snapshot.md); no performance
+  claim is valid before the same receipt-bearing corpus runs on both systems.
 
 ## Reconciled repository subjects and receipts
 
@@ -69,14 +65,13 @@ The committed subjects observed immediately before this plan edit were:
 
 | Repository | Commit | Tree | Checkout truth |
 | --- | --- | --- | --- |
-| Hub | `0440d446190c20c2be24620fa1d91d1b39fa3073` | `03a814100a6548b55c0c280dc86ca73bf39fb70d` | Clean before this claimed documentation edit |
-| Kernel | `e697f8aa457ed6289e82cf51428f5e9de809436d` | `24f2a88dc891db21cb3526e9c164fd2002f051b3` | Clean |
-| BulletGit | `9d527b9e2d8da2fe4ca76c45787851f6d6dab8c2` | `ae9c0118e8221ead4dfe8bc02a877553e618c01c` | Clean |
+| Hub | `30c9a21eec87d9148f334599ba510fc2cad797f0` | `7fc717055374dee99e048817f507d7be66e6adfe` | Clean before this claimed documentation edit |
+| Kernel | `8cc2df167f0845893993b7046c165166c36458bc` | `7292df6df7ce6fe590c6a99d0249be967e5b714e` | Clean |
+| BulletGit | `f8121142cd337e243bdc97cdeec9dacea9554b04` | `4e38c133639ab2d9817c306e68ff110dac23640e` | Clean |
 | Portal | `3f651ad76a0488452ea1361e36ed72b5faa3d887` | `99c203f7c0c01d9ad1da8f883f90f13fd2b9ba7f` | Clean |
 
-The heads above have current component receipts. There is no family transaction
-or release receipt: `check release` still names missing transaction, live,
-recovery, package, security, and signing evidence.
+There is no family transaction or release receipt: `check release` names the
+missing transaction, live, recovery, package, security, and signing evidence.
 
 | Receipt | Status | Exact evidence | Boundary |
 | --- | --- | --- | --- |
@@ -90,18 +85,22 @@ recovery, package, security, and signing evidence.
 | Atomic lease command/outbox | `COMPLETE` | Kernel `544f43ff50b92ab864cb4bcfc31c2f0d880c36f6`; required 277/277 | Fence, Attempt, lease, graph, event, exact result, and correlated outbox commit once; public wire command/auth remains open |
 | Admitted gates and authoritative snapshots | `COMPLETE` | Kernel `cdfd6f2a085faeb8201a52745bec13ce444047db`, `20032074526605e1708aa72789defbd87fa75b58`, `fef4aba1f687d67107e5bafffa9adba8545becc3`; required 293/293 | Provider text cannot name shell; atomic SQLite projections carry source/time/watermark; empty ready is verified `data:null` |
 | Provider process admission | `COMPLETE` | Kernel `03baa0ed7bd6746f7e7458cca6f56a60ddfda617`; focused 55/55 plus strict checks | Absolute binary/digest, 0700 HOME, 0400 OAuth copy, positive environment, canary scan, cleanup; dispatch remains blocked without signed authority and egress |
-| Authenticated command ingress | `COMPLETE` | Kernel `19d1d47cb03956eb92dfa3f27e409c87d1ab5203`; required 307/307 | Loopback bootstrap/session/origin/CSRF and atomic PENDING command/outbox/event; no internal worker, so no command can yet complete |
+| Authenticated command ingress | `COMPLETE` | Kernel `19d1d47cb03956eb92dfa3f27e409c87d1ab5203`; required 307/307 | Loopback bootstrap/session/origin/CSRF and atomic PENDING command/outbox/event |
 | Operation-specific local authority | `COMPLETE` | Kernel `e697f8aa457ed6289e82cf51428f5e9de809436d`; required 311/311 | Exact typed mutation/terminal/preservation decisions; signed request capabilities, daemon receipt validation, and online cleanup settlement remain open |
+| Authenticated offline command reconciliation | `COMPLETE` | Kernel `77a0ecd0079d030e944ebf3a7b9077b7d64aabcc`; required 317/317 | Exact-ID worker settles one command/outbox/event to honest UNKNOWN/FAILED; no dispatch, APPLIED, VERIFIED, provider, verifier, or effect path |
+| Receipt-bound backup/quarantined restore | `COMPLETE` | Kernel `798f0c814cc4dde1fc510eadc46ce14653380772`; backup 9/9, migrations 14/14, CLI 1/1 | WAL-consistent exact-size/digest copy and verified restore epoch; restored data stays quarantined because authenticity and production admission remain open |
+| Four offline provider message subsets | `COMPLETE` | Kernel provider commits `ca376e4`, `c34d578`, `ea89929`, `5badc85`; strict recursive JSON `1bb32bd`; required 330/330 | Pure bounded parsers with public dispatch blocked; RFC 8785 identity, signed runtime isolation, native Cursor proposal extension, and every live receipt remain open |
 | BulletGit fail-closed gateway | `COMPLETE` | BulletGit `79bf1e2129fbe50ed85d424fe6e4416407bb17f4`; 82/82 required at consumer head `7df926c` | Production refuses unavailable authority; no positive checker or Jeryu backend |
 | Atomic generations and preservation | `COMPLETE` | BulletGit `61bf76dd06753df1ce37715582ab56fbf5d75cff`, `9d527b9e2d8da2fe4ca76c45787851f6d6dab8c2`; required 105/105 | Prior-or-complete-next generation plus sealed exact-state salvage before cleanup; positive online authority and Jeryu remain open |
+| Exact mutation reservation | `COMPLETE` | BulletGit `f8121142cd337e243bdc97cdeec9dacea9554b04`; required 107/107 | Durable reservation binds request/envelope/Attempt/fence/workspace generation; production checker and Kernel settlement remain unavailable |
 | Projection and real-process browser truth | `COMPLETE` | Portal `cfba6f72f6fd55cc0477182b74b63ade49821d07`; unit 51/51, mocked browser 10/10, real farmd browser 1/1 | Strict snapshots, STALE recovery, server provenance, ready-null; packaging remains open |
 | Strict browser command reconciliation | `COMPLETE` | Portal `3f651ad76a0488452ea1361e36ed72b5faa3d887`; 60/60 unit, 6/6 focused browser, 1/1 real farmd browser | Exact ID/kind/digest and five durable states; real farmd remains honestly PENDING without a worker |
 | Transaction-safe source setup | `COMPLETE` | Hub `5148a52a122da46e749be3e2169f81bd6d4b8116`; Hub required 34/34 plus integrations | Fallible validation precedes no-replace publication and final durable manifest; signed schema-3 inputs and prebuilt installer remain open |
 | Pinned assurance controls | `COMPLETE` | Hub `0440d446190c20c2be24620fa1d91d1b39fa3073`; required 34/34 | Pinned secret/dependency/license/workflow scans and release blocker report; passing components do not promote a release |
+| Signed five-target bundle verification | `COMPLETE` | Hub `352f963c75ce1939898a26d94d39be13de321f86`; required 39/39 plus 3/3 bundle integration | Linux read-only exact-byte/signature verification; no package build, semantics, extraction, install, signer provisioning, or intermediate-directory race proof |
 
-Current Hub Jankurai is 57/raw 57 with 9 caps, 36 findings, and 25 hard
-findings. Older component reports also fail the gate. None meets V1's
-at-least-90, zero-cap, zero-hard requirement.
+Hub Jankurai is 60/raw 61 with 7 caps and 34 findings (23 high); it fails the
+V1 >=90, zero-cap/zero-hard gate despite no tool-classified hard finding.
 
 ## Dependency graph
 
@@ -117,14 +116,12 @@ V1-S0 coordination/provenance
        -> V1-S7 installer/CI/docs/package mechanics ----------------^
 ```
 
-`V1-S7` may build offline in parallel after `V1-S1`, but its release exit cannot
-pass before `V1-S2..S6`. A slice does not advance while a known safety
-counterexample remains in that slice or a predecessor.
+`V1-S7` may build after `V1-S1`, but cannot exit before `V1-S2..S6`. No slice
+advances while it or a predecessor has a known safety counterexample.
 
 ## V1-S0 — coordination and provenance
 
-Status: `COMPLETE` as a local coordination substrate; release receipts remain
-continuous obligations.
+Status: `COMPLETE` locally; release receipts remain continuous obligations.
 
 Remaining work:
 
@@ -149,9 +146,8 @@ fail closed; a commit containing an unclaimed path cannot receive a receipt.
 
 ## V1-S1 — frozen cross-repository contracts and IPC
 
-Status: `LOCAL-BLOCKED`. Hub wire and JSON-RPC session machines are component
-evidence; no immutable Jeryu publication exists, and consumers still duplicate
-semantics or use legacy framing.
+Status: `LOCAL-BLOCKED`. Wire/IPC component machines exist, but no immutable
+Jeryu publication exists and consumers duplicate or use legacy semantics.
 
 Required work:
 
@@ -188,8 +184,9 @@ generation leaves zero tracked drift.
 Status: `LOCAL-BLOCKED`. Checksummed migrations/FKs, database lease time,
 atomic lease-command/event/outbox, admitted gates, and authoritative snapshots
 are complete components. Authenticated public command admission and typed local
-operation decisions are complete; the worker, normalized truth, signed
-capabilities, recovery, and CAS remain.
+operation decisions, an UNKNOWN/FAILED-only worker, and receipt-bound backup
+with quarantined restore are complete; normalized truth, signed capabilities,
+restore admission, fault-complete recovery, and CAS remain.
 
 Required work:
 
@@ -199,17 +196,17 @@ Required work:
 2. Preserve lease/fence allocation in one SQLite `BEGIN IMMEDIATE` transaction
    using database time. Fence counters never rewind across replay, expiry,
    supersession, restart, backup, or restore.
-3. Preserve authenticated admission, then add an internal authenticated worker.
-   Persist each result, transition, event, and outbox settlement atomically;
-   reads reconstruct exact stored truth or return `UNKNOWN`.
+3. Preserve authenticated admission and the exact-ID offline worker. Extend it
+   only through signed dispatch; persist each result, transition, event, and
+   outbox settlement atomically, returning `UNKNOWN` when truth is unavailable.
 4. Mint short-lived PASETO v4.public capabilities from the durable active lease
    only. Bind audience, operation/request digest, Mission/repository/graph/
    package/Variant/Attempt/fence/runner/workspace/scope/context/configuration/
    policy/routing, authority epoch, freeze generation, expiry, and nonce.
    Lease and token maximums are separately enforced at 15 seconds.
-5. Put WAL and filesystem CAS under platform data directories; add fsync/rename
-   boundaries, restore epochs, verified backup/restore, retention classes,
-   orphan-safe GC, and append-only audit anchors.
+5. Put WAL and filesystem CAS under platform data directories. Preserve the
+   exact backup/restore receipt and quarantine, then add receipt authenticity,
+   restore admission, fault boundaries, retention, orphan-safe GC, and anchors.
 6. Preserve operation-specific decisions and delete every remaining hard-coded
    SHA/PASS/demo-success branch.
 
@@ -261,8 +258,8 @@ prior authoritative generation or return typed `UNKNOWN`; none yields success.
 
 ## V1-S4 — runner, verifier, effects, and offline transaction
 
-Status: `LOCAL-BLOCKED` on `V1-S2` and `V1-S3`. Current Runner safety simulation
-and `/v1/demo/run` are component/synthetic evidence only.
+Status: `LOCAL-BLOCKED` on `V1-S2/S3`; Runner simulation and `/v1/demo/run` are
+component/synthetic evidence only.
 
 Required work:
 
@@ -297,9 +294,9 @@ and cleanup-before-preservation never become PASS or cause a duplicate effect.
 ## V1-S5 — authenticated API, SSE, and projection truth
 
 Status: `LOCAL-BLOCKED`. Atomic snapshots, bounded SSE recovery, strict Portal
-validation/provenance, authenticated commands, and real built-farmd browser E2E
-are complete components. The real command remains honestly `PENDING` because no
-worker exists; broader projections and packaged-production proof remain.
+validation/provenance, authenticated commands, real built-farmd browser E2E,
+and offline UNKNOWN/FAILED reconciliation are complete components. There is no
+APPLIED/VERIFIED dispatch path; broader projections and packaging remain.
 
 Required work:
 
@@ -328,9 +325,10 @@ green result, and farmd restart. None may render false green.
 
 ## V1-S6 — cognitive plane and four provider adapters
 
-Status: `LOCAL-BLOCKED` for durable cognition and protocol adapters. Offline
-provider process admission is complete but blocks dispatch without signed
-authority/egress; live receipts remain `EXTERNAL-BLOCKED`.
+Status: `LOCAL-BLOCKED`. Fail-closed offline Claude, Codex, Cursor, and
+Antigravity message subsets plus strict recursive JSON are committed. Provider
+execution remains blocked without signed authority/isolation, native
+conformance, egress, supervision, and live receipts.
 
 Required work:
 
@@ -345,11 +343,10 @@ Required work:
    capability maturity, exact profile, quota, context budget, independence, and
    verifier capacity. UNKNOWN paid capacity blocks ordinary dispatch; a bounded
    read-only probe requires explicit policy.
-4. Certify in order: Claude bidirectional stream JSON; Codex App Server JSONL;
-   Cursor ACP; Antigravity headless structured mode. Keep ADR 0001's frozen
-   targets and runtime observations current; conformance maturity advances only
-   with implementation receipts. Runtime probing, including Antigravity `-p=`
-   ordering/schema support, determines observed capability.
+4. Preserve the bounded offline Claude stream-JSON, Codex App Server JSONL,
+   Cursor ACP, and Antigravity headless subsets while closing decoder/native-
+   extension gaps. Runtime probing, including Antigravity `-p=` ordering and
+   schema support, determines capability.
 5. Execute absolute verified binaries with allowlisted environments, ephemeral
    HOME, minimum provider OAuth, provider-only egress, and no SCM/cloud/SSH/host
    secrets. Persist exact binary/model/config/profile receipts.
@@ -367,9 +364,10 @@ and cannot be rewritten into the selected Candidate.
 ## V1-S7 — installer, checks, CI, packaging, and documentation
 
 Status: `LOCAL-BLOCKED`. Rust coordination/checks/fusion, strict schema-3
-verification, and transaction-safe ordinary-clone setup with fault replay and a
-signed two-run fixture exist. Schema 2 correctly returns `UNSUPPORTED_SCHEMA`;
-no authenticated binary, real schema-3 lock, packages, or release exists.
+verification, transaction-safe ordinary-clone setup, and read-only signed
+five-target bundle verification exist. Schema 2 returns `UNSUPPORTED_SCHEMA`;
+no package builder/extractor, authenticated prebuilt installer, real schema-3
+lock, signer provisioning, or release exists.
 
 Required command surface:
 
@@ -470,16 +468,16 @@ may be neutral only when the requested release profile does not require them.
 
 ## Immediate closure queue
 
-1. Add the authenticated internal command worker without synthetic VERIFIED,
-   then persist effect ambiguity/read-back and independent verification.
+1. Extend offline command reconciliation into signed dispatch, effect read-back,
+   and independent verification without synthetic APPLIED or VERIFIED.
 2. Complete `V1-S1` immutable publication/runtime-consumer convergence and
    `V1-S2` normalized truth, capability, CAS, backup/restore, and fault receipts.
 3. Complete shared-wire manifests and positive online BulletGit authority, then
    consume the reviewed tagged `jeryu-gitd` capability.
 4. Produce the `V1-S4` credential-free five-plane transaction receipt; replace,
    rather than rename, synthetic success.
-5. Embed Portal and implement durable cognitive routing/fusion plus all four
-   provider protocols and conformance receipts.
+5. Embed Portal; persist cognitive routing/fusion; close all four offline
+   provider gaps, then obtain separately admitted live conformance receipts.
 6. Publish signed schema-3 install subjects and a prebuilt installer, then build
    five packages with installer smoke, SBOM, checksums, signatures, provenance,
    containment, and Jankurai/security evidence.
