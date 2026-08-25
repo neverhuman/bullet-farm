@@ -44,18 +44,26 @@ fn tool_admission_rejects_missing_relative_noncanonical_and_mismatched_inputs() 
         .expect_err("non-executable Cargo path must fail closed");
     assert_eq!(error.code(), "SETUP_TOOL_NOT_EXECUTABLE");
 
-    let wrong = executable(
+    let ambient_marker = fixture.join("ambient-cargo-executed");
+    executable(
         &fixture,
-        "wrong-cargo",
-        "#!/bin/sh\nprintf 'npm 11.13.0\\n'\n",
+        "cargo",
+        &format!(
+            "#!/bin/sh\nprintf executed > '{}'\n",
+            ambient_marker.display()
+        ),
     );
-    let error = Toolchain::admit(Some(&wrong), Some(&node), Some(&npm_cli))
-        .expect_err("wrong Cargo identity must fail closed");
-    assert_eq!(
-        error.code(),
-        "SETUP_TOOL_IDENTITY_MISMATCH",
-        "unexpected tool-admission error: {error}"
-    );
+    let wrong = fs::canonicalize("/usr/bin/false").expect("canonical false executable");
+    for attempt in 0..64 {
+        let error = Toolchain::admit(Some(&wrong), Some(&node), Some(&npm_cli))
+            .expect_err("wrong Cargo identity must fail closed");
+        assert_eq!(
+            error.code(),
+            "SETUP_TOOL_IDENTITY_MISMATCH",
+            "wrong-identity attempt {attempt} returned: {error}"
+        );
+    }
+    assert!(!ambient_marker.exists(), "ambient Cargo executable ran");
 
     fs::remove_dir_all(fixture).expect("remove tool admission fixture");
 }
