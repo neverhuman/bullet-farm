@@ -65,10 +65,10 @@ The committed subjects observed immediately before this plan edit were:
 
 | Repository | Commit | Tree | Checkout truth |
 | --- | --- | --- | --- |
-| Hub | `0cc7eecffd4a6fe51c0288ea4d80e02729f79848` | `3ea5be1573db0ed301ce5c6099c39cc228214da7` | v1alpha2 live-admission validation, signed launch-grant wire, exact coordinator receipts, evolutionary design, sealed setup-tool subjects, and deterministic release-truth projection committed; this documentation edit is excluded |
-| Kernel | `0346fd531e231a88e5b1eb3a8257be04f235068b` | `5a3f17c48f119abfb5a9bf5fa4e41c78f10a9d8e` | Policy bundle synchronized after signed launch-grant/Linux egress components and admission-doc reconciliation; live provider dispatch remains policy-disabled |
+| Hub | `48cca4699fa8d23f763d69ead5c3eb19de7378ef` | `595d5080e334ad4a59e07e2314e2738e20161e81` | v1alpha2 live-admission validation, exact coordinator receipts, evolutionary design, sealed setup-tool subjects, deterministic release truth, and the operator live-conformance runbook are committed; this documentation edit is excluded |
+| Kernel | `b4735da7797b7565071aa14f2d6f8cc4c2c65fcc` | `2ae747639d65186cbcea86ad4b99eb4bd283a0cb` | Five atomic operational projections, policy-gated common provider orchestration, and an explicit nightly real-binary mode are committed. The current v1alpha1 policy path refuses before provider spawn; no live receipt exists |
 | BulletGit | `236f4efe2b8243b3c4dd5da13269e45119b061df` | `ac02f8d492d0767f3a3e490eff0e897e99fc08ba` | Policy bundle synchronized after durable cleanup outcome and local CI parity controls; production online authority and Jeryu remain blocked |
-| Portal | `8272844e44d89ea3b26aa5b3c4f25909a069e101` | `35de769e5b52127f9e26a9f2c3e7fa5067f758e2` | Policy bundle synchronized; exact bundle subject, command/SSE, and real-farmd UNKNOWN proof replayed; package embedding remains open |
+| Portal | `95108e37d64364a25426cb65d320650c6bcf8b4d` | `50ee4db5f3b9729545af9b3a20c3ae88648c2a00` | Five additional read-only farmd projections are generated and runtime-validated. Seven designed surfaces remain explicit UNKNOWN and package embedding remains open |
 
 There is no family transaction or release receipt: the current read-only
 `check release` inventory reports all 26 registered gates `BLOCKED` and names
@@ -90,6 +90,8 @@ the missing transaction, live, recovery, package, security, and signing evidence
 | Signed launch-grant admission | `COMPLETE` | Hub `a2d6b2ab003c`; Kernel `d38873392bfe`; wire 72/72 and Kernel 410/410 | PASETO v4.public exact-subject verifier, active-lease issuer, policy key lifecycle, and single-use nonce ledger. Policy generation 1 keeps live admission disabled; durable authority epoch/budget reservation and authenticated Runner transport remain open |
 | Operator-ratifiable live policy schema | `COMPLETE` | Hub `bf5c64245d21`; cross-family consumers `0346fd5`, `236f4ef`, `8272844`; wire 83/83 | v1alpha2 may represent live admission only at generation >=2 with an active provider-runner PASETO key while every conservative invariant remains fixed. ADR 0012 is proposed, Kernel loader still accepts v1alpha1 only, and no committed policy enables live dispatch |
 | Linux provider egress isolation | `COMPLETE` | Kernel `d38873392bfe`; live lane 3/3 | User/network namespace, nft default-drop, allow-listing CONNECT proxy, counter-bound receipt, and process-tree teardown block direct internet, host Jeryu, decoy, DNS, and disallowed CONNECT. This is containment-component evidence, not provider conformance |
+| Policy-gated provider conformance path | `COMPLETE` | Kernel `ba485d5b5f5`, nightly real-mode wrapper `b4735da7797`; required 439/439 with 3 intentional live skips, egress 3/3, four-provider nightly refusal | One common path orders policy, key, lease, admission, signed grant, exact executable re-observation, nonce, egress, one read-only turn, canary scan, and sealed receipt. Current v1alpha1 policy produces neutral refusal with zero spawn. Only Claude has a deep positive fake-process proof; Codex, Cursor, and Antigravity lack equivalent deep fake/live receipts, and no provider has a live receipt |
+| Atomic operational projections | `COMPLETE` | Kernel `529bad1f8a77`; Portal `95108e37d643`; Kernel required 439/439 with 3 intentional live skips; Portal 100/100 unit, 10/10 mocked browser, 2/2 real farmd | Fleet, Session Supervisor, Merge Rail, Quality Lab, and Audit are atomic watermark-bound farmd projections with generated/AJV-validated Portal consumers. Seven designed surfaces still report explicit UNKNOWN because their ledger subjects do not exist; this is component evidence only |
 | Authenticated command ingress | `COMPLETE` | Kernel `19d1d47cb03956eb92dfa3f27e409c87d1ab5203`; required 307/307 | Loopback bootstrap/session/origin/CSRF and atomic PENDING command/outbox/event |
 | Operation-specific local authority | `COMPLETE` | Kernel `e697f8aa457ed6289e82cf51428f5e9de809436d`; required 311/311 | Exact typed mutation/terminal/preservation decisions; signed request capabilities, daemon receipt validation, and online cleanup settlement remain open |
 | Authenticated offline command reconciliation | `COMPLETE` | Kernel `77a0ecd0079d030e944ebf3a7b9077b7d64aabcc`; required 317/317 | Exact-ID worker settles one command/outbox/event to honest UNKNOWN/FAILED; no dispatch, APPLIED, VERIFIED, provider, verifier, or effect path |
@@ -319,7 +321,9 @@ and cleanup-before-preservation never become PASS or cause a duplicate effect.
 
 Status: `LOCAL-BLOCKED`. Atomic snapshots, strict Portal validation, exact-pair
 SSE recovery, authenticated commands, and real farmd `PENDING→UNKNOWN` are
-components. There is no APPLIED/VERIFIED dispatch or embedded/package-served Portal.
+components. Eight of the fifteen designed Portal surfaces now have durable
+farmd projections; the other seven remain explicit UNKNOWN. There is no
+APPLIED/VERIFIED dispatch or embedded/package-served Portal.
 
 Required work:
 
@@ -332,8 +336,10 @@ Required work:
 3. Preserve generated client/AJV validation. Correlate each displayed
    receipt to its command ID; timeout is `UNKNOWN`, and an old green receipt
    cannot satisfy a new failed command.
-4. Implement Mission Graph, Attempts/Sessions, Router/Quota, Context/Fusion,
-   Workspace/Candidate, Verification/Effects, and Audit views as projections.
+4. Preserve the five new atomic Fleet, Session Supervisor, Merge Rail, Quality
+   Lab, and Audit projections. Implement durable ledger subjects and projections
+   for the seven remaining surfaces: Cognitive Router, Fusion Lab, Context
+   Lineage, Quota/Capacity, Struggle, Behavior, and Workspace Hygiene.
 5. Embed the built Portal in the Rust distribution and run Playwright against a
    real packaged farmd. Vite/mock lanes remain focused component tests only.
 
@@ -349,9 +355,11 @@ green result, and farmd restart. None may render false green.
 ## V1-S6 — cognitive plane and four provider adapters
 
 Status: `LOCAL-BLOCKED`. Fail-closed offline Claude, Codex, Cursor, and
-Antigravity message subsets plus strict recursive JSON are committed. Provider
-execution remains blocked without signed authority/isolation, native
-conformance, egress, supervision, and live receipts.
+Antigravity message subsets plus strict recursive JSON and one common
+policy-to-receipt orchestration path are committed. The production v1alpha1
+policy refuses before key read, ledger mutation, namespace creation, or spawn.
+Real identity/profile admission, operator-ratified v1alpha2 policy, native
+protocol conformance, and live receipts remain absent.
 
 Required work:
 
@@ -388,8 +396,9 @@ and cannot be rewritten into the selected Candidate.
 
 Status: `LOCAL-BLOCKED`. Coordination/checks/fusion, strict schema-3 verification,
 descriptor-relative setup, signed bundle verification, and safe extraction exist.
-Schema 2 refuses; no deterministic Portal bundle, embedded farmd, package builder,
-activation/rollback installer, authenticated prebuilt installer, signer, or release exists.
+Schema 2 refuses; a deterministic Portal bundle subject exists, but there is no
+embedded farmd, package builder, activation/rollback installer, authenticated
+prebuilt installer, signer, or release.
 
 Required command surface:
 
@@ -407,7 +416,7 @@ Installer closure, in dependency order:
 
 1. Decide and implement public signed Jeryu objects or a short-lived,
    destination-bound credential channel that never enters URL/argv/env/logs.
-2. Define an exact Portal bundle manifest/root, stage it into an opt-in Kernel
+2. Preserve the exact Portal bundle manifest/root, stage it into an opt-in Kernel
    build through `OUT_DIR`, then publish signed `bullet-family` and embedded
    `bullet-farmd`; never use a sibling include or tracked `dist` as authority.
 3. Verify hub tag, non-circular manifest, schema-3 lock, authenticated member
