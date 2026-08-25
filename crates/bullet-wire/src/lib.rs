@@ -49,6 +49,7 @@ pub use outcome::*;
 pub use policy::*;
 pub use proposal::*;
 pub use release::{
+    RELEASE_BUNDLE_MANIFEST_V2_DIGEST_DOMAIN, RELEASE_BUNDLE_MANIFEST_V2_NATIVE_SUBJECT_PREFIX,
     RELEASE_GATE_RECEIPT_DIGEST_DOMAIN, RELEASE_GATE_RECEIPT_SIGNATURE_DOMAIN,
     RELEASE_GATE_SPEC_DIGEST_DOMAIN, RELEASE_PROFILE_GRAPH_DIGEST_DOMAIN,
     RELEASE_REGISTRY_MANIFEST_DIGEST_DOMAIN, RELEASE_REGISTRY_MANIFEST_SIGNATURE_DOMAIN,
@@ -56,7 +57,8 @@ pub use release::{
     RELEASE_SIGNER_POLICY_SIGNATURE_DOMAIN, RELEASE_SOURCE_SUBJECT_DIGEST_DOMAIN,
     RELEASE_TRUSTED_TIME_DIGEST_DOMAIN, RELEASE_TRUSTED_TIME_SIGNATURE_DOMAIN,
     RELEASE_VERIFICATION_REQUEST_DIGEST_DOMAIN, ReleaseWireRecord, decode_release_record,
-    validate_release_bindings,
+    release_bundle_manifest_v2_digest, validate_release_bindings,
+    validate_release_bundle_manifest_v2_binding,
 };
 
 /// Normative generated wire records. Security-sensitive consumers must decode this namespace.

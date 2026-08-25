@@ -1,12 +1,16 @@
 use std::{fs, path::PathBuf};
 
 use bullet_wire::{
+    RELEASE_BUNDLE_MANIFEST_V2_DIGEST_DOMAIN, RELEASE_BUNDLE_MANIFEST_V2_NATIVE_SUBJECT_PREFIX,
     RELEASE_GATE_RECEIPT_SIGNATURE_DOMAIN, RELEASE_REGISTRY_MANIFEST_SIGNATURE_DOMAIN,
     RELEASE_SIGNER_POLICY_SIGNATURE_DOMAIN, RELEASE_SOURCE_SUBJECT_DIGEST_DOMAIN,
     RELEASE_TRUSTED_TIME_SIGNATURE_DOMAIN, ReleaseWireRecord, canonical_json,
-    decode_release_record,
-    v1alpha1::{GateReceiptV1, ReleaseEvidenceKindV1, ReleaseProfileGraphV1},
-    validate_release_bindings,
+    decode_release_record, release_bundle_manifest_v2_digest,
+    v1alpha1::{
+        GateReceiptV1, ReleaseEvidenceKindV1, ReleaseEvidenceSubjectV1, ReleaseProfileGraphV1,
+        ReleaseRegistryObjectKindV1, ReleaseRegistryObjectV1,
+    },
+    validate_release_bindings, validate_release_bundle_manifest_v2_binding,
 };
 use serde_json::{Value, json};
 
@@ -73,6 +77,109 @@ fn release_registry_records_are_closed_exact_and_hostile() {
     assert_eq!(
         RELEASE_SOURCE_SUBJECT_DIGEST_DOMAIN,
         "release.source-subject.v1alpha1"
+    );
+    assert_eq!(
+        RELEASE_BUNDLE_MANIFEST_V2_DIGEST_DOMAIN,
+        "release.bundle-manifest-v2.v1alpha1"
+    );
+    assert_eq!(
+        RELEASE_BUNDLE_MANIFEST_V2_NATIVE_SUBJECT_PREFIX,
+        "artifact:release-manifest-v2_"
+    );
+
+    let manifest_bytes = b"release_manifest_schema_version = \"2\"\n";
+    let manifest_digest = release_bundle_manifest_v2_digest(manifest_bytes).unwrap();
+    let manifest_hex = manifest_digest.strip_prefix("blake3:").unwrap();
+    let manifest_subject = ReleaseEvidenceSubjectV1 {
+        schema_version: "v1alpha1".to_owned(),
+        subject_kind: ReleaseEvidenceKindV1::Artifact,
+        subject_id: typed_id("cnt", '9'),
+        native_subject_id: format!(
+            "{RELEASE_BUNDLE_MANIFEST_V2_NATIVE_SUBJECT_PREFIX}{manifest_hex}"
+        ),
+        subject_digest: manifest_digest.clone(),
+    };
+    let manifest_object = ReleaseRegistryObjectV1 {
+        schema_version: "v1alpha1".to_owned(),
+        object_id: typed_id("rob", '9'),
+        object_kind: ReleaseRegistryObjectKindV1::ReleaseBundleManifestV2,
+        object_digest: manifest_digest,
+        object_path: "evidence/release-manifest.toml".to_owned(),
+    };
+    validate_release_bundle_manifest_v2_binding(
+        std::slice::from_ref(&manifest_subject),
+        std::slice::from_ref(&manifest_object),
+        manifest_bytes,
+    )
+    .unwrap();
+    for (subjects, objects, bytes) in [
+        (
+            Vec::new(),
+            vec![manifest_object.clone()],
+            manifest_bytes.as_slice(),
+        ),
+        (
+            vec![manifest_subject.clone(), manifest_subject.clone()],
+            vec![manifest_object.clone()],
+            manifest_bytes.as_slice(),
+        ),
+        (
+            vec![manifest_subject.clone()],
+            Vec::new(),
+            manifest_bytes.as_slice(),
+        ),
+        (
+            vec![manifest_subject.clone()],
+            vec![manifest_object.clone(), manifest_object.clone()],
+            manifest_bytes.as_slice(),
+        ),
+        (
+            vec![manifest_subject.clone()],
+            vec![manifest_object.clone()],
+            b"release_manifest_schema_version = \"1\"\n".as_slice(),
+        ),
+    ] {
+        assert_eq!(
+            validate_release_bundle_manifest_v2_binding(&subjects, &objects, bytes)
+                .unwrap_err()
+                .code(),
+            "INVALID_RELEASE_WIRE_RECORD"
+        );
+    }
+    let mut wrong_native = manifest_subject.clone();
+    wrong_native.native_subject_id = format!(
+        "{RELEASE_BUNDLE_MANIFEST_V2_NATIVE_SUBJECT_PREFIX}{}",
+        hex('0', 64)
+    );
+    let mut wrong_subject_digest = manifest_subject.clone();
+    wrong_subject_digest.subject_digest = digest('0');
+    let mut wrong_object_digest = manifest_object.clone();
+    wrong_object_digest.object_digest = digest('0');
+    let mut wrong_object_kind = manifest_object.clone();
+    wrong_object_kind.object_kind = ReleaseRegistryObjectKindV1::GateSpec;
+    for (subject, object) in [
+        (wrong_native, manifest_object.clone()),
+        (wrong_subject_digest, manifest_object.clone()),
+        (manifest_subject.clone(), wrong_object_digest),
+        (manifest_subject.clone(), wrong_object_kind),
+    ] {
+        assert_eq!(
+            validate_release_bundle_manifest_v2_binding(&[subject], &[object], manifest_bytes)
+                .unwrap_err()
+                .code(),
+            "INVALID_RELEASE_WIRE_RECORD"
+        );
+    }
+    assert_eq!(
+        release_bundle_manifest_v2_digest(&[]).unwrap_err().code(),
+        "INVALID_RELEASE_WIRE_RECORD"
+    );
+    let oversized_manifest = vec![0_u8; 1024 * 1024 + 1];
+    assert_eq!(
+        release_bundle_manifest_v2_digest(&oversized_manifest)
+            .unwrap_err()
+            .code(),
+        "INVALID_RELEASE_WIRE_RECORD"
     );
 
     let value = serde_json::to_value(&receipt).unwrap();
@@ -201,6 +308,7 @@ fn release_registry_records_are_closed_exact_and_hostile() {
 
     let generated_rust =
         fs::read_to_string(root().join("contracts/generated/rust/schema_bundle.rs")).unwrap();
+    assert!(generated_rust.contains("ReleaseBundleManifestV2"));
     let rust_gate = generated_rust
         .split("pub struct GateReceiptV1")
         .nth(1)
@@ -224,6 +332,7 @@ fn release_registry_records_are_closed_exact_and_hostile() {
 
     let generated_ts =
         fs::read_to_string(root().join("contracts/generated/typescript/schemaBundle.ts")).unwrap();
+    assert!(generated_ts.contains("\"release-bundle-manifest-v2\""));
     let ts_gate = generated_ts
         .split("export interface GateReceiptV1")
         .nth(1)
@@ -272,6 +381,7 @@ fn release_registry_records_are_closed_exact_and_hostile() {
             "gate-receipt-signature",
             "gate-spec",
             "profile-graph",
+            "release-bundle-manifest-v2",
             "signer-policy",
             "trusted-time-observation",
             "trusted-time-signature",

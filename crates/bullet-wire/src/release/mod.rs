@@ -5,10 +5,13 @@
 //! a release gate.
 
 mod bindings;
+mod evidence;
 mod fields;
 mod profile;
 mod validate;
 
+pub const RELEASE_BUNDLE_MANIFEST_V2_DIGEST_DOMAIN: &str = "release.bundle-manifest-v2.v1alpha1";
+pub const RELEASE_BUNDLE_MANIFEST_V2_NATIVE_SUBJECT_PREFIX: &str = "artifact:release-manifest-v2_";
 pub const RELEASE_GATE_RECEIPT_DIGEST_DOMAIN: &str = "release.gate-receipt.v1alpha1";
 pub const RELEASE_GATE_RECEIPT_SIGNATURE_DOMAIN: &str = "release.gate-receipt-signature.v1alpha1";
 pub const RELEASE_GATE_SPEC_DIGEST_DOMAIN: &str = "release.gate-spec.v1alpha1";
@@ -26,4 +29,7 @@ pub const RELEASE_VERIFICATION_REQUEST_DIGEST_DOMAIN: &str =
     "release.verification-request.v1alpha1";
 
 pub use bindings::validate_release_bindings;
+pub use evidence::{
+    release_bundle_manifest_v2_digest, validate_release_bundle_manifest_v2_binding,
+};
 pub use validate::{ReleaseWireRecord, decode_release_record};

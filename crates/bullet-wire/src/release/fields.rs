@@ -340,6 +340,7 @@ pub(super) const fn registry_object_kind(value: ReleaseRegistryObjectKindV1) -> 
         ReleaseRegistryObjectKindV1::GateReceiptSignature => "gate-receipt-signature",
         ReleaseRegistryObjectKindV1::GateSpec => "gate-spec",
         ReleaseRegistryObjectKindV1::ProfileGraph => "profile-graph",
+        ReleaseRegistryObjectKindV1::ReleaseBundleManifestV2 => "release-bundle-manifest-v2",
         ReleaseRegistryObjectKindV1::SignerPolicy => "signer-policy",
         ReleaseRegistryObjectKindV1::TrustedTimeObservation => "trusted-time-observation",
         ReleaseRegistryObjectKindV1::TrustedTimeSignature => "trusted-time-signature",

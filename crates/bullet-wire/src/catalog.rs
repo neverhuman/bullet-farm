@@ -395,8 +395,8 @@ fn field_schema(field: &ContractFieldV1) -> Value {
             "type": "string",
             "enum": [
                 "gate-receipt", "gate-receipt-signature", "gate-spec", "profile-graph",
-                "signer-policy", "trusted-time-observation", "trusted-time-signature",
-                "verification-request"
+                "release-bundle-manifest-v2", "signer-policy", "trusted-time-observation",
+                "trusted-time-signature", "verification-request"
             ]
         }),
         FieldTypeV1::ReleaseSignerRole => json!({

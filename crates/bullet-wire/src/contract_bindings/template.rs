@@ -144,6 +144,7 @@ pub enum ReleaseRegistryObjectKindV1 {
     GateReceiptSignature,
     GateSpec,
     ProfileGraph,
+    ReleaseBundleManifestV2,
     SignerPolicy,
     TrustedTimeObservation,
     TrustedTimeSignature,
