@@ -1,4 +1,4 @@
-use std::{fs, path::PathBuf};
+use std::{fs, path::PathBuf, process::Command};
 
 use bullet_family::family_lock::{
     FamilyLock, LOCK_SCHEMA_VERSION, LockedFile, LockedMember, load, parse,
@@ -149,6 +149,55 @@ fn generation_fails_before_write_without_authenticated_sources() {
     assert_eq!(error.code(), "SOURCE_METADATA_UNAVAILABLE");
     assert!(!root.join("bullet-farm/family.lock").exists());
     fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn public_cli_admits_only_generate_and_verify() {
+    let root = fixture_root("cli-vocabulary");
+    let hub = root.join("bullet-farm");
+    fs::create_dir(&hub).unwrap();
+    fs::write(
+        root.join("repos.manifest.toml"),
+        "family = \"bullet-farm\"\nrequired_repos = [\"bullet-farm\"]\n",
+    )
+    .unwrap();
+    let lock = hub.join("family.lock");
+    fs::write(&lock, "schema_version = \"2\"\n").unwrap();
+
+    let usage = lock_cli(&root, &[]);
+    assert_eq!(usage.status.code(), Some(2));
+    let usage_error = String::from_utf8(usage.stderr).unwrap();
+    assert!(usage_error.contains("lock <generate|verify>"));
+    assert!(!usage_error.contains("lock <generate|check>"));
+
+    let legacy = lock_cli(&root, &["lock", "check", "--tag", "v1.0.0"]);
+    assert_eq!(legacy.status.code(), Some(2));
+    let legacy_error = String::from_utf8(legacy.stderr).unwrap();
+    assert!(legacy_error.contains("USAGE"));
+    assert!(legacy_error.contains("lock <generate|verify>"));
+    assert!(!legacy_error.contains("generate|check"));
+
+    let verify = lock_cli(&root, &["lock", "verify", "--tag", "v1.0.0"]);
+    assert_eq!(verify.status.code(), Some(4));
+    assert!(
+        String::from_utf8(verify.stderr)
+            .unwrap()
+            .contains("UNSUPPORTED_SCHEMA")
+    );
+    assert_eq!(
+        fs::read_to_string(&lock).unwrap(),
+        "schema_version = \"2\"\n"
+    );
+    fs::remove_dir_all(root).unwrap();
+}
+
+fn lock_cli(root: &std::path::Path, args: &[&str]) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_bullet-family"))
+        .arg("--root")
+        .arg(root)
+        .args(args)
+        .output()
+        .expect("run bullet-family lock command")
 }
 
 fn fixture_root(name: &str) -> PathBuf {

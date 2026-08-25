@@ -52,7 +52,7 @@ pub fn run(root: &Path, args: &[String]) -> Result<String, CoordError> {
             atomic_write(&path, &bytes)?;
             Ok(format!("generated {} for {tag}", path.display()))
         }
-        "check" | "verify" => {
+        "verify" => {
             let current = fs::read(&path).map_err(CoordError::io)?;
             let lock = parse(&current)?;
             if lock.tag != tag {
@@ -108,7 +108,7 @@ fn resolve_family_root(root: &Path) -> Result<PathBuf, CoordError> {
 fn parse_args(args: &[String]) -> Result<(String, String), CoordError> {
     if args
         .first()
-        .is_none_or(|action| !matches!(action.as_str(), "generate" | "check" | "verify"))
+        .is_none_or(|action| !matches!(action.as_str(), "generate" | "verify"))
     {
         return Err(CoordError::new("USAGE", lock_usage()));
     }
@@ -121,7 +121,7 @@ fn parse_args(args: &[String]) -> Result<(String, String), CoordError> {
 }
 
 fn lock_usage() -> &'static str {
-    "usage: bullet-family [--root PATH] lock <generate|check|verify> --tag <version>"
+    "usage: bullet-family [--root PATH] lock <generate|verify> --tag <version>"
 }
 
 fn render(root: &Path, tag: &str, hub_revision: &str) -> Result<Vec<u8>, CoordError> {
