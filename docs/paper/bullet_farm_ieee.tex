@@ -19,7 +19,7 @@
 
 \begin{document}
 
-\title{Bullet Farm: A Transaction Processor for Verified Multi-Agent Software Engineering}
+\title{Bullet Farm: Architecture and Pre-Release Inventory of a Software-Change Transaction Processor}
 
 \author{Bullet~Farm~Maintainers%
 \thanks{Placeholder authorship for this preprint. Named authors will be supplied before an arXiv upload. Affiliation: the Bullet Farm split family (public hub, kernel, BulletGit, and operations portal). This document is not a release receipt, installer, or benchmark result.}%
@@ -30,7 +30,7 @@
 \maketitle
 
 \begin{abstract}
-Coding agents are proliferating as chat loops, plugin kernels, and meta-wrappers around existing CLIs. The scarce resource is not another persona or sandbox flag. It is a correct concurrent \emph{software-change transaction}: who may mutate an exact repository subject, which incarnation owns that write, what evidence names that subject, and whether an ambiguous remote effect may be retried. Bullet Farm is a local-first transaction processor for software changes and model cognition. Models may propose typed patches. They cannot grant write, verification, or merge authority. This preprint inventories the architecture and the exact component receipts that exist on 2026-08-25, and it compares that contract with Gas Town~/~Gas City, DeepSeek Harness, Databricks Omnigent, and the broader coding-agent landscape. Many Kernel, BulletGit, and Portal machines now have commit-bound component proofs. The connected five-plane product and every family release gate remain blocked. The paper claims a stronger systems contract, not measured superiority.
+Coding agents are proliferating as chat loops, plugin kernels, and meta-wrappers around existing CLIs. The scarce resource is not another persona or sandbox flag. It is a correct concurrent \emph{software-change transaction}: who may mutate an exact repository subject, which incarnation owns that write, what evidence names that subject, and whether an ambiguous remote effect may be retried. Bullet Farm is a local-first transaction processor for software changes and model cognition. Models may propose typed patches. They cannot grant write, verification, or merge authority. This preprint inventories the architecture and the exact component receipts that exist on 2026-08-25, states a threat model and an explicit non-claim list, and compares that contract with Gas Town~/~Gas City, DeepSeek Harness, Databricks Omnigent, and the broader coding-agent landscape. Many Kernel, BulletGit, and Portal machines now have commit-bound component proofs, including signed launch grants and live-tested Linux egress isolation. The connected five-plane product and every family release gate remain blocked. The paper claims a stronger systems contract, not measured superiority.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -46,13 +46,13 @@ That rule fails under concurrency. Public Gas Town and Gas City issues show the 
 
 DeepSeek Harness and Omnigent improve different layers. DeepSeek treats every capability---model, tools, sandbox, session, and UI---as a Cordis plugin and makes the append-only session log the source of model-visible context~\cite{dshArch,dshSite}. Omnigent sits \emph{above} Claude Code, Codex, Cursor, and other CLIs, adding OS sandboxes, an L7 credential proxy, contextual policies, and live collaboration~\cite{omnigentReadme,omnigentBlog,omnigentPolicies}. Both are real advances. Neither binds write authority to an incarnation-fenced Attempt, evidence to an exact Candidate, or remote integration to a reconciled effect receipt. A plugin swap or a wrapped harness can still let the model run \texttt{git}.
 
-Bullet Farm inverts the authority model~\cite{bulletOverview,adr0001}. The law is compact:
+Bullet Farm inverts the authority model~\cite{bulletOverview,adr0001}. The designed law is compact:
 
 \begin{quote}
 Many agents may reason. Multiple isolated Variants may compete. Exactly one incarnation-fenced Attempt may write within each Variant. Every consequential external mutation is brokered. Every proof names its exact subject. The repository remains sovereign.
 \end{quote}
 
-The contribution of this preprint is threefold. First, it states that law as a five-plane transaction, not as a prompt convention (Section~\ref{sec:arch}). Second, it shows why Git itself is the deepest missing substrate and how BulletGit answers a closed list of Git failure classes (Sections~\ref{sec:failures} and~\ref{sec:bulletgit}). Third, it reports \emph{exactly} what is implemented as of the 2026-08-25 closure reconciliation---component receipts versus blocked product gates---so a reader cannot confuse a green crate test with a release (Section~\ref{sec:inventory}). Tables~\ref{tab:authority} and~\ref{tab:git} compare authority and Git bindings. Table~\ref{tab:resolve} maps each failure class to a rule and to an honest implementation status.
+The contribution of this preprint is fivefold. First, it states that law as a five-plane transaction, not as a prompt convention (Section~\ref{sec:arch}). Second, it shows why Git itself is the deepest missing substrate and how BulletGit answers a closed list of Git failure classes (Sections~\ref{sec:failures} and~\ref{sec:bulletgit}). Third, it reports \emph{exactly} what is implemented as of the later 2026-08-25 closure reconciliation---component receipts versus blocked product gates---so a reader cannot confuse a green crate test with a release (Section~\ref{sec:inventory}). Fourth, it states a threat model, the Centerrail C1--C12 disposition, a non-claim list, and a red-team self-review so a hostile reader has the attacks we already accept (Sections~\ref{sec:threat},~\ref{sec:c12}, and~\ref{sec:nonclaims}, Appendix~\ref{app:redteam}). Fifth, it enumerates every remaining V1 product gap so an operator cannot treat missing prose as missing definition (Appendix~\ref{app:gaps}). Tables~\ref{tab:authority} and~\ref{tab:git} compare authority and Git bindings. Table~\ref{tab:resolve} maps each failure class to a rule and to an honest implementation status.
 
 This paper does not claim that Bullet Farm is faster, cheaper, or more autonomous than any named system. No public comparison is valid until the same receipt-bearing corpus runs on pinned upstream commits~\cite{bulletSnapshot}. The previous separately produced IEEE draft recorded that Bullet Farm had not been implemented~\cite{potentialDraft}. That sentence is now false for many components and still true for the connected product.
 
@@ -71,7 +71,7 @@ Aider, Cline, Continue, Goose, and Roo Code wrap an editor or terminal around on
 
 \subsection{Research SWE Loops}
 
-OpenHands, SWE-agent, Agentless, and AutoCodeRover optimize for SWE-bench-style issue resolution~\cite{openhands,yang2024sweagent,agentless,autocoderover}. Their contribution is the agent--computer interface and the evaluation harness. Completion is a resolved issue or a passing hidden test, not a protected integration onto a sovereign default branch under an independent attestor.
+OpenHands, SWE-agent, Agentless, and AutoCodeRover optimize for SWE-bench-style issue resolution~\cite{jimenez2024swebench,openhands,yang2024sweagent,agentless,autocoderover}. Their contribution is the agent--computer interface and the evaluation harness. Completion is a resolved issue or a passing hidden test, not a protected integration onto a sovereign default branch under an independent attestor.
 
 \subsection{Hosted Change Agents}
 
@@ -104,7 +104,7 @@ The issue corpus and the Git documentation converge on a small set of missing \e
 System & Who writes the repo & Isolation & Completion signal & Evidence subject & Integration authority & Liveness oracle \\
 \midrule
 Bullet Farm (designed) & \texttt{bullet-gitd} only & Private clone, no worktree & Candidate + independent Evidence + forge receipt + observation & $\{\mathrm{base},\mathrm{head},\mathrm{tree},\mathrm{patch},\mathrm{env}\}$ & Jeryu/GitHub required checks; attestor $\ne$ broker & Lease/fence; ALIVE/DEAD/UNKNOWN/CONTRADICTORY \\
-Bullet Farm (implemented) & Production write refused & Dissociate clone code exists; not reachable online & \texttt{PENDING}$\rightarrow$\texttt{UNKNOWN}/\texttt{FAILED} only & One fixture E2 gate; no live subject & Local bare-forge component; Jeryu quarantined & DB-clock leases; no signed final check \\
+Bullet Farm (implemented) & Production write refused & Dissociate clone code exists; not reachable online & \texttt{PENDING}$\rightarrow$\texttt{UNKNOWN}/\texttt{FAILED} only & One fixture E2 gate; no live subject & Local bare-forge component; Jeryu quarantined & DB-clock leases; no signed BulletGit online final-authority mint \\
 Gas Town v1.2.1 & Agent in hook worktree & Git worktree sharing \texttt{.git} & \texttt{gt done}, convoy, Refinery merge & Gates exist; not exact-OID bound & Refinery / local merge queue & tmux session \\
 Gas City v1.4.1 & Agent; implicit pool uses rig root~\cite{gascity1181} & Pack-optional worktree & Formula/run/session closure & Session and bead state & Configurable; still orchestrator-owned & Session + controller \\
 DeepSeek Harness rc.2 & Model via fs/shell plugins & Sandbox plugin backend & Turn/session log & Session events (model-visible) & n/a (not a forge OS) & Agent loop \\
@@ -181,7 +181,7 @@ A Mission is a durable objective plus constraints. A Graph Revision is an immuta
 \label{fig:planes}
 \end{figure}
 
-ADR~0003 separates control, execution/repository write, independent verification, effect/attestation/integration, and observation/audit~\cite{adr0003}. Compromise of the portal, a provider, or a broker must not manufacture independent evidence. One-host V1 uses distinct OS identities; distributed mode later uses distinct workload identities. The evolutionary control document defines roles as capability envelopes---Planner, Implementer, Critic, Verifier, Effect broker---not as personas that carry credentials~\cite{bulletEvo}. Online learning, larger councils, and distributed execution are Phase~9--10 and are out of V1~\cite{bulletEvo}.
+ADR~0003 separates control, execution/repository write, independent verification, effect/attestation/integration, and observation/audit~\cite{adr0003}. Compromise of the portal, a provider, or a broker must not manufacture independent evidence once those principals exist as distinct identities. ADR~0003 \emph{requires} distinct OS identities on one host and SPIFFE-compatible identities later; that separation is not a current receipt. Production processes still share a UID, and same-UID path-based Git races remain an open setup boundary~\cite{bulletRelease}. The evolutionary control document defines roles as capability envelopes---Planner, Implementer, Critic, Verifier, Effect broker---not as personas that carry credentials~\cite{bulletEvo}. Online learning, larger councils, and distributed execution are Phase~9--10 and are out of V1~\cite{bulletEvo}.
 
 \subsection{Three Sovereign Truths}
 
@@ -237,6 +237,53 @@ Writer output cannot satisfy an independent tier~\cite{adr0001,bulletEvo}. The d
 
 The implemented verifier produces typed E2-shaped results for one fixture gate over exact base/head/tree subjects~\cite{bulletClosure}. Multi-gate aggregation, executable-digest admission, and E3 holdout custody remain open. That is the correct partial result: the identity rule exists before the gauntlet is populated.
 
+\section{Threat Model}
+\label{sec:threat}
+
+We assume a single-user, loopback V1 host~\cite{bulletClosure}. The adversary is not a nation-state on the wire. The adversary is (i)~a frontier model that will try to run shell, Git, and forge tools; (ii)~a second concurrent Attempt that shares a name, path, or session identity; (iii)~a crashed or partitioned runner that retries after an ambiguous timeout; (iv)~hostile repository content (hooks, filters, \texttt{build.rs}, proc-macros, \texttt{.gitattributes}); (v)~a compromised or confused portal that wants to paint \texttt{UNKNOWN} green; and (vi)~an operator who would rather flip an environment variable than mint a lease-bound grant.
+
+Out of scope for V1, and therefore not silently promised: multi-tenant SaaS, remote untrusted runners, cross-repository sagas, online routing learners, and a formal proof that physical side effects are exactly-once. Those absences are named so a red team cannot treat them as implied.
+
+Trusted computing base for an admitted write is the Kernel ledger transaction, the signed launch-grant verifier, the egress-isolation receipt, \texttt{bullet-gitd}'s fail-closed checker, and the forge's required checks. The model, the Portal, MCP servers, vendor sandboxes, and tmux are untrusted. A valid launch grant binds the durable active lease, the evaluated provider admission (absolute path and digest), the policy snapshot, and a $\le 15$\,s single-use nonce; it never authorizes lease acquisition, Attempt advance, repository mutation, or effects~\cite{adr0011}. Today's committed policy still refuses live admission, so a fully valid grant ends in \texttt{POLICY\_LIVE\_ADMISSION\_DISABLED} without spending the nonce~\cite{adr0012}. A same-UID pathname swap between lock verification and Cargo/Node/npm exec is an accepted residual of source-tree setup until a signed prebuilt installer exists (G1). It is not a silent implication that hub-only install is safe.
+
+We also treat as in-scope, and currently unmitigated at HEAD: same-UID swap of a path-based Git or installer subject~\cite{bulletRelease}; prompt-shaped instruction files the provider will read before any \texttt{PatchProposal} exists~\cite{greshake2023injection}; a compromised Kernel ledger or \texttt{bullet-gitd} process (either is total loss on a single-user host); and a quarantined backup restore replayed as production authority~\cite{bulletRelease}. Distinct OS identities, signed internal lease transport, and a Kernel loader that understands v1alpha2 are designed counters, not receipts. The two TLA+ models are locked state-enumeration artifacts (\texttt{TypeOK} plus local invariants; deadlock checking is off). They are not a third product gate and they are not a deadlock-freedom proof~\cite{lamport2002tla,potentialDraft}.
+
+\section{Red-Team Disposition (C1--C12)}
+\label{sec:c12}
+
+The family \texttt{TEAM.md} document is a hostile review of the Centerrail specification~\cite{centerrailRedteam}. It is historical provenance, not runtime authority. Living control is the evolutionary document, the release contract, and the product-gap register~\cite{bulletEvo,bulletRelease,bulletGaps}. We adopt the twelve critiques that simplify or harden with no regression, and we keep the four rejected cuts rejected: the verifier plane stays; SQLite remains the V1 ledger; the five planes stay; the forge remains merge-sovereign.
+
+Table~\ref{tab:c12} is the product status of those twelve hardenings. ``Adopted'' means the rule is the current design. ``Component'' means a named commit and mapped tests exist. ``Designed'' means the rule is specified and not a live path. A designed row is not a silent implication that the tree enforces it.
+
+\begin{table*}[!t]
+\caption{Centerrail C1--C12 disposition against HEAD. Adopted is design law. Component is a receipt. Designed is specified and not shipped.}
+\label{tab:c12}
+\centering
+{\scriptsize
+\begin{tabular}{@{}p{0.07\textwidth}p{0.38\textwidth}p{0.48\textwidth}@{}}
+\toprule
+ID & Adopted meaning & Product status \\
+\midrule
+C1 & Every invariant is T1 schema / T2 gateway / T3 test & Registry exists; most later-wave rows remain planned \\
+C2 & Oracle-modifying diffs; holdouts required for R2+ & Designed; implemented verifier is one fixture E2 \\
+C3 & Two-track scope expansion~\cite{adr0004} & Accepted ADR; not a live Attempt path \\
+C4 & Attestor $\ne$ broker; reconstructible check & Designed; live forge blocked \\
+C5 & \texttt{CONTRADICTORY} has fence-mediated exits & Designed \\
+C6 & Bounded probe reservation; \texttt{unknown} $\ne$ headroom & Designed \\
+C6b & One seat-equivalent per named human & Designed; not enforced in the kernel \\
+C7 & Formal-model exactly two Phase-0 protocols & Adopted and component-complete \\
+C8 & GA $=$ kernel $+$ any two certified providers & Adopted as schedule; live still operator-gated \\
+C9 & Identity-exact adoption (fence $+$ desired OID) & Command idempotency component; graph mint not live \\
+C10 & Verifier dwell back-pressures writers & Designed \\
+C11 & Freeze chip: recorded vs enforced-on-$N/M$ & Portal honesty component; countdown designed \\
+C12 & Saga quarantines blast radius, not the fleet & Out of V1 \\
+\bottomrule
+\end{tabular}
+}
+\end{table*}
+
+C7 is the one place the original build plan over-reached and the tree already followed the fix: exactly two TLA+ models, not seven, before Phase~A code~\cite{lamport2002tla}. C8 is why four adapters are a goal and not a GA hostage. C2 and C9 remain the load-bearing unshipped hardenings: without an oracle the author cannot weaken, and without identity-exact adoption, a timeout-after-commit still launders a stale write. Those two are why a connected \texttt{TRANSACTION\_PROOF} is the next product, not a larger council~\cite{bulletGaps}.
+
 \section{BulletGit: The Missing Substrate}
 \label{sec:bulletgit}
 
@@ -258,7 +305,7 @@ The child environment is cleared of inherited \texttt{GIT\_*} variables and rebu
 
 \subsection{Scope, Identity, Preservation}
 
-\texttt{apply\_change} validates every path against a \texttt{ScopeGrant} before writing: Unicode NFC, no \texttt{..}, no \texttt{.git} component, no alternate data streams, no symlink traversal. Duplicate and case-folded collisions refuse the whole batch. \texttt{CandidateId} is content-derived from change, tree, and head, so two trees under one Change cannot share an identifier. \texttt{patch\_hash} is BLAKE3 of \texttt{git diff base..head}. Cleanup accepts only an opaque preservation receipt that re-verifies the sealed generation immediately before deleting exactly those bytes~\cite{gitArch}.
+\texttt{apply\_change} is specified to validate every path against a \texttt{ScopeGrant} before writing: Unicode NFC, no \texttt{..}, no \texttt{.git} component, no alternate data streams, no symlink traversal. Duplicate and case-folded collisions must refuse the whole batch. Wire-shaped \texttt{CandidateId} bytes exist; a provenance-complete Candidate identity (distinct \texttt{ContentId}, complete proof manifests) is still open at the inventory HEADs~\cite{bulletClosure,gitArch}. \texttt{patch\_hash} is specified as BLAKE3 of \texttt{git diff base..head}. Local cleanup accepts only an opaque preservation receipt that re-verifies the sealed generation immediately before deleting exactly those bytes; online settlement is not a live path~\cite{gitArch}.
 
 \subsection{Honest Production Boundary}
 
@@ -267,7 +314,7 @@ The public daemon constructor installs an unavailable final-authority checker. I
 \section{Exact Inventory: What Works Today}
 \label{sec:inventory}
 
-Table~\ref{tab:inventory} is a receipt table, not a feature list. Subjects are those recorded by the V1 closure plan immediately before this paper's source was authored~\cite{bulletClosure}. Family HEADs at that reconciliation were hub \texttt{4b93a04}, kernel \texttt{365bb5d}, BulletGit \texttt{f551736}, and portal \texttt{181cd00}. A newer commit invalidates a row until the mapped gate is replayed.
+Table~\ref{tab:inventory} is a receipt table, not a feature list. Subjects are those recorded by the later 2026-08-25 closure reconciliation~\cite{bulletClosure,bulletRelease,bulletGaps}. Family HEADs at that reconciliation were hub \texttt{bf5c64245d218050eb8f4c3228ea15654540a94e}, kernel \texttt{0346fd531e231a88e5b1eb3a8257be04f235068b}, BulletGit \texttt{236f4efe2b8243b3c4dd5da13269e45119b061df}, and portal \texttt{8272844e44d89ea3b26aa5b3c4f25909a069e101}. Those commits include the operator-ratifiable v1alpha2 validator and the synchronized schema-bundle consumers. The portal bundle root at that subject is \texttt{blake3:556d91f8504299230bc75e027108d1d943fd9ff99303cea7c2a155ee69edd973}. A later commit invalidates a row until the mapped gate is replayed. This paper does not silently track moving tips. Earlier preprint drafts named hub \texttt{74507b30dd40} / kernel \texttt{ba70d8ba7bef} / BulletGit \texttt{5dac98e12c1a} / portal \texttt{d607068901a7}; those are superseded as inventory subjects.
 
 \begin{table}[!t]
 \caption{Selected component receipts versus product gates (2026-08-25). \texttt{COMPLETE} means a named commit and mapped tests exist. It does not mean a release.}
@@ -284,13 +331,15 @@ Atomic lease/command/event/outbox & COMPLETE & Public dispatch of providers/effe
 Four offline provider parsers (Claude, Codex, Cursor, Antigravity) & COMPLETE & Public spawn refused; no live conformance \\
 Admitted fixture gate + bounded verifier transport & COMPLETE & One fixture gate; no JSON-RPC production path \\
 Fail-closed \texttt{bullet-gitd} + dissociate clone + hostile-git + preservation & COMPLETE & Production \texttt{clone} refused \\
-Portal CSRF/202 + \texttt{PENDING}$\rightarrow$\texttt{UNKNOWN} + SSE STALE & COMPLETE & Not packaged/embedded; 11 surfaces stay explicit UNKNOWN \\
+Portal CSRF/202 + \texttt{PENDING}$\rightarrow$\texttt{UNKNOWN} + SSE STALE & COMPLETE & Not packaged/embedded; 11 of 15 catalog surfaces stay explicit UNKNOWN \\
 Setup refuses schema-2 hub-only install & COMPLETE & No signed schema-3 lock or prebuilt installer \\
-Two TLA+ models (lease/fence; effect ambiguity) & COMPLETE & No third formal model is a V1 gate~\cite{lamport2002tla} \\
+Two TLA+ models (lease/fence; effect ambiguity) & model lock & \texttt{TypeOK} plus local invariants; deadlock checking is off~\cite{lamport2002tla} \\
+Signed launch grant + Linux egress isolation & COMPLETE & Live dispatch policy-disabled; no HTTP mint~\cite{adr0011} \\
+Policy v1alpha2 validator (hub) & COMPLETE & ADR~0012 Proposed; Kernel loader still v1alpha1-only; no committed policy enables live admission~\cite{adr0012} \\
 \midrule
 Five-plane \texttt{TRANSACTION\_PROOF} & BLOCKED & No signed cross-plane crash receipt at HEAD \\
-Live provider / Jeryu / GitHub effects & BLOCKED & Admission and forge credentials operator-gated \\
-Hub Jankurai $\ge 90$, zero hard findings & BLOCKED & Score 58; 25 hard findings \\
+Live provider / Jeryu / GitHub effects & BLOCKED & Operator ratification and forge credentials \\
+Hub Jankurai $\ge 90$, zero hard findings & BLOCKED & Score 58; 26 hard findings \\
 Family \texttt{check release} & BLOCKED & $26/26$ gates; static negative inventory \\
 Evolutionary recipe archive & designed & Gated on a working transaction; not started \\
 \bottomrule
@@ -298,13 +347,15 @@ Evolutionary recipe archive & designed & Gated on a working transaction; not sta
 }
 \end{table}
 
-Kernel architecture is equally explicit about what the bins are not~\cite{kernelArch}. \texttt{bullet-farmd} records \texttt{PENDING} and an internal reconciler can settle known demo work only to \texttt{UNKNOWN} or unsupported kinds to \texttt{FAILED}. It cannot emit \texttt{APPLIED} or \texttt{VERIFIED}. Provider admission compares an absolute executable to a BLAKE3 digest, builds a unique mode-0700 \texttt{HOME}, copies only digest-checked OAuth files as mode~0400, and strips host \texttt{PATH}, SCM, cloud, SSH, and API secrets. Dispatch remains blocked without signed authority and audited egress: every current receipt contains those two blockers. The four provider crates are pure transcript machines. Feature-gated ``live'' tests pass by refusing spawn.
+Kernel architecture is equally explicit about what the bins are not~\cite{kernelArch}. \texttt{bullet-farmd} records \texttt{PENDING} and an internal reconciler can settle known demo work only to \texttt{UNKNOWN} or unsupported kinds to \texttt{FAILED}. It cannot emit \texttt{APPLIED} or \texttt{VERIFIED}. Provider admission compares an absolute executable to a BLAKE3 digest, builds a unique mode-0700 \texttt{HOME}, copies only digest-checked OAuth files as mode~0400, and strips host \texttt{PATH}, SCM, cloud, SSH, and API secrets. Signed launch grants and live-tested Linux user+net namespace egress now exist as components~\cite{adr0011}. Dispatch remains policy-disabled. A fully valid launch grant under the committed generation-1 \texttt{v1alpha1} snapshot ends in \texttt{POLICY\_LIVE\_ADMISSION\_DISABLED} without spending the nonce~\cite{adr0011,adr0012}. Hub commit \texttt{bf5c642} accepts a \texttt{v1alpha2} snapshot on paper only when \texttt{policy\_generation}$\ge 2$ and an unrevoked \texttt{provider-runner} PASETO key is registered; the Kernel policy loader still accepts \texttt{v1alpha1} only, so a v1alpha2 file is not an admission path~\cite{adr0012,bulletRelease}. The four provider crates remain transcript machines until that operator ratification and a loader mirror exist. Feature-gated tests that pass by refusing spawn are quarantine evidence, not conformance. Unauthenticated farmd lease HTTP is not an admission path and must not be remounted to mint a grant~\cite{adr0011}.
+
+A launch grant is a one-second-to-fifteen-second capability, not a session cookie. In the designed and now component-implemented shape it is a PASETO v4.public token whose claims bind the durable active lease (Mission, repository, graph revision, work package, Variant, Attempt, fence, runner epoch, workspace nonce), the evaluated admission (absolute executable path and BLAKE3 digest, profile, protocol), the policy snapshot digest, and a single-use nonce~\cite{adr0011}. Audience is \texttt{provider-runner}; operation is \texttt{launch-provider}. Minting is in-process from an operator-held mode-0600 key. There is no HTTP mint route. Clearing \texttt{SIGNED\_ADMISSION\_UNAVAILABLE} does not clear \texttt{EGRESS\_ISOLATION\_UNAVAILABLE}; those are independent blockers. Clearing both still does not dispatch under the committed generation-1 policy~\cite{adr0012}. That stack is the opposite of \texttt{BULLET\_LIVE\_PROVIDERS=1}: an environment variable is not admission and was rejected~\cite{adr0011}.
 
 An archived live demo receipt from 2026-08-24 14:04Z exists in the family evidence bundle. HEAD policy keeps \texttt{live\_admission\_enabled=false}. That archive does not certify the current tree and does not clear a release gate~\cite{bulletRelease}.
 
 Exactly two protocols are model-checked in TLA+ and pinned by a model lock: lease/fence/reclaim, and command/effect ambiguity under timeout~\cite{lamport2002tla,bulletClosure}. A third formal model is not a V1 gate. The implemented models must continue to encode fence monotonicity; a skeleton that omits the conflict path does not earn a deadlock-freedom claim~\cite{potentialDraft}.
 
-The internal engineering scorecard that accompanies the closure program called the paper architecture high and the weighted ``done and actually working'' product about $26/100$. We report that number only as an operator-facing honesty check. The citable facts are the receipt rows and the blocked gates.
+The citable facts are the receipt rows and the blocked gates, not an internal weighted score.
 
 \section{Comparison}
 \label{sec:compare}
@@ -331,7 +382,7 @@ Typical harness & user's checkout & rare / foot-gun if used & inherited Git conf
 }
 \end{table*}
 
-The comparison is deliberately unfair to Bullet Farm on maturity and fair to everyone on bindings. Gas Town is a shipped orchestrator with years of operational texture. DeepSeek is a composable agent product. Omnigent is a collaboration and governance layer that can wrap the others tomorrow. Bullet Farm is pre-release. What the others do not have---and what makes the architecture categorically different---is the set of bindings in the first row of each table. A system can add a Mayor, a plugin, or a policy function and still retry an \texttt{UNKNOWN} push into a shared worktree.
+The comparison is deliberately unfair to Bullet Farm on maturity and fair to everyone on bindings. Gas Town is a shipped orchestrator with substantial operational texture. DeepSeek is a composable agent product. Omnigent is a collaboration and governance layer that can wrap the others tomorrow. Bullet Farm is pre-release. What the others do not have---and what makes the architecture categorically different---is the set of bindings in the first row of each table. A system can add a Mayor, a plugin, or a policy function and still retry an \texttt{UNKNOWN} push into a shared worktree.
 
 \subsection{What We Must Not Lose From Each System}
 
@@ -392,7 +443,7 @@ Two adjudicated hardenings from the historical red-team remain designed, not shi
 
 A fair comparison uses one repository/task corpus, one tool budget, one wall-clock limit, the same provider profiles, the same retry cap, and the same integration policy~\cite{bulletSnapshot}. Report distributions, not a single success rate. Minimum metrics: in-window Candidate survival and protected-integration rate; escaped-defect and revert rate; false-completion and zero-test rate; duplicate or ambiguous effect rate; crash-recovery time and lost-work bytes; spend, elapsed time, and human interventions; verifier backlog p50/p95.
 
-No benchmark begins while synthetic proof substitutes for the five-plane transaction. No public comparison is published without raw task subjects, configuration, receipts, exclusions, and the exact upstream commits in Section~\ref{sec:compare}.
+No benchmark begins while synthetic proof substitutes for the five-plane transaction. No public comparison is published without raw task subjects, configuration, receipts, exclusions, and the exact upstream commits in Section~\ref{sec:compare}. The first legal corpus is therefore: one Mission that materializes exactly once under kill-9 at every plane; one Variant that takes a never-reused fence; one private clone with no surviving \texttt{alternates}; one independent E2 reconstruction the author cannot weaken; one brokered effect whose timeout stays \texttt{UNKNOWN} until identity-exact read-back; and one portal snapshot that refuses to paint that \texttt{UNKNOWN} green~\cite{bulletClosure,bulletGaps}. Until that saga has a signed receipt, Tables~\ref{tab:authority} and~\ref{tab:git} are architectural comparisons, not performance results.
 
 The design is rejected---not ``improved in a later version''---if any of the following is observed on an admitted build:
 
@@ -407,17 +458,49 @@ The design is rejected---not ``improved in a later version''---if any of the fol
 
 Those conditions are executable. They are the opposite of a scoreboard.
 
+\section{What This Paper Does Not Claim}
+\label{sec:nonclaims}
+
+A red team that needs a list of forbidden promotions can stop here.
+
+\begin{itemize}
+\item We do not claim measured superiority on latency, cost, autonomy, or defect escape against Gas Town, Gas City, DeepSeek Harness, Omnigent, or any single-agent harness.
+\item We do not claim a connected five-plane \texttt{TRANSACTION\_PROOF} at HEAD, a hub-only installer, or a signed five-target release~\cite{bulletGaps}.
+\item We do not claim live Claude, Codex, Cursor, or Antigravity conformance. Offline parsers and refused spawn are not live receipts.
+\item We do not claim that the archived 2026-08-24 live demo certifies the current tree.
+\item We do not claim exactly-once physical side effects. Ambiguous remote writes stay \texttt{UNKNOWN} until identity-exact adoption.
+\item We do not claim that evolutionary search, PostgreSQL, or remote runners exist beyond design documents and refused scaffolds.
+\item We do not claim Jankurai, SBOM, or supply-chain release quality.
+\item We do not claim that a green \texttt{just fast} or a green crate test is product readiness.
+\item We do not claim that finishing this preprint, or writing the product-gap register, closed G1--G15.
+\end{itemize}
+
+If a sentence in marketing copy contradicts this list, the list wins.
+
+\subsection*{Artifact and reproducibility statement}
+
+The source of this preprint is the hub path \texttt{docs/paper/} in the public Bullet Farm family. It is compiled with IEEEtran and the companion \texttt{refs.bib}. It is not a family release subject. Competing systems are pinned in Appendix~\ref{app:pins} and in the dated competitor snapshot~\cite{bulletSnapshot}. A reader who wants to reproduce the \emph{inventory} must replay \texttt{bullet-family check release --json} and the mapped component tests on the named commits, not trust this PDF. A reader who wants to reproduce a \emph{benchmark} cannot: none is claimed.
+
+\section{Related Work}
+\label{sec:related}
+
+Transaction processing is the ancestor~\cite{gray1981tp,gray1993tp}: identity, isolation, and recovery under crash. Sagas name why a long-running remote effect cannot be a local commit~\cite{garcia1987sagas}. Confused-deputy and capability discipline are why a portal, MCP server, or vendor sandbox must not inherit forge credentials~\cite{hardy1988deputy}. This paper applies those ancestors to model-authored software changes.
+
+On the coding-agent side, SWE-bench is the dominant issue-resolution benchmark~\cite{jimenez2024swebench}; SWE-agent, Agentless, OpenHands, and AutoCodeRover optimize an agent--computer interface or a no-agent scaffold for that benchmark~\cite{yang2024sweagent,agentless,wang2024openhands,autocoderover}. Multi-agent role graphs (ChatDev, MetaGPT, AutoGen) assign personas, not incarnation-fenced write authority~\cite{qian2024chatdev,hong2024metagpt,wu2023autogen}. Prompt injection through retrieved or repository-resident instructions is a documented confused-deputy class~\cite{greshake2023injection}. None of those systems bind Evidence to an exact Candidate OID.
+
+Jujutsu shows why a stable Change identity matters and why a Git trailer is not enough~\cite{jjvcs}. Bors-style merge queues show why landing must be serialized and bisected~\cite{bors}. in-toto and SLSA are the supply-chain vocabulary for the release artifacts Gas City already ships and Bullet Farm does not~\cite{intoto,slsa}. Linux isolation neighbors are bubblewrap, Landlock, and credential-proxying meta-harnesses~\cite{omnigentPolicies}. ACP and MCP are transport and tool seams~\cite{acpSpec,mcpSpec}. Gas Town, DeepSeek Harness, and Omnigent are the nearest \emph{product} neighbors and are treated as such in Sections~\ref{sec:taxonomy} and~\ref{sec:compare}, not as straw men.
+
 \section{Limitations}
 \label{sec:limits}
 
-Bullet Farm is pre-release~\cite{bulletRelease}. There is no connected \texttt{TRANSACTION\_PROOF} at HEAD. Live provider, Jeryu, and GitHub gates are operator-blocked. Hub-only installation is refused because the checked-in lock is schema~2. Security quality is below the V1 bar (Jankurai 58, 25 hard findings). Evolutionary multi-agent search is a normative document, not a running optimizer~\cite{bulletEvo}. PostgreSQL, remote runners, and cross-repository sagas are scaffolds or absences. This preprint's authors are placeholders. Comparison cells for DeepSeek and Omnigent Git internals that are not stated in their public architecture are marked unknown rather than inferred from plugin names.
+Bullet Farm is pre-release~\cite{bulletRelease,bulletGaps}. There is no connected \texttt{TRANSACTION\_PROOF} at HEAD. Live provider, Jeryu, and GitHub gates are operator-blocked. Hub-only installation is refused because the checked-in lock is schema~2. Security quality is below the V1 bar (Jankurai 58, 26 hard findings). Eleven of fifteen Portal surfaces stay explicit \texttt{UNKNOWN}. Evolutionary multi-agent search is a normative document, not a running optimizer~\cite{bulletEvo}. C2, C3, C4, C5, C6, C6b, C9--C12 are designed or out of V1; only C7 is a complete formal-methods receipt. PostgreSQL, remote runners, and cross-repository sagas are scaffolds or absences. This preprint's authors are placeholders. Comparison cells for DeepSeek and Omnigent Git internals that are not stated in their public architecture are marked unknown rather than inferred from plugin names. The inventory HEADs in Section~\ref{sec:inventory} are a dated snapshot; the working tree that compiled this PDF may be newer.
 
 \section{Conclusion}
 \label{sec:concl}
 
 The coding-agent industry is composing loops. Bullet Farm is a transaction processor for the thing those loops actually mutate: repositories and forges, under crash, timeout, and adversarial concurrency. Gas Town showed that roles, convoys, and a merge queue are valuable and that tmux, worktrees, and inferred completion are a ceiling. DeepSeek Harness showed that a session log and a plugin kernel make a single agent inspectable and recomposable. Omnigent showed that OS isolation, credential proxying, and cross-harness policy can be layered on top of the agents people already run. Bullet Farm keeps those product lessons and changes the substrate: private clones, incarnation fences, exact Candidates, independent Evidence, brokered effects, and a portal that would rather show \texttt{UNKNOWN} than a false empty success.
 
-That is why the architecture is powerful, and why it is different. The components that exist today already enforce pieces of that contract and refuse the rest. The connected product is not done until the receipt table says so.
+That is why the architecture is different. The components that exist today already enforce pieces of that contract and refuse the rest. The connected product is not done until the receipt table says so.
 
 \appendices
 \section{Observation Pins}
@@ -426,14 +509,75 @@ That is why the architecture is powerful, and why it is different. The component
 All moving-repository observations in this paper are dated 2026-08-25~UTC.
 
 \begin{itemize}
-\item Gas Town: release \texttt{v1.2.1}, peeled commit \texttt{319d33a91b2deca59bba6dd26be6b9daf8eaacf6}.
+\item Gas Town: release \texttt{v1.2.1}, peeled commit \texttt{319d33a91b2deca59bba6dd26be6b9daf8eaacf6}, observed 2026-08-25.
 \item Gas City: release \texttt{v1.4.1}, peeled commit \texttt{58ef17e3bd685fd5cf7f21286277b208d3324590}; development \texttt{main} \texttt{2cd07e018bf3680d24b037b509e6a4bad5e623ba}.
 \item DeepSeek Harness: tag \texttt{dsh-v0.1.1-rc.2}, commit \texttt{b150a551b8d465e31e418e1b2eaf5e79bbb7d28e}.
 \item Omnigent: release \texttt{v0.10.0}, commit \texttt{40755dd8dddb07e1eb6e4055d1d9936e184ceb9b}; development \texttt{main} \texttt{00bbed5d92d628f975053e82dbfd1ecd542d9b20}.
-\item Bullet Farm family HEADs used for the inventory: hub \texttt{4b93a04a4fde}, kernel \texttt{365bb5d32ac3}, BulletGit \texttt{f55173622613}, portal \texttt{181cd00cc6f9} (full 40-hex forms appear in the closure plan~\cite{bulletClosure}).
+\item Bullet Farm family HEADs used for the inventory: hub \texttt{bf5c64245d218050eb8f4c3228ea15654540a94e}, kernel \texttt{0346fd531e231a88e5b1eb3a8257be04f235068b}, BulletGit \texttt{236f4efe2b8243b3c4dd5da13269e45119b061df}, portal \texttt{8272844e44d89ea3b26aa5b3c4f25909a069e101}~\cite{bulletClosure}.
 \end{itemize}
 
 A later comparison must record a new tag or commit and date. Silently tracking \texttt{main} is forbidden~\cite{bulletSnapshot}.
+
+\section{Red-Team Self-Review}
+\label{app:redteam}
+
+A hostile reviewer will run the following attacks. We accept each one and state the residual.
+
+\begin{itemize}
+\item \emph{``You compared yourselves to a cartoon of Gas Town.''} Residual accepted if we had omitted Refinery, Seance, Wasteland, or Gas City 1.4.1 artifacts. Those are credited in Section~\ref{sec:taxonomy}. The remaining claim is about bindings, not about missing roles.
+\item \emph{``DeepSeek's session log \emph{is} evidence.''} Residual accepted as a cognitive-plane truth. Rejected as repository truth. A reconstructable transcript is E0/E1 input, not E2.
+\item \emph{``Omnigent's sandbox plus credential proxy is stricter than your V1.''} Residual accepted for OS isolation maturity: Omnigent ships wrappers today. Rejected as write-authority: the wrapped harness still runs Git. Our Linux egress component is live-tested and policy-gated~\cite{adr0011}.
+\item \emph{``Your implemented row is empty, so the architecture is vapor.''} Residual accepted for the connected product. Rejected for named component receipts. Table~\ref{tab:inventory} is the contract with the reader.
+\item \emph{``\#5511 is fixed upstream, so the autopsy is stale.''} Residual accepted as a moving-issue risk. The class---timeout after server-side commit plus auto-retry---remains a missing binding wherever effect identity is not exact. We pin the issue URL and date rather than claiming it is still reproducible on \texttt{main}.
+\item \emph{``Two TLA+ models prove the system.''} Residual accepted: they prove two protocols, and only if the model includes the conflict path~\cite{potentialDraft}. They do not prove the product.
+\item \emph{``An internal score is a result.''} Residual rejected. This revision deletes the unpublished $26/100$ figure. The citable objects are receipt rows and blocked gates.
+\item \emph{``You will enable live admission in a doc.''} Residual rejected. ADR~0012 is Proposed; committed policy stays generation~1 and live-false~\cite{adr0012,bulletGaps}.
+\item \emph{``A worktree with \texttt{git worktree add} and a unique branch is isolation.''} Residual rejected. Shared \texttt{.git}, shared hooks, and a \texttt{.git} file remain~\cite{gitdocs,gitArch}.
+\item \emph{``C1--C12 were silently dropped.''} Residual rejected. Section~\ref{sec:c12} and Table~\ref{tab:c12} are the disposition. Designed is not enforced.
+\item \emph{``Closing the white paper closed the product.''} Residual rejected. Appendix~\ref{app:gaps} is a visibility close. G1--G15 remain implementation, ratification, and receipt work~\cite{bulletGaps}.
+\item \emph{``The eleven UNKNOWN portal surfaces are unfinished UI.''} Residual rejected as a honesty bug. They are the correct projection of a missing farmd route. Painting them empty-success would be the defect.
+\item \emph{``v1alpha2 on HEAD means live is on.''} Residual rejected. The committed policy stays v1alpha1, generation~1, \texttt{live\_admission\_enabled=false}. The v1alpha2 artifact is a fixture and a validator. The Kernel snapshot loader still accepts v1alpha1 only~\cite{adr0012}.
+\item \emph{``Your inventory HEADs are yesterday's tips.''} Residual accepted for any later commit. This revision pins the later 2026-08-25 closure subjects named in Appendix~\ref{app:pins}. Earlier preprint drafts named hub \texttt{74507b3} / kernel \texttt{ba70d8b} / BulletGit \texttt{5dac98e} / portal \texttt{d607068}; those are superseded as inventory subjects.
+\item \emph{``Same-UID swap after verify is a hidden install hole.''} Residual accepted as G1. Schema-2 source setup cannot close it. A signed prebuilt installer is the closer~\cite{bulletGaps}.
+\end{itemize}
+
+\section{Remaining Product Gaps}
+\label{app:gaps}
+
+Table~\ref{tab:gaps} is the operator-facing remainder. The executable form is \texttt{bullet-family check release --json} (26 static negative gates). The prose form is the hub product-gap register, which maps every \texttt{release.*} id onto G1--G15~\cite{bulletGaps}. This appendix exists so a red team cannot say the paper hid an open gate behind architecture.
+
+\begin{table*}[!t]
+\caption{Remaining V1 product gaps (2026-08-25). None of these is closed by this compile.}
+\label{tab:gaps}
+\centering
+{\scriptsize
+\begin{tabular}{@{}p{0.06\textwidth}p{0.22\textwidth}p{0.34\textwidth}p{0.30\textwidth}@{}}
+\toprule
+ID & Gap & Why it is still open & What already exists \\
+\midrule
+G1 & Hub-only signed install & Schema-2 lock refused on purpose & Descriptor-relative setup fixture \\
+G2 & Five-plane transaction & No signed \texttt{TRANSACTION\_PROOF} & Atomic lease/command; fixture E2 \\
+G3 & Production Kernel writes & No signed lease transport / JSON-RPC dispatch & DB-clock leases; launch grant \\
+G4 & Production BulletGit writes & Public \texttt{clone} fail-closed & Dissociate, hostile-git, preservation \\
+G5 & Live provider conformance & Committed policy live-false & Four offline parsers; egress probes \\
+G6 & Jeryu live effect & No authenticated read-back & Local bare-forge component \\
+G7 & GitHub live effect & No App-test-repo receipt & Specified adapter \\
+G8 & Security release floor & Jankurai 58; 26 hard findings & Fail-closed local scan \\
+G9 & Signed five-target release & No builder / SBOM / protected signer & Verify+extract of a signed archive \\
+G10 & Non-Linux containment & Mutation refused off Linux & Linux isolation reference \\
+G11 & Evolutionary runtime & Recipes are design-only & Normative evolutionary document \\
+G12 & Family \texttt{check release} & $26/26$ gates \texttt{BLOCKED} & Negative inventory \\
+G13 & Portal product surfaces & 11 of 15 surfaces explicit UNKNOWN & Four projected surfaces; CSRF/202 \\
+G14 & farmd production API & Snapshot/SSE subset, not $\sim$80 routes & Authenticated command ingress \\
+G15 & Cognitive persistence & Tasks/roles are IDs or design & Wire shapes; offline parsers \\
+\bottomrule
+\end{tabular}
+}
+\end{table*}
+
+Operator-only closers, which no agent may flip: ratify ADR~0012 with a real runner key; restore scoped Jeryu authentication on an unmodified forge; publish schema-3 lock inputs; configure a GitHub App test repository. Documentation that waits on typed commands---upgrade/rollback, signer rotation, freeze-enforced cards---is deferred on purpose. Inventing those runbooks now would invent a CLI.
+
+V1 is done when every closure-plan slice \texttt{V1-S0}..\,\texttt{V1-S8} has a current independently verifiable receipt from the same signed subjects~\cite{bulletClosure}. ``Agents ran'' is not that receipt.
 
 \bibliographystyle{IEEEtran}
 \bibliography{refs}

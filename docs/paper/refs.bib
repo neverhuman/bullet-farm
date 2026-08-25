@@ -35,7 +35,7 @@
 
 @misc{bulletSnapshot,
   author = {{Bullet Farm maintainers}},
-  title = {Gas {Town} and {Gas} {City} comparison snapshot},
+  title = {Competitor comparison snapshot ({Gas} {Town}, {Gas} {City}, {DeepSeek} {Harness}, {Omnigent})},
   howpublished = {Hub document \texttt{docs/assurance/competitor-snapshot.md}},
   year = {2026},
   note = {Observed 2026-08-25 UTC; research input, not a benchmark}
@@ -47,6 +47,14 @@
   howpublished = {Architecture decision record},
   year = {2026},
   note = {Accepted; live execution remains quarantined}
+}
+
+@misc{adr0004,
+  author = {{Bullet Farm maintainers}},
+  title = {{0004} --- Scope amendment tracks},
+  howpublished = {Architecture decision record},
+  year = {2026},
+  note = {Accepted; Track A/B not a live Attempt path}
 }
 
 @misc{adr0003,
@@ -61,6 +69,38 @@
   title = {{0007} --- Sandbox, secrets, and tainted tool data},
   howpublished = {Architecture decision record},
   year = {2026}
+}
+
+@misc{adr0011,
+  author = {{Bullet Farm maintainers}},
+  title = {{0011} --- Signed launch grants and provider egress isolation},
+  howpublished = {Architecture decision record},
+  year = {2026},
+  note = {Accepted; live admission remains policy-refused}
+}
+
+@misc{adr0012,
+  author = {{Bullet Farm maintainers}},
+  title = {{0012} --- Policy v1alpha2: operator-ratified live provider admission},
+  howpublished = {Architecture decision record},
+  year = {2026},
+  note = {Proposed; no committed policy enables live admission}
+}
+
+@misc{centerrailRedteam,
+  author = {{Bullet Farm maintainers}},
+  title = {Centerrail, red-teamed --- and the final model},
+  howpublished = {Family document \texttt{TEAM.md}},
+  year = {2026},
+  note = {Historical provenance; C1--C12 disposition. Not runtime authority}
+}
+
+@misc{bulletGaps,
+  author = {{Bullet Farm maintainers}},
+  title = {Product gap register},
+  howpublished = {Hub document \texttt{docs/assurance/product-gaps.md}},
+  year = {2026},
+  note = {Operator index; not runtime authority}
 }
 
 @misc{kernelArch,
@@ -88,7 +128,7 @@
 @misc{gitRole,
   author = {{Bullet Farm maintainers}},
   title = {Git role and three sovereign truths},
-  howpublished = {Historical design note \texttt{docs/git\_role.md}},
+  howpublished = {Historical design note \texttt{docs/spec/git\_role.md}},
   year = {2026},
   note = {Provenance only; not runtime authority}
 }
@@ -96,7 +136,7 @@
 @misc{gastownAudit,
   author = {{Bullet Farm maintainers}},
   title = {Gas {Town} open-issue risk audit},
-  howpublished = {Historical design note \texttt{docs/GASTOWN\_OPEN\_ISSUES\_RISK\_AUDIT\_FOR\_CENTERRAIL.md}},
+  howpublished = {Historical design note \texttt{docs/spec/GASTOWN\_OPEN\_ISSUES\_RISK\_AUDIT\_FOR\_CENTERRAIL.md}},
   year = {2026},
   note = {Snapshot 2026-08-24; 333 open issues reviewed}
 }
@@ -104,7 +144,7 @@
 @misc{potentialDraft,
   author = {{Bullet Farm maintainers}},
   title = {{BULLETFARM} --- The definitive multi-agent coding engine},
-  howpublished = {Historical adjudication \texttt{docs/POTENTIAL\_DRAFT.md}},
+  howpublished = {Family-root historical adjudication \texttt{/docs/POTENTIAL\_DRAFT.md}},
   year = {2026},
   note = {Design provenance; adjudicated hardenings A1--A7}
 }
@@ -122,7 +162,7 @@
   title = {Gas {Town} v1.2.1},
   howpublished = {GitHub release},
   year = {2026},
-  note = {\url{https://github.com/gastownhall/gastown/releases/tag/v1.2.1}}
+  note = {Peeled commit 319d33a91b2deca59bba6dd26be6b9daf8eaacf6; observed 2026-08-25; \url{https://github.com/gastownhall/gastown/releases/tag/v1.2.1}}
 }
 
 @misc{gascityV141,
@@ -434,4 +474,91 @@
   booktitle = {Proc. 7th Int. Conf. Very Large Data Bases},
   year = {1981},
   pages = {144--154}
+}
+
+@book{gray1993tp,
+  author = {Gray, Jim and Reuter, Andreas},
+  title = {Transaction Processing: Concepts and Techniques},
+  publisher = {Morgan Kaufmann},
+  year = {1993}
+}
+
+@article{garcia1987sagas,
+  author = {Garcia-Molina, Hector and Salem, Kenneth},
+  title = {Sagas},
+  journal = {ACM SIGMOD Record},
+  volume = {16},
+  number = {3},
+  pages = {249--259},
+  year = {1987}
+}
+
+@article{hardy1988deputy,
+  author = {Hardy, Norm},
+  title = {The Confused Deputy: (or why capabilities might have been invented)},
+  journal = {ACM SIGOPS Operating Systems Review},
+  volume = {22},
+  number = {4},
+  pages = {36--38},
+  year = {1988}
+}
+
+@inproceedings{jimenez2024swebench,
+  author = {Jimenez, Carlos E. and Yang, John and Wettig, Alexander and Yao, Shunyu and Pei, Kexin and Press, Ofir and Narasimhan, Karthik},
+  title = {{SWE}-bench: Can Language Models Resolve Real-World {GitHub} Issues?},
+  booktitle = {Proc. ICLR},
+  year = {2024}
+}
+
+@inproceedings{wang2024openhands,
+  author = {Wang, Xingyao and others},
+  title = {OpenHands: An Open Platform for {AI} Software Developers as Generalist Agents},
+  booktitle = {Proc. ICLR},
+  year = {2025},
+  note = {Complete author list and pages before arXiv upload}
+}
+
+@inproceedings{greshake2023injection,
+  author = {Greshake, Kai and Abdelnabi, Sahar and Mishra, Shailesh and Endres, Christoph and Holz, Thorsten and Fritz, Mario},
+  title = {Not What You've Signed Up For: Compromising Real-World {LLM}-Integrated Applications with Indirect Prompt Injection},
+  booktitle = {Proc. AISec Workshop at CCS},
+  year = {2023}
+}
+
+@misc{intoto,
+  author = {{in-toto contributors}},
+  title = {in-toto: A framework to secure the integrity of software supply chains},
+  howpublished = {\url{https://in-toto.io}},
+  year = {2019}
+}
+
+@misc{slsa,
+  author = {{SLSA contributors}},
+  title = {Supply-chain Levels for Software Artifacts ({SLSA})},
+  howpublished = {\url{https://slsa.dev}},
+  year = {2023}
+}
+
+@inproceedings{qian2024chatdev,
+  author = {Qian, Chen and others},
+  title = {ChatDev: Communicative Agents for Software Development},
+  booktitle = {Proc. ACL},
+  year = {2024},
+  note = {Complete author list and pages before arXiv upload}
+}
+
+@inproceedings{hong2024metagpt,
+  author = {Hong, Sirui and others},
+  title = {{MetaGPT}: Meta Programming for A Multi-Agent Collaborative Framework},
+  booktitle = {Proc. ICLR},
+  year = {2024},
+  note = {Complete author list and pages before arXiv upload}
+}
+
+@inproceedings{wu2023autogen,
+  author = {Wu, Qingyun and others},
+  title = {{AutoGen}: Enabling Next-Gen {LLM} Applications via Multi-Agent Conversation},
+  booktitle = {COLM},
+  year = {2024},
+  note = {Complete author list and pages before arXiv upload}
 }

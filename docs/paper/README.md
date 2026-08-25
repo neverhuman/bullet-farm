@@ -1,7 +1,7 @@
 # Bullet Farm IEEE / arXiv preprint
 
 Status: **preprint source; not release evidence**  
-Last reviewed: 2026-08-25
+Last reviewed: 2026-08-25 (R2: inventory pinned to later closure subjects `bf5c642` / `0346fd5` / `236f4ef` / `8272844`; C1–C12; G1–G15; compile is not a release)
 
 This directory holds the citable IEEEtran source for:
 
@@ -28,8 +28,9 @@ treat page count, reference count, or a clean compile as product completeness.
 ## Authority
 
 Write inventory rows only from
-[`../assurance/v1-closure-plan.md`](../assurance/v1-closure-plan.md) and
-[`../release.md`](../release.md). Pin competitor subjects from
+[`../assurance/v1-closure-plan.md`](../assurance/v1-closure-plan.md),
+[`../release.md`](../release.md), and the operator index
+[`../assurance/product-gaps.md`](../assurance/product-gaps.md). Pin competitor subjects from
 [`../assurance/competitor-snapshot.md`](../assurance/competitor-snapshot.md)
 and Appendix A of the paper. Historical Centerrail material under
 [`../spec/`](../spec/) is provenance, not runtime fact.

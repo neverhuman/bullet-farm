@@ -3,8 +3,8 @@
 Status: **pre-release; release authority remains blocked**  
 Last reviewed: 2026-08-25
 
-This index separates executable product authority from design provenance. A
-document can explain a decision, but it cannot make a command, receipt,
+This file is the hub documentation index. Do not add `docs/INDEX.md`.
+A document can explain a decision, but it cannot make a command, receipt,
 Candidate, Evidence result, effect, or release true.
 
 ## Current authority and status
@@ -15,9 +15,15 @@ Candidate, Evidence result, effect, or release true.
 | What is durably authorized or complete? | Kernel ledger state plus exact signed receipts; never a portal projection or prose claim |
 | Which repository subjects form a family release? | A verified signed `family.lock` and its signed tags |
 | Which gates are still blocked? | [`release.md`](release.md) |
+| What is still missing as a product? | [`assurance/product-gaps.md`](assurance/product-gaps.md) (G1–G15 index; `check release` wins) |
+| Which of the 26 `check release` gates is which product gap? | [`assurance/product-gaps.md`](assurance/product-gaps.md#the-26-check-release-gates) |
 | Which controls have executable enforcement? | [`assurance/invariant-registry.md`](assurance/invariant-registry.md) and its generated crosswalk |
 | Which architecture decisions are current? | [`decisions/`](decisions/) |
 | What runs in the current dependency order? | [`assurance/phase-1-dependency-map.md`](assurance/phase-1-dependency-map.md) and the repository test maps |
+| Which competitor subjects are pinned? | [`assurance/competitor-snapshot.md`](assurance/competitor-snapshot.md) |
+| How do agents coordinate? | [`runbooks/fleet.md`](runbooks/fleet.md) |
+| What is post-V1? | [`phase-9-10.md`](phase-9-10.md) |
+| What is the canonical byte pipeline? | [`assurance/canonicalization.md`](assurance/canonicalization.md) |
 
 The release index is deliberately fail-closed. `BLOCKED`, `UNKNOWN`, a missing
 tool, a skipped test, a zero-test run, or a simulator receipt does not become
@@ -43,8 +49,14 @@ green through documentation.
 - [`runbooks/backup-restore.md`](runbooks/backup-restore.md) covers receipt-bound
   SQLite snapshots and the mandatory restore quarantine.
 - [`assurance/`](assurance/) maps claims to code, schemas, and tests.
+  Start at [`assurance/product-gaps.md`](assurance/product-gaps.md) for the
+  remaining-gap index.
 - [`assurance/v1-closure-plan.md`](assurance/v1-closure-plan.md) is the
   dependency-ordered implementation and proof map for the remaining V1 work.
+- [`assurance/product-gaps.md`](assurance/product-gaps.md) is the remaining-gap
+  index (G1–G15, V1-S leftovers, C1–C12 product status). Documentation closed
+  the visibility gap; implementation remains. `bullet-family check release
+  --json` wins if they disagree.
 - [`decisions/`](decisions/) records reviewed design choices and their status.
 - [`spec/`](spec/) is historical Centerrail/Bullet Farm design provenance. It
   is useful context and never runtime or release authority.
