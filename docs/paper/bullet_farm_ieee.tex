@@ -494,12 +494,12 @@ only permitted local Jeryu family is
 The named \code{git.neverhuman.org} deployment and
 \code{github.com/neverhuman/jeryu} and
 \code{github.com/neverhuman/jankurai} front doors are unratified,
-operator-blocked proposals, not current topology or authority. If an operator
-later ratifies a public mirror, GitHub remains a separately configured effect
-adapter rather than source authority. Mirroring must then be one-way and
-receipt-bearing: observe the remote ref, require the expected-old OID, publish
-the exact Jeryu object, read it back, and quarantine divergence. Backups are
-proved separately because a mirror is not a backup.
+operator-blocked proposals, not current topology or authority. A later
+operator choice may treat GitHub as a public index or backup and host selected
+open-source families on independent Jeryu Git; neither name is source
+authority today. If a public mirror is ratified, it remains a separately
+configured effect adapter: expected-old-OID CAS, read-back, divergence
+quarantine, and independently proved backups. A mirror is not a backup.
 
 Jeryu's local hub provides branded onboarding, the family manifest, and pinned
 component mapping while component repositories remain independent. Jankurai is
@@ -534,9 +534,9 @@ that evidence-critical inputs did not change.
 Boundary & Maturity & Implemented evidence & Not established \\
 \midrule
 Wire and admission & \ComponentProved & Canonical signed DTOs, bounded IPC, executable-digest and launch-grant components & Immutable shared-wire publication and connected issuer/consumer settlement \\
-Control authority & \ComponentProved & DB-clock leases, fences, atomic command/outbox, authenticated loopback ingress, truthful reconciliation & One signed authority path across Kernel, Runner, and BulletGit \\
+Control authority & \ComponentProved & DB-clock leases, fences, atomic command/outbox, authenticated ingress, quarantined signed lease-transport, proposal-to-checkpoint binding & Durable Mutation reservation/settlement and one connected Kernel--Runner--BulletGit issuer path \\
 Provider boundary & \ComponentProved & Four offline message subsets, policy-first refusal, bounded process and Linux egress components & Any live provider receipt; policy remains live-disabled in the frozen evidence subject \\
-BulletGit & \ComponentProved & Fail-closed authority, private-clone/preservation primitives, reservations, cleanup \code{UNKNOWN}, strict local manifests & Positive online sole-writer transaction and production Jeryu authority \\
+BulletGit & \ComponentProved & Fail-closed production gateway, private-clone/preservation primitives, cleanup \code{UNKNOWN}, strict local manifests & Positive online sole-writer transaction; public \code{clone} remains \code{AUTHORITY_CONTRACT_UNAVAILABLE} \\
 Verifier & \ComponentProved & One admitted fixture gate, exact-subject Evidence, bounded transport failure handling & Production reconstruction source, executable digest for every gate, and multi-gate aggregation \\
 Effects & \ComponentProved & Command/effect ambiguity model and local bare-forge components & Authenticated Jeryu/GitHub expected-old-OID push and read-back receipts \\
 Portal/audit & \ComponentProved & Generated contracts, authenticated command reconciliation, watermark-bound projections, explicit absent-surface \code{UNKNOWN} & Packaged runtime and complete Candidate/Evidence/Effect ledger subjects \\
@@ -620,10 +620,12 @@ claim that the service always makes progress. Model success therefore remains
 \subsection{Open Connected Product Boundary}
 
 The authoritative closure plan, not this paper, controls V1~\cite{bulletClosure}.
-The remaining predecessor chain includes immutable wire publication, signed
-online authority, connected Candidate/Evidence settlement, authenticated
-protected integration, provider conformance, packages, installer, backup,
-signing, provenance, and live/release receipts. The new workplan is only an
+The remaining predecessor chain includes an immutable \code{bullet-wire} tag
+that current consumers may honestly resolve, a Kernel reservation that repeats
+lease checks inside one write, production BulletGit verification of that
+permit, connected Candidate/Evidence settlement, authenticated protected
+integration, provider conformance, packages, installer, backup, signing,
+provenance, and live/release receipts. The new workplan is only an
 opportunity backlog and explicitly loses to that authority~\cite{bulletWorkplan}.
 Most importantly, the absence of an end-to-end \code{TRANSACTION_PROOF} is not
 hidden behind component totals.

@@ -138,9 +138,9 @@ and release proof are absent. The release inventory is
 \toprule
 Boundary & Implemented now & Not yet proved \\
 \midrule
-Control authority & DB-clock lease/fence, atomic command/outbox, authenticated loopback ingress & Signed connected authority from Kernel through Runner and BulletGit \\
+Control authority & DB-clock lease/fence, atomic command/outbox, quarantined signed lease-transport & Connected reservation/settlement from Kernel through Runner and BulletGit \\
 Provider boundary & Offline protocol subsets, admission and egress components, policy-first refusal & Any live provider receipt; live policy remains disabled in the evidence subject \\
-Repository writer & Fail-closed BulletGit gateway, private-clone/preservation components, strict manifests & Positive online sole-writer transaction \\
+Repository writer & Fail-closed BulletGit gateway, private-clone/preservation components, strict manifests & Positive online sole-writer path; public clone still refuses as \texttt{AUTHORITY\_CONTRACT\_UNAVAILABLE} \\
 Candidate/Evidence & Exact-subject fixture gate and bounded verifier transport & Production reconstruction, executable identity for all gates, multi-gate aggregation \\
 Effects & Ambiguity model and local bare-forge components & Authenticated expected-old-OID push, read-back, adoption, and protected integration \\
 Audit/Portal & Generated DTOs, exact command reconciliation, watermark projections, explicit \texttt{UNKNOWN} & Packaged complete product and every designed ledger subject \\
@@ -197,8 +197,8 @@ manifest admits no authenticated Jeryu URL and assumes no public mirror.
 component repositories. Never recreate \texttt{/home/ubuntu/jeryu-split}.
 \item \texttt{git.neverhuman.org}, \texttt{github.com/neverhuman/jeryu}, and
 \texttt{github.com/neverhuman/jankurai} are unratified, operator-blocked future
-proposals---not current authority, authenticated endpoints, or public front
-doors.
+proposals. GitHub may later be chosen as a public index or backup, and
+independent Jeryu Git as a hosted front door; neither is authority today.
 \item Any later public mirror remains a separately configured effect adapter.
 It requires expected-old-OID CAS, read-back, divergence quarantine, and
 separately proved backups.

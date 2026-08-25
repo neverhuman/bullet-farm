@@ -57,6 +57,9 @@ are descriptive only: `BACKLOG`, `IN PROGRESS`, `EXTERNAL-BLOCKED`, or
 | WP-13 | P0 | V1 | Five target builders and signing custody | Release engineering | Verifier/extractor components; no produced package | Deterministic archives, checksums, SBOM, provenance, signatures, and two-run schema-3 installation receipts from the same family lock | BACKLOG |
 | WP-14 | P1 | V1 | Operator-ratified immutable publication endpoint and paper preflight | Hub documentation, Jeryu | Local PDF/source only; no public endpoint selected | Immutable source and PDF permalinks whose hashes match the checked evidence manifest before any external announcement | EXTERNAL-BLOCKED |
 | WP-15 | P2 | post-V1 | WP-02 matched corpus | Research/evaluation | Capability comparison only | Preregistered workloads, costs, failures, exact subjects, and comparable receipts; superiority claims are admitted only from this corpus | BACKLOG |
+| WP-16 | P0 | V1 | Existing G3/G4; signed shared wire tag | Kernel, BulletGit | Signed lease-transport and fail-closed production clone are component-only; no durable Mutation reservation | One Kernel reservation write that repeats the active-lease check, issues a one-use permit, and is verified by production BulletGit before I/O | BACKLOG |
+| WP-17 | P1 | post-V1 | WP-08, WP-09, operator topology RFC | Jeryu operations, Hub | No public Git endpoint; GitHub and `git.neverhuman.org` are unratified names | Dated decision: GitHub as public index and/or backup; independent Jeryu Git as hosted front door for selected families; neither becomes source authority without CAS, read-back, and backup receipts | BACKLOG |
+| WP-18 | P1 | post-V1 | Operator family-root RFC | Jeryu hub | Permitted local family remains `/home/ubuntu/jain-split/jeryu-split` | Extract Jeryu to a ratified independent family root without recreating `/home/ubuntu/jeryu-split`; update pins, never committed sibling path dependencies | BACKLOG |
 
 ## Maintenance
 

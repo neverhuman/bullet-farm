@@ -12,21 +12,51 @@ fail() { printf 'paper-check: %s\n' "$*" >&2; exit 1; }
 need() { command -v "$1" >/dev/null 2>&1 || fail "required tool missing: $1"; }
 for tool in jq git sha256sum pdflatex bibtex pdfinfo pdffonts perl; do need "$tool"; done
 
-jq -e --argjson allow_dirty "$allow_dirty" '
+jq -e '
   .schema_version == "bullet.paper-evidence.v1" and
   (.snapshot.id | length > 0) and
   (.snapshot.captured_at | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T")) and
   (.snapshot.source_date_epoch | type == "number") and
   (.snapshot.stage == "architecture-component-assurance") and
   (.snapshot.transaction_proof == false) and
-  (($allow_dirty == 1) or (.snapshot.family_clean == true)) and
+  (.toolchain | type == "object") and
+  ([.toolchain.rustc,.toolchain.cargo,.toolchain.git,.toolchain.just,
+    .toolchain.jq,.toolchain.pdflatex,.toolchain.bibtex,.toolchain.poppler]
+    | all(type == "string" and length > 0)) and
+  (.commands | length > 0) and
+  (.commands | all(
+    (.repository as $repo | (["bullet-farm","bullet-kernel","bullet-git","bullet-portal"] | index($repo)) != null) and
+    (.command | type == "string" and length > 0) and
+    (.outcome | type == "string" and length > 0) and
+    (.exit_code | type == "number") and
+    (.boundary | type == "string" and length > 0)
+  )) and
   (.repositories | length == 4) and
   ([.repositories[].name] | unique | length == 4) and
-  (($allow_dirty == 1) or ([.repositories[].clean_at_capture] | all)) and
   (.maturity == ["Designed","Component-proved","Transaction-proved","Live/release-proved"]) and
+  (.external_observations | length >= 4) and
+  (.external_observations | all(
+    (.name | type == "string" and length > 0) and
+    (.subject | type == "string" and length > 0) and
+    (.observed_at | type == "string" and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")) and
+    (.url | type == "string" and test("^https://") and . != "https://github.com" and . != "https://github.com/")
+  )) and
+  (([.external_observations[].name] | length) == ([.external_observations[].name] | unique | length)) and
+  (.artifact_hashes | length > 0) and
+  (.artifact_hashes | all(
+    (.path | type == "string" and length > 0) and
+    (.sha256 | type == "string" and test("^[0-9a-f]{64}$"))
+  )) and
   (.results.release_gates.blocked == .results.release_gates.evaluated) and
   (.results.transaction_proof.outcome == "ABSENT")
 ' "$evidence" >/dev/null || fail "evidence.json violates the $schema contract or overstates maturity"
+
+if [[ "$allow_dirty" != "1" ]]; then
+  jq -e '
+    .snapshot.family_clean == true and
+    ([.repositories[].clean_at_capture] | all)
+  ' "$evidence" >/dev/null || fail "evidence snapshot is not a clean four-repository capture"
+fi
 
 while IFS=$'\t' read -r name rel commit tree; do
   checkout="$family_root/$rel"

@@ -1,7 +1,7 @@
 # Bullet Farm paper and executive brief
 
 Status: **Stage-1 architecture/component-assurance preprint; not release evidence**
-Last reviewed: 2026-08-25
+Last reviewed: 2026-08-25 (snapshot `20260825-stage1-r2`)
 
 This directory holds the citable IEEEtran paper and one-column executive brief:
 
