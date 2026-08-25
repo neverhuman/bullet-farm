@@ -65,18 +65,20 @@ The committed subjects observed immediately before this plan edit were:
 
 | Repository | Commit | Tree | Checkout truth |
 | --- | --- | --- | --- |
-| Hub | `4b93a04a4fde0293df994386e1c86f84a9c8f1cc` | `51bd23dbdc4fb44c3583210c4cfe8f3bda5acf43` | Setup, receipt, onboarding, lock vocabulary, and literal argv controls committed; this documentation edit is excluded |
-| Kernel | `365bb5d32ac31791f338a58c9c9d0b94b0b74f18` | `64d15aa7e6c901a2531d88ae9b4e1b19d1f756c5` | Command correlation and bounded verifier transport committed; newly announced disjoint work is excluded |
-| BulletGit | `f55173622613e7ce55d9e1366ee6434c7e32158e` | `e4bf780dfd67a53810e03f465ba34f2ac25e3bb4` | Clean at reconciliation |
-| Portal | `181cd00cc6f9d20b079bdcecea88eebde70c47c3` | `3738a39a588e3356c45403c985b4c751072ecb1c` | Exact SSE pair handling and real-farmd UNKNOWN reconciliation committed; clean |
+| Hub | `0cc7eecffd4a6fe51c0288ea4d80e02729f79848` | `3ea5be1573db0ed301ce5c6099c39cc228214da7` | v1alpha2 live-admission validation, signed launch-grant wire, exact coordinator receipts, evolutionary design, sealed setup-tool subjects, and deterministic release-truth projection committed; this documentation edit is excluded |
+| Kernel | `0346fd531e231a88e5b1eb3a8257be04f235068b` | `5a3f17c48f119abfb5a9bf5fa4e41c78f10a9d8e` | Policy bundle synchronized after signed launch-grant/Linux egress components and admission-doc reconciliation; live provider dispatch remains policy-disabled |
+| BulletGit | `236f4efe2b8243b3c4dd5da13269e45119b061df` | `ac02f8d492d0767f3a3e490eff0e897e99fc08ba` | Policy bundle synchronized after durable cleanup outcome and local CI parity controls; production online authority and Jeryu remain blocked |
+| Portal | `8272844e44d89ea3b26aa5b3c4f25909a069e101` | `35de769e5b52127f9e26a9f2c3e7fa5067f758e2` | Policy bundle synchronized; exact bundle subject, command/SSE, and real-farmd UNKNOWN proof replayed; package embedding remains open |
 
-There is no family transaction or release receipt: `check release` names the
-missing transaction, live, recovery, package, security, and signing evidence.
+There is no family transaction or release receipt: the current read-only
+`check release` inventory reports all 26 registered gates `BLOCKED` and names
+the missing transaction, live, recovery, package, security, and signing evidence.
 
 | Receipt | Status | Exact evidence | Boundary |
 | --- | --- | --- | --- |
 | Pure signed wire | `COMPLETE` | Hub `c07efb10639d500c3e82ccc282265090ff63a4aa` | DTO/canonical/signature/golden proof; no running issuer or published immutable tag |
-| Tool admission | `COMPLETE` | Hub `68d0fb92b52df8d4631ac346428f341f0bb492bc` | Bounded admitted Cargo/Node/npm/Bash component path; not signed installation |
+| Tool admission | `COMPLETE` | Hub `68d0fb92b52df8d4631ac346428f341f0bb492bc`, `7efe2f3e8227`; hostile swap 1/1, setup command 4/4, Rust 1.95 strict/required | Linux runs immutable sealed read-only descriptor subjects for Cargo, Node, Bash, and the npm companion, and reports source replacement after the child. The source wrapper's pre-admission Cargo launch, path-based Git, production Jeryu/validator, schema-3, and signed installation remain open |
+| Deterministic release-truth projection | `COMPLETE` | Hub `0cc7eecffd4a`; 205 Hub tests, strict Clippy, required drift/negative proof, contract, deterministic regeneration | `check release --report` keeps decision exit 3, renders every catalog row, reports 0/26 receipts, and separates mechanical/evidence/review/deployment/survival truth. It is a projection, not evidence, and cannot clear a gate |
 | Bounded JSON-RPC session contract | `COMPLETE` | Hub `b0b9be55199d7d58bc795c5252b27106a5c310b3`; wire 57/57, hostile IPC 11/11 | Pure hello/frame/deadline/cancel/correlation state machines; runtime consumers still use legacy boundaries |
 | Executable exact-subject checks | `COMPLETE` | Hub `24d05af9db762a72bd4a54cddbb1807c9800ea64`; local fusion `17aa92885b2fdd1807100ad8b1ab335de8b72e5b` | Fixed bounded commands and unchanged subjects; synthetic/component results cannot promote release |
 | Same-origin development | `COMPLETE` | Hub `59675c8`; launcher regression and Hub required pass | Vite development proxy only; no browser command/auth or embedded production proof |
@@ -85,6 +87,9 @@ missing transaction, live, recovery, package, security, and signing evidence.
 | Atomic lease command/outbox | `COMPLETE` | Kernel `544f43ff50b92ab864cb4bcfc31c2f0d880c36f6`; required 277/277 | Fence, Attempt, lease, graph, event, exact result, and correlated outbox commit once; public wire command/auth remains open |
 | Admitted gates and authoritative snapshots | `COMPLETE` | Kernel `cdfd6f2a085faeb8201a52745bec13ce444047db`, `20032074526605e1708aa72789defbd87fa75b58`, `fef4aba1f687d67107e5bafffa9adba8545becc3`; required 293/293 | Provider text cannot name shell; atomic SQLite projections carry source/time/watermark; empty ready is verified `data:null` |
 | Provider process admission | `COMPLETE` | Kernel `03baa0ed7bd6746f7e7458cca6f56a60ddfda617`; focused 55/55 plus strict checks | Absolute binary/digest, 0700 HOME, 0400 OAuth copy, positive environment, canary scan, cleanup; dispatch remains blocked without signed authority and egress |
+| Signed launch-grant admission | `COMPLETE` | Hub `a2d6b2ab003c`; Kernel `d38873392bfe`; wire 72/72 and Kernel 410/410 | PASETO v4.public exact-subject verifier, active-lease issuer, policy key lifecycle, and single-use nonce ledger. Policy generation 1 keeps live admission disabled; durable authority epoch/budget reservation and authenticated Runner transport remain open |
+| Operator-ratifiable live policy schema | `COMPLETE` | Hub `bf5c64245d21`; cross-family consumers `0346fd5`, `236f4ef`, `8272844`; wire 83/83 | v1alpha2 may represent live admission only at generation >=2 with an active provider-runner PASETO key while every conservative invariant remains fixed. ADR 0012 is proposed, Kernel loader still accepts v1alpha1 only, and no committed policy enables live dispatch |
+| Linux provider egress isolation | `COMPLETE` | Kernel `d38873392bfe`; live lane 3/3 | User/network namespace, nft default-drop, allow-listing CONNECT proxy, counter-bound receipt, and process-tree teardown block direct internet, host Jeryu, decoy, DNS, and disallowed CONNECT. This is containment-component evidence, not provider conformance |
 | Authenticated command ingress | `COMPLETE` | Kernel `19d1d47cb03956eb92dfa3f27e409c87d1ab5203`; required 307/307 | Loopback bootstrap/session/origin/CSRF and atomic PENDING command/outbox/event |
 | Operation-specific local authority | `COMPLETE` | Kernel `e697f8aa457ed6289e82cf51428f5e9de809436d`; required 311/311 | Exact typed mutation/terminal/preservation decisions; signed request capabilities, daemon receipt validation, and online cleanup settlement remain open |
 | Authenticated offline command reconciliation | `COMPLETE` | Kernel `77a0ecd0079d030e944ebf3a7b9077b7d64aabcc`; required 317/317 | Exact-ID worker settles one command/outbox/event to honest UNKNOWN/FAILED; no dispatch, APPLIED, VERIFIED, provider, verifier, or effect path |
@@ -102,12 +107,14 @@ missing transaction, live, recovery, package, security, and signing evidence.
 | Descriptor-relative setup publication | `COMPLETE` | Hub `94b6549aa24ee4bc2110627c994b4d476042864a`; focused 13/13, required and fast | Retained root/staging identity, private staging, no-replace publication, bounded no-follow cleanup; schema-3/prebuilt install and same-UID path-based Git containment remain open |
 | Signed release-receipt contract | `COMPLETE` | Hub `143f8b963586ad162a97fcd0d5ca7f18fa034796`; focused 5/5 and Rust 1.95 strict proof | Canonical TOML, exact policy digest, signer/namespace/interval, and sealed-input verification only; external policy, trusted time/revocation/custody, semantic adjudication, registry/replay, and real receipts remain open |
 | BulletGit recovery and wire-shaped subjects | `COMPLETE` | BulletGit `274fd6d6655ce88979bcaa80eca758c44886963e`, `f55173622613e7ce55d9e1366ee6434c7e32158e`; required 121/121 | Freeze/recovery, full IDs, tagged OIDs, strict manifests; provenance-bound Candidate identity, shared immutable wire tag, and production Jeryu remain open |
+| BulletGit cleanup outcome and CI parity | `COMPLETE` | BulletGit `2d22c28f9619`, `5dac98e12c1a`; required 123/123 | Cleanup success requires a new synced tombstone binding preservation receipt/artifact/destination; post-delete ambiguity is typed UNKNOWN. Production positive online authority, signed shared-wire tag, Jeryu, and Jankurai >=90 remain open |
 | Generated Kernel-to-Portal runtime contract | `COMPLETE` | Kernel `043b8fddd59cef8a67ad98f45d9c190fc11bd94f`; Portal `c294ec7bddb7dd217eb4bd360b6c810c0391a31d`; Hub `601cb82c9a5f66cc627677244e230f289e9acc65` | Dependency-closed JSON Schema and AJV for consumed command/mission/readiness DTOs; raw events and absent Candidate/Evidence/Effect DTOs remain predecessors |
+| Exact Portal bundle subject | `COMPLETE` | Portal `8272844e44d8`; required 67/67, bundle 5/5, browser 6/6 mocked + 1/1 real farmd; root `blake3:556d91f8504299230bc75e027108d1d943fd9ff99303cea7c2a155ee69edd973` | Clean commit/tree, lock, exact Git/Node, whole npm tree, and three emitted files are bound. Toolchain/environment signatures, Rust embedding, release archive, activation, and rollback remain open |
 | Shared admitted gate and clean verifier | `COMPLETE` | Kernel `528348fae6038def88ecd6d6b4f4f54e78747cd4`; required 339/339, contract plus 3 simulators | Caller/model shell and timeout authority removed; exact gate/argv/timeout/base/head/tree Evidence. One fixture gate exists; executable digest, framing/source-path admission, and multi-gate aggregation remain open |
 | Bounded verifier transport | `COMPLETE` | Kernel `365bb5d32ac31791f338a58c9c9d0b94b0b74f18`; required/contract 345/345 plus 3 simulators | Strict one-shot 64 KiB request and single bounded Evidence frame; contaminated/unknown/lossy/overflow output refuses and infinite writer is killed/reaped. JSON-RPC, signed source admission, and process-tree supervision remain open |
 
-Hub Jankurai is 58/raw 58 with 10 caps and 40 findings (25 high, 15 medium); all
-25 high findings are classified `hard`. It fails the V1 >=90, zero-cap/zero-hard gate.
+Hub Jankurai is 58/raw 58 with 10 caps and 44 findings (29 high, 15 medium); all
+29 high findings are classified `hard`. It fails the V1 >=90, zero-cap/zero-hard gate.
 Hosted CI also lacks a portable checksum-pinned Jankurai artifact; a machine-local
 binary cannot be converted into a skip-green workflow.
 
@@ -269,6 +276,14 @@ prior authoritative generation or return typed `UNKNOWN`; none yields success.
 
 Status: `LOCAL-BLOCKED` on `V1-S2/S3`; bounded transport exists, but farmd serves none of Runner's
 acquire/heartbeat/release/attempt-advance routes, and Runner plus `/v1/demo/run` remain synthetic.
+
+The existing `HttpLeaseClient` is not safe to mount: it is unauthenticated,
+acquire self-asserts scheduling and runner identity fields, and release/advance
+are not full-subject atomic operations. Keep public `/v1` lease routes absent.
+A separate signed internal lease-transport contract must bind runner, authority
+epoch, request digest, and the full lease subject; its bounded loopback or Unix
+transport must provide atomic reserve/acquire/advance/release plus lost-response
+read-back reconciliation.
 
 Required work:
 
@@ -476,8 +491,9 @@ may be neutral only when the requested release profile does not require them.
 
 ## Immediate closure queue
 
-1. Extend offline command reconciliation into signed dispatch, effect read-back,
-   and independent verification without synthetic APPLIED or VERIFIED.
+1. Define and implement the signed internal Runner lease transport described in
+   V1-S4, then extend offline command reconciliation into signed dispatch,
+   effect read-back, and independent verification without synthetic APPLIED or VERIFIED.
 2. Complete `V1-S1` immutable publication/runtime-consumer convergence and
    `V1-S2` normalized truth, capability, CAS, backup/restore, and fault receipts.
 3. Complete shared-wire manifests and positive online BulletGit authority, then

@@ -19,12 +19,14 @@ The family root contains four ordinary independent clones named by
 
 ```bash
 cargo run --locked --quiet --bin bullet-family -- doctor --json
-cargo run --locked --quiet --bin bullet-family -- checkout verify
 just fast
 ```
 
-Run these from the Hub checkout. `doctor` and `checkout verify` are diagnostics;
-they do not repair dirty/missing subjects or grant install authority.
+Run these from the Hub checkout. `doctor` is a diagnostic; it does not repair
+dirty/missing subjects or grant install authority. The checked-in lock is schema
+2, so `checkout verify` currently returns `UNSUPPORTED_SCHEMA` by design. Run it
+only after an authenticated schema-3 lock exists, or use that refusal as a
+negative diagnostic rather than expecting a clean-family verdict.
 
 For local development fusion, use `bullet-family fuse --source local`. The
 ignored `.fusion` output may contain local path overrides; committed manifests
@@ -73,23 +75,33 @@ The Rust setup mechanism must continue to:
   and fsync boundaries;
 - create ordinary canonical clones at exact OIDs;
 - reject dirty, symlinked, non-empty, or conflicting destinations;
-- run `cargo --locked` and `npm ci` through bounded admitted tool paths;
+- run `cargo --locked` and `npm ci` through bounded, sealed descriptor subjects
+  on Linux;
 - generate contracts into temporary directories and reject drift;
 - publish the outer completion manifest last; and
 - be idempotent: two runs in a fresh home end with exact clean OIDs and no
   tracked changes.
 
-After a crash or refusal, run `doctor --json` and `checkout verify` before any
-retry. Do not delete, overwrite, or move partially published directories merely
-to force success. Preserve them for diagnosis; setup recovery must prove the
-state is exactly prior or complete next.
+After a crash or refusal, run `doctor --json` before any retry. With an admitted
+schema-3 lock, also run `checkout verify`; with the current schema-2 lock, record
+its expected `UNSUPPORTED_SCHEMA` refusal instead. Do not delete, overwrite, or
+move partially published directories merely to force success. Preserve them for
+diagnosis; setup recovery must prove the state is exactly prior or complete next.
 
-The current containment is strongest at publication and cleanup boundaries. It
-does not eliminate active same-UID swap-and-restore races inside path-based Git
-execution. Bounded cleanup intentionally preserves an orphan if identity,
-depth, or entry limits prevent a safe removal. An error reported after the
-outer manifest was published is indeterminate until the same exact setup and
-verification commands reconcile the durable family.
+The Rust setup boundary now snapshots admitted Cargo, Node, Bash, and npm bytes
+into sealed read-only memfds on Linux and executes those descriptor subjects;
+a swap after verification cannot execute replacement bytes. This does not
+authenticate `scripts/setup.sh` before it launches Cargo to build the boundary,
+and active same-UID swap-and-restore races inside path-based Git execution remain.
+A trusted public path therefore still starts from a signed prebuilt and must pin
+or isolate Git. Bounded cleanup intentionally
+preserves an orphan if identity, depth, or entry limits prevent a safe removal.
+An error reported after the outer manifest was published is indeterminate until
+the same exact setup and verification commands reconcile the durable family.
+
+The positive two-run setup fixture is component proof: it uses `LocalTransport`
+and a test-only exact validator. It does not exercise production `JeryuTransport`
+or `SetupValidator` end to end, and therefore cannot satisfy installer acceptance.
 
 ## Platform boundary
 
