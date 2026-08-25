@@ -192,9 +192,86 @@ fn doctor_and_pre_push_gate_are_executable_controls() {
 fn public_lock_recipe_uses_verify_vocabulary() {
     let justfile = read("Justfile");
     assert!(justfile.contains("lock-verify tag:"));
-    assert!(justfile.contains("-- lock verify --tag {{tag}}"));
+    assert!(justfile.contains("-- lock verify --tag \"$1\""));
+    assert!(!justfile.contains("--tag {{tag}}"));
     assert!(!justfile.contains("lock-check"));
     assert!(!justfile.contains("-- lock check"));
+}
+
+#[cfg(unix)]
+#[test]
+fn parameterized_recipes_preserve_literal_arguments() {
+    use std::{env, ffi::OsString, os::unix::fs::PermissionsExt};
+
+    let temp = tempfile::tempdir().expect("parameterized recipe fixture");
+    let bin = temp.path().join("bin");
+    fs::create_dir(&bin).expect("create fake bin");
+    let cargo = bin.join("cargo");
+    fs::write(
+        &cargo,
+        "#!/usr/bin/env bash\nset -euo pipefail\nprintf '%s\\0' \"$@\" >\"${BULLET_TEST_CAPTURE:?}\"\n",
+    )
+    .expect("write fake cargo");
+    let mut permissions = fs::metadata(&cargo)
+        .expect("fake cargo metadata")
+        .permissions();
+    permissions.set_mode(0o755);
+    fs::set_permissions(&cargo, permissions).expect("make fake cargo executable");
+
+    let capture = temp.path().join("argv");
+    let marker = temp.path().join("injected");
+    let injected = format!("invalid; /usr/bin/touch {}", marker.display());
+    let mut path = OsString::from(bin.as_os_str());
+    path.push(":");
+    path.push(env::var_os("PATH").expect("PATH is set"));
+
+    let invoke = |recipe: &str, arguments: &[&str]| {
+        let status = Command::new("just")
+            .arg(recipe)
+            .args(arguments)
+            .current_dir(root())
+            .env("PATH", &path)
+            .env("BULLET_TEST_CAPTURE", &capture)
+            .status()
+            .unwrap_or_else(|error| panic!("run {recipe} recipe: {error}"));
+        assert!(status.success(), "{recipe} recipe failed");
+        assert!(!marker.exists(), "{recipe} executed caller text as shell");
+        fs::read(&capture)
+            .expect("captured Cargo argv")
+            .split(|byte| *byte == 0)
+            .filter(|argument| !argument.is_empty())
+            .map(|argument| String::from_utf8(argument.to_vec()).expect("UTF-8 argument"))
+            .collect::<Vec<_>>()
+    };
+
+    let coord = invoke("coord", &["--agent", &injected]);
+    assert!(
+        coord.ends_with(&["coord".to_owned(), "--agent".to_owned(), injected.clone()]),
+        "coord did not preserve its literal argv tail: {coord:?}"
+    );
+
+    for (recipe, operation) in [("lock-generate", "generate"), ("lock-verify", "verify")] {
+        let arguments = invoke(recipe, &[&injected]);
+        let expected = [
+            "lock".to_owned(),
+            operation.to_owned(),
+            "--tag".to_owned(),
+            injected.clone(),
+        ];
+        assert!(
+            arguments.ends_with(&expected),
+            "{recipe} did not preserve its literal argv tail: {arguments:?}"
+        );
+    }
+
+    let doctor = Command::new("just")
+        .args(["ci-doctor", &injected])
+        .current_dir(root())
+        .env("PATH", path)
+        .status()
+        .expect("run ci-doctor recipe");
+    assert!(!doctor.success(), "invalid doctor lane was accepted");
+    assert!(!marker.exists(), "ci-doctor executed caller text as shell");
 }
 
 #[cfg(unix)]

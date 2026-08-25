@@ -7,8 +7,9 @@ default:
 setup *args:
     exec bash scripts/setup.sh "$@"
 
+[positional-arguments]
 coord *args:
-    cargo run --locked --quiet --bin bullet-family -- coord {{args}}
+    cargo run --locked --quiet --bin bullet-family -- coord "$@"
 
 demo:
     bash scripts/demo.sh
@@ -40,8 +41,9 @@ security:
 audit:
     bash scripts/ci-local.sh audit
 
+[positional-arguments]
 ci-doctor lane="all":
-    bash scripts/ci-doctor.sh {{lane}}
+    bash scripts/ci-doctor.sh "$1"
 
 hooks-install:
     git config --local core.hooksPath ops/git-hooks
@@ -60,8 +62,10 @@ portal:
 check-family:
     bash scripts/ci-local.sh family
 
+[positional-arguments]
 lock-generate tag:
-    cargo run --locked --quiet --bin bullet-family -- lock generate --tag {{tag}}
+    cargo run --locked --quiet --bin bullet-family -- lock generate --tag "$1"
 
+[positional-arguments]
 lock-verify tag:
-    cargo run --locked --quiet --bin bullet-family -- lock verify --tag {{tag}}
+    cargo run --locked --quiet --bin bullet-family -- lock verify --tag "$1"
