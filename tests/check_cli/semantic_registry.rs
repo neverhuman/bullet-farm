@@ -3,12 +3,43 @@ mod fixture;
 
 use std::fs;
 
+use bullet_wire::{
+    RELEASE_GATE_RECEIPT_SIGNATURE_DOMAIN, hash_framed_bytes, release_bundle_manifest_v2_digest,
+};
+
 use super::command;
 use fixture::{
     assert_registry_rejected, assert_registry_rejected_with, mutate_registry_manifest,
     profiled_registry_output, release_id, rewrite_registry, write_canonical,
     write_structural_registry,
 };
+
+fn add_manifest_fillers(registry: &std::path::Path, count: usize) {
+    let manifest_path = registry.join("registry-manifest.json");
+    let mut manifest: serde_json::Value =
+        serde_json::from_slice(&fs::read(&manifest_path).unwrap()).unwrap();
+    let objects = manifest["objects"].as_array_mut().unwrap();
+    let insertion = objects
+        .iter()
+        .position(|object| object["object_kind"] == "signer-policy")
+        .unwrap();
+    let mut fillers = Vec::with_capacity(count);
+    for index in 0..count {
+        let bytes = vec![index as u8; 1024 * 1024];
+        let path = format!("artifacts/filler-{index:02}.manifest");
+        fs::create_dir_all(registry.join("artifacts")).unwrap();
+        fs::write(registry.join(&path), &bytes).unwrap();
+        fillers.push(serde_json::json!({
+            "schema_version": "v1alpha1",
+            "object_id": format!("rob_{:064x}", 0x100usize + index),
+            "object_kind": "release-bundle-manifest-v2",
+            "object_digest": release_bundle_manifest_v2_digest(&bytes).unwrap(),
+            "object_path": path,
+        }));
+    }
+    objects.splice(insertion..insertion, fillers);
+    write_canonical(&manifest_path, &manifest);
+}
 
 #[test]
 fn release_profiles_are_named_independent_and_fail_closed() {
@@ -241,6 +272,50 @@ fn release_profiles_are_named_independent_and_fail_closed() {
             &registry_path,
             "provider-codex",
             Some("gate/profile coverage differs"),
+        );
+
+        write_structural_registry(&registry_path);
+        let signature = fs::read(registry_path.join("signatures/provider-codex.sig")).unwrap();
+        let legacy_digest = format!(
+            "blake3:{}",
+            hash_framed_bytes(RELEASE_GATE_RECEIPT_SIGNATURE_DOMAIN, &signature)
+                .unwrap()
+                .to_hex()
+        );
+        mutate_registry_manifest(&registry_path, |manifest| {
+            manifest["objects"]
+                .as_array_mut()
+                .unwrap()
+                .iter_mut()
+                .find(|object| object["object_path"] == "signatures/provider-codex.sig")
+                .unwrap()["object_digest"] = legacy_digest.clone().into();
+            manifest["entries"]
+                .as_array_mut()
+                .unwrap()
+                .iter_mut()
+                .find(|entry| entry["gate_id"] == "release.provider.codex")
+                .unwrap()["receipt_signature_digest"] = legacy_digest.into();
+        });
+        assert_registry_rejected_with(
+            &registry_path,
+            "provider-codex",
+            Some("digest differs from its manifest binding"),
+        );
+
+        write_structural_registry(&registry_path);
+        add_manifest_fillers(&registry_path, 15);
+        assert_registry_rejected_with(
+            &registry_path,
+            "provider-codex",
+            Some("registry contains an unreferenced object"),
+        );
+
+        write_structural_registry(&registry_path);
+        add_manifest_fillers(&registry_path, 16);
+        assert_registry_rejected_with(
+            &registry_path,
+            "provider-codex",
+            Some("aggregate byte budget is exhausted"),
         );
     }
 
