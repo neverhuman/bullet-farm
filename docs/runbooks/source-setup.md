@@ -94,7 +94,13 @@ After a crash or refusal, run `doctor --json` before any retry. With an admitted
 schema-3 lock, also run `checkout verify`; with the current schema-2 lock, record
 its expected `UNSUPPORTED_SCHEMA` refusal instead. Do not delete, overwrite, or
 move partially published directories merely to force success. Preserve them for
-diagnosis; setup recovery must prove the state is exactly prior or complete next.
+diagnosis. Recovery has four honest classes: prior state; a recoverable exact
+partial with no outer manifest, whose already-published members the same
+authenticated setup verifies and reuses without replacement; complete next; and
+an indeterminate/orphan state that must remain preserved. A pre-manifest error
+does not imply prior state because exact members publish one at a time before the
+outer manifest. See [`setup-recovery.md`](setup-recovery.md) for the executable
+classification drill.
 
 The Rust setup boundary now snapshots admitted Cargo, Node, Bash, and npm bytes
 into sealed read-only memfds on Linux and executes those descriptor subjects;

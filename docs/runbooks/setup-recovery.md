@@ -7,10 +7,11 @@ Applies to: bullet-farm `d762f86` (`src/setup.rs`, `src/setup/transaction.rs`, `
 transaction rules in [`source-setup.md`](source-setup.md)
 
 Run this drill after any setup crash, refusal, power loss, or "it printed an error after it said it
-published". Its purpose is to prove which of exactly two states the family is in — **prior** or **complete
-next** — and to preserve everything else for diagnosis. It never deletes.
+published". Its purpose is to classify the durable family state without destroying evidence, then either
+verify the complete family or let the same authenticated setup transaction reconcile an exact partial
+publication. It never deletes.
 
-## 1. The two admissible states
+## 1. The four recovery classes
 
 `bullet-family setup` (`src/setup.rs::run`) validates every fallible input first (platform containment,
 admitted family-root descriptor, hub location, lock schema, Cargo/Node/npm subjects, environment), then runs
@@ -22,12 +23,16 @@ manifest — is published last.
 | State | Definition | Evidence |
 | --- | --- | --- |
 | **prior** | no new member directory, no staging directory, family-root `repos.manifest.toml` unchanged | `doctor --json` `family_layout` and the directory listing are what they were before the run |
+| **recoverable exact partial** | the outer manifest is absent; one or more published member directories verify as ordinary clean clones at the signed lock's exact identities; every missing member is still absent; no staging orphan or conflicting entry exists | rerunning the *same authenticated schema-3 setup* verifies and reuses each exact member without replacement, creates only missing members, then publishes the manifest last |
 | **complete next** | every locked member is an ordinary clean clone at its exact OID and the family-root manifest equals the hub manifest | `doctor --json` all `PASS` and `checkout verify` clean under a schema-3 lock |
-| anything else | a `.bullet-family-setup.*` directory, a member directory without the manifest, a manifest without all members, or an orphan left by bounded cleanup | **partial — preserve; do not retry over it** |
+| **indeterminate / orphan** | a `.bullet-family-setup.*` directory; an unverifiable, dirty, symlinked, or conflicting member; a manifest without every exact member; or an orphan left by bounded cleanup | **preserve; do not alter or retry around it; escalate with the observed paths and typed refusal** |
 
-An error reported *after* the manifest was published is indeterminate until the same exact `setup` and
-`checkout verify` reconcile it; an error *before* is prior state, because publication is no-replace and the
-manifest is last.
+An error reported *after* the manifest was linked is indeterminate until the same exact `setup` and
+`checkout verify` reconcile it. An error before manifest publication is **not necessarily prior state**:
+no-replace member publication happens one member at a time, so exact members can already be durable. The
+transaction's crash-boundary tests prove that a same-input rerun reuses those verified identities without
+replacement and reaches one complete family; they also prove staging cleanup is bounded and may deliberately
+preserve an unsafe orphan instead of guessing.
 
 ## 2. The drill
 
@@ -61,14 +66,17 @@ Run from the hub checkout. Every command is read-only.
    admitted schema-3 lock this command is the clean-family verdict. Record the refusal, do not "fix" the lock
    ([`schema-removal.md`](schema-removal.md)).
 
-3. **Look for partial publication.**
+3. **Look for staging or a recoverable exact partial publication.**
 
    ```bash
    ls -a "$(dirname "$PWD")" | grep -F '.bullet-family-setup.' ; echo "staging dirs above (none = ok)"
    ```
 
-   Observed: none. If one exists, it is a partial transaction or a cleanup-bounded orphan: leave it, record
-   its name and mtime, and hand the family to the orchestrator.
+   Observed: none. If one exists, it is an in-progress transaction or a cleanup-bounded orphan: leave it,
+   record its name and mtime, and hand the family to the orchestrator. If no staging directory exists but
+   the outer manifest is absent, do not classify the state as prior merely because setup returned an error.
+   Record every present member path. With the same authenticated schema-3 lock, setup admits an existing
+   member only after verifying its exact signed identity and cleanliness; it refuses conflicting state.
 
 4. **Re-run the refused setup to prove it is still pre-mutation.**
 
@@ -92,9 +100,10 @@ Run from the hub checkout. Every command is read-only.
 
 ## 3. What you must not do
 
-- Do not delete, move, or overwrite a partially published member, a staging directory, or an orphan to
-  force a rerun; setup is idempotent only over prior or complete-next state, and the orphan is the evidence
-  of which boundary failed.
+- Do not delete, move, or overwrite a published member, a staging directory, or an orphan to force a rerun.
+  An exact partial member is intentional recoverable state and must be reused; an unverifiable member or
+  staging orphan is evidence to preserve. Only the same authenticated setup transaction may distinguish
+  those cases by verifying the existing identities and refusing conflicts.
 - Do not `git reset`, `git clean`, or re-clone a dirty shared checkout to satisfy `clean_checkouts`; that is
   another agent's active claim. `doctor` says so in its repair text.
 - Do not edit `family.lock` or the family-root `repos.manifest.toml` by hand; both are authority inputs and
@@ -103,10 +112,11 @@ Run from the hub checkout. Every command is read-only.
 
 ## 4. Limits of this drill
 
-- The positive path (a real two-run setup in a fresh home ending in complete-next state) is component proof
-  only: the fixture uses `LocalTransport` and a test-only validator (`tests/setup.rs`, `tests/setup_signed.rs`),
-  not production `JeryuTransport`/`SetupValidator`. No crash-injected recovery has been run from tagged bytes
-  on a fresh host; gate `release.installer-twice` is `BLOCKED`.
+- The positive path (a real two-run setup in a fresh home ending in complete-next state) and the injected
+  boundary-recovery matrix are component proof only: the fixtures use `LocalTransport` and test-only
+  validators/verifiers (`tests/setup.rs`, `tests/setup_signed.rs`, `src/setup/transaction/tests.rs`), not
+  production `JeryuTransport`/`SetupValidator`. No crash-injected recovery has been run from tagged bytes on
+  a fresh host; gate `release.installer-twice` is `BLOCKED`.
 - With the schema-2 lock, `checkout verify` cannot return a clean verdict on any host, so the "complete next"
   branch of this drill is currently unreachable in the canonical family. That is honest, not a defect of the
   drill.
