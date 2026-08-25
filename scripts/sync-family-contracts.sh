@@ -47,7 +47,7 @@ sync_file \
   "$FAMILY/bullet-kernel/crates/application/tests/fixtures/policy-v1alpha2-live-enabled.json"
 sync_file \
   "$HUB/contracts/generated/rust/schema_bundle.rs" \
-  "$FAMILY/bullet-git/crates/bullet-git-types/src/schema_bundle.rs"
+  "$FAMILY/bullet-git/contracts/generated/rust/schema_bundle.rs"
 sync_file \
   "$HUB/contracts/generated/typescript/schemaBundle.ts" \
   "$FAMILY/bullet-portal/src/generated/schemaBundle.ts"
