@@ -57,14 +57,20 @@ Do not publish a public install command until all inputs exist:
 5. installer smoke receipts from clean supported hosts.
 
 The existing Linux `bullet-family release verify` command only verifies an
-already materialized bundle. It does not download, build, extract, install,
-provision signers, or interpret SBOM/provenance semantics.
+already materialized bundle. A separate `release extract` command can safely
+materialize one verified archive at an absent destination. Neither command
+downloads, builds, activates, rolls back, provisions signers, or interprets
+binary/SBOM/provenance semantics.
 
 ## Setup transaction rules
 
 The Rust setup mechanism must continue to:
 
 - validate every fallible input before no-replace publication;
+- retain the admitted family-root descriptor and recheck pathname identity
+  around path-based external commands;
+- use descriptor-relative 0700 staging, no-replace member/manifest publication,
+  and fsync boundaries;
 - create ordinary canonical clones at exact OIDs;
 - reject dirty, symlinked, non-empty, or conflicting destinations;
 - run `cargo --locked` and `npm ci` through bounded admitted tool paths;
@@ -77,6 +83,13 @@ After a crash or refusal, run `doctor --json` and `checkout verify` before any
 retry. Do not delete, overwrite, or move partially published directories merely
 to force success. Preserve them for diagnosis; setup recovery must prove the
 state is exactly prior or complete next.
+
+The current containment is strongest at publication and cleanup boundaries. It
+does not eliminate active same-UID swap-and-restore races inside path-based Git
+execution. Bounded cleanup intentionally preserves an orphan if identity,
+depth, or entry limits prevent a safe removal. An error reported after the
+outer manifest was published is indeterminate until the same exact setup and
+verification commands reconcile the durable family.
 
 ## Platform boundary
 

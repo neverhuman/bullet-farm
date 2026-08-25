@@ -10,10 +10,10 @@ exited successfully.
 
 ## Profiles
 
-| Profile | Purpose | Required behavior |
+| Product profile | Purpose | Required behavior |
 | --- | --- | --- |
 | `fast` | warm developer feedback under 60 seconds | format, lint/unit, portal typecheck/unit/build, generated drift, affected-path routing |
-| `required` | merge baseline | locked builds/tests/doc-tests, contracts, migrations, real farmd/portal E2E, deterministic demo, pinned security/supply-chain checks, family lock, Jankurai non-regression |
+| `required` | V1 acceptance inventory | locked component/family contracts plus registered install, Jankurai, packaged-browser, scan, recovery, and exact transaction evidence |
 | `release` | exact tagged release | both required toolchains, packages, installer smoke, SBOM/signatures/provenance, recovery/fault suites, live Jeryu/GitHub, all four provider receipts |
 
 `required` has no skip-green behavior. A missing required tool, zero tests,
@@ -22,9 +22,30 @@ error, or `UNKNOWN` fails that profile. Missing credentials may produce a
 neutral unregistered live lane only when that lane is not part of the requested
 release profile.
 
-The public entrypoints are `bullet-family check fast|required|release` and thin
-`just` wrappers. A contract check generates into a temporary directory and
-diffs tracked output; it does not repair drift while claiming to verify it.
+There are two deliberately different command layers:
+
+- `scripts/ci-local.sh fast|required|contract|security|audit` and the thin
+  repository `just`/workflow wrappers are component merge lanes. A green local
+  `required` proves the checks that repository currently implements; it is not
+  product readiness.
+- `bullet-family check fast|required|release` is the family/product gate
+  runner. It executes only its sealed command catalog, adds immutable missing-
+  receipt inventory, and stays nonzero while a required product receipt is
+  absent. Today, component CI can be green while product `required` and
+  `release` correctly remain `BLOCKED`.
+
+A contract check generates into a temporary directory and diffs tracked
+output; it does not repair drift while claiming to verify it. Neither command
+layer may translate a skipped, missing, unsupported, flaky, infrastructure, or
+`UNKNOWN` result into success.
+
+The `release receipt-verify` component validates canonical receipt/policy
+bytes, the exact policy digest, an admitted OpenSSH Ed25519 signer, signature
+namespace, and validity interval. Its success message explicitly says
+`contract only`; it does not provide trusted time, revocation/custody,
+kind-specific semantic adjudication, registry/replay protection, or gate
+registration. Those independent subjects must exist before a verified receipt
+can clear any product gate.
 
 ## Evidence ownership
 

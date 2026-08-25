@@ -4,8 +4,8 @@ Status: **ACTIVE — pre-release; release authority is blocked**
 Owner: Bullet Farm maintainers
 Last reconciled: 2026-08-25
 Scope: four repositories, local-first, single-user V1
-This is a dependency graph and evidence register, not runtime authority. Only
-exact generated/ledger/Git/Evidence/effect/release subjects can make a gate green.
+This dependency graph and evidence register is not runtime authority. Only exact
+generated/ledger/Git/Evidence/effect/release subjects can make a gate green.
 
 ## Status vocabulary
 
@@ -65,10 +65,10 @@ The committed subjects observed immediately before this plan edit were:
 
 | Repository | Commit | Tree | Checkout truth |
 | --- | --- | --- | --- |
-| Hub | `30c9a21eec87d9148f334599ba510fc2cad797f0` | `7fc717055374dee99e048817f507d7be66e6adfe` | Clean before this claimed documentation edit |
-| Kernel | `8cc2df167f0845893993b7046c165166c36458bc` | `7292df6df7ce6fe590c6a99d0249be967e5b714e` | Clean |
-| BulletGit | `f8121142cd337e243bdc97cdeec9dacea9554b04` | `4e38c133639ab2d9817c306e68ff110dac23640e` | Clean |
-| Portal | `3f651ad76a0488452ea1361e36ed72b5faa3d887` | `99c203f7c0c01d9ad1da8f883f90f13fd2b9ba7f` | Clean |
+| Hub | `4b93a04a4fde0293df994386e1c86f84a9c8f1cc` | `51bd23dbdc4fb44c3583210c4cfe8f3bda5acf43` | Setup, receipt, onboarding, lock vocabulary, and literal argv controls committed; this documentation edit is excluded |
+| Kernel | `365bb5d32ac31791f338a58c9c9d0b94b0b74f18` | `64d15aa7e6c901a2531d88ae9b4e1b19d1f756c5` | Command correlation and bounded verifier transport committed; newly announced disjoint work is excluded |
+| BulletGit | `f55173622613e7ce55d9e1366ee6434c7e32158e` | `e4bf780dfd67a53810e03f465ba34f2ac25e3bb4` | Clean at reconciliation |
+| Portal | `181cd00cc6f9d20b079bdcecea88eebde70c47c3` | `3738a39a588e3356c45403c985b4c751072ecb1c` | Exact SSE pair handling and real-farmd UNKNOWN reconciliation committed; clean |
 
 There is no family transaction or release receipt: `check release` names the
 missing transaction, live, recovery, package, security, and signing evidence.
@@ -94,13 +94,22 @@ missing transaction, live, recovery, package, security, and signing evidence.
 | Atomic generations and preservation | `COMPLETE` | BulletGit `61bf76dd06753df1ce37715582ab56fbf5d75cff`, `9d527b9e2d8da2fe4ca76c45787851f6d6dab8c2`; required 105/105 | Prior-or-complete-next generation plus sealed exact-state salvage before cleanup; positive online authority and Jeryu remain open |
 | Exact mutation reservation | `COMPLETE` | BulletGit `f8121142cd337e243bdc97cdeec9dacea9554b04`; required 107/107 | Durable reservation binds request/envelope/Attempt/fence/workspace generation; production checker and Kernel settlement remain unavailable |
 | Projection and real-process browser truth | `COMPLETE` | Portal `cfba6f72f6fd55cc0477182b74b63ade49821d07`; unit 51/51, mocked browser 10/10, real farmd browser 1/1 | Strict snapshots, STALE recovery, server provenance, ready-null; packaging remains open |
-| Strict browser command reconciliation | `COMPLETE` | Portal `3f651ad76a0488452ea1361e36ed72b5faa3d887`; 60/60 unit, 6/6 focused browser, 1/1 real farmd browser | Exact ID/kind/digest and five durable states; real farmd remains honestly PENDING without a worker |
+| Strict browser command reconciliation | `COMPLETE` | Kernel `35b64847459aefb88ef17c37427d9b7b9754ae97`; Portal `181cd00cc6f9d20b079bdcecea88eebde70c47c3`; Kernel 342/342, Portal 67/67, real farmd 1/1 | Sole exact outbox/submitted/reconciled truth; SSE ID/sequence conflicts stay STALE; authenticated worker proves correlated `PENDING→UNKNOWN`, never green. Vite preview is not packaged/embedded evidence |
 | Transaction-safe source setup | `COMPLETE` | Hub `5148a52a122da46e749be3e2169f81bd6d4b8116`; Hub required 34/34 plus integrations | Fallible validation precedes no-replace publication and final durable manifest; signed schema-3 inputs and prebuilt installer remain open |
 | Pinned assurance controls | `COMPLETE` | Hub `0440d446190c20c2be24620fa1d91d1b39fa3073`; required 34/34 | Pinned secret/dependency/license/workflow scans and release blocker report; passing components do not promote a release |
 | Signed five-target bundle verification | `COMPLETE` | Hub `352f963c75ce1939898a26d94d39be13de321f86`; required 39/39 plus 3/3 bundle integration | Linux read-only exact-byte/signature verification; no package build, semantics, extraction, install, signer provisioning, or intermediate-directory race proof |
+| Safe signed archive extraction | `COMPLETE` | Hub `ba0905604b6c743306f245837a0621781478e4cf`; hostile archive/publication proof | Exact signed bytes materialize descriptor-relatively at one absent destination; no activation, rollback, semantic package admission, or installer receipt |
+| Descriptor-relative setup publication | `COMPLETE` | Hub `94b6549aa24ee4bc2110627c994b4d476042864a`; focused 13/13, required and fast | Retained root/staging identity, private staging, no-replace publication, bounded no-follow cleanup; schema-3/prebuilt install and same-UID path-based Git containment remain open |
+| Signed release-receipt contract | `COMPLETE` | Hub `143f8b963586ad162a97fcd0d5ca7f18fa034796`; focused 5/5 and Rust 1.95 strict proof | Canonical TOML, exact policy digest, signer/namespace/interval, and sealed-input verification only; external policy, trusted time/revocation/custody, semantic adjudication, registry/replay, and real receipts remain open |
+| BulletGit recovery and wire-shaped subjects | `COMPLETE` | BulletGit `274fd6d6655ce88979bcaa80eca758c44886963e`, `f55173622613e7ce55d9e1366ee6434c7e32158e`; required 121/121 | Freeze/recovery, full IDs, tagged OIDs, strict manifests; provenance-bound Candidate identity, shared immutable wire tag, and production Jeryu remain open |
+| Generated Kernel-to-Portal runtime contract | `COMPLETE` | Kernel `043b8fddd59cef8a67ad98f45d9c190fc11bd94f`; Portal `c294ec7bddb7dd217eb4bd360b6c810c0391a31d`; Hub `601cb82c9a5f66cc627677244e230f289e9acc65` | Dependency-closed JSON Schema and AJV for consumed command/mission/readiness DTOs; raw events and absent Candidate/Evidence/Effect DTOs remain predecessors |
+| Shared admitted gate and clean verifier | `COMPLETE` | Kernel `528348fae6038def88ecd6d6b4f4f54e78747cd4`; required 339/339, contract plus 3 simulators | Caller/model shell and timeout authority removed; exact gate/argv/timeout/base/head/tree Evidence. One fixture gate exists; executable digest, framing/source-path admission, and multi-gate aggregation remain open |
+| Bounded verifier transport | `COMPLETE` | Kernel `365bb5d32ac31791f338a58c9c9d0b94b0b74f18`; required/contract 345/345 plus 3 simulators | Strict one-shot 64 KiB request and single bounded Evidence frame; contaminated/unknown/lossy/overflow output refuses and infinite writer is killed/reaped. JSON-RPC, signed source admission, and process-tree supervision remain open |
 
-Hub Jankurai is 60/raw 61 with 7 caps and 34 findings (23 high); it fails the
-V1 >=90, zero-cap/zero-hard gate despite no tool-classified hard finding.
+Hub Jankurai is 58/raw 58 with 10 caps and 40 findings (25 high, 15 medium); all
+25 high findings are classified `hard`. It fails the V1 >=90, zero-cap/zero-hard gate.
+Hosted CI also lacks a portable checksum-pinned Jankurai artifact; a machine-local
+binary cannot be converted into a skip-green workflow.
 
 ## Dependency graph
 
@@ -258,8 +267,8 @@ prior authoritative generation or return typed `UNKNOWN`; none yields success.
 
 ## V1-S4 — runner, verifier, effects, and offline transaction
 
-Status: `LOCAL-BLOCKED` on `V1-S2/S3`; Runner simulation and `/v1/demo/run` are
-component/synthetic evidence only.
+Status: `LOCAL-BLOCKED` on `V1-S2/S3`; bounded transport exists, but farmd serves none of Runner's
+acquire/heartbeat/release/attempt-advance routes, and Runner plus `/v1/demo/run` remain synthetic.
 
 Required work:
 
@@ -293,10 +302,9 @@ and cleanup-before-preservation never become PASS or cause a duplicate effect.
 
 ## V1-S5 — authenticated API, SSE, and projection truth
 
-Status: `LOCAL-BLOCKED`. Atomic snapshots, bounded SSE recovery, strict Portal
-validation/provenance, authenticated commands, real built-farmd browser E2E,
-and offline UNKNOWN/FAILED reconciliation are complete components. There is no
-APPLIED/VERIFIED dispatch path; broader projections and packaging remain.
+Status: `LOCAL-BLOCKED`. Atomic snapshots, strict Portal validation, exact-pair
+SSE recovery, authenticated commands, and real farmd `PENDING→UNKNOWN` are
+components. There is no APPLIED/VERIFIED dispatch or embedded/package-served Portal.
 
 Required work:
 
@@ -363,11 +371,10 @@ and cannot be rewritten into the selected Candidate.
 
 ## V1-S7 — installer, checks, CI, packaging, and documentation
 
-Status: `LOCAL-BLOCKED`. Rust coordination/checks/fusion, strict schema-3
-verification, transaction-safe ordinary-clone setup, and read-only signed
-five-target bundle verification exist. Schema 2 returns `UNSUPPORTED_SCHEMA`;
-no package builder/extractor, authenticated prebuilt installer, real schema-3
-lock, signer provisioning, or release exists.
+Status: `LOCAL-BLOCKED`. Coordination/checks/fusion, strict schema-3 verification,
+descriptor-relative setup, signed bundle verification, and safe extraction exist.
+Schema 2 refuses; no deterministic Portal bundle, embedded farmd, package builder,
+activation/rollback installer, authenticated prebuilt installer, signer, or release exists.
 
 Required command surface:
 
@@ -385,8 +392,9 @@ Installer closure, in dependency order:
 
 1. Decide and implement public signed Jeryu objects or a short-lived,
    destination-bound credential channel that never enters URL/argv/env/logs.
-2. Publish a signed prebuilt `bullet-family`. Keep `scripts/setup.sh` a source
-   bootstrap, never an installation trust root.
+2. Define an exact Portal bundle manifest/root, stage it into an opt-in Kernel
+   build through `OUT_DIR`, then publish signed `bullet-family` and embedded
+   `bullet-farmd`; never use a sibling include or tracked `dist` as authority.
 3. Verify hub tag, non-circular manifest, schema-3 lock, authenticated member
    URL/slug, signed tags, exact commit/tree, lockfiles, artifacts, and canonical
    Git/Bash/Cargo/Node/npm binary digests and admitted versions before mutation.
@@ -486,13 +494,6 @@ may be neutral only when the requested release profile does not require them.
 
 ## Terminal definition of done
 
-V1 is done only when every required `V1-S0..S8` exit gate has a current,
-independently verifiable receipt from the same signed subjects; `just setup`,
-`just demo`, `just fast`, family required, and release checks pass without
-skips; exactly two formal models pass their pinned counts; Jankurai is at least
-90 with zero caps/hard findings in every repository; all four provider and both
-forge receipts are current; all five packages and signatures verify; backup,
-restore, fault, installer, and containment receipts are current; every checkout
-is clean; the Portal displays no synthetic authority; and no known safety
-counterexample remains. Until all of that is true, the honest status is
-**pre-release, blocked**.
+V1 is done only when every `V1-S0..S8` gate has a current independently verifiable receipt from the same signed subjects; setup/demo/fast/required/release and two pinned models pass;
+Jankurai reaches 90 with zero caps/hard findings; every provider, forge, package, signature, recovery, fault, installer, and containment receipt is current; every checkout is clean;
+Portal has no synthetic authority; and no safety counterexample remains. Until then: **pre-release, blocked**.

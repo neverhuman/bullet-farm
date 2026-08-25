@@ -183,6 +183,99 @@ and larger councils are post-V1. They require holdouts, causal evaluation,
 rollback, drift detection, guardrail non-regression, and an explainable signed
 decision record before influencing production admission.
 
+## Dependency-gated team evolution
+
+The evolutionary program begins only after one real single-lane transaction
+can acquire authority, produce and apply a proposal, construct an exact
+Candidate, obtain independent Evidence, reconcile an effect, and project the
+truth end to end. A simulator result or a provider transcript cannot unlock
+team evolution. This ordering keeps optimization from learning against a false
+success signal.
+
+The unit of evolution is an immutable, content-addressed `TeamRecipe`, not a
+live agent. A recipe may name:
+
+- typed roles and their allowed input/output contracts;
+- communication edges and context-capsule policy;
+- certified provider/model/profile choices;
+- bounded concurrency, token, cost, time, repair, and verifier budgets; and
+- deterministic stopping, escalation, dissent, fusion, and fallback rules.
+
+It cannot contain or evolve credentials, authority claims, safety rules, risk
+classes, protected paths, evidence floors, hidden evaluators, integration
+policy, effect permission, or hard budget ceilings. A new recipe creates new
+Attempts and workspaces; it never inherits a live session, credential,
+workspace, proof, or privileged cache from a parent.
+
+Every task class retains a strong single-agent recipe as the incumbent and
+fallback. A multi-agent recipe earns eligibility only when matched evaluation
+shows that its surviving verified outcomes justify coordination, provider,
+and verifier cost. Agent count, transcript volume, confidence, and activity
+are never fitness dimensions.
+
+### Quality-diversity archive
+
+Campaign admission first applies a deterministic feasibility shield: authority,
+containment, provider/profile certification, role conflicts, quota, budget,
+verifier capacity, and task-policy compatibility. Infeasible recipes consume no
+provider or verifier budget.
+
+Eligible results enter a bounded multi-objective quality-diversity archive.
+Human-versioned behavioral descriptors may distinguish useful niches such as
+task/risk class, team topology, provider diversity, latency band, cost band,
+and verifier demand. Descriptors must be observable from receipts and must not
+encode hidden-answer proxies. Within each archive cell, hard constraints filter
+first; the frozen policy then retains a Pareto set over independently measured
+correctness, robustness, cost, latency, intervention, and observation survival,
+using a stable content ID tie-break.
+
+No global scalar reward can trade a safety regression for throughput. Archive
+cells, descriptors, objective definitions, and bounds are versioned policy
+subjects. Changing one starts a new comparable campaign rather than rewriting
+history.
+
+### Evaluation and promotion ladder
+
+Recipes advance only through comparable completed rungs:
+
+1. `B0` deterministic simulator, property, contract, and fault checks;
+2. `B1` small visible matched task block against the incumbent;
+3. `B2` larger visible matched block under the same total compute budget;
+4. `B3` untouched sealed confirmation under independent oracle custody;
+5. `B4` no-effect shadow routing on live task classifications;
+6. `B5` bounded low-risk canary with automatic rollback; and
+7. `B6` eligible routing arm with an incumbent traffic reserve.
+
+Pruning happens only between completed, comparable rungs. Raw holdout failures
+never enter author context, and a recipe family that authored a Candidate
+cannot provide its independence-required review. A promotion service separate
+from the optimizer verifies the exact campaign, policy, corpus, budget,
+contamination, Evidence, and observation receipts before activating a recipe.
+
+### Champion, challengers, and drift
+
+Conservative routing chooses only among already certified recipes, records the
+eligible set and abstentions, and preserves a fixed incumbent reserve. One
+champion may coexist with multiple niche challengers; quality diversity is
+preferred over one fashionable universal team. A sparse island model may copy
+only immutable recipe identity between campaigns, and the destination must
+reevaluate it independently.
+
+Post-promotion monitoring covers escaped defects, revert rate, duplicate or
+ambiguous effects, false completion, cost, latency, verifier backlog, human
+intervention, provider/profile drift, and task-mixture drift. A bound breach
+automatically removes the recipe from routing, preserves all lineage and
+negative knowledge, and falls back to the certified incumbent. The optimizer
+may recommend a trial or archival action; only reviewed policy services may
+register, promote, roll back, or quarantine a recipe.
+
+Each campaign emits an exact decision receipt binding recipe and parent IDs,
+corpus and split digests, task assignments, provider/profile/configuration
+subjects, budgets, all Evidence and observation roots, exclusions,
+contamination decisions, archive cell, Pareto/tie-break inputs, promotion
+stage, and policy version. Replaying those records must reproduce the same
+selection or fail closed.
+
 ## Acceptance properties
 
 The implementation is not conformant until tests prove:
@@ -196,6 +289,13 @@ The implementation is not conformant until tests prove:
 - writer evidence cannot satisfy independent gates;
 - quota, budget, repair, and verifier-backlog limits stop new work; and
 - ambiguous effects reconcile by read-back without a second write.
+
+After the dependency gate opens, conformance additionally requires that a
+multi-agent challenger cannot displace the incumbent without comparable
+independent evidence, a hard-constraint failure cannot enter an archive cell,
+sealed holdout content cannot reach a recipe or author context, selection and
+promotion replay deterministically, drift rollback restores the prior eligible
+set, and evolution never changes an authority or safety-policy subject.
 
 Current implementation status is tracked only in the
 [V1 closure plan](../assurance/v1-closure-plan.md). This model is not a claim

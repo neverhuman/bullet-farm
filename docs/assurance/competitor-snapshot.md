@@ -13,11 +13,13 @@ test. It is not a benchmark result and makes no superiority claim.
 | Project | Subject observed | Source |
 | --- | --- | --- |
 | Gas Town | release `v1.2.1`, peeled commit `319d33a91b2deca59bba6dd26be6b9daf8eaacf6` | [release](https://github.com/gastownhall/gastown/releases/tag/v1.2.1), [commit](https://github.com/gastownhall/gastown/commit/319d33a91b2deca59bba6dd26be6b9daf8eaacf6) |
-| Gas City | `main` commit `1807cf018045e9f225993d97cf6daea37e2ce6e9` | [repository](https://github.com/gastownhall/gascity), [commit](https://github.com/gastownhall/gascity/commit/1807cf018045e9f225993d97cf6daea37e2ce6e9) |
+| Gas City release | release `v1.4.1` (2026-08-15), tag object `610666314a884cd2db7386c1df3b6ef7c521706e`, peeled commit `58ef17e3bd685fd5cf7f21286277b208d3324590` | [release](https://github.com/gastownhall/gascity/releases/tag/v1.4.1), [commit](https://github.com/gastownhall/gascity/commit/58ef17e3bd685fd5cf7f21286277b208d3324590) |
+| Gas City development | `main` commit `2cd07e018bf3680d24b037b509e6a4bad5e623ba` observed 2026-08-25 | [repository](https://github.com/gastownhall/gascity), [commit](https://github.com/gastownhall/gascity/commit/2cd07e018bf3680d24b037b509e6a4bad5e623ba) |
 
-Gas Town's tag remains the released product baseline. Gas City's branch is a
-dated source snapshot only; every later comparison must record a new commit and
-date instead of rewriting this subject.
+Gas Town's tag remains its released product baseline. Gas City's released tag
+is the product baseline; its separate branch row is a dated source observation
+only. Every later comparison must record a new tag or commit and date instead
+of silently moving either subject.
 
 ## Mechanisms worth preserving
 
@@ -27,6 +29,14 @@ visible factory metaphor. Gas City generalizes much of that into six declarative
 primitives—Agent, Bead, Formula, Rig, Pack, and Event—with configurable roles,
 formula fan-out, multiple runtime providers, an append-only event surface, and
 controller reconciliation.
+
+Gas City 1.4.1 raises the concrete comparison bar beyond those primitives. Its
+release line includes typed and paginated run/session APIs, warm projections,
+worker-boundary session convergence, formula-v2 retry/fan-out/drain/scope
+controls, explicit degraded storage outcomes, release-candidate gates using
+real inference, fenced dead-session cleanup, and platform artifacts with
+checksums, SBOMs, and attestations. These are observed mechanisms to test, not
+evidence that either system is safer or faster.
 
 Bullet Farm should preserve the product leverage while measuring these exact
 properties:
@@ -38,8 +48,11 @@ properties:
 | Parallel fan-out | Receipts report useful surviving outcomes, contention, cost, latency, and verifier backlog |
 | Provider plurality | Identical proposal/evidence contracts pass independently for Claude, Codex, Cursor, and Antigravity |
 | Health reconciliation | Lease/fence and observation state—not terminal names or silence—drive recovery |
+| API and projection scale | Typed pagination, replay watermarks, warm-read behavior, and degraded-state truth remain correct under a measured run/session corpus |
+| Declarative workflow control | Retry, fan-out, drain, cancellation, and scope transitions preserve one exact graph/effect identity under faults |
 | Review and gap filling | Writer, verifier, and effect attestor remain independent exact-subject principals |
 | Portability | One signed family lock and package manifest reproduces clean ordinary clones from a hub-only start |
+| Release evidence | Archives, checksums, SBOMs, attestations, real-inference gates, and installer receipts are compared by exact subject rather than feature presence |
 
 ## Deliberate Bullet boundaries
 
@@ -82,7 +95,8 @@ subjects, configuration, receipts, exclusions, and exact upstream commits.
 
 ## Refresh procedure
 
-1. Resolve the released Gas Town tag and Gas City branch to full commits.
+1. Resolve the released Gas Town and Gas City tags (including annotated tag
+   objects and peeled commits) plus any explicitly compared development branch.
 2. Record observation date, URLs, configurations, and benchmark corpus digest.
 3. Review upstream architecture and release notes for changed primitives.
 4. Add a new dated snapshot or append a clearly delimited revision; do not

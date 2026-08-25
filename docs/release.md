@@ -42,14 +42,14 @@ receipt never certifies another provider or profile.
 
 | Gate | Status | Evidence needed to clear it |
 | --- | --- | --- |
-| Hub-only installation | `BLOCKED` | The checked-in alpha.4 lock is schema 2 and intentionally rejected. Publish a real schema-3 lock with authenticated Jeryu URL/slug and signed exact subjects, then reproduce the already-tested two-run clean-install invariant using a signed prebuilt installer from tagged release bytes in a fresh home |
-| Production Kernel transaction | `BLOCKED` | Atomic lease/command/event/outbox, snapshots, authenticated ingress, typed operation decisions, and an authenticated exact-ID offline worker/reconciler are committed. Receipt-bound WAL-consistent backup and a fail-closed quarantined restore with an explicit restore epoch are also committed. Signed provider/effect dispatch and execution, independent verification/effects integration, normalized full truth, CAS/retention/GC, production restore admission/publication, and cross-plane crash receipts remain |
+| Hub-only installation | `BLOCKED` | The checked-in alpha.4 lock is schema 2 and intentionally rejected. Descriptor-relative private staging, no-replace publication, fsync, bounded no-follow cleanup, and two-run fixture setup are committed. Publish a real schema-3 lock with authenticated Jeryu URL/slug and signed exact subjects, then replay the invariant using a signed prebuilt installer from tagged release bytes in a fresh home |
+| Production Kernel transaction | `BLOCKED` | Atomic lease/command/event/outbox, snapshots, authenticated ingress, exact offline reconciliation, admitted verifier gates, and bounded one-shot verifier transport are committed. Signed source/Attempt reconstruction authority, JSON-RPC, verifier process-tree supervision, provider/effect dispatch, normalized full truth, CAS/GC, production restore, and cross-plane crash receipts remain |
 | Production BulletGit transaction | `BLOCKED` | Durable CAS/journal, generation-atomic apply, and preservation-bound cleanup are committed; online authority, complete Candidate/Integration manifests, shared-wire consumption, and reviewed tagged `jeryu-gitd` remain |
 | Offline five-plane proof | `BLOCKED` | One signed `TRANSACTION_PROOF` covering authority, runner death/salvage, independent verification, ambiguous-effect reconciliation, protected integration, preservation, and truthful portal projection |
 | Jeryu live effect | `BLOCKED` | Operator-restored authentication and read-back/reconciliation receipt; the running forge must not be modified to work around missing capability |
 | GitHub live effect | `BLOCKED` | Configured GitHub App test repository and exact-subject integration/reconciliation receipt |
 | Provider conformance | `BLOCKED` | Bounded fail-closed offline protocol subsets are committed for Claude stream JSON, Codex App Server JSONL, Cursor ACP, and Antigravity structured output. Recursive duplicate-key and trailing-data refusal now covers every raw provider input, including Codex's inner proposal text. The adapters do not spawn an admitted binary, use provider credentials, prove native typed extensions or event schemas, or produce live conformance. RFC 8785/byte/numeric-lexeme canonicalization, signed executable/profile admission, isolated credentials and egress, supervision/deadlines, and live receipts for all four providers remain |
-| Security quality | `BLOCKED` | The latest Hub Jankurai report is 60 (raw 61), with 7 caps and 34 findings, including 23 `high`. No finding has tool severity `hard` (some checks carry a `hard` tag), but the caps, high findings, and score still block release; release needs at least 90, zero caps/hard findings, and all required scans |
+| Security quality | `BLOCKED` | The latest deterministic Hub Jankurai report is 58 (raw 58), with 10 caps and 40 findings: 25 high/hard and 15 medium/soft. The score, caps, and hard findings block release. Hosted CI also lacks a portable checksum-pinned Jankurai artifact; do not replace that gap with a machine-local or skip-green lane. Release needs at least 90, zero caps/hard findings, and all required scans |
 | Release supply chain | `BLOCKED` | A Linux component verifies an exact non-circular signed five-target manifest and every declared byte subject, then can safely materialize one exact signed archive at an absent destination. It is not a package builder, installer, activation/rollback mechanism, or release authority. Reproducible package production, semantic binary/SBOM/provenance validation, package signatures from protected release keys, installer smoke, and tagged release receipts remain |
 | Platform containment | `BLOCKED` | Linux production containment plus fail-closed proof on every other packaged platform until an equivalent native backend passes |
 
@@ -70,8 +70,13 @@ These reviewed commits are component evidence, not release or live evidence:
 | Cursor offline protocol | Kernel `ea89929` | Bounded ACP transcript subset; native typed-extension and live conformance remain unproved |
 | Antigravity offline protocol | Kernel `5badc85` | Bounded structured-output subset; native stream schema and live conformance remain unproved |
 | Strict provider JSON | Kernel `1bb32bd` | Recursive duplicate-key and trailing-data refusal on all four raw paths, including Codex proposal text; no canonicalization or live authority |
-| Setup transaction | Hub `5148a52` | Source/component fixture proof; no authenticated public schema-3 lock or prebuilt installer |
-| Bundle verifier | Hub `352f963` | Read-only exact-byte verification base; no package production, installation, or signing authority |
+| Admitted gate/verifier | Kernel `528348f` | Fixed catalog ID/argv/timeout and exact-subject E2 Evidence; only one fixture gate, with no executable digest, production framing/source admission, or multi-gate aggregation |
+| Verifier transport | Kernel `365bb5d` | Bounded strict one-shot request/output, exact frame and overflow kill/reap; no JSON-RPC, signed reconstruction source, or process-tree contract |
+| Setup transaction | Hub `94b6549` | Descriptor-relative source/component fixture proof; active same-UID path-based Git races, public schema-3 authority, and prebuilt installer remain open |
+| Bundle verifier/extractor | Hub `352f963`, `ba09056` | Exact-byte verification and safe absent-destination materialization only; no package production, semantic admission, activation/rollback, or signing authority |
+| Signed receipt verifier | Hub `143f8b9` | Canonical receipt/policy and exact OpenSSH signer/namespace/interval verification; no external policy, trusted time/revocation/custody, semantic adjudication, registry/replay, or real receipt |
+| BulletGit subject/recovery contract | BulletGit `274fd6d`, `f551736` | Exact local freeze/recovery and strict wire-shaped subjects; no immutable shared-wire tag, provenance-complete Candidate identity, or production Jeryu service |
+| Generated/browser runtime truth | Kernel `35b6484`; Portal `181cd00`; Hub `601cb82` | Generated consumed DTO validation plus exact correlated UNKNOWN/SSE proof against Vite preview + real farmd; not Rust-embedded or package-served, and Candidate/Evidence/Effect DTOs remain open |
 
 ## Local pre-release gates
 
@@ -87,7 +92,9 @@ just audit
 bullet-family check release --json
 ```
 
-These commands prove repository and family prerequisites only. They do not
+These commands prove repository and family prerequisites only. The real browser
+lane still uses Vite preview and a separately built farmd, not extracted package
+bytes. They do not
 authorize a release until the transaction, live, recovery, packaging, and
 signing receipts above exist. `check release` is a read-only, fail-closed
 inventory of those blockers; it executes no release mutation while the
@@ -153,11 +160,14 @@ installation; provision signing trust; or emit release evidence. No package buil
 is not package-production, installation, signer, platform, or release evidence.
 
 The Rust setup/checkout mechanism and its signed local four-repository fixture implement these
-rules, including two idempotent exact installs. Fallible dependency, generated-contract, and exact-
-family checks now complete before Linux no-replace member publication, and the outer manifest is the
-final durable marker; injected transaction boundaries recover to prior or complete next state. All
-production Git/tool/doctor/coordination children use bounded capture, and local Rust fusion replays
-byte-identically without tracked drift. Setup rejects unsupported platforms before mutation. The
+rules, including two idempotent exact source setups. It retains the admitted family-root descriptor,
+uses 0700 descriptor-relative staging, checks root/staging identity around path-dependent children,
+publishes members and the final outer manifest without replacement, fsyncs authority boundaries,
+and confines cleanup with no-follow depth/entry limits. Fallible dependency, generated-contract,
+and exact-family checks complete before publication; injected transaction boundaries recover to
+prior or complete next state. Setup rejects unsupported platforms before mutation. Active same-UID
+mutation during external path-based Git remains beyond this descriptor boundary; a cleanup limit may
+safely leave an orphan, and an error after publication requires exact setup/verify reconciliation. The
 checked-in alpha.4 lock remains schema 2, so the public command still fails before mutation with
 schema-3 regeneration guidance. Release evidence remains blocked until authenticated Jeryu subjects
 and a signed prebuilt binary exist and the invariant is replayed from those exact release bytes. No public
