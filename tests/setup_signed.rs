@@ -7,7 +7,7 @@ fn install_authority_rejects_a_circular_hub_member() {
         "schema_bundle_hash = \"blake3:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n",
         "[[member]]\n",
         "name = \"bullet-farm\"\n",
-        "jeryu_url = \"https://jeryu.example/root/bullet-farm.git\"\n",
+        "jeryu_url = \"https://jeryu.example/git/root/bullet-farm.git\"\n",
         "jeryu_slug = \"root/bullet-farm\"\n",
         "tag = \"v1.0.0\"\n",
         "commit_oid = \"sha1:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"\n",

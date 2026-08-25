@@ -27,7 +27,7 @@ fn valid_lock() -> FamilyLock {
         schema_bundle_hash: digest('a'),
         member: vec![LockedMember {
             name: "bullet-kernel".to_owned(),
-            jeryu_url: Some("https://jeryu.example/root/bullet-kernel.git".to_owned()),
+            jeryu_url: Some("https://jeryu.example/git/root/bullet-kernel.git".to_owned()),
             jeryu_slug: Some("root/bullet-kernel".to_owned()),
             tag: "v1.0.0".to_owned(),
             commit_oid: oid('e'),
@@ -73,7 +73,8 @@ fn strict_schema_rejects_hostile_identity_and_path_mutations() {
         Box::new(|lock| lock.member[0].artifact.swap(0, 1)),
         Box::new(|lock| lock.member[0].jeryu_url = None),
         Box::new(|lock| {
-            lock.member[0].jeryu_url = Some("https://jeryu.example/root/different.git".to_owned());
+            lock.member[0].jeryu_url =
+                Some("https://jeryu.example/git/root/different.git".to_owned());
         }),
         Box::new(|lock| lock.member[0].lockfile[0].digest = digest('A')),
         Box::new(|lock| lock.member[0].name = "bullet-farm".to_owned()),

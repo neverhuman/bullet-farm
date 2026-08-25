@@ -79,7 +79,7 @@ fn lock_fusion_binds_verified_schema_three_sources_and_subjects() {
         } else {
             assert_eq!(
                 record["jeryu_url"].as_str(),
-                Some(format!("https://jeryu.example/root/{name}.git").as_str())
+                Some(format!("https://jeryu.example/git/root/{name}.git").as_str())
             );
             assert_eq!(
                 record["jeryu_slug"].as_str(),
@@ -144,8 +144,8 @@ impl Fixture {
         let allowed = format!("{PRINCIPAL} namespaces=\"git\" {}\n", public_key.trim());
         write_manifests(&root);
         for name in REPOSITORIES {
-            let origin =
-                (*name != "bullet-farm").then(|| format!("https://jeryu.example/root/{name}.git"));
+            let origin = (*name != "bullet-farm")
+                .then(|| format!("https://jeryu.example/git/root/{name}.git"));
             init_repo(&root, name, Some(&allowed), origin.as_deref());
             if *name != "bullet-farm" {
                 sign_tag(&root.join(name), &key);
@@ -226,7 +226,7 @@ fn write_manifests(root: &Path) {
         ));
         if *name != "bullet-farm" {
             manifest.push_str(&format!(
-                "jeryu_url = \"https://jeryu.example/root/{name}.git\"\njeryu_slug = \"root/{name}\"\n"
+                "jeryu_url = \"https://jeryu.example/git/root/{name}.git\"\njeryu_slug = \"root/{name}\"\n"
             ));
         }
     }

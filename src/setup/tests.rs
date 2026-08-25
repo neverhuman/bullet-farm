@@ -397,7 +397,7 @@ fn write_rich_manifest(root: &Path) {
         ));
         if member != "bullet-farm" {
             text.push_str(&format!(
-                "jeryu_url = \"http://127.0.0.1:8787/root/{member}.git\"\njeryu_slug = \"root/{member}\"\n"
+                "jeryu_url = \"http://127.0.0.1:8787/git/root/{member}.git\"\njeryu_slug = \"root/{member}\"\n"
             ));
         }
     }

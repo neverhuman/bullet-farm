@@ -20,6 +20,11 @@ only that the named acceptance receipt exists; it cannot promote a family gate.
   `/home/ubuntu/jain-split/jeryu-split`. Never recreate
   `/home/ubuntu/jeryu-split`. The branded hub owns onboarding, its manifest,
   and pinned component mapping; component repositories remain independent.
+- Users are encouraged to run localhost Jeryu so CAS, read-back, protected
+  refs, offline CI, and local context services can be certified together.
+  GitHub and GitLab stay optional effect adapters. WP-19 installs or connects
+  to a signed Jeryu runtime artifact under XDG data/config paths; it never
+  creates a Jeryu source checkout or family member under this tree.
 - `git.neverhuman.org`, `github.com/neverhuman/jeryu`, and
   `github.com/neverhuman/jankurai` are unratified future topology proposals,
   not current authority, authenticated endpoints, or public front doors. An
@@ -60,6 +65,7 @@ are descriptive only: `BACKLOG`, `IN PROGRESS`, `EXTERNAL-BLOCKED`, or
 | WP-16 | P0 | V1 | Existing G3/G4; signed shared wire tag | Kernel, BulletGit | Signed lease-transport and fail-closed production clone are component-only; no durable Mutation reservation | One Kernel reservation write that repeats the active-lease check, issues a one-use permit, and is verified by production BulletGit before I/O | BACKLOG |
 | WP-17 | P1 | post-V1 | WP-08, WP-09, operator topology RFC | Jeryu operations, Hub | No public Git endpoint; GitHub and `git.neverhuman.org` are unratified names | Dated decision: GitHub as public index and/or backup; independent Jeryu Git as hosted front door for selected families; neither becomes source authority without CAS, read-back, and backup receipts | BACKLOG |
 | WP-18 | P1 | post-V1 | Operator family-root RFC | Jeryu hub | Permitted local family remains `/home/ubuntu/jain-split/jeryu-split` | Extract Jeryu to a ratified independent family root without recreating `/home/ubuntu/jeryu-split`; update pins, never committed sibling path dependencies | BACKLOG |
+| WP-19 | P0 | V1 | WP-03, WP-08, OD-D; must not wait on WP-18 | Hub installer, family container | Dedicated forge-topology audit; family-root `NEXT_EVOLUTION_PLAN.md` remains non-authoritative until corrected | Keep source only in `/home/ubuntu/jain-split/jeryu-split`. Bind a signed Jeryu runtime artifact in a non-circular external-component lock; support read-only `connect-existing` and isolated `managed` modes under versioned XDG paths; never copy, symlink, vendor, restart, upgrade, or reconfigure the existing source family or shared service. Default effect profile is localhost Jeryu; GitHub/GitLab remain optional, separately certified adapters. Freeze `/git/{owner}/{repo}.git`, REST, capability, upgrade/rollback, and receipt contracts before implementation. This row is not a G6 live receipt | BACKLOG |
 
 ## Maintenance
 

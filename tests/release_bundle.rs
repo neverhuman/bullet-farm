@@ -322,7 +322,7 @@ fn family_lock_text() -> String {
         "schema_bundle_hash = \"blake3:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"\n",
         "[[member]]\n",
         "name = \"bullet-kernel\"\n",
-        "jeryu_url = \"https://jeryu.example/root/bullet-kernel.git\"\n",
+        "jeryu_url = \"https://jeryu.example/git/root/bullet-kernel.git\"\n",
         "jeryu_slug = \"root/bullet-kernel\"\n",
         "tag = \"v0.1.0-fixture.1\"\n",
         "commit_oid = \"sha1:dddddddddddddddddddddddddddddddddddddddd\"\n",

@@ -29,7 +29,7 @@ fn signed_generation_and_exact_checkout_verification_are_non_circular() {
                 "required_repos = [\"bullet-farm\", \"bullet-kernel\"]\n",
                 "[[repo]]\nname = \"bullet-farm\"\npath = \"{root}/bullet-farm\"\n",
                 "[[repo]]\nname = \"bullet-kernel\"\npath = \"{root}/bullet-kernel\"\n",
-                "jeryu_url = \"https://jeryu.example/root/bullet-kernel.git\"\n",
+                "jeryu_url = \"https://jeryu.example/git/root/bullet-kernel.git\"\n",
                 "jeryu_slug = \"root/bullet-kernel\"\n",
             ),
             root = root.display()
