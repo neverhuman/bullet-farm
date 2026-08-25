@@ -1,7 +1,7 @@
 # Bullet Farm paper and executive brief
 
 Status: **Stage-1 architecture/component-assurance preprint; not release evidence**
-Last reviewed: 2026-08-25 (snapshot `20260825-stage1-r2`)
+Last reviewed: 2026-08-25 (snapshot `20260825-stage1-r3`; R4 merge adds the verified liveness-class issues #3584/#4737/#4091 to the issue audit, the exact TLC model boundary, evolutionary control as design, a red-team self-review appendix, and claim-site citations; no evidence input changed)
 
 This directory holds the citable IEEEtran paper and one-column executive brief:
 

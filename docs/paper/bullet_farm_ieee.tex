@@ -207,8 +207,14 @@ The public issue corpus supplies concrete instances: town-root checkout
 deleted operational files~\cite{gastown4094}; parallel rig-root writers
 clobbered edits~\cite{gascity1181}; a timeout after a server commit admitted
 duplicate workflows~\cite{gascity5511}; and a non-atomic claim let two sessions
-execute the same task~\cite{gascity1052}. These reports are evidence for failure
-classes, not proof that the projects remain vulnerable at later heads.
+execute the same task~\cite{gascity1052}. Inferred liveness has its own
+instances: a polecat session that died mid-task left its work hooked with no
+notification~\cite{gastown3584}; a patrol cleanup step whose liveness check
+classified every worker as dead would have force-removed live
+worktrees~\cite{gastown4737}; and a refinery aliveness check that trusted stale
+pid files never respawned dead refineries~\cite{gastown4091}. These reports are
+evidence for failure classes, not proof that the projects remain vulnerable at
+later heads.
 
 \subsection{The Transaction Subject}
 
@@ -322,7 +328,12 @@ daemon is the repository writer. Each Attempt uses a private clone rather than
 a linked worktree, eliminating shared index/common-ref control paths between
 Attempt principals. Hostile repository configuration, hooks, alternates,
 credential helpers, and environment are treated as input to be cleared or
-refused, not inherited ambient authority~\cite{bulletGitArch}.
+refused, not inherited ambient authority~\cite{bulletGitArch}. The committed
+policy names Landlock, seccomp, and cgroup~v2 as the Linux production
+containment reference~\cite{bulletPolicy,landlock,seccomp}; at the snapshot
+only the user and network namespace egress component
+exists~\cite{namespaces7,bulletRelease}, so a bubblewrap-class filesystem and
+process sandbox for the provider~\cite{bubblewrap} remains \Designed.
 
 \subsection{Candidate and Verification}
 
@@ -435,6 +446,53 @@ subject satisfies admitted gates. The broker decides whether an authorized,
 verified subject may be proposed to the forge, while the forge remains
 sovereign over its protected ref. No single database row replaces those
 independent observations.
+
+\subsection{Evolutionary Control as Design}
+\label{sec:evo}
+
+The intended product is a multi-agent system in which several Variants compete
+inside one Mission under the invariants above. Everything in this subsection is
+\Designed: the normative model is a reviewed document, the committed policy
+fixes \code{evolutionary_authority=false}, and the closure plan gates the
+program on a connected transaction~\cite{bulletEvo,bulletPolicy,bulletClosure}.
+``Evolutionary'' means bounded search over immutable, evidence-bearing
+software-change lineages; not autonomous credential use, self-reported
+fitness, unbounded agent debate, or online self-modification.
+
+The genome is an immutable, content-addressed \code{TeamRecipe}: typed roles
+and contracts, communication edges and context policy, certified
+provider/profile choices, bounded budgets, and deterministic stopping,
+escalation, dissent, fusion, and fallback rules. A recipe cannot contain or
+evolve credentials, authority claims, safety rules, risk classes, protected
+paths, evidence floors, hidden evaluators, integration policy, effect
+permission, or hard budget ceilings, and a new recipe inherits no live session,
+credential, workspace, proof, or cache. A deterministic feasibility shield
+(authority, containment, certification, role conflicts, quota, budget, verifier
+capacity, task policy) runs before any objective, so infeasible recipes consume
+no budget and no score offsets a hard constraint. Eligible results enter a
+bounded quality-diversity archive in the MAP-Elites
+family~\cite{mouret2015,pugh2016}: human-versioned, receipt-observable
+descriptors define cells, and each cell keeps a Pareto set over independently
+measured correctness, robustness, cost, latency, intervention, and observation
+survival with a content-ID tie-break; there is no global scalar reward.
+
+Recipes advance only through completed, comparable rungs B0--B6 in the
+successive-halving discipline of staged budgets~\cite{jamieson2016,li2020asha}:
+deterministic checks; a small matched visible block against the incumbent; a
+larger block under the same total compute; a sealed confirmation under
+independent oracle custody; no-effect shadow routing; a bounded canary with
+automatic rollback; and an eligible routing arm with an incumbent traffic
+reserve. Raw holdout failures never enter author context. Every task class
+keeps a strong single-agent incumbent; agent count, transcript volume,
+confidence, and activity are never fitness dimensions; a sparse island model
+copies only immutable recipe identity, re-evaluated at the
+destination~\cite{alba2002}; and a monitored bound breach removes a recipe and
+falls back to the incumbent. V1 records routing and outcome provenance and does
+not update weights, prompts, policies, or privileges online. Contextual routing
+learners~\cite{li2010} are post-V1 and require holdouts with unbiased offline
+evaluation~\cite{li2011}, rollback, drift detection, and an explainable signed
+decision record. None of these mechanisms has a receipt; they are absent by
+design rather than incomplete.
 
 \subsection{BulletGit as the Repository Trust Boundary}
 
@@ -553,6 +611,17 @@ demonstration, not a live transaction. The doctor result is
 unsupported and stale. The release inventory is a truthful negative receipt,
 not a score.
 
+At the Kernel subject the live-admission boundary is mechanized on both sides
+and closed. The Kernel policy loader mirrors the Hub's \code{v1alpha2} rule
+(live admission only at policy generation $\geq 2$ with an active
+\code{provider-runner} key; commit \code{0d848f6}); the nightly lane's
+real-binary mode refuses to start without an operator-ratified policy path
+(\code{b4735da}); and under the committed generation-1 policy every provider
+is refused at \code{POLICY_LIVE_ADMISSION_DISABLED} before any key read, probe,
+or spawn, with default nightly halves targeting a marker script so that any
+spawn fails the lane. Ratification is an operator act recorded in the family
+ledger. No provider has a live receipt~\cite{bulletClosure,bulletRelease}.
+
 \subsection{Evidence Lifecycle}
 
 An admissible receipt answers five questions: \emph{who observed what exact
@@ -607,15 +676,38 @@ and one observed effect.
 
 \subsection{Formal Models and Their Boundary}
 
-Exactly two bounded TLA+ models are pinned: lease/fence/reclaim and
-command/effect ambiguity under timeout~\cite{bulletFormal}. At the snapshot the
-model lane is \EvidenceFormalOutcome{} for \EvidenceFormalModels{} models at
-the recorded tool, source, configuration, and state counts. These are
-safety-model component receipts. They do not model Git implementation,
-provider protocols, the forge, OS containment, liveness/fairness, multi-tenant
-attackers, or the entire product. Deadlock checking is not promoted into a
-claim that the service always makes progress. Model success therefore remains
-\ComponentProved, never \TransactionProved.
+Exactly two bounded TLA+ models are pinned and checked with
+TLC~\cite{bulletFormal,yu1999}; the lock fixes the TLC release by digest, the
+Java major, single-worker execution, and the module, configuration, and state
+counts. At the snapshot the model lane is \EvidenceFormalOutcome{} for
+\EvidenceFormalModels{} models. \emph{LeaseFence} models two runners, one
+lease, a monotonically increasing fence, a database clock, scope revisions
+behind a mutation barrier, freeze, and restore epochs (\code{MaxFence=3},
+\code{MaxTime=4}, \code{MaxScope=3}, \code{MaxOps=2}, \code{MaxEpoch=2},
+\code{MaxFreeze=3}); it checks exactly \code{TypeOK},
+\code{BarrierHasNoInFlightApply}, and \code{RestoredAuthorityNeedsFreshAcquire}
+over 529,851 generated and 128,913 distinct states at depth 24. Stale-fence,
+stale-epoch, expired, frozen, and barrier applies are refused by the
+authorization guard and counted, not asserted as an invariant, and fence
+monotonicity holds by construction (the fence changes only on acquisition, by
+one), not by check. \emph{EffectCheck} models one effect and one dependent
+check against a remote that may be untouched, desired, or written by a third
+party (\code{MaxDispatches=2}, \code{MaxEpoch=2}); it checks exactly
+\code{TypeOK}, \code{AtMostOneLogicalEffect}, \code{VerifiedEffectWasReadBack},
+\code{CheckRequiresDurableProof}, and \code{ThirdPartyStateIsNeverAdopted} over
+1,585 generated and 378 distinct states at depth 18.
+\code{AtMostOneLogicalEffect} is enforced by assignment rather than by counting
+physical writes, so the dispatch guard carries the real protection, and
+\code{NoDispatchAfterStop} is defined but not listed in the checked
+configuration.
+
+Both configurations set \code{CHECK_DEADLOCK FALSE}; no liveness or fairness
+property is checked. Wound-wait~\cite{rosenkrantz1978}, multi-resource scope
+expansion, two Attempts on one Variant, Git, provider protocols, the forge, OS
+containment, and multi-tenant attackers are not modelled. The JSON traces
+beside the models are executable fixtures replayed by Rust tests, not
+model-check results. Model success therefore remains \ComponentProved, never
+\TransactionProved.
 
 \subsection{Open Connected Product Boundary}
 
@@ -745,7 +837,7 @@ ordered numerical values and should not be summed.
 
 One objection is that every part of the chain already exists: worktrees isolate
 files, containers isolate processes, CI verifies commits, merge queues protect
-branches, and idempotency keys prevent duplicate requests. The premises are
+branches, and idempotency keys prevent duplicate requests~\cite{idempotencyKey}. The premises are
 mostly correct; the conclusion does not follow unless the subjects and
 principals at their boundaries are the same.
 
@@ -757,8 +849,9 @@ outside the intended edit surface. A private clone with authentication removed
 is not magical isolation either, but it makes the repository principal a
 separable object that the sole writer can validate and destroy.
 
-\emph{A sandbox is not a repository transaction.} A container, bubblewrap,
-seatbelt profile, or remote VM can restrict filesystem and network access. It
+\emph{A sandbox is not a repository transaction.} A container,
+bubblewrap~\cite{bubblewrap}, seatbelt profile, or remote VM can restrict
+filesystem and network access. It
 does not decide whether the bytes being written are an admitted patch for the
 current fence, whether tests name the resulting tree, or whether a protected
 push applied after timeout. Sandboxing is a necessary defense against provider
@@ -867,6 +960,9 @@ Project / ID / state / version & Pinned-code or release corroboration & Failure 
 \midrule
 Gas Town \#4094; open; reported 1.1.0~\cite{gastown4094} & v1.2.1 retains town/hook worktree architecture; issue is not treated as a pin-wide verdict & Repository/config aliasing & Sole writer; hostile Git/config refusal; private Attempt clone & \ComponentProved & Connected BulletGit authority and same-UID path races remain open. \\
 Gas Town \#742; closed; reported before v1.2.1~\cite{gastown742} & v1.2.1 was inspected; no ``687 respawns'' figure is present or claimed & Configuration placement & Sealed admitted HOME/config and exact executable subject & \ComponentProved & Live provider configuration and every real-provider receipt remain absent. \\
+Gas Town \#3584; closed; version not stated~\cite{gastown3584} & v1.2.1 README keeps the Problems-view row ``Zombie: Dead tmux session'' as the liveness signal~\cite{gastownReadme}; issue records a mid-task death that left work hooked without notification & Inferred liveness (silent death) & Lease/fence heartbeat with runner self-fence; hooked work never completes by silence & \ComponentProved & DB-clock leases and self-fence exist; the four-valued reconciled observation is designed. \\
+Gas Town \#4737; open; reported 1.1.0~\cite{gastown4737} & v1.2.1 retains patrol and cleanup molecules; issue records a liveness check that classified every dog dead before forced worktree removal & Inferred liveness (false death) and destructive recovery & Destructive eligibility only from exact incarnation identity; preservation before deletion & \ComponentProved & Preservation and tombstone are local components; no connected cleanup settlement. \\
+Gas Town \#4091; open; version not stated~\cite{gastown4091} & v1.2.1 retains daemon aliveness checks; issue records stale pid files trusted as liveness & Inferred liveness (stale identity) & Incarnation fence and ledger observation, never PID or session name & \ComponentProved & Fence is a component; the reconciled ALIVE/DEAD/UNKNOWN/CONTRADICTORY observation is designed. \\
 Gas City \#1181; open; version not specified~\cite{gascity1181} & v1.4.1 documents rigs/packs; issue records parallel agents resolving to one rig path & Shared writable identity & Private per-Attempt clone; one writer principal & \ComponentProved & No connected positive BulletGit transaction. \\
 Gas City \#5511; open; affected v1.4.1~\cite{gascity5511} & Exact selected release is the reported affected version; issue records post-commit timeout and duplicate workflows & Ambiguous effect retry & Durable effect identity; expected-old-OID CAS; read-back/adoption & \ComponentProved & No authenticated live forge receipt or transaction proof. \\
 Gas City \#1052; closed via \#2985; affected 0.15.2~\cite{gascity1052} & v1.4.1 is later than the reported fix; retained as historical class evidence only & Non-atomic claim & Atomic lease/fence/Attempt command transition & \ComponentProved & Signed online transport is not connected end to end. \\
@@ -1133,5 +1229,55 @@ fails closed.
 \balance
 \bibliographystyle{IEEEtran}
 \bibliography{refs}
+
+
+\section{Red-Team Self-Review}
+\label{app:redteam}
+
+Ten attacks a hostile reviewer will run, each answered or conceded.
+
+\begin{enumerate}
+\item \emph{``Your issues do not say what you say.''} Conceded for an earlier
+draft that attributed a respawn storm and a ``687 respawns'' figure to
+issue~742; that issue concerns a settings path and the figure has no source.
+The liveness class now cites issues 3584, 4737, and 4091 with state, date, and
+pinned corroboration (Table~\ref{tab:issues}). Residual: trackers move.
+\item \emph{``Component receipts are not a product.''} Conceded. Nothing here
+exceeds \ComponentProved; \EvidenceReleaseBlocked{} of
+\EvidenceReleaseEvaluated{} release gates are blocked and the connected
+transaction is absent.
+\item \emph{``Two TLA+ models prove the system.''} Conceded. Bounded safety
+only, deadlock checking off, one invariant true by assignment, one defined but
+unchecked, no wound-wait, Git, forge, or provider state.
+\item \emph{``Fencing tokens, idempotency keys, sandboxes, and merge queues with
+new names.''} Largely conceded and cited. The claim is compositional: the same
+subject and principal at every boundary. Its worth is the deferred Stage-2
+question.
+\item \emph{``Providers propose is unenforceable.''} Partly conceded. Only a
+validated proposal crosses the writer boundary, but the provider filesystem and
+process sandbox is \Designed; only the network-namespace egress component
+exists, and no transaction has composed admission, proposal, and apply.
+\item \emph{``An evolutionary paper with no evolutionary code.''} Conceded.
+Section~\ref{sec:evo} is design; the policy pins
+\code{evolutionary_authority=false}; the program is post-V1 and gated on the
+connected transaction.
+\item \emph{``A single-user loopback threat model is trivial.''} Narrow by
+design: the adversaries are the model, a concurrent incarnation, a retrying
+supervisor, hostile repository content, and a promoting projection, which are
+the corpus failures. Multi-tenant and hostile-host threats are named out of
+scope, not implied.
+\item \emph{``An agent can flip live admission.''} Rejected. The schema rule is
+enforced by the Hub validator and mirrored by the Kernel loader; live admission
+needs generation $\geq 2$ and a registered runner key; real-mode nightly refuses
+without an operator-ratified policy path; an environment token was rejected as
+admission.
+\item \emph{``A security paper with \EvidenceAuditHard{} hard findings.''}
+Conceded. The figures are generated from the manifest, dated, and block release
+by the family's own rule; no security quality is claimed.
+\item \emph{``The comparison is a cartoon of featureful systems.''} Rejected.
+Operational capability and authority/integrity are separate matrices;
+\NotDoc{} is never converted into ``No''; each deep study credits what the
+system contributes; no superiority language precedes the matched benchmark.
+\end{enumerate}
 
 \end{document}
