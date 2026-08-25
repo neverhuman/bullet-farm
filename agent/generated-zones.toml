@@ -73,7 +73,7 @@ read_only = true
 
 [[zone]]
 path = "docs/assurance/release-truth.generated.md"
-source = "src/check/prerequisites.rs + src/check/truth/rows.rs + family.lock + repos.manifest.toml + docs/release.md"
+source = "src/check/prerequisites.rs + src/check/truth/rows.rs + family.lock + repos.manifest.toml + docs/release.md + docs/assurance/product-gaps.md"
 command = "just release-truth"
 read_only = true
 

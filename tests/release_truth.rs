@@ -12,6 +12,8 @@ static FIXTURE_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 const LOCK: &str = include_str!("fixtures/release-truth/family.lock");
 const RELEASE_INDEX: &str = "# Fixture release contract\n\nStatus: **BLOCKED — fixture**  \nOwner: fixture\nLast reviewed: 2026-01-01\n";
 const MANIFEST: &str = "schema_version = \"1.2.0\"\nfamily = \"bullet-farm\"\numbrella_repo = \"bullet-farm\"\nrequired_repos = [\"bullet-farm\", \"bullet-kernel\", \"bullet-git\", \"bullet-portal\"]\n";
+/// The register's two bound tables, byte-stable for the golden page; prose is omitted on purpose.
+const REGISTER: &str = "# Fixture product gap register\n\n| ID | Gap |\n| --- | --- |\n| G1 | Hub-only signed install |\n| G2 | Connected five-plane transaction |\n| G3 | Production Kernel write path |\n| G4 | Production BulletGit write path |\n| G5 | Live provider conformance |\n| G6 | Jeryu live effect |\n| G7 | GitHub live effect |\n| G8 | Security release floor |\n| G9 | Signed five-target release |\n| G10 | Non-Linux containment |\n| G11 | Evolutionary runtime |\n| G12 | Family `check release` |\n| G13 | Portal product surfaces |\n| G14 | farmd production API |\n| G15 | Cognitive persistence |\n\n| Gate ID | Product gap | Class |\n| --- | --- | --- |\n| `release.installable-lock` | G1 | Release |\n| `release.installer-twice` | G1 | Release |\n| `release.transaction-demo` | G2 | Transaction |\n| `release.fault-suite` | G2, G3 | Release |\n| `release.backup-restore` | G3, G9 | Release |\n| `release.provider.claude` | G5 | Live |\n| `release.provider.codex` | G5 | Live |\n| `release.provider.cursor` | G5 | Live |\n| `release.provider.antigravity` | G5 | Live |\n| `release.forge.jeryu` | G6 | Live |\n| `release.forge.github-app` | G7 | Live |\n| `release.jankurai-90` | G8 | Release |\n| `release.scan.dependency` | G8, G9 | Release |\n| `release.scan.license` | G8, G9 | Release |\n| `release.scan.secret` | G8, G9 | Release |\n| `release.scan.workflow` | G8, G9 | Release |\n| `release.checksums` | G9 | Release |\n| `release.manifest-non-circular` | G9 | Release |\n| `release.package-matrix` | G9 | Release |\n| `release.provenance` | G9 | Release |\n| `release.receipt-contracts` | G9 | Release |\n| `release.rust-msrv-1-95` | G9 | Release |\n| `release.rust-pinned-1-97-1` | G9 | Release |\n| `release.sbom` | G9 | Release |\n| `release.signatures` | G9 | Release |\n| `release.platform-containment` | G10 | Release |\n";
 
 struct Fixture {
     root: PathBuf,
@@ -36,6 +38,7 @@ impl Fixture {
         write(&hub.join("scripts/setup.sh"), "#!/bin/sh\nexit 1\n");
         write(&hub.join("repos.manifest.toml"), MANIFEST);
         write(&hub.join("docs/release.md"), RELEASE_INDEX);
+        write(&hub.join("docs/assurance/product-gaps.md"), REGISTER);
         Self { root }
     }
 
@@ -122,10 +125,10 @@ fn head(repository: &Path) -> String {
     String::from_utf8(output.stdout).unwrap().trim().to_owned()
 }
 
-fn gate_lines(page: &str) -> Vec<&str> {
-    let (_, gates) = page.split_once("## Gates").expect("gates section");
-    let (gates, _) = gates.split_once("## Excluded").expect("excluded section");
-    gates
+fn claim_lines<'a>(page: &'a str, start: &str, end: &str) -> Vec<&'a str> {
+    let (_, section) = page.split_once(start).expect("section start");
+    let (section, _) = section.split_once(end).expect("section end");
+    section
         .lines()
         .filter(|line| {
             line.contains("**")
@@ -135,9 +138,50 @@ fn gate_lines(page: &str) -> Vec<&str> {
         .collect()
 }
 
+fn gate_lines(page: &str) -> Vec<&str> {
+    let mut lines = claim_lines(page, "## Gates", "## Product-gap crosswalk");
+    lines.extend(claim_lines(
+        page,
+        "## Blocking but not a release gate",
+        "## Excluded",
+    ));
+    lines
+}
+
+const OWNER_LABELS: [&str; 3] = ["LOCAL (", "LOCAL-then-EXTERNAL (", "EXTERNAL ("];
+
+fn assert_fields_are_closed_vocabulary(page: &str) {
+    assert_eq!(page.matches("   - Product gap: G").count(), 26);
+    assert_eq!(page.matches("   - Release-blocking: yes").count(), 26 + 4);
+    assert_eq!(page.matches("   - Release-blocking: no for V1").count(), 1);
+    let mut owners = 0;
+    for line in page.lines().filter(|line| line.starts_with("   - Owner: ")) {
+        let owner = line.trim_start_matches("   - Owner: ");
+        assert!(
+            OWNER_LABELS.iter().any(|label| owner.starts_with(label)),
+            "owner outside the closed vocabulary: {line}"
+        );
+        owners += 1;
+    }
+    assert_eq!(owners, 26 + 5);
+    let mut nexts = 0;
+    for line in page
+        .lines()
+        .filter(|line| line.starts_with("   - Next command: "))
+    {
+        let next = line.trim_start_matches("   - Next command: ");
+        assert!(
+            next.starts_with('`') || next.starts_with("NONE — no typed command exists yet"),
+            "next command is neither typed nor honestly absent: {line}"
+        );
+        nexts += 1;
+    }
+    assert_eq!(nexts, 26 + 5);
+}
+
 fn assert_never_closed(page: &str) {
     let lines = gate_lines(page);
-    assert_eq!(lines.len(), 26 * 3);
+    assert_eq!(lines.len(), (26 + 5) * 3);
     for line in lines {
         for token in line.split(|byte: char| !byte.is_ascii_alphanumeric()) {
             assert!(
@@ -167,6 +211,57 @@ fn portable_report_matches_the_golden_page_from_a_hub_only_checkout() {
     assert_eq!(page, golden, "portable page drifted from golden");
     assert!(!page.contains(fixture.root.to_str().unwrap()));
     assert_never_closed(&page);
+    assert_fields_are_closed_vocabulary(&page);
+    assert!(page.contains("`release.backup-restore` BLOCKED\n   - Product gap: G3, G9\n"));
+    assert!(page.contains("Agreement with `docs/assurance/product-gaps.md`: YES — all 26 crosswalk rows and the G-id list agree"));
+    assert!(
+        page.contains("| G12 | Family `check release` | this inventory — 26 gates, 0 receipted")
+    );
+    for gap in ["G4", "G11", "G13", "G14", "G15"] {
+        assert!(
+            page.contains(&format!("| {gap} | ")),
+            "{gap} missing from crosswalk"
+        );
+        assert!(
+            page.contains(&format!("** — {gap} ")),
+            "{gap} missing from ungated section"
+        );
+    }
+    for provider in ["claude", "codex", "cursor", "agy"] {
+        assert!(page.contains(&format!(
+            "BULLET_LIVE_PROVIDERS={provider} bash ops/ci/nightly.sh"
+        )));
+    }
+    assert!(page.contains("docs/runbooks/live-conformance.md"));
+    assert!(page.contains("| product-gap register | `docs/assurance/product-gaps.md` | blake3:"));
+}
+
+#[test]
+fn register_crosswalk_drift_is_visible_and_absent_register_is_unknown() {
+    let fixture = Fixture::hub_only();
+    write(
+        &fixture.hub().join("docs/assurance/product-gaps.md"),
+        &REGISTER.replace(
+            "| `release.fault-suite` | G2, G3 |",
+            "| `release.fault-suite` | G3 |",
+        ),
+    );
+    let output = fixture.run(&["check", "release", "--report", "--portable"]);
+    assert_eq!(output.status.code(), Some(3));
+    let page = String::from_utf8(output.stdout).unwrap();
+    assert!(page.contains(
+        "Agreement with `docs/assurance/product-gaps.md`: NO — `release.fault-suite`: page G2, G3 vs register G3"
+    ));
+    assert!(page.contains("   - Product gap: G2, G3\n"));
+    fs::remove_file(fixture.hub().join("docs/assurance/product-gaps.md")).unwrap();
+    let output = fixture.run(&["check", "release", "--report", "--portable"]);
+    assert_eq!(output.status.code(), Some(3));
+    let page = String::from_utf8(output.stdout).unwrap();
+    assert!(page.contains(
+        "Agreement with `docs/assurance/product-gaps.md`: UNKNOWN — the register is absent"
+    ));
+    assert!(page.contains("| product-gap register | `docs/assurance/product-gaps.md` | absent |"));
+    assert_never_closed(&page);
 }
 
 #[test]
@@ -191,6 +286,8 @@ fn live_report_binds_subjects_and_check_report_freshness() {
     assert!(page.contains("| Deployment match | N/A"));
     assert!(page.contains("| Post-deploy survival | NOT ESTABLISHED |"));
     assert_never_closed(&page);
+    assert_fields_are_closed_vocabulary(&page);
+    assert!(page.contains("| product-gap register | `docs/assurance/product-gaps.md` | blake3:"));
 
     let stale = format!(
         "{{\"schema_version\":2,\"command\":\"check\",\"tier\":\"FAST\",\"status\":\"PASS\",\"gates\":[{{\"id\":\"fast.hub\",\"status\":\"PASS\",\"class\":\"COMPONENT\",\"detail\":\"d\",\"repair\":null,\"subjects\":[{{\"repository\":\"bullet-farm\",\"commit_oid\":\"sha1:{}\",\"tree_oid\":\"sha1:{}\"}}]}}]}}",

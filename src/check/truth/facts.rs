@@ -22,6 +22,7 @@ pub(super) const REPOSITORIES: &[&str] = &[
     "bullet-portal",
 ];
 pub(super) const RELEASE_INDEX: &str = "docs/release.md";
+pub(super) const PRODUCT_GAP_REGISTER: &str = "docs/assurance/product-gaps.md";
 pub(super) const MECHANICAL_TIERS: &[(&str, &str, &str)] = &[
     ("fast", "FAST", ".bullet-family/check-fast.json"),
     ("required", "REQUIRED", ".bullet-family/check-required.json"),
@@ -45,6 +46,7 @@ pub(super) struct Facts {
     pub hub_head_committed_at: Option<String>,
     pub lock: Result<LockSummary, String>,
     pub release_index: ReleaseIndexFact,
+    pub register: Register,
     pub mechanical: Vec<MechanicalFact>,
     pub inputs: Vec<InputFact>,
 }
@@ -61,6 +63,40 @@ pub(super) struct SubjectFact {
 pub(super) struct ReleaseIndexFact {
     pub status: Option<String>,
     pub last_reviewed: Option<String>,
+}
+
+/// The product gap register's crosswalk, read from `docs/assurance/product-gaps.md`.
+/// Only the `release.*` crosswalk rows and the G-id rows are bound; prose edits
+/// elsewhere in the register never move this page.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(super) enum Register {
+    Absent,
+    Unparsed(String),
+    Read(RegisterTable),
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub(super) struct RegisterTable {
+    /// `(gate id, G-ids)` crosswalk rows, sorted by gate id.
+    pub gates: Vec<(String, Vec<String>)>,
+    /// G-ids of the gap table, in document order.
+    pub gap_ids: Vec<String>,
+    /// blake3 over the canonical crosswalk rows and G-id list only.
+    pub identity: String,
+}
+
+impl Register {
+    pub(super) fn identity(&self) -> String {
+        match self {
+            Self::Absent => "absent".to_owned(),
+            Self::Unparsed(reason) => format!("unparsed ({reason})"),
+            Self::Read(table) => format!(
+                "blake3:{} over the {} `release.*` crosswalk rows + G-id list only",
+                table.identity,
+                table.gates.len()
+            ),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -124,6 +160,7 @@ pub(super) fn gather(hub: &Path, variant: Variant) -> Facts {
         })
         .collect();
     let release_index = release_index(&hub.join(RELEASE_INDEX));
+    let register = register(&hub.join(PRODUCT_GAP_REGISTER));
     let mut inputs = vec![
         input("family lock", "family.lock", hub, live),
         input("hub manifest", "repos.manifest.toml", hub, live),
@@ -135,6 +172,10 @@ pub(super) fn gather(hub: &Path, variant: Variant) -> Facts {
                 |date| format!("`Last reviewed: {date}` line only"),
             ),
             ..input("release index", RELEASE_INDEX, hub, live)
+        },
+        InputFact {
+            identity: register.identity(),
+            ..input("product-gap register", PRODUCT_GAP_REGISTER, hub, live)
         },
     ];
     for &(tier, _, path) in MECHANICAL_TIERS {
@@ -154,6 +195,7 @@ pub(super) fn gather(hub: &Path, variant: Variant) -> Facts {
         subjects,
         lock: doctor::lock_summary(hub).map_err(|error| error.to_string()),
         release_index,
+        register,
         mechanical,
         inputs,
     }
@@ -224,6 +266,71 @@ fn release_index(path: &Path) -> ReleaseIndexFact {
         status: field("Status:"),
         last_reviewed: field("Last reviewed:"),
     }
+}
+
+fn register(path: &Path) -> Register {
+    match read_bounded(path).and_then(|bytes| String::from_utf8(bytes).ok()) {
+        Some(text) => parse_register(&text),
+        None => Register::Absent,
+    }
+}
+
+fn is_gap_id(cell: &str) -> bool {
+    cell.strip_prefix('G').is_some_and(|digits| {
+        !digits.is_empty() && digits.bytes().all(|byte| byte.is_ascii_digit())
+    })
+}
+
+/// Parse the register's `release.<gate>` crosswalk rows (gate, G-ids, class)
+/// and its `G<n>` gap rows. Everything else in the document is ignored.
+pub(super) fn parse_register(text: &str) -> Register {
+    let mut gates = Vec::new();
+    let mut gap_ids = Vec::new();
+    for line in text.lines() {
+        let cells = line
+            .trim()
+            .strip_prefix('|')
+            .and_then(|rest| rest.strip_suffix('|'))
+            .map(|inner| inner.split('|').map(str::trim).collect::<Vec<_>>())
+            .unwrap_or_default();
+        let Some(&first) = cells.first() else {
+            continue;
+        };
+        if let Some(gate) = first
+            .strip_prefix("`release.")
+            .and_then(|rest| rest.strip_suffix('`'))
+        {
+            let Some(&gaps) = cells.get(1) else {
+                return Register::Unparsed(format!("crosswalk row without gaps: {line}"));
+            };
+            let ids = gaps.split(',').map(str::trim).collect::<Vec<_>>();
+            if ids.is_empty() || !ids.iter().all(|id| is_gap_id(id)) {
+                return Register::Unparsed(format!("crosswalk row with malformed gaps: {line}"));
+            }
+            gates.push((
+                format!("release.{gate}"),
+                ids.into_iter().map(str::to_owned).collect::<Vec<_>>(),
+            ));
+        } else if is_gap_id(first) {
+            gap_ids.push(first.to_owned());
+        }
+    }
+    if gates.is_empty() {
+        return Register::Unparsed("no `release.*` crosswalk rows".to_owned());
+    }
+    if gap_ids.is_empty() {
+        return Register::Unparsed("no G-id rows".to_owned());
+    }
+    gates.sort();
+    let mut canonical = format!("gaps={}\n", gap_ids.join(","));
+    for (gate, ids) in &gates {
+        canonical.push_str(&format!("{gate}={}\n", ids.join(",")));
+    }
+    Register::Read(RegisterTable {
+        gates,
+        gap_ids,
+        identity: blake3::hash(canonical.as_bytes()).to_hex().to_string(),
+    })
 }
 
 fn mechanical(path: &Path, expected_tier: &str, subjects: &[SubjectFact]) -> Mechanical {

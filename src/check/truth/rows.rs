@@ -1,240 +1,240 @@
-//! One falsifiable claim per registered release gate. Nightshift style: each
+//! One falsifiable claim per registered release gate, plus the product gaps
+//! that block a release without owning a gate id. Nightshift style: each
 //! sentence names what remains unproved, never work remaining.
 //!
-//! Evidence class comes from the gate catalog, never from this table. A claim
+//! Evidence class comes from the gate catalog, never from this table. Product
+//! gap ids come from the G-table in `docs/assurance/product-gaps.md`. A claim
 //! sentence must never read as closed while its gate is unreceipted; the unit
-//! tests below enforce vocabulary and one-to-one coverage of the catalog.
+//! tests below enforce vocabulary, one-to-one catalog coverage, and that every
+//! G-id is answered by a gate row, the ungated section, or the inventory itself.
 
+mod gates;
+mod ungated;
+
+pub(super) use gates::ROWS;
+pub(super) use ungated::UNGATED;
+
+use super::facts::RegisterTable;
+use crate::check::model::GateClass;
+
+/// The product gap register's G-ids and titles (`docs/assurance/product-gaps.md`).
+pub(super) const PRODUCT_GAPS: &[(&str, &str)] = &[
+    ("G1", "Hub-only signed install"),
+    ("G2", "Connected five-plane transaction"),
+    ("G3", "Production Kernel write path"),
+    ("G4", "Production BulletGit write path"),
+    ("G5", "Live provider conformance"),
+    ("G6", "Jeryu live effect"),
+    ("G7", "GitHub live effect"),
+    ("G8", "Security release floor"),
+    ("G9", "Signed five-target release"),
+    ("G10", "Non-Linux containment"),
+    ("G11", "Evolutionary runtime"),
+    ("G12", "Family `check release`"),
+    ("G13", "Portal product surfaces"),
+    ("G14", "farmd production API"),
+    ("G15", "Cognitive persistence"),
+];
+
+/// The gap that is this inventory itself; it owns no row.
+pub(super) const INVENTORY_GAP: &str = "G12";
+
+/// Words that would make an unreceipted claim read as closed.
+pub(super) const CLOSED_WORDS: &[&str] = &["verified", "proven", "done", "complete"];
+
+/// Who can close a claim. The label set is closed; the per-row text says what
+/// the offline part and the external predecessor are.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) enum Owner {
     /// Closable offline from the checked-out family with admitted local tools.
-    Local,
-    /// Needs an operator credential, signer, service, or platform.
-    External,
+    Local(&'static str),
+    /// Closable offline only up to a predecessor that needs an operator
+    /// credential, signer, service, platform, or the tagged release bytes.
+    LocalThenExternal {
+        offline: &'static str,
+        external: &'static str,
+    },
+    /// Needs an operator credential, signer, service, or platform throughout.
+    External(&'static str),
 }
 
 impl Owner {
+    pub(super) const LABELS: [&'static str; 3] = ["LOCAL", "LOCAL-then-EXTERNAL", "EXTERNAL"];
+
     pub(super) const fn label(self) -> &'static str {
         match self {
-            Self::Local => "LOCAL (closable offline)",
-            Self::External => "EXTERNAL (needs operator credential, signer, service, or platform)",
+            Self::Local(_) => Self::LABELS[0],
+            Self::LocalThenExternal { .. } => Self::LABELS[1],
+            Self::External(_) => Self::LABELS[2],
         }
+    }
+
+    pub(super) fn render(self) -> String {
+        let label = self.label();
+        match self {
+            Self::Local(what) => format!("{label} (closable offline) — {what}"),
+            Self::LocalThenExternal { offline, external } => format!(
+                "{label} (closable offline only up to an external predecessor) — offline part: {offline}; external predecessor: {external}"
+            ),
+            Self::External(what) => format!(
+                "{label} (needs operator credential, signer, service, or platform) — {what}"
+            ),
+        }
+    }
+
+    pub(super) fn texts(self) -> Vec<&'static str> {
+        match self {
+            Self::Local(what) | Self::External(what) => vec![what],
+            Self::LocalThenExternal { offline, external } => vec![offline, external],
+        }
+    }
+}
+
+/// The exact typed command that moves a claim, or the honest absence of one.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(super) struct Next {
+    pub command: Option<&'static str>,
+    /// What the command does and does not produce today.
+    pub note: &'static str,
+}
+
+impl Next {
+    pub(super) const NONE_LABEL: &'static str = "NONE — no typed command exists yet";
+
+    pub(super) fn render(self) -> String {
+        match self.command {
+            Some(command) => format!("`{command}` — {}", self.note),
+            None => format!("{}; {}", Self::NONE_LABEL, self.note),
+        }
+    }
+}
+
+const fn command(command: &'static str, note: &'static str) -> Next {
+    Next {
+        command: Some(command),
+        note,
+    }
+}
+
+const fn none(note: &'static str) -> Next {
+    Next {
+        command: None,
+        note,
     }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) struct ClaimRow {
     pub id: &'static str,
+    /// G-ids from the product gap register, ascending.
+    pub gap_ids: &'static [&'static str],
     pub claim: &'static str,
     pub why: &'static str,
     pub acceptance: &'static str,
+    /// Component evidence that exists and must not be promoted.
+    pub exists: &'static str,
     pub owner: Owner,
+    pub next: Next,
 }
 
-/// Words that would make an unreceipted claim read as closed.
-pub(super) const CLOSED_WORDS: &[&str] = &["verified", "proven", "done", "complete"];
+/// A product gap that blocks the release without owning a `release.*` id.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(super) struct UngatedRow {
+    pub gap_id: &'static str,
+    pub claim: &'static str,
+    pub why: &'static str,
+    pub acceptance: &'static str,
+    /// Class of the first receipt that would count for this gap.
+    pub class: GateClass,
+    /// Current evidence; always component or design level here.
+    pub evidence: &'static str,
+    pub owner: Owner,
+    pub next: Next,
+    /// How this gap blocks the release decision, or that it does not for V1.
+    pub blocking: &'static str,
+}
 
-const fn row(
-    id: &'static str,
-    claim: &'static str,
-    why: &'static str,
-    acceptance: &'static str,
-    owner: Owner,
-) -> ClaimRow {
-    ClaimRow {
-        id,
-        claim,
-        why,
-        acceptance,
-        owner,
+impl ClaimRow {
+    pub(super) fn texts(&self) -> Vec<&'static str> {
+        let mut texts = vec![
+            self.claim,
+            self.why,
+            self.acceptance,
+            self.exists,
+            self.next.note,
+        ];
+        texts.extend(self.owner.texts());
+        texts
     }
 }
 
-const fn provider(id: &'static str, claim: &'static str) -> ClaimRow {
-    row(
-        id,
-        claim,
-        "A bounded offline parser proves nothing about the live adapter, its credentials, quota, isolation, or patch output.",
-        "Register the exact adapter/version/profile receipt covering isolation, failure, quota, and patch conformance from one admitted live run with operator credentials.",
-        Owner::External,
-    )
+impl UngatedRow {
+    pub(super) fn texts(&self) -> Vec<&'static str> {
+        let mut texts = vec![
+            self.claim,
+            self.why,
+            self.acceptance,
+            self.evidence,
+            self.next.note,
+            self.blocking,
+        ];
+        texts.extend(self.owner.texts());
+        texts
+    }
 }
-
-pub(super) const ROWS: &[ClaimRow] = &[
-    row(
-        "release.backup-restore",
-        "Nobody has restored a tagged backup and read the restored state back as an exact-subject release receipt.",
-        "A backup whose restore has never been observed protects nothing; the pointed-at bytes, not the database, are the recovery subject.",
-        "Run the tagged backup/restore suite from release bytes and register a signed receipt binding backup digest, restore epoch, and the exact four-repository subjects.",
-        Owner::Local,
-    ),
-    row(
-        "release.checksums",
-        "No checksum set exists for any release archive, because no release archive exists.",
-        "Without checksums an installer cannot tell substituted bytes from released bytes.",
-        "Generate and re-read checksums for every exact archive in the five-target matrix and bind them in the signed release manifest.",
-        Owner::Local,
-    ),
-    row(
-        "release.fault-suite",
-        "Nobody has crashed the tagged family at every SQLite/WAL/CAS/journal/generation boundary and read back either the prior or the whole next state.",
-        "Crash safety that was only reasoned about is not crash safety; one unobserved boundary can lose or duplicate an effect.",
-        "Run the tagged crash-boundary and recovery fault suite from release bytes and register its exact signed receipt.",
-        Owner::Local,
-    ),
-    row(
-        "release.forge.github-app",
-        "No GitHub App has integrated an exact Candidate into a protected test repository and read the result back.",
-        "GitHub is an effect adapter; until a lost response reconciles to UNKNOWN and read-back adopts the original OID, every GitHub effect is unproved.",
-        "Configure the GitHub App test repository with branch protection and register exact-subject dispatch, check, integration, read-back, and reconciliation receipts.",
-        Owner::External,
-    ),
-    row(
-        "release.forge.jeryu",
-        "No protected Jeryu integration has run with restored operator authentication and produced a read-back receipt.",
-        "Jeryu is the source forge; an integration that never read its own result back cannot claim protected-ref safety.",
-        "With operator-restored authentication run read-only probes, then one exact protected integration with UNKNOWN/read-back reconciliation, and register the receipt; never modify the running forge.",
-        Owner::External,
-    ),
-    row(
-        "release.installable-lock",
-        "The checked-in family.lock is still schema 2, which every installer path rejects by design.",
-        "Installation from the hub cannot start until a lock carries authenticated Jeryu sources and signed exact subjects.",
-        "Publish immutable signed member tags, generate the schema-3 lock with Jeryu URL/slug, exact tree OIDs, lockfiles, and artifact digests, and commit it under a signed hub tag.",
-        Owner::External,
-    ),
-    row(
-        "release.installer-twice",
-        "Nobody has run the signed prebuilt installer twice in a fresh HOME from tagged hub-only bytes.",
-        "A source bootstrap that launches Cargo before admission is not an installer receipt; idempotence and exact clean member OIDs must be observed, not assumed.",
-        "From a signed prebuilt bullet-family binary and tagged bytes, run setup twice in a fresh HOME and register exact clean member OIDs, zero tracked changes, and no worktrees.",
-        Owner::External,
-    ),
-    row(
-        "release.jankurai-90",
-        "No pinned Jankurai report reads 90 or better with zero caps and zero hard findings for the exact release subjects.",
-        "Hard findings and caps are release blockers; a machine-local or skip-green audit lane cannot substitute for the pinned receipt.",
-        "Run pinned Jankurai 1.6.11 with zero skips against the exact tagged subjects and register the score/cap/hard-finding receipt at 90 or better with zero caps and zero hard findings.",
-        Owner::Local,
-    ),
-    row(
-        "release.manifest-non-circular",
-        "No signed final release manifest binds the hub tag without embedding its own digest.",
-        "A manifest that includes its own digest cannot be checked; a manifest without a signature cannot be trusted.",
-        "Generate the final manifest binding hub tag, schema-3 lock, five byte-sorted target entries, and archive/SBOM/provenance digests, then sign it with the protected release key.",
-        Owner::External,
-    ),
-    row(
-        "release.package-matrix",
-        "None of the five release archives (Linux x86_64/aarch64, macOS x86_64/arm64, Windows x64) has been built with the Portal embedded.",
-        "A release is bytes on every declared platform; the Vite preview lane and a separately built farmd are not package evidence.",
-        "Build and smoke all five archives from the exact tagged family with the Portal embedded in the Rust distribution and register each archive digest.",
-        Owner::External,
-    ),
-    row(
-        "release.platform-containment",
-        "Only Linux containment has been observed live; no packaged non-Linux platform has been seen refusing real mutation.",
-        "A platform without an equivalent containment backend must fail closed, and that refusal is itself a receipt to produce.",
-        "Register the Linux production containment receipt plus a fail-closed mutation-refusal receipt on every other packaged platform.",
-        Owner::External,
-    ),
-    row(
-        "release.provenance",
-        "No signed build provenance statement exists for any archive.",
-        "Without provenance a consumer cannot connect archive bytes to the hub tag, lock, and toolchains that produced them.",
-        "Produce provenance bound to the exact hub tag, lock, toolchains, and archive digests, sign it, and re-read it with the release verifier.",
-        Owner::External,
-    ),
-    provider(
-        "release.provider.antigravity",
-        "No admitted Antigravity binary has run the exact-subject conformance transaction under provider-only egress; the offline structured-output subset is the only Antigravity evidence.",
-    ),
-    provider(
-        "release.provider.claude",
-        "No admitted Claude binary has run the exact-subject conformance transaction under provider-only egress; the offline stream-JSON subset is the only Claude evidence.",
-    ),
-    provider(
-        "release.provider.codex",
-        "No admitted Codex binary has run the exact-subject conformance transaction under provider-only egress; the offline App Server JSONL subset is the only Codex evidence.",
-    ),
-    provider(
-        "release.provider.cursor",
-        "No admitted Cursor binary has run the exact-subject conformance transaction under provider-only egress; the offline ACP subset is the only Cursor evidence.",
-    ),
-    row(
-        "release.receipt-contracts",
-        "The receipt verifier has only ever checked fixtures; no external allowed-signers policy or real signed release receipt has been provisioned.",
-        "A verifier without a provisioned signer policy and a real receipt is a component, not release evidence.",
-        "Provision the external signer policy, trusted-time observation, kind-specific semantic verifier, and exact tagged receipts, then register their verification.",
-        Owner::External,
-    ),
-    row(
-        "release.rust-msrv-1-95",
-        "Nobody has built and tested the exact tagged family with Rust 1.95 and registered the receipt.",
-        "MSRV is a release promise; a local toolchain match today is not a tagged-bytes build receipt.",
-        "Build and test the exact tagged family with the admitted Rust 1.95 toolchain under cargo --locked and register the receipt.",
-        Owner::Local,
-    ),
-    row(
-        "release.rust-pinned-1-97-1",
-        "Nobody has built and tested the exact tagged family with pinned Rust 1.97.1 and registered the receipt.",
-        "The pinned toolchain is the second required build; one toolchain receipt never covers the other.",
-        "Build and test the exact tagged family with the admitted pinned Rust 1.97.1 toolchain under cargo --locked and register the receipt.",
-        Owner::Local,
-    ),
-    row(
-        "release.sbom",
-        "No software bill of materials exists for any release archive.",
-        "Consumers cannot audit or respond to a vulnerability in bytes whose contents were never enumerated.",
-        "Generate and validate an SBOM for every exact release archive and bind each digest in the signed manifest.",
-        Owner::Local,
-    ),
-    row(
-        "release.scan.dependency",
-        "No pinned dependency scan receipt exists for the exact release lockfiles.",
-        "A scan run on a working tree at some earlier commit says nothing about the tagged lockfiles.",
-        "Run the admitted cargo-deny 0.19.8 against the exact tagged lockfiles and register its receipt.",
-        Owner::Local,
-    ),
-    row(
-        "release.scan.license",
-        "No pinned license policy scan receipt exists for the exact release artifacts.",
-        "License violations discovered after tagging invalidate the release bytes.",
-        "Run the admitted license scanner against the exact archives and SBOMs and register its receipt.",
-        Owner::Local,
-    ),
-    row(
-        "release.scan.secret",
-        "No pinned secret scan receipt exists for the exact tagged trees.",
-        "A canary or credential in tagged bytes is unrecoverable once published.",
-        "Run the admitted gitleaks 8.21.2 against every exact tagged tree and register its receipt.",
-        Owner::Local,
-    ),
-    row(
-        "release.scan.workflow",
-        "No pinned workflow policy scan receipt exists for the exact workflow bytes.",
-        "Hosted workflows are a supply-chain surface; unpinned or over-permissioned steps break provenance.",
-        "Run the admitted zizmor 1.25.2 against the exact workflow bytes and register its receipt.",
-        Owner::Local,
-    ),
-    row(
-        "release.signatures",
-        "Nothing in the package matrix carries a signature from a protected release key.",
-        "An unsigned archive, checksum set, SBOM, or manifest can be replaced by anyone who can write to the download path.",
-        "Sign every archive, checksum set, SBOM, provenance statement, and the final manifest with admitted release keys and re-read them with the release verifier.",
-        Owner::External,
-    ),
-    row(
-        "release.transaction-demo",
-        "Nobody has produced a signed five-plane TRANSACTION_PROOF from `just demo`; the demo still ends in synthetic success.",
-        "The offline transaction is the baseline every live and release gate builds on; synthetic success renamed is still synthetic.",
-        "Run the non-synthetic tagged demo through real child boundaries and the protected local forge simulator, ending in one signed TRANSACTION_PROOF covering authority, runner death/salvage, independent verification, ambiguous-effect reconciliation, protected integration, preservation, and truthful projection.",
-        Owner::Local,
-    ),
-];
 
 pub(super) fn find(id: &str) -> Option<&'static ClaimRow> {
     ROWS.iter().find(|row| row.id == id)
+}
+
+pub(super) fn gap_title(gap_id: &str) -> Option<&'static str> {
+    PRODUCT_GAPS
+        .iter()
+        .find(|(id, _)| *id == gap_id)
+        .map(|(_, title)| *title)
+}
+
+/// Gate ids whose row names `gap_id`, in catalog order.
+pub(super) fn gates_for(gap_id: &str) -> Vec<&'static str> {
+    ROWS.iter()
+        .filter(|row| row.gap_ids.contains(&gap_id))
+        .map(|row| row.id)
+        .collect()
+}
+
+pub(super) fn ungated_for(gap_id: &str) -> Option<&'static UngatedRow> {
+    UNGATED.iter().find(|row| row.gap_id == gap_id)
+}
+
+/// Every disagreement between the register's crosswalk and the compiled rows.
+pub(super) fn crosswalk_diffs(table: &RegisterTable) -> Vec<String> {
+    let mut diffs = Vec::new();
+    for row in ROWS {
+        match table.gates.iter().find(|(gate, _)| gate == row.id) {
+            None => diffs.push(format!("`{}` is missing from the register", row.id)),
+            Some((_, ids)) if ids != row.gap_ids => diffs.push(format!(
+                "`{}`: page {} vs register {}",
+                row.id,
+                row.gap_ids.join(", "),
+                ids.join(", ")
+            )),
+            Some(_) => {}
+        }
+    }
+    for (gate, _) in &table.gates {
+        if find(gate).is_none() {
+            diffs.push(format!("register names unknown gate `{gate}`"));
+        }
+    }
+    let compiled = PRODUCT_GAPS.iter().map(|(id, _)| *id).collect::<Vec<_>>();
+    if table.gap_ids != compiled {
+        diffs.push(format!(
+            "register G-ids {} vs page {}",
+            table.gap_ids.join(", "),
+            compiled.join(", ")
+        ));
+    }
+    diffs
 }
 
 /// True when `text` contains one of [`CLOSED_WORDS`] as a whole word, ignoring case.
@@ -247,6 +247,10 @@ pub(super) fn contains_closed_word(text: &str) -> bool {
 mod tests {
     use super::*;
     use crate::check::prerequisites;
+
+    fn gap_number(id: &str) -> u32 {
+        id.strip_prefix('G').unwrap().parse().unwrap()
+    }
 
     #[test]
     fn rows_cover_the_release_catalog_exactly_once() {
@@ -274,24 +278,136 @@ mod tests {
     }
 
     #[test]
-    fn unreceipted_claims_never_read_as_closed() {
+    fn every_gate_names_a_gap_and_every_gap_is_answered_once() {
+        let known = PRODUCT_GAPS.iter().map(|(id, _)| *id).collect::<Vec<_>>();
+        assert_eq!(known.len(), 15);
+        assert!(
+            known
+                .windows(2)
+                .all(|pair| gap_number(pair[0]) < gap_number(pair[1]))
+        );
         for row in ROWS {
-            for text in [row.claim, row.why, row.acceptance] {
-                assert!(!text.trim().is_empty(), "{} has an empty field", row.id);
-                assert!(
-                    text.ends_with('.'),
-                    "{} field is not a sentence: {text}",
-                    row.id
-                );
-                assert!(
-                    !contains_closed_word(text),
-                    "{} reads as closed: {text}",
-                    row.id
-                );
+            assert!(!row.gap_ids.is_empty(), "{} names no product gap", row.id);
+            for gap in row.gap_ids {
+                assert!(known.contains(gap), "{} names unknown gap {gap}", row.id);
+                assert_ne!(*gap, INVENTORY_GAP, "{} claims the inventory gap", row.id);
             }
+            assert!(
+                row.gap_ids
+                    .windows(2)
+                    .all(|pair| gap_number(pair[0]) < gap_number(pair[1])),
+                "{} gap ids are not ascending",
+                row.id
+            );
+        }
+        let ungated = UNGATED.iter().map(|row| row.gap_id).collect::<Vec<_>>();
+        assert!(
+            ungated
+                .windows(2)
+                .all(|pair| gap_number(pair[0]) < gap_number(pair[1]))
+        );
+        for gap in &ungated {
+            assert!(known.contains(gap), "ungated row names unknown gap {gap}");
+            assert!(gates_for(gap).is_empty(), "{gap} is both gated and ungated");
+            assert_ne!(*gap, INVENTORY_GAP);
+        }
+        for gap in &known {
+            let answered =
+                !gates_for(gap).is_empty() || ungated_for(gap).is_some() || *gap == INVENTORY_GAP;
+            assert!(answered, "{gap} is answered nowhere");
+        }
+        assert!(gates_for(INVENTORY_GAP).is_empty());
+        assert!(ungated_for(INVENTORY_GAP).is_none());
+    }
+
+    #[test]
+    fn unreceipted_claims_never_read_as_closed() {
+        let sentences = ROWS
+            .iter()
+            .flat_map(|row| {
+                [
+                    (row.id, row.claim),
+                    (row.id, row.why),
+                    (row.id, row.acceptance),
+                ]
+            })
+            .chain(UNGATED.iter().flat_map(|row| {
+                [
+                    (row.gap_id, row.claim),
+                    (row.gap_id, row.why),
+                    (row.gap_id, row.acceptance),
+                ]
+            }));
+        for (id, text) in sentences {
+            assert!(text.ends_with('.'), "{id} field is not a sentence: {text}");
+        }
+        let texts = ROWS
+            .iter()
+            .flat_map(|row| row.texts().into_iter().map(move |text| (row.id, text)))
+            .chain(
+                UNGATED
+                    .iter()
+                    .flat_map(|row| row.texts().into_iter().map(move |text| (row.gap_id, text))),
+            );
+        for (id, text) in texts {
+            assert!(!text.trim().is_empty(), "{id} has an empty field");
+            assert!(!contains_closed_word(text), "{id} reads as closed: {text}");
         }
         assert!(contains_closed_word("this is Done."));
         assert!(contains_closed_word("prior-or-complete-next"));
         assert!(!contains_closed_word("completeness verification verifier"));
+    }
+
+    #[test]
+    fn next_commands_name_surfaces_that_exist() {
+        let hub = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+        let justfile = std::fs::read_to_string(hub.join("Justfile")).unwrap();
+        let recipes = justfile
+            .lines()
+            .filter_map(|line| line.split_once(':'))
+            .filter(|(name, _)| !name.starts_with(' ') && !name.starts_with('['))
+            .map(|(name, _)| name.split_whitespace().next().unwrap_or(""))
+            .collect::<Vec<_>>();
+        let nexts = ROWS
+            .iter()
+            .map(|row| (row.id, row.next))
+            .chain(UNGATED.iter().map(|row| (row.gap_id, row.next)));
+        for (id, next) in nexts {
+            assert!(
+                !next.note.ends_with('.'),
+                "{id} next note is not a fragment"
+            );
+            let Some(command) = next.command else {
+                continue;
+            };
+            let local = command
+                .strip_prefix("cd ../bullet-kernel && ")
+                .map_or(command, |_| "");
+            if let Some(recipe) = local.strip_prefix("just ") {
+                assert!(
+                    recipes.contains(&recipe),
+                    "{id}: no Justfile recipe {recipe}"
+                );
+            } else if let Some(rest) = local.strip_prefix("bash ") {
+                let script = rest.split_whitespace().next().unwrap();
+                assert!(hub.join(script).is_file(), "{id}: no script {script}");
+            } else if let Some(rest) = local.strip_prefix("bullet-family ") {
+                let sub = rest.split_whitespace().next().unwrap();
+                assert!(
+                    ["check", "doctor", "lock", "release"].contains(&sub),
+                    "{id}: unknown bullet-family subcommand {sub}"
+                );
+            } else {
+                assert!(
+                    local.is_empty(),
+                    "{id}: unrecognised command shape {command}"
+                );
+                assert!(
+                    command.contains("bash ops/ci/")
+                        || command.contains("cargo run --locked -p bullet --"),
+                    "{id}: kernel command must be a lane script or the bullet CLI: {command}"
+                );
+            }
+        }
     }
 }

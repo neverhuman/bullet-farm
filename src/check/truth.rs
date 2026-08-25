@@ -23,10 +23,21 @@ pub(super) fn render(
 #[cfg(test)]
 mod tests {
     use super::{
-        facts::{Facts, InputFact, Mechanical, MechanicalFact, ReleaseIndexFact, SubjectFact},
+        facts::{
+            Facts, InputFact, Mechanical, MechanicalFact, Register, ReleaseIndexFact, SubjectFact,
+        },
         *,
     };
     use crate::{check::prerequisites, doctor::LockSummary};
+
+    const REGISTER_PATH: &str = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/docs/assurance/product-gaps.md"
+    );
+
+    fn hub_register() -> String {
+        std::fs::read_to_string(REGISTER_PATH).expect("product gap register")
+    }
 
     fn synthetic(variant: Variant) -> Facts {
         let live = variant == Variant::Live;
@@ -61,6 +72,7 @@ mod tests {
                 status: Some("BLOCKED".to_owned()),
                 last_reviewed: Some("2026-01-01".to_owned()),
             },
+            register: facts::parse_register(&hub_register()),
             mechanical: vec![
                 MechanicalFact {
                     tier: "fast",
@@ -84,6 +96,22 @@ mod tests {
                 mtime: live.then(|| "1700000000".to_owned()),
             }],
         }
+    }
+
+    fn section<'a>(page: &'a str, start: &str, end: &str) -> &'a str {
+        let (_, rest) = page.split_once(start).unwrap();
+        rest.split_once(end).unwrap().0
+    }
+
+    fn claim_lines(section: &str) -> Vec<&str> {
+        section
+            .lines()
+            .filter(|line| {
+                line.contains("**")
+                    || line.contains("- Why it matters:")
+                    || line.contains("- Acceptance:")
+            })
+            .collect()
     }
 
     #[test]
@@ -110,6 +138,13 @@ mod tests {
             assert!(first.contains("| tag | `v0.0.0-fixture` |"));
             assert!(!first.ends_with('\n'));
             assert_eq!(first.matches("   - Release-blocking: yes\n").count(), 26);
+            assert_eq!(first.matches("   - Product gap: G").count(), 26);
+            assert_eq!(first.matches("   - Next command: ").count(), 26 + 5);
+            assert!(first.contains("Agreement with `docs/assurance/product-gaps.md`: YES — all 26 crosswalk rows and the G-id list agree"));
+            assert!(first.contains(
+                "| G12 | Family `check release` | this inventory — 26 gates, 0 receipted"
+            ));
+            assert!(first.contains("| G4 | Production BulletGit write path | ungated — see"));
         }
         let live = render::render(&synthetic(Variant::Live), &report).unwrap();
         assert!(live.contains("| hub | `/fixture/bullet-farm` |"));
@@ -122,23 +157,91 @@ mod tests {
     }
 
     #[test]
-    fn rendered_claim_blocks_never_read_as_closed_while_unreceipted() {
+    fn rendered_claim_blocks_never_read_as_closed() {
         let report = prerequisites::report_release().unwrap();
         let page = render::render(&synthetic(Variant::Portable), &report).unwrap();
-        let (_, gates) = page.split_once("## Gates").unwrap();
-        let (gates, _) = gates.split_once("## Excluded").unwrap();
+        let gates = section(&page, "## Gates", render::CROSSWALK_HEADING);
+        let ungated = section(&page, render::UNGATED_HEADING, "## Excluded");
         let mut blocks = 0;
-        for line in gates.lines().filter(|line| {
-            line.contains("**")
-                || line.contains("- Why it matters:")
-                || line.contains("- Acceptance:")
-        }) {
+        for line in claim_lines(gates).into_iter().chain(claim_lines(ungated)) {
             assert!(
                 !rows::contains_closed_word(line),
                 "closed vocabulary: {line}"
             );
             blocks += 1;
         }
-        assert_eq!(blocks, 26 * 3);
+        assert_eq!(blocks, (26 + 5) * 3);
+        for line in page.lines().filter(|line| line.starts_with("   - Owner: ")) {
+            let owner = line.trim_start_matches("   - Owner: ");
+            assert!(
+                rows::Owner::LABELS
+                    .iter()
+                    .any(|label| owner.starts_with(&format!("{label} ("))),
+                "owner outside the closed vocabulary: {line}"
+            );
+        }
+        for line in page
+            .lines()
+            .filter(|line| line.starts_with("   - Next command: "))
+        {
+            let next = line.trim_start_matches("   - Next command: ");
+            assert!(
+                next.starts_with('`') || next.starts_with(rows::Next::NONE_LABEL),
+                "next command is neither typed nor honestly absent: {line}"
+            );
+        }
+    }
+
+    #[test]
+    fn register_drift_is_reported_not_hidden() {
+        let report = prerequisites::report_release().unwrap();
+        let drifted = hub_register().replace(
+            "| `release.backup-restore` | G3, G9 |",
+            "| `release.backup-restore` | G9 |",
+        );
+        let mut facts = synthetic(Variant::Portable);
+        facts.register = facts::parse_register(&drifted);
+        let page = render::render(&facts, &report).unwrap();
+        assert!(page.contains(
+            "Agreement with `docs/assurance/product-gaps.md`: NO — `release.backup-restore`: page G3, G9 vs register G9"
+        ));
+        facts.register = Register::Absent;
+        let page = render::render(&facts, &report).unwrap();
+        assert!(page.contains(
+            "Agreement with `docs/assurance/product-gaps.md`: UNKNOWN — the register is absent"
+        ));
+    }
+
+    #[test]
+    fn hub_register_crosswalk_and_titles_match_the_compiled_rows() {
+        let Register::Read(table) = facts::parse_register(&hub_register()) else {
+            panic!("hub register did not parse");
+        };
+        assert_eq!(table.gates.len(), rows::ROWS.len());
+        for row in rows::ROWS {
+            let (_, ids) = table
+                .gates
+                .iter()
+                .find(|(gate, _)| gate == row.id)
+                .unwrap_or_else(|| panic!("{} missing from the register", row.id));
+            assert_eq!(ids, row.gap_ids, "{} crosswalk drifted", row.id);
+        }
+        let compiled = rows::PRODUCT_GAPS
+            .iter()
+            .map(|(id, _)| *id)
+            .collect::<Vec<_>>();
+        assert_eq!(table.gap_ids, compiled);
+        let text = hub_register();
+        for &(id, title) in rows::PRODUCT_GAPS {
+            let expected = format!("| {id} | {title} |");
+            assert!(
+                text.contains(&expected),
+                "register title drifted for {id}: {expected}"
+            );
+        }
+        assert_eq!(
+            facts::parse_register("no tables here"),
+            Register::Unparsed("no `release.*` crosswalk rows".to_owned())
+        );
     }
 }
