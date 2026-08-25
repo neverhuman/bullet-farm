@@ -45,6 +45,9 @@ sync_file \
 sync_file \
   "$HUB/contracts/generated/typescript/schemaBundle.ts" \
   "$FAMILY/bullet-portal/src/generated/schemaBundle.ts"
+sync_file \
+  "$FAMILY/bullet-kernel/contracts/generated/api.ts" \
+  "$FAMILY/bullet-portal/src/generated/api.ts"
 for trace in effect-check-ambiguity effect-third-party lease-fence-reclaim; do
   sync_file \
     "$HUB/formal/traces/${trace}.json" \

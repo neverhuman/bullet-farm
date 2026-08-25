@@ -9,33 +9,45 @@ use super::{
 use crate::coord::CoordError;
 
 const MAX_CONTRACT_BYTES: u64 = 16 * 1024 * 1024;
-const CONTRACT_LINKS: &[(&str, &str, &str)] = &[
+const CONTRACT_LINKS: &[(&str, &str, &str, &str)] = &[
     (
+        "bullet-farm",
         "contracts/generated/rust/schema_bundle.rs",
         "bullet-kernel",
         "crates/domain/src/schema_bundle.rs",
     ),
     (
+        "bullet-farm",
         "contracts/generated/rust/schema_bundle.rs",
         "bullet-git",
         "crates/bullet-git-types/src/schema_bundle.rs",
     ),
     (
+        "bullet-farm",
         "contracts/generated/typescript/schemaBundle.ts",
         "bullet-portal",
         "src/generated/schemaBundle.ts",
     ),
     (
+        "bullet-kernel",
+        "contracts/generated/api.ts",
+        "bullet-portal",
+        "src/generated/api.ts",
+    ),
+    (
+        "bullet-farm",
         "formal/traces/effect-check-ambiguity.json",
         "bullet-kernel",
         "crates/adapters/tests/fixtures/formal/effect-check-ambiguity.json",
     ),
     (
+        "bullet-farm",
         "formal/traces/effect-third-party.json",
         "bullet-kernel",
         "crates/adapters/tests/fixtures/formal/effect-third-party.json",
     ),
     (
+        "bullet-farm",
         "formal/traces/lease-fence-reclaim.json",
         "bullet-kernel",
         "crates/adapters/tests/fixtures/formal/lease-fence-reclaim.json",
@@ -122,14 +134,13 @@ impl CandidateValidator for SetupValidator<'_> {
 }
 
 fn validate_contract_links(candidate: &CandidateFamily<'_>) -> Result<(), CoordError> {
-    let hub = candidate.path("bullet-farm")?;
-    for &(source, member, destination) in CONTRACT_LINKS {
-        let expected = read_bounded(&hub.join(source))?;
-        let actual = read_bounded(&candidate.path(member)?.join(destination))?;
+    for &(source_member, source, destination_member, destination) in CONTRACT_LINKS {
+        let expected = read_bounded(&candidate.path(source_member)?.join(source))?;
+        let actual = read_bounded(&candidate.path(destination_member)?.join(destination))?;
         if actual != expected {
             return Err(CoordError::new(
                 "GENERATED_CONTRACT_DRIFT",
-                format!("{member}/{destination} differs from bullet-farm/{source}"),
+                format!("{destination_member}/{destination} differs from {source_member}/{source}"),
             ));
         }
     }
