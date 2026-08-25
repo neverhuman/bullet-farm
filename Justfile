@@ -3,8 +3,9 @@
 default:
     @just --list
 
+[positional-arguments]
 setup *args:
-    bash scripts/setup.sh {{args}}
+    exec bash scripts/setup.sh "$@"
 
 coord *args:
     cargo run --locked --quiet --bin bullet-family -- coord {{args}}
@@ -62,5 +63,5 @@ check-family:
 lock-generate tag:
     cargo run --locked --quiet --bin bullet-family -- lock generate --tag {{tag}}
 
-lock-check tag:
-    cargo run --locked --quiet --bin bullet-family -- lock check --tag {{tag}}
+lock-verify tag:
+    cargo run --locked --quiet --bin bullet-family -- lock verify --tag {{tag}}

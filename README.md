@@ -47,12 +47,15 @@ additionally requires the exact locally admitted Jankurai 1.6.11 binary.
 
 This alpha requires the four ordinary sibling checkouts listed in `repos.manifest.toml`. A hub-only
 clone is diagnosis-only because the checked-in `family.lock` is the legacy schema-2 snapshot and
-does not carry install authority. The Rust installer and `checkout verify` command are implemented:
-they require a signed schema-3 lock with an authenticated Jeryu URL/slug, exact commit/tree,
-signer, dependency-lock digest, and generated-artifact manifest for every non-hub member. Until
-those release inputs are published, `doctor` reports `BLOCKED` and `just setup` returns
+does not carry install authority. The Rust source-setup and `checkout verify` commands require a
+signed schema-3 lock with an authenticated Jeryu URL/slug, exact commit/tree, signer,
+dependency-lock digest, and generated-artifact manifest for every non-hub member. On Linux, setup
+publishes through retained directory descriptors, rejects replaced/symlinked components, and uses
+no-replace renames plus directory fsync; its signed fixture also proves a clean idempotent second
+run. Until real release inputs are published, `doctor` reports `BLOCKED` and `just setup` returns
 `UNSUPPORTED_SCHEMA` before creating member directories or running dependency tools. Do not create
-Git worktrees or infer source locations from local paths.
+Git worktrees or infer source locations from local paths. A future published lock is checked with
+`bullet-family lock verify --tag <version>`; the current schema-2 lock cannot pass that check.
 
 Accordingly, there is no trusted public install command yet. `scripts/setup.sh`
 is a contributor source-bootstrap wrapper around the Rust setup mechanism; it
@@ -70,7 +73,21 @@ bullet-family release verify \
 ```
 
 That command verifies exact manifest, lock, payload, detached-signature, and
-signer subjects. It does not build, download, extract, or install packages.
+signer subjects. On Linux/glibc, the same verified component can safely extract
+one exact signed target into a new, absent destination:
+
+```bash
+bullet-family release extract \
+  --bundle /absolute/path/to/bundle \
+  --allowed-signers /absolute/path/to/allowed_signers \
+  --target x86_64-unknown-linux-gnu \
+  --destination /absolute/path/to/new-directory
+```
+
+Extraction re-verifies the pinned archive subject, admits only the constrained
+archive shape, fully syncs a staging tree, and publishes with a no-replace
+rename. Neither command builds, downloads, produces, activates, or installs a
+package, and neither supplies absent schema-3 release authority.
 
 `just demo` runs a deterministic ledger simulator (no provider process, forge
 credential, or network effect). It demonstrates component behavior only:
@@ -90,8 +107,9 @@ Readiness is intentionally explicit:
 | `just demo` | Deterministic ledger simulation; not a five-plane transaction |
 | `bullet demo-synthetic` | Simulator-only integration scaffolding with `transaction_gate_eligible=false` |
 | Gate 0 contracts | Canonical v1alpha1 policy/schema bundle, hostile fixtures, invariant registry, and exactly two bounded models |
-| Hub-only installer | Mechanism and signed two-run local fixture implemented; real schema-3 Jeryu lock/tag publication remains blocked |
-| Release verifier | Signed five-target bundle integrity is implemented on Linux; package production, semantic artifact validation, and installer smoke remain blocked |
+| Hub source setup | Descriptor-relative publication and a signed two-run local fixture are implemented on Linux; real schema-3 Jeryu lock/tag publication remains blocked |
+| Release bundle components | Signed five-target integrity verification and constrained one-target extraction are implemented on Linux/glibc; package production, activation, semantic artifact validation, and installer smoke remain blocked |
+| Trusted public installer | Not available; no published schema-3 authority, signed package set, or activation transaction exists |
 | Transaction-ready | Not yet achieved; requires the signed Wave-4 offline receipt |
 | Production-ready | Not yet achieved; live providers and credentialed forges are quarantined |
 

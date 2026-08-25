@@ -187,3 +187,74 @@ fn doctor_and_pre_push_gate_are_executable_controls() {
     assert!(read("ops/ci/quality-gates.sh").contains("exec bash ops/ci/fast.sh"));
     assert!(read("tools/security-lane.sh").contains("ops/ci/security.sh"));
 }
+
+#[test]
+fn public_lock_recipe_uses_verify_vocabulary() {
+    let justfile = read("Justfile");
+    assert!(justfile.contains("lock-verify tag:"));
+    assert!(justfile.contains("-- lock verify --tag {{tag}}"));
+    assert!(!justfile.contains("lock-check"));
+    assert!(!justfile.contains("-- lock check"));
+}
+
+#[cfg(unix)]
+#[test]
+fn setup_recipe_preserves_literal_arguments() {
+    use std::{env, ffi::OsString, os::unix::fs::PermissionsExt};
+
+    let temp = tempfile::tempdir().expect("setup recipe fixture");
+    let bin = temp.path().join("bin");
+    fs::create_dir(&bin).expect("create fake bin");
+    let cargo = bin.join("cargo");
+    fs::write(
+        &cargo,
+        "#!/usr/bin/env bash\nset -euo pipefail\nprintf '%s\\0' \"$@\" >\"${BULLET_TEST_CAPTURE:?}\"\n",
+    )
+    .expect("write fake cargo");
+    let mut permissions = fs::metadata(&cargo)
+        .expect("fake cargo metadata")
+        .permissions();
+    permissions.set_mode(0o755);
+    fs::set_permissions(&cargo, permissions).expect("make fake cargo executable");
+
+    let capture = temp.path().join("argv");
+    let marker = temp.path().join("injected");
+    let spaced = temp.path().join("member root");
+    let injected = format!("; /usr/bin/touch {}", marker.display());
+    let mut path = OsString::from(bin.as_os_str());
+    path.push(":");
+    path.push(env::var_os("PATH").expect("PATH is set"));
+
+    let status = Command::new("just")
+        .args([
+            "setup",
+            "--root",
+            spaced.to_str().expect("UTF-8 fixture path"),
+            &injected,
+        ])
+        .current_dir(root())
+        .env("PATH", path)
+        .env("BULLET_TEST_CAPTURE", &capture)
+        .env("BULLET_SETUP_CARGO_BIN", "/bin/true")
+        .env("BULLET_SETUP_NODE_BIN", "/bin/true")
+        .env("BULLET_SETUP_NPM_CLI", "/bin/true")
+        .status()
+        .expect("run setup recipe");
+
+    assert!(status.success());
+    assert!(
+        !marker.exists(),
+        "recipe executed an interpolated shell command"
+    );
+    let captured = fs::read(&capture).expect("captured Cargo argv");
+    let arguments = captured
+        .split(|byte| *byte == 0)
+        .filter(|argument| !argument.is_empty())
+        .map(|argument| String::from_utf8(argument.to_vec()).expect("UTF-8 argument"))
+        .collect::<Vec<_>>();
+    let expected = ["--root".to_owned(), spaced.display().to_string(), injected];
+    assert!(
+        arguments.ends_with(&expected),
+        "setup argv did not preserve its literal tail: {arguments:?}"
+    );
+}
