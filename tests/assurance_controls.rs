@@ -72,7 +72,12 @@ fn control_manifests_route_to_real_local_proof() {
     );
 
     let audit = parse_toml("agent/audit-policy.toml");
-    assert_eq!(audit["minimum_score"].as_integer(), Some(58));
+    // The Hub audit floor is an upward-only ratchet, and this assertion is the
+    // control that keeps the committed policy and the documented floor in step.
+    // Raise it only together with `agent/audit-policy.toml`, and only to a score
+    // that `bash ops/ci/audit.sh` has produced twice in a row. 58 -> 65 on
+    // 2026-08-25 (claude-audit-caps, AUDIT-CAPS-RAISE-R1).
+    assert_eq!(audit["minimum_score"].as_integer(), Some(65));
     assert_eq!(
         audit["fail_on"]
             .as_array()
