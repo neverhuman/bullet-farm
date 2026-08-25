@@ -1,4 +1,4 @@
-//! Localhost-first forge verbs. Live install/supervise is not implemented.
+//! Localhost-first forge verbs. Live install/supervise returns a typed refusal.
 
 use std::ffi::OsString;
 use std::path::PathBuf;
@@ -38,7 +38,7 @@ forge: local (Jeryu at http://127.0.0.1:8787) [RECOMMENDED AFTER INDEPENDENT ADM
     receipt-status: ABSENT
 
   Declared localhost targets to verify before admission:
-    exact expected-old-OID compare-and-swap on every candidate push
+    exact expected-prior-OID compare-and-swap on every candidate push
     protected-ref rules we define, including required proof roots
     no rate limits, no third-party credential, no network egress
     offline determinism: a benchmark corpus replays identically forever
@@ -75,7 +75,7 @@ forge: github  [profile github-adapter-v1 — NOT self-hosted-v1]
 
 const GITLAB_BANNER: &str = "\
 forge: gitlab
-UNSUPPORTED_BY_ADAPTER: gitlab-adapter-v1 is not implemented
+UNSUPPORTED_BY_ADAPTER: gitlab-adapter-v1 has no admitted runtime
 ";
 
 const PROBE_JSON: &str = r#"{
