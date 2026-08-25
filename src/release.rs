@@ -40,17 +40,14 @@ pub fn run(args: &[String]) -> Result<String, CoordError> {
             ))
         }
         Command::Extract(options) => {
-            let receipt = verify::verify(&options.bundle, &options.allowed_signers)?;
-            archive::extract(
-                &options.bundle,
-                &receipt.manifest,
-                &options.target,
-                &options.destination,
-            )?;
-            Ok(format!(
-                "verified release archive extracted (component only; no install or release authority): {} at {}",
-                options.target,
-                options.destination.display()
+            let _receipt = verify::verify(&options.bundle, &options.allowed_signers)?;
+            Err(CoordError::new(
+                "RELEASE_PUBLICATION_CONTAINMENT_UNAVAILABLE",
+                format!(
+                    "verified archive {} cannot be published at {} without a different-UID or privileged containment backend",
+                    options.target,
+                    options.destination.display()
+                ),
             ))
         }
         Command::VerifyReceipt(options) => {

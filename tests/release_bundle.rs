@@ -322,50 +322,22 @@ fn manifest_signer_must_match_the_identity_bound_by_the_lock() {
 
 #[test]
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
-fn signed_archive_extracts_once_without_overwrite_or_execution() {
-    use std::os::unix::fs::PermissionsExt;
-
+fn signed_archive_refuses_publication_without_containment() {
     let fixture = Fixture::new();
     let destination = fixture.root.join("installed");
-    let output = fixture
+    let error = fixture
         .extract("x86_64-unknown-linux-gnu", &destination)
-        .expect("verified extraction");
-    assert!(output.contains("component only; no install or release authority"));
-    let executable = destination.join("bin/bullet-family");
-    assert_eq!(
-        fs::read(&executable).expect("extracted binary"),
-        b"fixture:x86_64-unknown-linux-gnu\n"
+        .expect_err("uncontained public extraction must refuse");
+    assert_eq!(error.code(), "RELEASE_PUBLICATION_CONTAINMENT_UNAVAILABLE");
+    assert!(
+        error
+            .to_string()
+            .contains("without a different-UID or privileged containment backend")
     );
-    assert_eq!(
-        fs::metadata(&executable).unwrap().permissions().mode() & 0o777,
-        0o755
+    assert!(
+        !destination.exists(),
+        "refusal must not create a destination"
     );
-    for name in [
-        "bullet",
-        "bullet-effects",
-        "bullet-farmd",
-        "bullet-gitd",
-        "bullet-mcpd",
-        "bullet-runner",
-        "bullet-verifier",
-    ] {
-        let path = destination.join("bin").join(name);
-        assert_eq!(
-            fs::metadata(&path).unwrap().permissions().mode() & 0o777,
-            0o755,
-            "{}",
-            path.display()
-        );
-    }
-    let before = snapshot(&destination);
-    assert_eq!(
-        fixture
-            .extract("x86_64-unknown-linux-gnu", &destination)
-            .unwrap_err()
-            .code(),
-        "RELEASE_DESTINATION_EXISTS"
-    );
-    assert_eq!(snapshot(&destination), before);
 }
 
 #[test]
