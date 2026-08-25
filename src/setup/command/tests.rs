@@ -148,6 +148,83 @@ fn admitted_tool_child(fixture: &Path) {
     assert!(!home.exists(), "ephemeral setup HOME survived drop");
 }
 
+#[cfg(target_os = "linux")]
+#[test]
+fn sealed_subjects_defeat_post_verification_path_swaps() {
+    let fixture = fixture_root("tool-path-swap");
+    let cargo = executable(
+        &fixture,
+        "cargo-real",
+        concat!(
+            "#!/bin/sh\n",
+            "if [ \"${1-}\" = --version ]; then printf 'cargo 1.97.1\\n'; exit 0; fi\n",
+            "printf admitted > cargo-admitted\n",
+        ),
+    );
+    let node = executable(
+        &fixture,
+        "node-real",
+        concat!(
+            "#!/bin/sh\n",
+            "if [ \"${1-}\" = --version ]; then printf 'v26.1.0\\n'; exit 0; fi\n",
+            "exec /bin/sh \"$@\"\n",
+        ),
+    );
+    let npm_cli = fixture.join("npm-cli.js");
+    fs::write(
+        &npm_cli,
+        concat!(
+            "if [ \"${1-}\" = --version ]; then printf '11.13.0\\n'; exit 0; fi\n",
+            "printf admitted > npm-admitted\n",
+        ),
+    )
+    .expect("npm CLI fixture");
+    let toolchain = Toolchain::admit(Some(&cargo), Some(&node), Some(&npm_cli))
+        .expect("admit exact fixture tools");
+    let root = AdmittedRoot::open(&fixture).expect("admit command fixture root");
+    let environment = SetupEnvironment::create(&root, &toolchain).expect("isolated setup HOME");
+
+    let original_cargo = fixture.join("cargo-original");
+    let error = toolchain
+        .cargo
+        .run_after_verify(&fixture, &["fetch"], &environment, || {
+            fs::rename(&cargo, &original_cargo).expect("move verified Cargo path");
+            executable(
+                &fixture,
+                "cargo-real",
+                "#!/bin/sh\nprintf attacker > cargo-attacker\n",
+            );
+            Ok(())
+        })
+        .expect_err("post-verification Cargo swap must be reported");
+    assert_eq!(error.code(), "SETUP_TOOL_CHANGED");
+    assert_eq!(
+        fs::read_to_string(fixture.join("cargo-admitted")).unwrap(),
+        "admitted"
+    );
+    assert!(!fixture.join("cargo-attacker").exists());
+
+    let original_npm = fixture.join("npm-original.js");
+    let error = toolchain
+        .npm
+        .run_after_verify(&fixture, &["ci"], &environment, || {
+            fs::rename(&npm_cli, &original_npm).expect("move verified npm CLI path");
+            fs::write(&npm_cli, "printf attacker > npm-attacker\n")
+                .expect("publish attacker npm CLI");
+            Ok(())
+        })
+        .expect_err("post-verification npm companion swap must be reported");
+    assert_eq!(error.code(), "SETUP_TOOL_CHANGED");
+    assert_eq!(
+        fs::read_to_string(fixture.join("npm-admitted")).unwrap(),
+        "admitted"
+    );
+    assert!(!fixture.join("npm-attacker").exists());
+
+    environment.finish().expect("remove ephemeral setup HOME");
+    fs::remove_dir_all(fixture).expect("remove path-swap fixture");
+}
+
 #[cfg(unix)]
 #[test]
 fn setup_environment_detects_root_replacement_and_cleans_only_the_pinned_root() {

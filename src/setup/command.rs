@@ -1,22 +1,20 @@
 //! Admitted, bounded external commands used by setup.
 
 mod environment;
+mod subject;
 
 #[cfg(test)]
 mod tests;
 
 use std::{
     ffi::{OsStr, OsString},
-    fs::{self, File},
-    io::Read,
+    fs,
     path::{Path, PathBuf},
     process::Command,
     time::Duration,
 };
 
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
-
+use self::subject::AdmittedFile;
 use super::{BASH_BIN, GIT_BIN};
 use crate::{
     coord::CoordError,
@@ -63,12 +61,9 @@ impl Toolchain {
         let node = AdmittedFile::admit("Node", node, true)?;
         CommandSpec::probe_identity(ToolIdentity::Node, &node, &[], &[])?;
         let npm_cli = AdmittedFile::admit("npm CLI", npm_cli, false)?;
-        let npm = CommandSpec::from_admitted(
-            ToolIdentity::Npm,
-            node,
-            vec![npm_cli.path.as_os_str().to_owned()],
-            vec![npm_cli],
-        )?;
+        let npm_subject = npm_cli.execution_path().into_os_string();
+        let npm =
+            CommandSpec::from_admitted(ToolIdentity::Npm, node, vec![npm_subject], vec![npm_cli])?;
         let bash_path = fs::canonicalize(BASH_BIN).map_err(|error| {
             tool_error(
                 "SETUP_TOOL_UNAVAILABLE",
@@ -164,7 +159,7 @@ impl CommandSpec {
         }
         let path = probe_path(&program.path)?;
         let output = run_bounded(
-            Command::new(&program.path)
+            Command::new(program.execution_path())
                 .args(prefix_args)
                 .arg("--version")
                 .env_clear()
@@ -201,16 +196,25 @@ impl CommandSpec {
         args: &[&str],
         environment: &SetupEnvironment,
     ) -> Result<(), CoordError> {
+        self.run_after_verify(repo, args, environment, || Ok(()))
+    }
+
+    fn run_after_verify(
+        &self,
+        repo: &Path,
+        args: &[&str],
+        environment: &SetupEnvironment,
+        after_verify: impl FnOnce() -> Result<(), CoordError>,
+    ) -> Result<(), CoordError> {
         environment.verify()?;
-        self.program.verify()?;
-        for companion in &self.companions {
-            companion.verify()?;
-        }
-        let mut command = Command::new(&self.program.path);
+        self.verify_sources()?;
+        after_verify()?;
+        let mut command = Command::new(self.program.execution_path());
         command.current_dir(repo).args(&self.prefix_args).args(args);
         environment.apply(&mut command);
         let output = run_bounded(&mut command, self.identity.label(), TOOL_LIMITS);
         environment.verify()?;
+        self.verify_sources()?;
         let output = output?;
         if output.status.success() {
             Ok(())
@@ -225,6 +229,14 @@ impl CommandSpec {
                 ),
             ))
         }
+    }
+
+    fn verify_sources(&self) -> Result<(), CoordError> {
+        self.program.verify()?;
+        for companion in &self.companions {
+            companion.verify()?;
+        }
+        Ok(())
     }
 }
 
@@ -268,117 +280,6 @@ fn is_version(value: &str) -> bool {
             .split('.')
             .take(2)
             .all(|part| !part.is_empty() && part.bytes().all(|byte| byte.is_ascii_digit()))
-}
-
-#[derive(Debug)]
-struct AdmittedFile {
-    label: &'static str,
-    path: PathBuf,
-    fingerprint: [u8; 32],
-    executable: bool,
-}
-
-impl AdmittedFile {
-    fn admit(label: &'static str, path: &Path, executable: bool) -> Result<Self, CoordError> {
-        if !path.is_absolute() {
-            return Err(tool_error(
-                "SETUP_TOOL_PATH_NOT_ABSOLUTE",
-                label,
-                "path must be absolute",
-            ));
-        }
-        let canonical = fs::canonicalize(path).map_err(|error| {
-            tool_error(
-                "SETUP_TOOL_UNAVAILABLE",
-                label,
-                format!("{} cannot be resolved: {error}", path.display()),
-            )
-        })?;
-        if canonical != path {
-            return Err(tool_error(
-                "SETUP_TOOL_PATH_NOT_CANONICAL",
-                label,
-                format!("use the canonical path {}", canonical.display()),
-            ));
-        }
-        let fingerprint = file_fingerprint(label, &canonical, executable)?;
-        Ok(Self {
-            label,
-            path: canonical,
-            fingerprint,
-            executable,
-        })
-    }
-
-    fn verify(&self) -> Result<(), CoordError> {
-        let actual = file_fingerprint(self.label, &self.path, self.executable)?;
-        if actual != self.fingerprint {
-            return Err(tool_error(
-                "SETUP_TOOL_CHANGED",
-                self.label,
-                "file bytes changed after admission",
-            ));
-        }
-        Ok(())
-    }
-}
-
-fn file_fingerprint(
-    label: &'static str,
-    path: &Path,
-    executable: bool,
-) -> Result<[u8; 32], CoordError> {
-    let metadata = fs::symlink_metadata(path).map_err(|error| {
-        tool_error(
-            "SETUP_TOOL_UNAVAILABLE",
-            label,
-            format!("{} cannot be inspected: {error}", path.display()),
-        )
-    })?;
-    if metadata.file_type().is_symlink() || !metadata.file_type().is_file() {
-        return Err(tool_error(
-            "SETUP_TOOL_NOT_REGULAR",
-            label,
-            "path must be a non-symlink regular file",
-        ));
-    }
-    if metadata.len() > MAX_TOOL_BYTES {
-        return Err(tool_error(
-            "SETUP_TOOL_TOO_LARGE",
-            label,
-            "file exceeds the 512 MiB admission limit",
-        ));
-    }
-    #[cfg(unix)]
-    if executable && metadata.permissions().mode() & 0o111 == 0 {
-        return Err(tool_error(
-            "SETUP_TOOL_NOT_EXECUTABLE",
-            label,
-            "file has no executable mode bit",
-        ));
-    }
-    let mut file = File::open(path).map_err(|error| {
-        tool_error(
-            "SETUP_TOOL_UNAVAILABLE",
-            label,
-            format!("{} cannot be opened: {error}", path.display()),
-        )
-    })?;
-    let mut hasher = blake3::Hasher::new();
-    let mut buffer = [0_u8; 64 * 1024];
-    loop {
-        let count = file.read(&mut buffer).map_err(|error| {
-            tool_error(
-                "SETUP_TOOL_UNAVAILABLE",
-                label,
-                format!("{} cannot be read: {error}", path.display()),
-            )
-        })?;
-        if count == 0 {
-            return Ok(*hasher.finalize().as_bytes());
-        }
-        hasher.update(&buffer[..count]);
-    }
 }
 
 fn required_path<'a>(path: Option<&'a Path>, label: &str) -> Result<&'a Path, CoordError> {
