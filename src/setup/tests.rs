@@ -183,6 +183,50 @@ fn signed_local_family_installs_twice_without_drift() {
 }
 
 #[test]
+fn offline_jeryu_cache_miss_preserves_hub_only_root() {
+    let fixture = fixture_root("offline-jeryu-cache-miss");
+    let sources = fixture.join("sources");
+    let install_root = fixture.join("install");
+    let home = fixture.join("home");
+    fs::create_dir(&sources).expect("source root");
+    fs::create_dir(&install_root).expect("install root");
+    fs::create_dir(&home).expect("fresh HOME");
+    let signing_key = create_signing_key(&fixture);
+    create_source_family(&sources, &home, &signing_key);
+
+    let hub = install_root.join("bullet-farm");
+    clone_repository(sources.join("bullet-farm").as_os_str(), &hub, true)
+        .expect("clone signed hub");
+    test_git(&hub, &home, &["checkout", "--detach", "--force", TAG]);
+    let lock = family_lock::load(&hub.join("family.lock")).expect("strict lock");
+    let hub_head = test_git_output(&hub, &home, &["rev-parse", "HEAD"]);
+
+    let error = install(&install_root, &hub, &lock, true, &JeryuTransport)
+        .expect_err("offline setup cannot fetch a missing Jeryu member");
+    assert_eq!(error.code(), "OFFLINE_SOURCE_UNAVAILABLE");
+    assert_eq!(
+        test_git_output(&hub, &home, &["rev-parse", "HEAD"]),
+        hub_head
+    );
+    assert_eq!(
+        test_git_output(&hub, &home, &["status", "--porcelain=v2"]),
+        ""
+    );
+    for member in ["bullet-kernel", "bullet-git", "bullet-portal"] {
+        assert!(!install_root.join(member).exists(), "published {member}");
+    }
+    assert!(!install_root.join("repos.manifest.toml").exists());
+    assert_no_staging(&install_root);
+    assert_eq!(
+        fs::read_dir(&install_root).expect("install root").count(),
+        1,
+        "offline refusal left state beside the signed hub"
+    );
+
+    fs::remove_dir_all(fixture).expect("remove offline fixture");
+}
+
+#[test]
 fn missing_tool_authority_blocks_signed_setup_before_install_mutation() {
     let fixture = fixture_root("missing-tool-authority");
     let sources = fixture.join("sources");

@@ -9,7 +9,7 @@ This runbook distinguishes three surfaces that must not be conflated.
 | Surface | Current authority |
 | --- | --- |
 | Existing canonical family | contributor development and local proof |
-| `scripts/setup.sh` | source wrapper that starts Cargo before Rust admission |
+| `scripts/setup.sh` | build-free external `bullet-family` selection; no signed package admission |
 | Signed prebuilt installer | required for public release; not published |
 
 ## Existing canonical family
@@ -34,18 +34,21 @@ must never contain sibling `path = "../..."` dependencies.
 
 ## Source bootstrap wrapper
 
-`scripts/setup.sh` resolves absolute Cargo/Node/npm subjects and invokes:
+`scripts/setup.sh` refuses unless `BULLET_SETUP_ADMITTED_BIN` names an external,
+canonical regular executable and Cargo/Node/npm are supplied as explicit
+absolute paths. It then invokes:
 
 ```text
 bullet-family setup --root <family-root> --source jeryu
 ```
 
-It is not a curl-pipe installer or release trust root. It launches the local
-Cargo toolchain before the Rust setup mechanism can verify a signed prebuilt
-binary. The checked-in alpha lock is schema 2, so a hub-only clone currently
-returns `UNSUPPORTED_SCHEMA` with regeneration guidance before creating member
-directories or running dependency tools. `--offline` narrows dependency/network
-behavior; it cannot supply missing signed source authority.
+It is not a curl-pipe installer or release trust root. The wrapper performs
+path and file-shape checks, but does not authenticate its selected executable
+as a signed package subject; the Rust boundary separately admits and seals the
+dependency tools. The checked-in alpha lock is schema 2, so a hub-only clone
+currently returns `UNSUPPORTED_SCHEMA` with regeneration guidance before
+creating member directories or running dependency tools. `--offline` narrows
+dependency/network behavior; it cannot supply missing signed source authority.
 
 ## Future trusted installation
 
@@ -91,8 +94,9 @@ diagnosis; setup recovery must prove the state is exactly prior or complete next
 The Rust setup boundary now snapshots admitted Cargo, Node, Bash, and npm bytes
 into sealed read-only memfds on Linux and executes those descriptor subjects;
 a swap after verification cannot execute replacement bytes. This does not
-authenticate `scripts/setup.sh` before it launches Cargo to build the boundary,
-and active same-UID swap-and-restore races inside path-based Git execution remain.
+authenticate the wrapper-selected external `bullet-family` as a signed release
+artifact, and active same-UID swap-and-restore races inside path-based Git
+execution remain.
 A trusted public path therefore still starts from a signed prebuilt and must pin
 or isolate Git. Bounded cleanup intentionally
 preserves an orphan if identity, depth, or entry limits prevent a safe removal.
