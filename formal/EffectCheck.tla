@@ -258,9 +258,23 @@ CheckRequiresDurableProof == checkPhase # "absent" => proofDurable /\ effectPhas
 ThirdPartyStateIsNeverAdopted ==
     /\ (remoteEffect = "third_party" => effectPhase # "verified")
     /\ (remoteCheck = "third_party" => checkPhase # "verified")
+\* DEFINED BUT DELIBERATELY NOT CHECKED. As a state predicate this is false,
+\* and TLC refutes it at depth 4 (Init -> PersistEffectIntent -> DispatchEffect
+\* -> ExpirePolicy, and symmetrically Freeze): a policy expiry or a freeze may
+\* arrive while effectPhase = "dispatching", because a stop cannot recall a
+\* request already on the wire. Listing it as an INVARIANT would be false;
+\* weakening it would hide the boundary. NoNewDispatchAfterStop below is the
+\* checkable form of the guarantee the system actually gives.
 NoDispatchAfterStop == (~policyLive \/ frozen) =>
     /\ effectPhase # "dispatching"
     /\ checkPhase # "dispatching"
+
+\* CHECKED as a PROPERTY. After policy expiry or freeze no NEW dispatch may
+\* leave: DispatchEffect and DispatchCheck are the only actions that raise a
+\* dispatch counter and both are guarded by policyLive /\ ~frozen, so this is
+\* the regression guard on those two guards.
+NoNewDispatchAfterStop ==
+    [][(~policyLive \/ frozen) => UNCHANGED <<effectDispatches, checkDispatches>>]_vars
 
 Spec == Init /\ [][Next]_vars
 

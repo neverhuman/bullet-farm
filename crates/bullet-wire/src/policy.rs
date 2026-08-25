@@ -375,6 +375,9 @@ impl PolicySnapshotV1 {
         {
             return Err(unsafe_policy(schema));
         }
+        if !self_kill_grace_precedes_expiry(self.budget_policy.maximum_lease_ttl_seconds) {
+            return Err(WireError::new("UNSAFE_POLICY", STONITH_REASON));
+        }
         if !self.sandbox_policy.live_admission_enabled {
             return Ok(());
         }
@@ -383,6 +386,23 @@ impl PolicySnapshotV1 {
             PolicySchemaVersion::V1Alpha2 => live::validate_live_admission(self),
         }
     }
+}
+
+/// `UNSAFE_POLICY` reason for the A7 STONITH inequality; mirrored byte-for-byte
+/// by the Kernel loader (`policy_snapshot::STONITH_REASON`).
+const STONITH_REASON: &str = "self-kill grace must be strictly less than lease TTL";
+
+/// The A7 STONITH inequality at policy level. The Kernel runner's self-kill
+/// budget is 4/5 of the admitted TTL (`SelfKillDeadline`), so both that budget
+/// and the remaining grace must fall strictly inside the TTL for the local
+/// monotonic deadline to fire strictly before the server expiry. At
+/// millisecond granularity only a zero maximum violates it, and a zero maximum
+/// would otherwise validate.
+fn self_kill_grace_precedes_expiry(maximum_lease_ttl_seconds: u64) -> bool {
+    let ttl_ms = maximum_lease_ttl_seconds.saturating_mul(1_000);
+    let budget_ms = ttl_ms / 5 * 4;
+    let grace_ms = ttl_ms - budget_ms;
+    budget_ms < ttl_ms && grace_ms < ttl_ms
 }
 
 fn unsafe_policy(schema: PolicySchemaVersion) -> WireError {

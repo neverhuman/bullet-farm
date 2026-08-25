@@ -26,7 +26,10 @@ In both versions the following remain `UNSAFE_POLICY`: `maximum_lease_ttl_second
 `unknown_quota_is_headroom`, `arbitrary_shell_gates`, `author_evidence_is_independent`, `unknown_satisfies_gate`,
 `!r2_requires_sealed_product_holdout`, `universal_incumbent != "T0"`, and `evolutionary_authority` (campaign spend
 is a separate, later gate). The conservatism set is checked before the live-admission rule, so no v1alpha2 policy
-can trade one for the other. A v1alpha1 policy with live admission enabled is refused as `UNSAFE_POLICY` with the
+can trade one for the other. Checked immediately after it, in both versions, is the A7 STONITH inequality:
+`maximum_lease_ttl_seconds = 0` is `UNSAFE_POLICY` with the reason `self-kill grace must be strictly less than lease
+TTL`, because the Kernel runner's self-kill budget (4/5 of the admitted TTL) and the remaining grace must both fall
+strictly inside the TTL (hub `policy.rs`, Kernel `policy_snapshot.rs`; Kernel test `crates/runner/tests/stonith.rs`). A v1alpha1 policy with live admission enabled is refused as `UNSAFE_POLICY` with the
 same reason as before; the existing `policy_registry.rs` suite is untouched. Nested policy records and
 `IssuerKeyV1` stay `v1alpha1`. Any other snapshot version is `UNSUPPORTED_POLICY_SCHEMA`.
 
