@@ -7,8 +7,8 @@ use std::{
 };
 
 use bullet_family::coord::{
-    ClaimInput, ClaimState, CommitReceiptGroupInput, CommitReceiptInput, CoordStore, HandoffInput,
-    HeartbeatInput, ReceiptCorrectionInput,
+    ClaimInput, ClaimState, CommitReceiptGroupInput, CommitReceiptInput, CoordStore,
+    GroupReceiptCorrectionInput, HandoffInput, HeartbeatInput, ReceiptCorrectionInput,
 };
 
 fn test_root(name: &str) -> PathBuf {
@@ -469,5 +469,108 @@ fn grouped_receipt_requires_the_exact_union_of_handoffs() {
             .iter()
             .all(|claim| claim.commit_oid.as_deref() == Some(commit_oid.as_str()))
     );
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn grouped_receipt_correction_is_exact_and_binds_every_previous_oid() {
+    let root = test_root("receipt-group-correction");
+    let store = CoordStore::new(root.clone());
+    let first = store.claim(&claim("agent-a", "src/lib.rs"), 1_000).unwrap();
+    let first = store
+        .handoff(
+            &HandoffInput {
+                claim_id: first.claim_id,
+                agent: "agent-a".to_owned(),
+                proof_command: "cargo test".to_owned(),
+                proof_exit_code: 0,
+                changed_paths: vec!["src/lib.rs".to_owned()],
+                commit_oid: None,
+            },
+            2_000,
+        )
+        .unwrap();
+    let second = store.claim(&claim("agent-b", "README.md"), 2_001).unwrap();
+    let second = store
+        .handoff(
+            &HandoffInput {
+                claim_id: second.claim_id,
+                agent: "agent-b".to_owned(),
+                proof_command: "cargo test".to_owned(),
+                proof_exit_code: 0,
+                changed_paths: vec!["README.md".to_owned()],
+                commit_oid: None,
+            },
+            3_000,
+        )
+        .unwrap();
+    let claim_ids = vec![second.claim_id.clone(), first.claim_id.clone()];
+    let original = commit_many(
+        &root,
+        &[
+            ("src/lib.rs", "pub const VALUE: u8 = 1;\n"),
+            ("README.md", "first\n"),
+        ],
+    );
+    store
+        .receipt_group(
+            &CommitReceiptGroupInput {
+                claim_ids: claim_ids.clone(),
+                orchestrator: "orchestrator".to_owned(),
+                commit_oid: original.clone(),
+            },
+            4_000,
+        )
+        .unwrap();
+    let replacement = commit_many(
+        &root,
+        &[
+            ("src/lib.rs", "pub const VALUE: u8 = 2;\n"),
+            ("README.md", "second\n"),
+        ],
+    );
+    let corrected = store
+        .correct_receipt_group(
+            &GroupReceiptCorrectionInput {
+                claim_ids: claim_ids.clone(),
+                orchestrator: "orchestrator".to_owned(),
+                previous_commit_oid: original,
+                commit_oid: replacement.clone(),
+                reason: "split a contaminated shared-index commit".to_owned(),
+            },
+            5_000,
+        )
+        .unwrap();
+    assert_eq!(corrected.len(), 2);
+    assert!(corrected.iter().all(|claim| {
+        claim.commit_oid.as_deref() == Some(replacement.as_str())
+            && claim.commit_recorded_at_unix_ms == Some(5_000)
+    }));
+
+    let error = store
+        .correct_receipt_group(
+            &GroupReceiptCorrectionInput {
+                claim_ids: claim_ids.clone(),
+                orchestrator: "orchestrator".to_owned(),
+                previous_commit_oid: "a".repeat(40),
+                commit_oid: replacement.clone(),
+                reason: "must bind all current receipts".to_owned(),
+            },
+            6_000,
+        )
+        .unwrap_err();
+    assert_eq!(error.code(), "RECEIPT_CORRECTION_MISMATCH");
+
+    let log = root.join(".bullet-family/coord/events.jsonl");
+    let text = fs::read_to_string(&log).unwrap();
+    let mut corrupt: serde_json::Value =
+        serde_json::from_str(text.lines().last().unwrap()).unwrap();
+    corrupt["at_unix_ms"] = serde_json::json!(7_000);
+    corrupt["previous_commit_oid"] = serde_json::json!("a".repeat(40));
+    let mut file = fs::OpenOptions::new().append(true).open(&log).unwrap();
+    use std::io::Write as _;
+    writeln!(file, "{}", serde_json::to_string(&corrupt).unwrap()).unwrap();
+    let replay_error = store.status(8_000).unwrap_err();
+    assert_eq!(replay_error.code(), "CORRUPT_COORD_LOG");
     fs::remove_dir_all(root).unwrap();
 }

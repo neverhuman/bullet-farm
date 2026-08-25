@@ -107,7 +107,10 @@ pub(super) fn summaries(
             }
             Record::CommitReceipt { .. }
             | Record::CommitReceiptCorrection { .. }
-            | Record::CommitReceiptGroup { .. } => receipt_state::apply(record, &mut claims)?,
+            | Record::CommitReceiptGroup { .. }
+            | Record::CommitReceiptGroupCorrection { .. } => {
+                receipt_state::apply(record, &mut claims)?
+            }
         }
     }
     for claim in claims.values_mut() {

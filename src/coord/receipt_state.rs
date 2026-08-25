@@ -63,6 +63,44 @@ pub(super) fn apply(
             receipts,
             ..
         } => apply_group(claims, *at_unix_ms, orchestrator, commit_oid, receipts),
+        Record::CommitReceiptGroupCorrection {
+            at_unix_ms,
+            orchestrator,
+            previous_commit_oid,
+            commit_oid,
+            receipts,
+            reason,
+            ..
+        } => {
+            validate_field("reason", reason).map_err(as_corrupt)?;
+            validate_commit_oid(previous_commit_oid).map_err(as_corrupt)?;
+            validate_group(claims, orchestrator, commit_oid, receipts)?;
+            for receipt in receipts {
+                let claim = claims.get(&receipt.claim_id).ok_or_else(|| {
+                    corrupt(format!(
+                        "group correction references missing claim {}",
+                        receipt.claim_id
+                    ))
+                })?;
+                if claim.commit_oid.as_deref() != Some(previous_commit_oid) {
+                    return Err(corrupt(format!(
+                        "claim {} group correction does not bind its current commit",
+                        receipt.claim_id
+                    )));
+                }
+            }
+            for receipt in receipts {
+                apply_existing_receipt(
+                    claims,
+                    *at_unix_ms,
+                    &receipt.claim_id,
+                    orchestrator,
+                    commit_oid,
+                    &receipt.committed_paths,
+                )?;
+            }
+            Ok(())
+        }
         _ => Err(corrupt("receipt replay received a non-receipt record")),
     }
 }
@@ -123,10 +161,30 @@ fn apply_group(
     commit_oid: &str,
     receipts: &[super::model::GroupReceipt],
 ) -> Result<(), CoordError> {
+    validate_group(claims, orchestrator, commit_oid, receipts)?;
+    for receipt in receipts {
+        apply_receipt(
+            claims,
+            at,
+            &receipt.claim_id,
+            orchestrator,
+            commit_oid,
+            &receipt.committed_paths,
+        )?;
+    }
+    Ok(())
+}
+
+fn validate_group(
+    claims: &BTreeMap<String, ClaimSummary>,
+    orchestrator: &str,
+    commit_oid: &str,
+    receipts: &[super::model::GroupReceipt],
+) -> Result<(), CoordError> {
     validate_field("orchestrator", orchestrator).map_err(as_corrupt)?;
     validate_commit_oid(commit_oid).map_err(as_corrupt)?;
-    if receipts.is_empty() {
-        return Err(corrupt("group receipt has no claims"));
+    if receipts.len() < 2 {
+        return Err(corrupt("group receipt has fewer than two claims"));
     }
     let mut seen = BTreeSet::new();
     let mut previous = None;
@@ -149,6 +207,7 @@ fn apply_group(
         .iter()
         .flat_map(|receipt| receipt.committed_paths.iter().cloned())
         .collect::<BTreeSet<_>>();
+    let mut repo = None;
     for receipt in receipts {
         let claim = claims.get(&receipt.claim_id).ok_or_else(|| {
             corrupt(format!(
@@ -156,6 +215,10 @@ fn apply_group(
                 receipt.claim_id
             ))
         })?;
+        if repo.as_ref().is_some_and(|value| value != &claim.repo) {
+            return Err(corrupt("group receipt spans multiple repositories"));
+        }
+        repo = Some(claim.repo.as_str());
         let expected = union
             .iter()
             .filter(|path| {
@@ -172,16 +235,6 @@ fn apply_group(
                 receipt.claim_id
             )));
         }
-    }
-    for receipt in receipts {
-        apply_receipt(
-            claims,
-            at,
-            &receipt.claim_id,
-            orchestrator,
-            commit_oid,
-            &receipt.committed_paths,
-        )?;
     }
     Ok(())
 }

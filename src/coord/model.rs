@@ -66,6 +66,15 @@ pub enum Record {
         commit_oid: String,
         receipts: Vec<GroupReceipt>,
     },
+    CommitReceiptGroupCorrection {
+        schema_version: u32,
+        at_unix_ms: u64,
+        orchestrator: String,
+        previous_commit_oid: String,
+        commit_oid: String,
+        receipts: Vec<GroupReceipt>,
+        reason: String,
+    },
 }
 
 impl Record {
@@ -76,7 +85,8 @@ impl Record {
             | Self::Handoff { schema_version, .. }
             | Self::CommitReceipt { schema_version, .. }
             | Self::CommitReceiptCorrection { schema_version, .. }
-            | Self::CommitReceiptGroup { schema_version, .. } => *schema_version,
+            | Self::CommitReceiptGroup { schema_version, .. }
+            | Self::CommitReceiptGroupCorrection { schema_version, .. } => *schema_version,
         }
     }
 }

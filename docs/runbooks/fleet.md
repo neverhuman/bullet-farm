@@ -24,6 +24,11 @@ bullet-family coord correct-receipt --claim clm_... --orchestrator codex-root \
   --previous-commit 0123456789abcdef0123456789abcdef01234567 \
   --commit 89abcdef0123456789abcdef0123456789abcdef \
   --committed-path crates/runner/src/lib.rs --reason 'amended commit after path-exact fixup'
+bullet-family coord correct-receipt-group --claim clm_a... --claim clm_b... \
+  --orchestrator codex-root \
+  --previous-commit 0123456789abcdef0123456789abcdef01234567 \
+  --commit 89abcdef0123456789abcdef0123456789abcdef \
+  --reason 'split a contaminated shared-index commit into an exact replacement commit'
 bullet-family coord status --json --all
 ```
 
@@ -37,6 +42,10 @@ commit: it refuses unless `--previous-commit` equals the commit OID currently re
 (`RECEIPT_CORRECTION_MISMATCH`), requires the `--committed-path` set to match the handed-off changed
 paths (`COMMITTED_PATH_MISMATCH`) and to equal the new commit's actual path set, and appends a
 `CommitReceiptCorrection` record carrying the mandatory `--reason`; nothing is rewritten or deleted.
+`correct-receipt-group` applies the same append-only repair to at least two distinct claims from one
+repository. Every claim must currently name the same `--previous-commit`; the replacement commit
+must exactly equal their handed-off path union, and replay deterministically reconstructs each
+claim's covered leaf set. Any mismatch rejects the whole locked append.
 Run a heartbeat at least every five minutes and on proof, blocker, commit, or handoff.
 
 Handed-off claims are committed by whichever orchestrator reaches them first (codex-root or

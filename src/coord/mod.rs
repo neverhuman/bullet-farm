@@ -109,6 +109,15 @@ pub struct CommitReceiptGroupInput {
     pub commit_oid: String,
 }
 
+#[derive(Debug)]
+pub struct GroupReceiptCorrectionInput {
+    pub claim_ids: Vec<String>,
+    pub orchestrator: String,
+    pub previous_commit_oid: String,
+    pub commit_oid: String,
+    pub reason: String,
+}
+
 pub fn validate_repo_name(repo: &str) -> Result<(), CoordError> {
     validate_field("repo", repo)?;
     if repo == "."

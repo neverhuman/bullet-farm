@@ -2,11 +2,11 @@ use std::{collections::BTreeMap, ffi::OsString, path::PathBuf};
 
 use crate::coord::{
     ClaimInput, ClaimState, CommitReceiptGroupInput, CommitReceiptInput, CoordError, CoordStore,
-    DEFAULT_TTL_SECONDS, HandoffInput, HeartbeatInput, ReceiptCorrectionInput,
-    discover_family_root, unix_millis,
+    DEFAULT_TTL_SECONDS, GroupReceiptCorrectionInput, HandoffInput, HeartbeatInput,
+    ReceiptCorrectionInput, discover_family_root, unix_millis,
 };
 
-const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release <verify|extract|receipt-verify> [options]|checkout verify|hub check|deps check|lock <generate|verify> --tag VERSION|fuse --source <local|lock>|check <fast|required|release> [options]|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]>";
+const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release <verify|extract|receipt-verify> [options]|checkout verify|hub check|deps check|lock <generate|verify> --tag VERSION|fuse --source <local|lock>|check <fast|required|release> [options]|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|correct-receipt-group|status> [options]>";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CliOutcome {
@@ -131,6 +131,7 @@ pub fn run(
         "receipt" => receipt(&store, &options, now),
         "receipt-group" => receipt_group(&store, &options, now),
         "correct-receipt" => correct_receipt(&store, &options, now),
+        "correct-receipt-group" => correct_receipt_group(&store, &options, now),
         "status" => status(&store, &options, now),
         _ => Err(CoordError::new("USAGE", USAGE)),
     }
@@ -235,6 +236,32 @@ fn correct_receipt(store: &CoordStore, options: &Options, now: u64) -> Result<St
         now,
     )?;
     serde_json::to_string_pretty(&claim).map_err(CoordError::json)
+}
+
+fn correct_receipt_group(
+    store: &CoordStore,
+    options: &Options,
+    now: u64,
+) -> Result<String, CoordError> {
+    options.reject_flags()?;
+    options.reject_unknown_values(&[
+        "claim",
+        "orchestrator",
+        "previous-commit",
+        "commit",
+        "reason",
+    ])?;
+    let claims = store.correct_receipt_group(
+        &GroupReceiptCorrectionInput {
+            claim_ids: options.many("claim")?,
+            orchestrator: options.one("orchestrator")?,
+            previous_commit_oid: options.one("previous-commit")?,
+            commit_oid: options.one("commit")?,
+            reason: options.one("reason")?,
+        },
+        now,
+    )?;
+    serde_json::to_string_pretty(&claims).map_err(CoordError::json)
 }
 
 fn status(store: &CoordStore, options: &Options, now: u64) -> Result<String, CoordError> {

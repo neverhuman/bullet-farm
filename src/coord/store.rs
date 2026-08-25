@@ -7,8 +7,8 @@ use std::{
 use fs2::FileExt;
 
 use super::{
-    ClaimInput, CommitReceiptGroupInput, CommitReceiptInput, CoordError, HandoffInput,
-    HeartbeatInput, ReceiptCorrectionInput,
+    ClaimInput, CommitReceiptGroupInput, CommitReceiptInput, CoordError,
+    GroupReceiptCorrectionInput, HandoffInput, HeartbeatInput, ReceiptCorrectionInput,
     git::commit_paths,
     model::{ClaimState, ClaimSummary, GroupReceipt, Record, SCHEMA_VERSION, Status},
     state::{
@@ -237,18 +237,7 @@ impl CoordStore {
     ) -> Result<Vec<ClaimSummary>, CoordError> {
         validate_field("orchestrator", &input.orchestrator)?;
         validate_commit_oid(&input.commit_oid)?;
-        let mut claim_ids = input.claim_ids.clone();
-        for claim_id in &claim_ids {
-            validate_field("claim_id", claim_id)?;
-        }
-        claim_ids.sort();
-        claim_ids.dedup();
-        if claim_ids.len() < 2 {
-            return Err(CoordError::new(
-                "RECEIPT_GROUP_REQUIRED",
-                "a grouped receipt requires at least two distinct claims",
-            ));
-        }
+        let claim_ids = normalized_group_claim_ids(&input.claim_ids)?;
         self.mutate(|records| {
             let claims = summaries(records, now)?;
             let mut selected = Vec::with_capacity(claim_ids.len());
@@ -307,6 +296,76 @@ impl CoordStore {
         })
     }
 
+    pub fn correct_receipt_group(
+        &self,
+        input: &GroupReceiptCorrectionInput,
+        now: u64,
+    ) -> Result<Vec<ClaimSummary>, CoordError> {
+        validate_field("orchestrator", &input.orchestrator)?;
+        validate_field("reason", &input.reason)?;
+        validate_commit_oid(&input.previous_commit_oid)?;
+        validate_commit_oid(&input.commit_oid)?;
+        let claim_ids = normalized_group_claim_ids(&input.claim_ids)?;
+        self.mutate(|records| {
+            let claims = summaries(records, now)?;
+            let mut selected = Vec::with_capacity(claim_ids.len());
+            let mut repo = None;
+            let mut handoff_scopes = Vec::new();
+            for claim_id in &claim_ids {
+                let claim = claims.get(claim_id).ok_or_else(|| {
+                    CoordError::new("CLAIM_NOT_FOUND", format!("no claim {claim_id}"))
+                })?;
+                if claim.commit_oid.as_deref() != Some(input.previous_commit_oid.as_str()) {
+                    return Err(CoordError::new(
+                        "RECEIPT_CORRECTION_MISMATCH",
+                        format!("claim {claim_id} is not currently bound to --previous-commit"),
+                    ));
+                }
+                if repo.as_ref().is_some_and(|value| value != &claim.repo) {
+                    return Err(CoordError::new(
+                        "RECEIPT_REPO_MISMATCH",
+                        "all grouped claims must belong to one repository",
+                    ));
+                }
+                repo = Some(claim.repo.clone());
+                handoff_scopes.extend(claim.changed_paths.iter().cloned());
+                selected.push(claim.clone());
+            }
+            handoff_scopes.sort();
+            handoff_scopes.dedup();
+            let repo = repo.ok_or_else(|| {
+                CoordError::new("RECEIPT_GROUP_REQUIRED", "group has no repository")
+            })?;
+            let actual = commit_paths(&self.root, &repo, &input.commit_oid)?;
+            validate_receipt_coverage(&handoff_scopes, &actual)?;
+            let receipts = selected
+                .iter()
+                .map(|claim| {
+                    Ok(GroupReceipt {
+                        claim_id: claim.claim_id.clone(),
+                        committed_paths: receipt_paths_for_scopes(&claim.changed_paths, &actual)?,
+                    })
+                })
+                .collect::<Result<Vec<_>, CoordError>>()?;
+            for claim in &mut selected {
+                claim.last_event_unix_ms = now;
+                claim.commit_oid = Some(input.commit_oid.clone());
+                claim.commit_orchestrator = Some(input.orchestrator.clone());
+                claim.commit_recorded_at_unix_ms = Some(now);
+            }
+            let record = Record::CommitReceiptGroupCorrection {
+                schema_version: SCHEMA_VERSION,
+                at_unix_ms: now,
+                orchestrator: input.orchestrator.clone(),
+                previous_commit_oid: input.previous_commit_oid.clone(),
+                commit_oid: input.commit_oid.clone(),
+                receipts,
+                reason: input.reason.clone(),
+            };
+            Ok((record, selected))
+        })
+    }
+
     pub fn root(&self) -> &Path {
         &self.root
     }
@@ -338,6 +397,22 @@ impl CoordStore {
         }
         options.open(&self.log_path).map_err(CoordError::io)
     }
+}
+
+fn normalized_group_claim_ids(claim_ids: &[String]) -> Result<Vec<String>, CoordError> {
+    for claim_id in claim_ids {
+        validate_field("claim_id", claim_id)?;
+    }
+    let mut normalized = claim_ids.to_vec();
+    normalized.sort();
+    normalized.dedup();
+    if normalized.len() < 2 {
+        return Err(CoordError::new(
+            "RECEIPT_GROUP_REQUIRED",
+            "a grouped receipt requires at least two distinct claims",
+        ));
+    }
+    Ok(normalized)
 }
 
 fn validate_input_coverage(scopes: &[String], committed: &[String]) -> Result<(), CoordError> {
