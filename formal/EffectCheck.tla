@@ -276,6 +276,18 @@ NoDispatchAfterStop == (~policyLive \/ frozen) =>
 NoNewDispatchAfterStop ==
     [][(~policyLive \/ frozen) => UNCHANGED <<effectDispatches, checkDispatches>>]_vars
 
+\* UNKNOWN is durable work, so authoritative read-back is weakly fair. The
+\* properties deliberately require resolution only to a typed next state:
+\* exact desired state verifies, no mutation returns to intent, and a foreign
+\* value becomes orphaned. None of those outcomes is painted into PASS.
+UnknownEffectEventuallyReconciled ==
+    (effectPhase = "unknown") ~> (effectPhase \in {"verified", "intent", "orphaned"})
+
+UnknownCheckEventuallyReconciled ==
+    (checkPhase = "unknown") ~> (checkPhase \in {"verified", "intent", "orphaned"})
+
 Spec == Init /\ [][Next]_vars
+        /\ WF_vars(ReadBackEffect)
+        /\ WF_vars(ReadBackCheck)
 
 =============================================================================

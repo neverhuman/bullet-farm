@@ -2,7 +2,7 @@
 
 Status: Enforced
 Owner: Bullet Farm maintainers
-Last reviewed: 2026-08-24
+Last reviewed: 2026-08-25
 Applies to: Gate 0
 
 This corpus intentionally contains exactly two bounded models:
@@ -22,16 +22,41 @@ success claims. Rust tests replay the same refusal/adoption decisions. Run `just
 
 ## Exactly what is checked
 
-Both configurations set `CHECK_DEADLOCK FALSE`. No liveness or fairness property is checked; the
-one property below is a safety (action) property, and the pinned counts are for exactly these
-configurations.
+The pinned counts are for exactly these configurations. Weak fairness is applied only to internal
+scheduler work that is already continuously enabled; no fairness assumption manufactures time,
+operator approval, policy renewal, or a remote outcome.
 
 - `LeaseFence.cfg` (`Runners = {r1, r2}`, `MaxFence = 3`, `MaxTime = 4`, `MaxScope = 3`,
   `MaxOps = 2`, `MaxEpoch = 2`, `MaxFreeze = 3`) — INVARIANTS `TypeOK`,
-  `BarrierHasNoInFlightApply`, `RestoredAuthorityNeedsFreshAcquire`; no PROPERTIES.
+  `BarrierHasNoInFlightApply`, `RestoredAuthorityNeedsFreshAcquire`,
+  `RecoveryApprovalIsScoped`; PROPERTIES `ExpiredLeaseEventuallyReaped` and
+  `RecoveryApprovalEventuallySettles`; weak fairness on `AbortInvalidApply`, `Expire`, and
+  `RecoverActive`. State graph: 565,731 generated, 141,963 distinct, depth 27.
 - `EffectCheck.cfg` (`MaxDispatches = 2`, `MaxEpoch = 2`) — INVARIANTS `TypeOK`,
   `AtMostOneLogicalEffect`, `VerifiedEffectWasReadBack`, `CheckRequiresDurableProof`,
-  `ThirdPartyStateIsNeverAdopted`; PROPERTIES `NoNewDispatchAfterStop`.
+  `ThirdPartyStateIsNeverAdopted`; PROPERTIES `NoNewDispatchAfterStop`,
+  `UnknownEffectEventuallyReconciled`, and `UnknownCheckEventuallyReconciled`; weak fairness on
+  `ReadBackEffect` and `ReadBackCheck`. State graph: 1,585 generated, 378 distinct, depth 18.
+
+`ExpiredLeaseEventuallyReaped` starts only after the deadline is already due. It does not assume
+that `Tick` or wall time progresses. Weak fairness clears an invalid in-flight apply and then reaps
+the due lease; restore may also invalidate it. Recovery approval is an explicit separate action and
+has no fairness assumption. Once present, `RecoveryApprovalEventuallySettles` requires the approval
+to stop pending: weakly fair activation consumes it, while a newer restore may revoke it and require
+fresh approval for the new authority epoch.
+
+An effect or check in `unknown` has durable reconciliation work. The two weak-fair read-back actions
+require it eventually to leave `unknown` for exactly one typed state: `verified` for the desired
+remote value, `intent` when no mutation occurred, or `orphaned` for a third-party value. The model
+does not turn timeout, ambiguity, or a foreign value into PASS.
+
+Deadlock checking is enabled for `EffectCheck`: its explicit total `Crash` self-loop means every
+bounded state has a `Next` successor, while the read-back fairness assumptions separately prevent
+that self-loop from starving an enabled reconciliation forever. `LeaseFence` intentionally keeps
+`CHECK_DEADLOCK FALSE`. Exhausting `MaxTime`, `MaxFence`, `MaxOps`, `MaxEpoch`, and `MaxFreeze` can
+produce a bounded terminal state after all liveness obligations are settled. That is finite-model
+counter exhaustion, not a claim that the production protocol may deadlock; `[Next]_vars` admits the
+terminal stutter so the bounded safety and liveness properties remain checkable.
 
 `NoNewDispatchAfterStop == [][(~policyLive \/ frozen) => UNCHANGED <<effectDispatches,
 checkDispatches>>]_vars` states the guarantee the protocol actually gives: after policy expiry or
@@ -47,7 +72,8 @@ request already on the wire. Listing it as an invariant would assert something f
 would hide the boundary. An in-flight dispatch surviving a stop is therefore a modelled reality the
 read-back path must absorb, not a case the model rules out.
 
-Re-pinning after a model change: run the exact `model-check.sh` TLC invocation, take the
-`N states generated, M distinct states found` line and the reported depth, and write those with the
-new `sha256sum` of the module and config into `model-lock.json`. The V1 contract of exactly two
-models is unchanged; `model-check.sh` still refuses a third.
+Re-pinning after a model change: run the exact `model-check.sh` TLC invocation, take the final
+`N states generated, M distinct states found` line and the reported depth after temporal checking,
+and write those with the new `sha256sum` of the module and config into `model-lock.json`. Run
+`just model-check` twice and require identical hashes, counts, and depths. The V1 contract of exactly
+two models is unchanged; `model-check.sh` still refuses a third.

@@ -15,11 +15,13 @@ None == "none"
 
 VARIABLES now, leaseOwner, fence, expires, tokenFence, tokenEpoch,
           authorityEpoch, freezeGeneration, frozen, scopeRevision,
-          ackRevision, barrier, inFlight, acceptedApplies, refusedApplies
+          ackRevision, barrier, inFlight, acceptedApplies, refusedApplies,
+          recoveryApproved
 
 vars == <<now, leaseOwner, fence, expires, tokenFence, tokenEpoch,
           authorityEpoch, freezeGeneration, frozen, scopeRevision,
-          ackRevision, barrier, inFlight, acceptedApplies, refusedApplies>>
+          ackRevision, barrier, inFlight, acceptedApplies, refusedApplies,
+          recoveryApproved>>
 
 (*
 --algorithm LeaseFenceProtocol {
@@ -66,6 +68,7 @@ Init ==
     /\ inFlight = 0
     /\ acceptedApplies = 0
     /\ refusedApplies = 0
+    /\ recoveryApproved = FALSE
 
 Authorized(r) ==
     /\ leaseOwner = r
@@ -88,7 +91,7 @@ Acquire(r) ==
     /\ ackRevision' = scopeRevision
     /\ UNCHANGED <<now, authorityEpoch, freezeGeneration, frozen,
                     scopeRevision, barrier, inFlight, acceptedApplies,
-                    refusedApplies>>
+                    refusedApplies, recoveryApproved>>
 
 Heartbeat(r) ==
     /\ leaseOwner = r
@@ -100,7 +103,7 @@ Heartbeat(r) ==
     /\ UNCHANGED <<now, leaseOwner, fence, tokenFence, tokenEpoch,
                     authorityEpoch, freezeGeneration, frozen, scopeRevision,
                     ackRevision, barrier, inFlight, acceptedApplies,
-                    refusedApplies>>
+                    refusedApplies, recoveryApproved>>
 
 Tick ==
     /\ now < MaxTime
@@ -108,7 +111,7 @@ Tick ==
     /\ UNCHANGED <<leaseOwner, fence, expires, tokenFence, tokenEpoch,
                     authorityEpoch, freezeGeneration, frozen, scopeRevision,
                     ackRevision, barrier, inFlight, acceptedApplies,
-                    refusedApplies>>
+                    refusedApplies, recoveryApproved>>
 
 Expire ==
     /\ leaseOwner # None
@@ -119,7 +122,8 @@ Expire ==
     /\ barrier' = FALSE
     /\ UNCHANGED <<now, fence, expires, tokenFence, tokenEpoch,
                     authorityEpoch, freezeGeneration, frozen, scopeRevision,
-                    inFlight, acceptedApplies, refusedApplies>>
+                    inFlight, acceptedApplies, refusedApplies,
+                    recoveryApproved>>
 
 EnterBarrier(r) ==
     /\ Authorized(r)
@@ -127,7 +131,8 @@ EnterBarrier(r) ==
     /\ barrier' = TRUE
     /\ UNCHANGED <<now, leaseOwner, fence, expires, tokenFence, tokenEpoch,
                     authorityEpoch, freezeGeneration, frozen, scopeRevision,
-                    ackRevision, inFlight, acceptedApplies, refusedApplies>>
+                    ackRevision, inFlight, acceptedApplies, refusedApplies,
+                    recoveryApproved>>
 
 AppendScope(r) ==
     /\ leaseOwner = r
@@ -137,7 +142,8 @@ AppendScope(r) ==
     /\ scopeRevision' = scopeRevision + 1
     /\ UNCHANGED <<now, leaseOwner, fence, expires, tokenFence, tokenEpoch,
                     authorityEpoch, freezeGeneration, frozen, ackRevision,
-                    barrier, inFlight, acceptedApplies, refusedApplies>>
+                    barrier, inFlight, acceptedApplies, refusedApplies,
+                    recoveryApproved>>
 
 AcknowledgeScope(r) ==
     /\ leaseOwner = r
@@ -145,7 +151,8 @@ AcknowledgeScope(r) ==
     /\ ackRevision' = scopeRevision
     /\ UNCHANGED <<now, leaseOwner, fence, expires, tokenFence, tokenEpoch,
                     authorityEpoch, freezeGeneration, frozen, scopeRevision,
-                    barrier, inFlight, acceptedApplies, refusedApplies>>
+                    barrier, inFlight, acceptedApplies, refusedApplies,
+                    recoveryApproved>>
 
 Resume(r) ==
     /\ leaseOwner = r
@@ -154,7 +161,8 @@ Resume(r) ==
     /\ barrier' = FALSE
     /\ UNCHANGED <<now, leaseOwner, fence, expires, tokenFence, tokenEpoch,
                     authorityEpoch, freezeGeneration, frozen, scopeRevision,
-                    ackRevision, inFlight, acceptedApplies, refusedApplies>>
+                    ackRevision, inFlight, acceptedApplies, refusedApplies,
+                    recoveryApproved>>
 
 TryApply(r) ==
     /\ inFlight = 0
@@ -168,7 +176,7 @@ TryApply(r) ==
                /\ refusedApplies' = refusedApplies + 1
     /\ UNCHANGED <<now, leaseOwner, fence, expires, tokenFence, tokenEpoch,
                     authorityEpoch, freezeGeneration, frozen, scopeRevision,
-                    ackRevision, barrier>>
+                    ackRevision, barrier, recoveryApproved>>
 
 CommitApply(r) ==
     /\ inFlight = 1
@@ -176,7 +184,8 @@ CommitApply(r) ==
     /\ inFlight' = 0
     /\ UNCHANGED <<now, leaseOwner, fence, expires, tokenFence, tokenEpoch,
                     authorityEpoch, freezeGeneration, frozen, scopeRevision,
-                    ackRevision, barrier, acceptedApplies, refusedApplies>>
+                    ackRevision, barrier, acceptedApplies, refusedApplies,
+                    recoveryApproved>>
 
 AbortInvalidApply ==
     /\ inFlight = 1
@@ -184,7 +193,8 @@ AbortInvalidApply ==
     /\ inFlight' = 0
     /\ UNCHANGED <<now, leaseOwner, fence, expires, tokenFence, tokenEpoch,
                     authorityEpoch, freezeGeneration, frozen, scopeRevision,
-                    ackRevision, barrier, acceptedApplies, refusedApplies>>
+                    ackRevision, barrier, acceptedApplies, refusedApplies,
+                    recoveryApproved>>
 
 Freeze ==
     /\ ~frozen
@@ -193,7 +203,8 @@ Freeze ==
     /\ freezeGeneration' = freezeGeneration + 1
     /\ UNCHANGED <<now, leaseOwner, fence, expires, tokenFence, tokenEpoch,
                     authorityEpoch, scopeRevision, ackRevision, barrier,
-                    inFlight, acceptedApplies, refusedApplies>>
+                    inFlight, acceptedApplies, refusedApplies,
+                    recoveryApproved>>
 
 Restore ==
     /\ inFlight = 0
@@ -205,13 +216,26 @@ Restore ==
     /\ freezeGeneration' = freezeGeneration + 1
     /\ ackRevision' = 0
     /\ barrier' = FALSE
+    /\ recoveryApproved' = FALSE
     /\ UNCHANGED <<now, fence, expires, tokenFence, tokenEpoch,
                     scopeRevision, inFlight, acceptedApplies, refusedApplies>>
+
+ApproveRecovery ==
+    /\ frozen
+    /\ leaseOwner = None
+    /\ ~recoveryApproved
+    /\ recoveryApproved' = TRUE
+    /\ UNCHANGED <<now, leaseOwner, fence, expires, tokenFence, tokenEpoch,
+                    authorityEpoch, freezeGeneration, frozen, scopeRevision,
+                    ackRevision, barrier, inFlight, acceptedApplies,
+                    refusedApplies>>
 
 RecoverActive ==
     /\ frozen
     /\ leaseOwner = None
+    /\ recoveryApproved
     /\ frozen' = FALSE
+    /\ recoveryApproved' = FALSE
     /\ UNCHANGED <<now, leaseOwner, fence, expires, tokenFence, tokenEpoch,
                     authorityEpoch, freezeGeneration, scopeRevision,
                     ackRevision, barrier, inFlight, acceptedApplies,
@@ -222,6 +246,7 @@ Next ==
     \/ Expire
     \/ Freeze
     \/ Restore
+    \/ ApproveRecovery
     \/ RecoverActive
     \/ AbortInvalidApply
     \/ \E r \in Runners:
@@ -244,10 +269,29 @@ TypeOK ==
     /\ inFlight \in 0..1
     /\ acceptedApplies \in 0..MaxOps
     /\ refusedApplies \in 0..MaxOps
+    /\ recoveryApproved \in BOOLEAN
 
 BarrierHasNoInFlightApply == barrier => inFlight = 0
 RestoredAuthorityNeedsFreshAcquire == leaseOwner = None => inFlight = 0
+RecoveryApprovalIsScoped == recoveryApproved => frozen /\ leaseOwner = None
+
+\* Reaping is scheduler progress, not a promise that time itself advances.
+\* Once a deadline is already due, weak fairness first aborts any invalid
+\* in-flight apply and then reaps the lease. A restore may also invalidate the
+\* lease and satisfy the property without an Expire step.
+ExpiredLeaseEventuallyReaped ==
+    (leaseOwner # None /\ expires <= now) ~> (leaseOwner = None)
+
+\* Approval is an explicit external action and receives no fairness assumption.
+\* Once approval is durable, it cannot remain pending forever. Internal
+\* activation consumes it under weak fairness; a newer restore may instead
+\* revoke it and require fresh approval for the new authority epoch.
+RecoveryApprovalEventuallySettles ==
+    recoveryApproved ~> ~recoveryApproved
 
 Spec == Init /\ [][Next]_vars
+        /\ WF_vars(AbortInvalidApply)
+        /\ WF_vars(Expire)
+        /\ WF_vars(RecoverActive)
 
 =============================================================================
