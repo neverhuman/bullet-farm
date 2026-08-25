@@ -28,9 +28,16 @@ impl ForgeOutcome {
 }
 
 const LOCAL_BANNER: &str = "\
-forge: local (Jeryu at http://127.0.0.1:8787)
+forge: local (Jeryu at http://127.0.0.1:8787) [RECOMMENDED AFTER INDEPENDENT ADMISSION]
 
-  What this unlocks that a hosted forge cannot:
+  Diagnostic status (no forge was contacted):
+    classification: DIAGNOSTIC_ONLY
+    observation-status: UNPROBED
+    promotional: false
+    admission-eligible: false
+    receipt-status: ABSENT
+
+  Declared localhost targets to verify before admission:
     exact expected-old-OID compare-and-swap on every candidate push
     protected-ref rules we define, including required proof roots
     no rate limits, no third-party credential, no network egress
@@ -49,13 +56,20 @@ forge: local (Jeryu at http://127.0.0.1:8787)
 const GITHUB_BANNER: &str = "\
 forge: github  [profile github-adapter-v1 — NOT self-hosted-v1]
 
-  Selecting github alone gives up, permanently:
+  Diagnostic status (no forge was contacted):
+    classification: DIAGNOSTIC_ONLY
+    observation-status: UNPROBED
+    promotional: false
+    admission-eligible: false
+    receipt-status: ABSENT
+
+  Declared hosted tradeoffs to verify before admission:
     exact-OID CAS      -> approximated by client-side --force-with-lease
     proof-root binding -> a check name and free text; GitHub cannot enforce it
     offline replay     -> unavailable
     zero credentials   -> a GitHub App installation token must exist
 
-  You gain: real merge-queue composition, signed artifacts, third-party sovereignty.
+  Declared targets: merge-queue composition, signed artifacts, third-party sovereignty.
   This profile cannot inherit self-hosted-v1.
 ";
 
@@ -65,24 +79,48 @@ UNSUPPORTED_BY_ADAPTER: gitlab-adapter-v1 is not implemented
 ";
 
 const PROBE_JSON: &str = r#"{
-  "local": {
-    "exact_oid_cas": "supported",
-    "protected_refs": "supported",
-    "check_runs": "supported_with_limitations",
-    "merge_group": "unsupported",
-    "exact_oid_readback": "supported",
-    "third_party_credential": "unsupported",
-    "live": "unprobed"
-  },
-  "github": {
-    "exact_oid_cas": "supported_with_limitations",
-    "merge_group": "supported_with_limitations",
-    "live": "unprobed"
-  },
-  "gitlab": {
-    "all": "unsupported"
+  "schema_version": 1,
+  "classification": "DIAGNOSTIC_ONLY",
+  "observation_status": "UNPROBED",
+  "promotional": false,
+  "admission_eligible": false,
+  "receipt_status": "ABSENT",
+  "profiles": {
+    "local": {
+      "observation_status": "UNPROBED",
+      "declared_capabilities": {
+        "exact_oid_cas": "supported",
+        "protected_refs": "supported",
+        "check_runs": "supported_with_limitations",
+        "merge_group": "unsupported",
+        "exact_oid_readback": "supported",
+        "third_party_credential": "unsupported"
+      }
+    },
+    "github": {
+      "observation_status": "UNPROBED",
+      "declared_capabilities": {
+        "exact_oid_cas": "supported_with_limitations",
+        "merge_group": "supported_with_limitations"
+      }
+    },
+    "gitlab": {
+      "observation_status": "UNSUPPORTED",
+      "declared_capabilities": {}
+    }
   }
 }"#;
+
+const STATUS_TEXT: &str = "\
+classification: DIAGNOSTIC_ONLY
+observation-status: UNPROBED
+promotional: false
+admission-eligible: false
+receipt-status: ABSENT
+pinned: none
+declared-only: local, github
+unsupported: gitlab, jeryu merge-group
+";
 
 /// Whether argv should be handled here instead of [`crate::cli`].
 #[must_use]
@@ -142,10 +180,7 @@ pub fn execute(
             "UNSIGNED_FORGE_TAG",
             "Jeryu tags are not annotated signed tags; pin refuses until they are",
         )),
-        "status" => Ok(outcome(
-            "pinned: none\nunprobed: local live, github live\nunsupported: gitlab, jeryu merge-group\n",
-            0,
-        )),
+        "status" => Ok(outcome(STATUS_TEXT, 0)),
         other => Err(CoordError::new(
             "INVALID_ARGUMENT",
             format!("unknown forge verb {other}; expected probe|pin|status"),
