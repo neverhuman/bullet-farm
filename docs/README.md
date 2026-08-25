@@ -34,6 +34,10 @@ green through documentation.
   negative cases, and live-lane admission.
 - [`runbooks/`](runbooks/) describes operator procedures; a runbook does not
   bypass an API or policy gate.
+- [`runbooks/source-setup.md`](runbooks/source-setup.md) separates contributor
+  bootstrap from the blocked signed release installer.
+- [`runbooks/backup-restore.md`](runbooks/backup-restore.md) covers receipt-bound
+  SQLite snapshots and the mandatory restore quarantine.
 - [`assurance/`](assurance/) maps claims to code, schemas, and tests.
 - [`assurance/v1-closure-plan.md`](assurance/v1-closure-plan.md) is the
   dependency-ordered implementation and proof map for the remaining V1 work.
