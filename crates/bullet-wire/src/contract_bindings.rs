@@ -122,6 +122,7 @@ const fn rust_type(field_type: FieldTypeV1) -> &'static str {
     match field_type {
         FieldTypeV1::String
         | FieldTypeV1::SchemaVersion
+        | FieldTypeV1::PolicySchemaVersion
         | FieldTypeV1::Identifier
         | FieldTypeV1::Digest
         | FieldTypeV1::OrganizationId
@@ -199,6 +200,7 @@ const fn typescript_type(field_type: FieldTypeV1) -> &'static str {
     match field_type {
         FieldTypeV1::String
         | FieldTypeV1::SchemaVersion
+        | FieldTypeV1::PolicySchemaVersion
         | FieldTypeV1::Identifier
         | FieldTypeV1::Digest
         | FieldTypeV1::OrganizationId

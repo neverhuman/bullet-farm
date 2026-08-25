@@ -3,7 +3,10 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value, json};
 
-use crate::{WireError, policy::POLICY_SCHEMA_VERSION};
+use crate::{
+    WireError,
+    policy::{POLICY_SCHEMA_VERSION, PolicySchemaVersion},
+};
 
 mod constraints;
 mod launch;
@@ -16,6 +19,7 @@ use records::required_records;
 pub enum FieldTypeV1 {
     String,
     SchemaVersion,
+    PolicySchemaVersion,
     Identifier,
     Digest,
     OrganizationId,
@@ -245,6 +249,9 @@ fn field_schema(field: &ContractFieldV1) -> Value {
     match field.field_type {
         FieldTypeV1::String => json!({"type": "string", "minLength": 1}),
         FieldTypeV1::SchemaVersion => json!({"type": "string", "const": "v1alpha1"}),
+        FieldTypeV1::PolicySchemaVersion => json!({
+            "type": "string", "enum": PolicySchemaVersion::ACCEPTED
+        }),
         FieldTypeV1::Identifier => json!({
             "type": "string",
             "pattern": "^[a-z][a-z0-9-]{1,15}_[0-9a-f]{64}$"

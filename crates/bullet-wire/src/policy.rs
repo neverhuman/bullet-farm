@@ -5,8 +5,41 @@ use serde::{Deserialize, Serialize};
 use crate::{AuthorityAudience, Blake3Digest, WireError};
 
 mod keys;
+mod live;
+
+pub use live::LIVE_ADMISSION_MIN_GENERATION;
 
 pub const POLICY_SCHEMA_VERSION: &str = "v1alpha1";
+pub const POLICY_SCHEMA_VERSION_V1ALPHA2: &str = "v1alpha2";
+
+/// Snapshot schema versions `PolicySnapshotV1::validate` accepts.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum PolicySchemaVersion {
+    /// Gate 0 offline policy: live admission is always `UNSAFE_POLICY`.
+    V1Alpha1,
+    /// v1alpha1 plus the operator-ratified live-admission rule (ADR 0012).
+    V1Alpha2,
+}
+
+impl PolicySchemaVersion {
+    /// Exact `schema_version` values, in the order the JSON-Schema enum lists them.
+    pub const ACCEPTED: [&'static str; 2] = [POLICY_SCHEMA_VERSION, POLICY_SCHEMA_VERSION_V1ALPHA2];
+
+    pub fn parse(actual: &str) -> Result<Self, WireError> {
+        match actual {
+            POLICY_SCHEMA_VERSION => Ok(Self::V1Alpha1),
+            POLICY_SCHEMA_VERSION_V1ALPHA2 => Ok(Self::V1Alpha2),
+            _ => Err(unsupported_schema(actual, "PolicySnapshotV1")),
+        }
+    }
+
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::V1Alpha1 => POLICY_SCHEMA_VERSION,
+            Self::V1Alpha2 => POLICY_SCHEMA_VERSION_V1ALPHA2,
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -310,8 +343,16 @@ pub struct PolicySnapshotV1 {
 }
 
 impl PolicySnapshotV1 {
+    pub fn schema(&self) -> Result<PolicySchemaVersion, WireError> {
+        PolicySchemaVersion::parse(&self.schema_version)
+    }
+
+    /// Structural validation shared by every accepted schema version. The
+    /// conservatism set below is immutable across versions; only v1alpha2 may
+    /// enable live admission, and only under `live::validate_live_admission`.
+    /// Wall-clock checks live in `validate_at`.
     pub fn validate(&self) -> Result<(), WireError> {
-        require_v1alpha1(&self.schema_version, "PolicySnapshotV1")?;
+        let schema = self.schema()?;
         if self.policy_generation == 0
             || self.activation_at_unix_ms >= self.expires_at_unix_ms
             || self.issuer_keys.is_empty()
@@ -325,7 +366,6 @@ impl PolicySnapshotV1 {
         keys::validate_issuer_keys(&self.issuer_keys)?;
         if self.budget_policy.maximum_lease_ttl_seconds > 15
             || self.budget_policy.unknown_quota_is_headroom
-            || self.sandbox_policy.live_admission_enabled
             || self.sandbox_policy.arbitrary_shell_gates
             || self.evidence_policy.author_evidence_is_independent
             || self.evidence_policy.unknown_satisfies_gate
@@ -333,13 +373,28 @@ impl PolicySnapshotV1 {
             || self.route_policy.universal_incumbent != "T0"
             || self.route_policy.evolutionary_authority
         {
-            return Err(WireError::new(
-                "UNSAFE_POLICY",
-                "v1alpha1 Gate 0 policy must remain offline, conservative, and T0-anchored",
-            ));
+            return Err(unsafe_policy(schema));
         }
-        Ok(())
+        if !self.sandbox_policy.live_admission_enabled {
+            return Ok(());
+        }
+        match schema {
+            PolicySchemaVersion::V1Alpha1 => Err(unsafe_policy(schema)),
+            PolicySchemaVersion::V1Alpha2 => live::validate_live_admission(self),
+        }
     }
+}
+
+fn unsafe_policy(schema: PolicySchemaVersion) -> WireError {
+    let reason = match schema {
+        PolicySchemaVersion::V1Alpha1 => {
+            "v1alpha1 Gate 0 policy must remain offline, conservative, and T0-anchored"
+        }
+        PolicySchemaVersion::V1Alpha2 => {
+            "v1alpha2 policy must remain conservative, T0-anchored, and without evolutionary authority"
+        }
+    };
+    WireError::new("UNSAFE_POLICY", reason)
 }
 
 fn validate_nested_policy_versions(policy: &PolicySnapshotV1) -> Result<(), WireError> {
@@ -366,10 +421,14 @@ fn validate_nested_policy_versions(policy: &PolicySnapshotV1) -> Result<(), Wire
 
 fn require_v1alpha1(actual: &str, kind: &str) -> Result<(), WireError> {
     if actual != POLICY_SCHEMA_VERSION {
-        return Err(WireError::new(
-            "UNSUPPORTED_POLICY_SCHEMA",
-            format!("{kind} schema {actual} is unsupported"),
-        ));
+        return Err(unsupported_schema(actual, kind));
     }
     Ok(())
+}
+
+fn unsupported_schema(actual: &str, kind: &str) -> WireError {
+    WireError::new(
+        "UNSUPPORTED_POLICY_SCHEMA",
+        format!("{kind} schema {actual} is unsupported"),
+    )
 }
