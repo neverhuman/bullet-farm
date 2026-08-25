@@ -2,7 +2,8 @@
 
 Status: **BLOCKED — no V1 release candidate is authorized**  
 Owner: Bullet Farm maintainers  
-Last reviewed: 2026-08-24  
+Last reviewed: 2026-08-25
+
 Applies to: the four-repository Bullet Farm family
 
 This document is the short release index. It does not replace generated wire
@@ -41,20 +42,35 @@ receipt never certifies another provider or profile.
 
 | Gate | Status | Evidence needed to clear it |
 | --- | --- | --- |
-| Hub-only installation | `BLOCKED` | Publish a real schema-3 lock with authenticated Jeryu URL/slug and signed exact subjects, then reproduce the already-tested two-run clean-install invariant from tagged release bytes in a fresh home |
-| Production Kernel transaction | `BLOCKED` | Atomic lease/command/event/outbox, snapshots, authenticated ingress, typed operation decisions, and an authenticated exact-ID offline reconciler are committed; signed dispatch, execution, verification/effects, normalized truth, CAS, backup/restore, and crash receipts remain |
+| Hub-only installation | `BLOCKED` | The checked-in alpha.4 lock is schema 2 and intentionally rejected. Publish a real schema-3 lock with authenticated Jeryu URL/slug and signed exact subjects, then reproduce the already-tested two-run clean-install invariant using a signed prebuilt installer from tagged release bytes in a fresh home |
+| Production Kernel transaction | `BLOCKED` | Atomic lease/command/event/outbox, snapshots, authenticated ingress, typed operation decisions, and an authenticated exact-ID offline worker/reconciler are committed. Receipt-bound WAL-consistent backup and a fail-closed quarantined restore with an explicit restore epoch are also committed. Signed provider/effect dispatch and execution, independent verification/effects integration, normalized full truth, CAS/retention/GC, production restore admission/publication, and cross-plane crash receipts remain |
 | Production BulletGit transaction | `BLOCKED` | Durable CAS/journal, generation-atomic apply, and preservation-bound cleanup are committed; online authority, complete Candidate/Integration manifests, shared-wire consumption, and reviewed tagged `jeryu-gitd` remain |
 | Offline five-plane proof | `BLOCKED` | One signed `TRANSACTION_PROOF` covering authority, runner death/salvage, independent verification, ambiguous-effect reconciliation, protected integration, preservation, and truthful portal projection |
 | Jeryu live effect | `BLOCKED` | Operator-restored authentication and read-back/reconciliation receipt; the running forge must not be modified to work around missing capability |
 | GitHub live effect | `BLOCKED` | Configured GitHub App test repository and exact-subject integration/reconciliation receipt |
-| Provider conformance | `BLOCKED` | Offline binary/environment/OAuth/canary/process-tree admission is committed but dispatch fails closed without signed authority and egress; four protocol adapters and live receipts remain |
-| Security quality | `BLOCKED` | Pinned scanners are executable, but current Hub Jankurai is 57/raw 57 with 9 caps/36 findings/25 hard; release needs at least 90 and zero caps/hard plus all required scans |
-| Release supply chain | `BLOCKED` | The Linux verifier now checks an exact non-circular signed five-target manifest and every declared byte subject; reproducible archives, semantic SBOM/provenance validation, package signatures from protected release keys, installer smoke, and tagged release receipts remain |
+| Provider conformance | `BLOCKED` | Bounded fail-closed offline protocol subsets are committed for Claude stream JSON, Codex App Server JSONL, Cursor ACP, and Antigravity structured output. They do not spawn an admitted binary, use provider credentials, prove native typed extensions or event schemas, or produce live conformance. Signed executable/profile admission, isolated credentials and egress, supervision/deadlines, strict duplicate-key decoding, and live receipts for all four providers remain |
+| Security quality | `BLOCKED` | The latest Hub Jankurai report is 60 (raw 61), with 7 caps and 34 findings, including 23 `high`. No finding has tool severity `hard` (some checks carry a `hard` tag), but the caps, high findings, and score still block release; release needs at least 90, zero caps/hard findings, and all required scans |
+| Release supply chain | `BLOCKED` | A read-only Linux verifier checks an exact non-circular signed five-target manifest and every declared byte subject. It is not a package builder, archive extractor, or prebuilt installer. Reproducible archives, semantic SBOM/provenance validation, package signatures from protected release keys, installer smoke, and tagged release receipts remain |
 | Platform containment | `BLOCKED` | Linux production containment plus fail-closed proof on every other packaged platform until an equivalent native backend passes |
 
 Missing credentials produce a neutral, unregistered live lane only when that
 lane is not required for the requested profile. Missing required tools,
 adapters, receipts, or signatures fail the release.
+
+## Current component receipt snapshot
+
+These reviewed commits are component evidence, not release or live evidence:
+
+| Subject | Committed receipt | Remaining authority boundary |
+| --- | --- | --- |
+| Kernel command worker | Kernel `77a0ecd` | Authenticated offline exact-ID execution/reconciliation only; no provider or effect dispatch |
+| Kernel backup/restore | Kernel `798f0c8` | Exact receipt and quarantined offline restore only; restored state is not admitted for production use |
+| Codex offline protocol | Kernel `ca376e4` | Bounded App Server transcript subset; public runtime remains blocked |
+| Claude offline protocol | Kernel `c34d578` | Bounded stream-JSON transcript subset; public runtime remains blocked |
+| Cursor offline protocol | Kernel `ea89929` | Bounded ACP transcript subset; native typed-extension and live conformance remain unproved |
+| Antigravity offline protocol | Kernel `5badc85` | Bounded structured-output subset; native stream schema and live conformance remain unproved |
+| Setup transaction | Hub `5148a52` | Source/component fixture proof; no authenticated public schema-3 lock or prebuilt installer |
+| Bundle verifier | Hub `352f963` | Read-only exact-byte verification; no package production, extraction, installation, or signing authority |
 
 ## Local pre-release gates
 
@@ -114,6 +130,10 @@ detached signatures, and exact Ed25519 signer status. It does not produce packag
 provenance semantics, extract archives, run an installer, provision signing trust, or claim safety from
 concurrent replacement of intermediate bundle directories.
 
+No package builder or archive extractor is implemented, and no signed prebuilt `bullet-family` installer
+has been published. Passing the verifier against a preassembled test fixture is not package-production or
+installer evidence.
+
 The Rust setup/checkout mechanism and its signed local four-repository fixture implement these
 rules, including two idempotent exact installs. Fallible dependency, generated-contract, and exact-
 family checks now complete before Linux no-replace member publication, and the outer manifest is the
@@ -122,7 +142,8 @@ production Git/tool/doctor/coordination children use bounded capture, and local 
 byte-identically without tracked drift. Setup rejects unsupported platforms before mutation. The
 checked-in alpha.4 lock remains schema 2, so the public command still fails before mutation with
 schema-3 regeneration guidance. Release evidence remains blocked until authenticated Jeryu subjects
-and a signed prebuilt binary exist and the invariant is replayed from those exact release bytes.
+and a signed prebuilt binary exist and the invariant is replayed from those exact release bytes. No public
+schema-3 family lock or live provider, Jeryu, or GitHub receipt exists today.
 
 ## Package matrix
 
