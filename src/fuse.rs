@@ -82,6 +82,9 @@ pub fn run(
     reject_symlink_root(explicit_root)?;
     let (family_root, hub_root) = resolve_roots(current_dir, explicit_root)?;
     require_canonical_family(&family_root, &hub_root)?;
+    if source == Source::Local {
+        require_local_members_present(&family_root)?;
+    }
     crate::deps_check::run(current_dir, explicit_root, &["check".to_owned()])?;
     let manifest = match source {
         Source::Local => local_manifest(&family_root, &hub_root)?,
@@ -104,6 +107,26 @@ pub fn run(
         source.as_str(),
         hub_root.join(".fusion").display()
     ))
+}
+
+fn require_local_members_present(family_root: &Path) -> Result<(), CoordError> {
+    for &name in REPOSITORIES {
+        let repo = family_root.join(name);
+        match std::fs::symlink_metadata(&repo) {
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                return Err(CoordError::new(
+                    "FAMILY_MEMBER_MISSING",
+                    format!(
+                        "required canonical member {name} is absent at {}; run `bullet-family doctor --json`, then restore it through the admitted family setup before retrying fusion",
+                        repo.display()
+                    ),
+                ));
+            }
+            Err(error) => return Err(CoordError::io(error)),
+        }
+    }
+    Ok(())
 }
 
 fn parse_args(args: &[String]) -> Result<Source, CoordError> {

@@ -50,6 +50,19 @@ fn local_fusion_is_exact_idempotent_and_fail_closed() {
 }
 
 #[test]
+fn local_fusion_reports_an_absent_canonical_member_before_publication() {
+    let fixture = Fixture::local();
+    fs::remove_dir_all(fixture.root.join("bullet-portal")).unwrap();
+
+    let output = fuse(&fixture.root, "local");
+    assert_error(&output, "FAMILY_MEMBER_MISSING");
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(stderr.contains("bullet-portal"));
+    assert!(stderr.contains("bullet-family doctor --json"));
+    assert!(!fixture.hub().join(".fusion").exists());
+}
+
+#[test]
 fn lock_fusion_binds_verified_schema_three_sources_and_subjects() {
     let fixture = Fixture::signed();
     let output = fuse(&fixture.root, "lock");
