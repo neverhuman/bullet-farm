@@ -31,6 +31,14 @@ struct Fixture {
     bundle: PathBuf,
     allowed_signers: PathBuf,
     key: PathBuf,
+    signing_identity: String,
+    allowed_signer_entry: String,
+}
+
+struct TestSigner {
+    key: PathBuf,
+    identity: String,
+    allowed_signer_entry: String,
 }
 
 impl Fixture {
@@ -45,26 +53,17 @@ impl Fixture {
         }
         let bundle = root.join("bundle");
         fs::create_dir_all(bundle.join("packages")).expect("fixture directories");
-        let key = root.join("release-key");
-        command(
-            &root,
-            "/usr/bin/ssh-keygen",
-            &["-q", "-t", "ed25519", "-N", "", "-f", text(&key)],
-        );
-        let public_key = fs::read_to_string(key.with_extension("pub")).expect("public key");
-        let fingerprint = fingerprint(&root, &key.with_extension("pub"));
+        let signer = generate_signer(&root, "release-key", PRINCIPAL);
         let allowed_signers = root.join("allowed_signers");
-        fs::write(
-            &allowed_signers,
-            format!(
-                "{PRINCIPAL} namespaces=\"bullet-farm-release\" {}\n",
-                public_key.trim()
-            ),
-        )
-        .expect("allowed signers");
+        fs::write(&allowed_signers, &signer.allowed_signer_entry).expect("allowed signers");
+        let allowed_signers_digest = digest(signer.allowed_signer_entry.as_bytes());
 
         let family_lock = bundle.join("family.lock");
-        fs::write(&family_lock, family_lock_text()).expect("family lock");
+        fs::write(
+            &family_lock,
+            family_lock_text(&signer.identity, &allowed_signers_digest),
+        )
+        .expect("family lock");
         let mut manifest = format!(
             concat!(
                 "release_manifest_schema_version = \"{}\"\n",
@@ -73,9 +72,9 @@ impl Fixture {
                 "tag = \"{}\"\n",
                 "hub_commit_oid = \"sha1:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n",
                 "hub_tree_oid = \"sha1:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"\n",
-                "release_signing_identity = \"{}|ed25519|{}\"\n",
+                "release_signing_identity = \"{}\"\n",
             ),
-            RELEASE_MANIFEST_SCHEMA_VERSION, TAG, PRINCIPAL, fingerprint
+            RELEASE_MANIFEST_SCHEMA_VERSION, TAG, signer.identity,
         );
         append_file_table(&mut manifest, "family_lock", &bundle, "family.lock");
 
@@ -104,7 +103,7 @@ impl Fixture {
                 ),
             ] {
                 fs::write(bundle.join(&path), bytes).expect("release payload");
-                sign(&root, &key, &bundle.join(&path));
+                sign(&root, &signer.key, &bundle.join(&path));
             }
             writeln!(manifest, "[[package]]").unwrap();
             writeln!(manifest, "target = {target:?}").unwrap();
@@ -114,12 +113,14 @@ impl Fixture {
         }
         let manifest_path = bundle.join("release-manifest.toml");
         fs::write(&manifest_path, manifest).expect("release manifest");
-        sign(&root, &key, &manifest_path);
+        sign(&root, &signer.key, &manifest_path);
         Self {
             root,
             bundle,
             allowed_signers,
-            key,
+            key: signer.key,
+            signing_identity: signer.identity,
+            allowed_signer_entry: signer.allowed_signer_entry,
         }
     }
 
@@ -184,6 +185,26 @@ impl Fixture {
         .expect("replace rebound release manifest");
         self.resign_manifest();
     }
+
+    fn replace_manifest_signer(&self, signer: &TestSigner) {
+        let manifest_path = self.bundle.join("release-manifest.toml");
+        let manifest_bytes = fs::read(&manifest_path).expect("release manifest");
+        let mut manifest = ReleaseManifest::parse(&manifest_bytes).expect("valid release manifest");
+        manifest.release_signing_identity = signer.identity.clone();
+        fs::write(
+            &manifest_path,
+            toml::to_string(&manifest).expect("encode rebound release manifest"),
+        )
+        .expect("replace rebound release manifest");
+        fs::remove_file(self.bundle.join("release-manifest.toml.sig"))
+            .expect("remove old signature");
+        sign(&self.root, &signer.key, &manifest_path);
+    }
+
+    fn lock_text(&self, identity: &str) -> String {
+        let allowed_signers = fs::read(&self.allowed_signers).expect("allowed signers bytes");
+        family_lock_text(identity, &digest(&allowed_signers))
+    }
 }
 
 impl Drop for Fixture {
@@ -201,12 +222,26 @@ fn signed_five_platform_bundle_verifies_twice_without_mutation() {
     assert_eq!(first, second);
     assert!(first.contains("5 packages"));
     assert_eq!(snapshot(&fixture.root), before);
+
+    let lock = bullet_family::family_lock::parse(
+        &fs::read(fixture.bundle.join("family.lock")).expect("family lock"),
+    )
+    .expect("valid family lock");
+    assert_eq!(lock.external.release_signing.not_before_unix_ms, 1);
+    assert_eq!(lock.external.release_signing.not_after_unix_ms, 2);
+    // No trusted-time input exists at this component boundary: the deliberately historical
+    // fixture interval is structurally valid but remains UNADJUDICATED, not enforced.
 }
 
 #[test]
 fn signed_bundle_requires_the_exact_canonical_family_before_extracting() {
     let fixture = Fixture::new();
-    fixture.replace_family_lock(family_lock_text_for(&["bullet-git", "bullet-kernel"]));
+    let allowed_signers = fs::read(&fixture.allowed_signers).expect("allowed signers bytes");
+    fixture.replace_family_lock(family_lock_text_for(
+        &["bullet-git", "bullet-kernel"],
+        &fixture.signing_identity,
+        &digest(&allowed_signers),
+    ));
 
     assert_eq!(fixture.verify().unwrap_err().code(), "INVALID_FAMILY_LOCK");
     let destination = fixture.root.join("incomplete-family-install");
@@ -218,6 +253,71 @@ fn signed_bundle_requires_the_exact_canonical_family_before_extracting() {
         "INVALID_FAMILY_LOCK"
     );
     assert!(!destination.exists());
+}
+
+#[test]
+fn lock_authorized_signer_cannot_be_substituted_by_another_allowed_key() {
+    let fixture = Fixture::new();
+    let alternate = generate_signer(
+        &fixture.root,
+        "alternate-release-key",
+        "other@bullet.invalid",
+    );
+    let allowed_signers = format!(
+        "{}{}",
+        fixture.allowed_signer_entry, alternate.allowed_signer_entry
+    );
+    fs::write(&fixture.allowed_signers, &allowed_signers).expect("two-key allowed signers");
+    fixture.replace_family_lock(family_lock_text(
+        &fixture.signing_identity,
+        &digest(allowed_signers.as_bytes()),
+    ));
+    fixture.replace_manifest_signer(&alternate);
+
+    let error = fixture.verify().expect_err("alternate signer must fail");
+    assert_eq!(error.code(), "INVALID_RELEASE_BUNDLE");
+    assert_eq!(
+        error.to_string(),
+        "INVALID_RELEASE_BUNDLE: release manifest signer does not match the locked Hub signing identity"
+    );
+}
+
+#[test]
+fn allowed_signers_bytes_must_match_the_locked_policy_digest() {
+    let fixture = Fixture::new();
+    let mut altered = fs::read(&fixture.allowed_signers).expect("allowed signers bytes");
+    altered.extend_from_slice(b"# semantically inert but different bytes\n");
+    fs::write(&fixture.allowed_signers, altered).expect("alter allowed signers bytes");
+
+    let error = fixture
+        .verify()
+        .expect_err("altered policy bytes must fail");
+    assert_eq!(error.code(), "INVALID_RELEASE_BUNDLE");
+    assert_eq!(
+        error.to_string(),
+        "INVALID_RELEASE_BUNDLE: admitted allowed-signers bytes do not match the locked external subject"
+    );
+}
+
+#[test]
+fn manifest_signer_must_match_the_identity_bound_by_the_lock() {
+    let fixture = Fixture::new();
+    let alternate = generate_signer(&fixture.root, "lock-release-key", "lock@bullet.invalid");
+    let allowed_signers = format!(
+        "{}{}",
+        fixture.allowed_signer_entry, alternate.allowed_signer_entry
+    );
+    fs::write(&fixture.allowed_signers, allowed_signers).expect("two-key allowed signers");
+    fixture.replace_family_lock(fixture.lock_text(&alternate.identity));
+
+    let error = fixture
+        .verify()
+        .expect_err("manifest and lock signer mismatch must fail");
+    assert_eq!(error.code(), "INVALID_RELEASE_BUNDLE");
+    assert_eq!(
+        error.to_string(),
+        "INVALID_RELEASE_BUNDLE: release manifest signer does not match the locked Hub signing identity"
+    );
 }
 
 #[test]
@@ -371,12 +471,15 @@ fn schema_refuses_unknown_fields_missing_targets_and_wrong_lock_version() {
     );
 }
 
-fn family_lock_text() -> String {
-    family_lock_text_for(&["bullet-git", "bullet-kernel", "bullet-portal"])
+fn family_lock_text(identity: &str, allowed_signers_digest: &str) -> String {
+    family_lock_text_for(
+        &["bullet-git", "bullet-kernel", "bullet-portal"],
+        identity,
+        allowed_signers_digest,
+    )
 }
 
-fn family_lock_text_for(members: &[&str]) -> String {
-    let identity = "fixture@bullet.invalid|ed25519|SHA256:abc+123=";
+fn family_lock_text_for(members: &[&str], identity: &str, allowed_signers_digest: &str) -> String {
     let locked_members = members
         .iter()
         .map(|member| LockedMember {
@@ -409,12 +512,12 @@ fn family_lock_text_for(members: &[&str]) -> String {
             release_signing_identity: identity.to_owned(),
         },
         member: locked_members,
-        external: external_subjects(identity),
+        external: external_subjects(identity, allowed_signers_digest),
     })
     .unwrap()
 }
 
-fn external_subjects(identity: &str) -> ExternalSubjects {
+fn external_subjects(identity: &str, allowed_signers_digest: &str) -> ExternalSubjects {
     ExternalSubjects {
         toolchain: vec![ToolchainSubject {
             id: "rust".into(),
@@ -470,12 +573,31 @@ fn external_subjects(identity: &str) -> ExternalSubjects {
             id: "release-signing".into(),
             identity: identity.to_owned(),
             policy_digest: lock_digest('1'),
-            allowed_signers_digest: lock_digest('2'),
+            allowed_signers_digest: allowed_signers_digest.to_owned(),
             key_digest: lock_digest('3'),
             policy_path: "/etc/bullet/release/allowed_signers".into(),
             not_before_unix_ms: 1,
             not_after_unix_ms: 2,
         },
+    }
+}
+
+fn generate_signer(root: &Path, label: &str, principal: &str) -> TestSigner {
+    let key = root.join(label);
+    command(
+        root,
+        "/usr/bin/ssh-keygen",
+        &["-q", "-t", "ed25519", "-N", "", "-f", text(&key)],
+    );
+    let public_key = fs::read_to_string(key.with_extension("pub")).expect("public key");
+    let fingerprint = fingerprint(root, &key.with_extension("pub"));
+    TestSigner {
+        key,
+        identity: format!("{principal}|ed25519|{fingerprint}"),
+        allowed_signer_entry: format!(
+            "{principal} namespaces=\"bullet-farm-release\" {}\n",
+            public_key.trim()
+        ),
     }
 }
 

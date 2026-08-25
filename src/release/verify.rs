@@ -68,6 +68,7 @@ pub(super) fn verify(
     let lock_bytes = read_open_bounded(&mut lock_input, manifest.family_lock.size)?;
     verify_bytes(&manifest.family_lock, &lock_bytes)?;
     let lock = family_lock::parse(&lock_bytes)?;
+    verify_release_signing_subject(&manifest, &lock, &allowed_signers)?;
     if lock.schema_version != manifest.family_lock_schema_version || lock.tag != manifest.tag {
         return Err(invalid_bundle(
             "included family.lock does not bind the manifest schema and tag",
@@ -82,6 +83,29 @@ pub(super) fn verify(
         }
     }
     Ok(VerificationReceipt { manifest })
+}
+
+fn verify_release_signing_subject(
+    manifest: &ReleaseManifest,
+    lock: &family_lock::FamilyLock,
+    allowed_signers: &ImmutableSnapshot,
+) -> Result<(), CoordError> {
+    if manifest.release_signing_identity != lock.hub.release_signing_identity {
+        return Err(invalid_bundle(
+            "release manifest signer does not match the locked Hub signing identity",
+        ));
+    }
+    let allowed_signers_digest = format!("blake3:{}", allowed_signers.digest.to_hex());
+    if allowed_signers_digest != lock.external.release_signing.allowed_signers_digest {
+        return Err(invalid_bundle(
+            "admitted allowed-signers bytes do not match the locked external subject",
+        ));
+    }
+
+    // There is no trusted-time input at this component boundary. The lock parser proves that the
+    // interval is structurally ordered, but not_before_unix_ms/not_after_unix_ms remain
+    // UNADJUDICATED here and must not be reported as an enforced release property.
+    Ok(())
 }
 
 fn verify_signed_file(
