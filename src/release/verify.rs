@@ -15,6 +15,12 @@ use crate::{coord::CoordError, family_lock, process::InputFileOutput};
 const MANIFEST: &str = "release-manifest.toml";
 const MANIFEST_SIGNATURE: &str = "release-manifest.toml.sig";
 const SIGNATURE_NAMESPACE: &str = "bullet-farm-release";
+const REQUIRED_FAMILY_MEMBERS: [&str; 4] = [
+    "bullet-farm",
+    "bullet-git",
+    "bullet-kernel",
+    "bullet-portal",
+];
 
 pub(super) struct VerificationReceipt {
     pub(super) manifest: ReleaseManifest,
@@ -67,6 +73,8 @@ pub(super) fn verify(
             "included family.lock does not bind the manifest schema and tag",
         ));
     }
+    let required_members = REQUIRED_FAMILY_MEMBERS.map(str::to_owned);
+    lock.validate_required_members(&required_members)?;
 
     for package in &manifest.package {
         for signed in [&package.archive, &package.sbom, &package.provenance] {

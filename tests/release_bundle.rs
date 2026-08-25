@@ -161,6 +161,23 @@ impl Fixture {
             .expect("remove old signature");
         sign(&self.root, &self.key, &manifest);
     }
+
+    fn replace_family_lock(&self, lock: String) {
+        let lock_path = self.bundle.join("family.lock");
+        fs::write(&lock_path, lock).expect("replace family lock");
+        let lock_bytes = fs::read(&lock_path).expect("replacement family lock");
+        let manifest_path = self.bundle.join("release-manifest.toml");
+        let manifest_bytes = fs::read(&manifest_path).expect("release manifest");
+        let mut manifest = ReleaseManifest::parse(&manifest_bytes).expect("valid release manifest");
+        manifest.family_lock.size = lock_bytes.len() as u64;
+        manifest.family_lock.digest = digest(&lock_bytes);
+        fs::write(
+            &manifest_path,
+            toml::to_string(&manifest).expect("encode rebound release manifest"),
+        )
+        .expect("replace rebound release manifest");
+        self.resign_manifest();
+    }
 }
 
 impl Drop for Fixture {
@@ -178,6 +195,23 @@ fn signed_five_platform_bundle_verifies_twice_without_mutation() {
     assert_eq!(first, second);
     assert!(first.contains("5 packages"));
     assert_eq!(snapshot(&fixture.root), before);
+}
+
+#[test]
+fn signed_bundle_requires_the_exact_canonical_family_before_extracting() {
+    let fixture = Fixture::new();
+    fixture.replace_family_lock(family_lock_text_for(&["bullet-git", "bullet-kernel"]));
+
+    assert_eq!(fixture.verify().unwrap_err().code(), "INVALID_FAMILY_LOCK");
+    let destination = fixture.root.join("incomplete-family-install");
+    assert_eq!(
+        fixture
+            .extract("x86_64-unknown-linux-gnu", &destination)
+            .unwrap_err()
+            .code(),
+        "INVALID_FAMILY_LOCK"
+    );
+    assert!(!destination.exists());
 }
 
 #[test]
@@ -315,25 +349,58 @@ fn schema_refuses_unknown_fields_missing_targets_and_wrong_lock_version() {
 }
 
 fn family_lock_text() -> String {
-    concat!(
+    family_lock_text_for(&["bullet-git", "bullet-kernel", "bullet-portal"])
+}
+
+fn family_lock_text_for(members: &[&str]) -> String {
+    let mut lock = concat!(
         "schema_version = \"3\"\n",
         "family = \"bullet-farm\"\n",
         "tag = \"v0.1.0-fixture.1\"\n",
         "schema_bundle_hash = \"blake3:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"\n",
-        "[[member]]\n",
-        "name = \"bullet-kernel\"\n",
-        "jeryu_url = \"https://jeryu.example/git/root/bullet-kernel.git\"\n",
-        "jeryu_slug = \"root/bullet-kernel\"\n",
-        "tag = \"v0.1.0-fixture.1\"\n",
-        "commit_oid = \"sha1:dddddddddddddddddddddddddddddddddddddddd\"\n",
-        "tree_oid = \"sha1:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\"\n",
-        "release_signing_identity = \"fixture@bullet.invalid|ed25519|SHA256:abc+123=\"\n",
-        "artifact = []\n",
-        "[[member.lockfile]]\n",
-        "path = \"Cargo.lock\"\n",
-        "digest = \"blake3:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\"\n",
     )
-    .to_owned()
+    .to_owned();
+    for member in members {
+        let lockfile = if *member == "bullet-portal" {
+            "package-lock.json"
+        } else {
+            "Cargo.lock"
+        };
+        writeln!(lock, "[[member]]").unwrap();
+        writeln!(lock, "name = {member:?}").unwrap();
+        writeln!(
+            lock,
+            "jeryu_url = {:?}",
+            format!("https://jeryu.example/git/root/{member}.git")
+        )
+        .unwrap();
+        writeln!(lock, "jeryu_slug = {:?}", format!("root/{member}")).unwrap();
+        writeln!(lock, "tag = \"v0.1.0-fixture.1\"").unwrap();
+        writeln!(
+            lock,
+            "commit_oid = \"sha1:dddddddddddddddddddddddddddddddddddddddd\""
+        )
+        .unwrap();
+        writeln!(
+            lock,
+            "tree_oid = \"sha1:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\""
+        )
+        .unwrap();
+        writeln!(
+            lock,
+            "release_signing_identity = \"fixture@bullet.invalid|ed25519|SHA256:abc+123=\""
+        )
+        .unwrap();
+        writeln!(lock, "artifact = []").unwrap();
+        writeln!(lock, "[[member.lockfile]]").unwrap();
+        writeln!(lock, "path = {lockfile:?}").unwrap();
+        writeln!(
+            lock,
+            "digest = \"blake3:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\""
+        )
+        .unwrap();
+    }
+    lock
 }
 
 fn append_signed_table(output: &mut String, table: &str, bundle: &Path, payload: &str) {
