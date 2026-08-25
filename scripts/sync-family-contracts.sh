@@ -40,6 +40,12 @@ sync_file \
   "$HUB/contracts/generated/rust/schema_bundle.rs" \
   "$FAMILY/bullet-kernel/crates/domain/src/schema_bundle.rs"
 sync_file \
+  "$HUB/policy/v1alpha1/policy.json" \
+  "$FAMILY/bullet-kernel/crates/application/tests/fixtures/policy-v1alpha1.json"
+sync_file \
+  "$HUB/crates/bullet-wire/tests/fixtures/policy-v1alpha2-live-enabled.json" \
+  "$FAMILY/bullet-kernel/crates/application/tests/fixtures/policy-v1alpha2-live-enabled.json"
+sync_file \
   "$HUB/contracts/generated/rust/schema_bundle.rs" \
   "$FAMILY/bullet-git/crates/bullet-git-types/src/schema_bundle.rs"
 sync_file \
