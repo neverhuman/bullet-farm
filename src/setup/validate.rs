@@ -18,6 +18,18 @@ const CONTRACT_LINKS: &[(&str, &str, &str, &str)] = &[
     ),
     (
         "bullet-farm",
+        "policy/v1alpha1/policy.json",
+        "bullet-kernel",
+        "crates/application/tests/fixtures/policy-v1alpha1.json",
+    ),
+    (
+        "bullet-farm",
+        "crates/bullet-wire/tests/fixtures/policy-v1alpha2-live-enabled.json",
+        "bullet-kernel",
+        "crates/application/tests/fixtures/policy-v1alpha2-live-enabled.json",
+    ),
+    (
+        "bullet-farm",
         "contracts/generated/rust/schema_bundle.rs",
         "bullet-git",
         "crates/bullet-git-types/src/schema_bundle.rs",
@@ -145,6 +157,35 @@ fn validate_contract_links(candidate: &CandidateFamily<'_>) -> Result<(), CoordE
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+pub(super) fn assert_synchronizer_link_completeness_for_test() {
+    let policy_links = [
+        (
+            "bullet-farm",
+            "policy/v1alpha1/policy.json",
+            "bullet-kernel",
+            "crates/application/tests/fixtures/policy-v1alpha1.json",
+        ),
+        (
+            "bullet-farm",
+            "crates/bullet-wire/tests/fixtures/policy-v1alpha2-live-enabled.json",
+            "bullet-kernel",
+            "crates/application/tests/fixtures/policy-v1alpha2-live-enabled.json",
+        ),
+    ];
+    assert_eq!(
+        CONTRACT_LINKS.len(),
+        9,
+        "unexpected synchronizer link count"
+    );
+    for link in policy_links {
+        assert!(
+            CONTRACT_LINKS.contains(&link),
+            "setup validation omitted synchronized policy link {link:?}"
+        );
+    }
 }
 
 fn read_bounded(path: &Path) -> Result<Vec<u8>, CoordError> {

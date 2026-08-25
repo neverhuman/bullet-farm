@@ -91,6 +91,7 @@ fn checkout_publication_never_replaces_a_racing_destination() {
 
 #[test]
 fn signed_local_family_installs_twice_without_drift() {
+    super::validate::assert_synchronizer_link_completeness_for_test();
     let fixture = fixture_root("signed-install");
     let sources = fixture.join("sources");
     let install_root = fixture.join("install");
