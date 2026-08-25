@@ -8,6 +8,10 @@ use std::{
 use super::*;
 use crate::checkout::verify_family;
 
+mod lock_subjects;
+
+use self::lock_subjects::fixture_external_subjects;
+
 pub(super) const TAG: &str = "v1.0.0";
 pub(super) const MEMBERS: [&str; 4] = [
     "bullet-farm",
@@ -333,8 +337,25 @@ pub(super) fn create_source_family(root: &Path, home: &Path, signing_key: &Path)
         }
     }
     write_rich_manifest(root);
-    family_lock::run(root, &["generate".into(), "--tag".into(), TAG.into()])
-        .expect("generate non-circular lock");
+    let subjects = root.join("external-subjects.toml");
+    fs::write(
+        &subjects,
+        family_lock::ExternalSubjectManifest::new(fixture_external_subjects(root, home))
+            .encode()
+            .expect("encode external subjects"),
+    )
+    .expect("write external subjects");
+    family_lock::run(
+        root,
+        &[
+            "generate".into(),
+            "--tag".into(),
+            TAG.into(),
+            "--subjects".into(),
+            subjects.display().to_string(),
+        ],
+    )
+    .expect("generate non-circular lock");
     let hub = root.join("bullet-farm");
     test_git(&hub, home, &["add", "family.lock"]);
     test_git(&hub, home, &["commit", "-m", "bind family lock"]);

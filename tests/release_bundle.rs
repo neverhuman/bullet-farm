@@ -7,7 +7,13 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 
-use bullet_family::release::{RELEASE_MANIFEST_SCHEMA_VERSION, ReleaseManifest};
+use bullet_family::{
+    family_lock::{
+        ExternalSubjects, FamilyLock, JeryuSubject, LockedFile, LockedHub, LockedMember,
+        PortalSubject, ProviderSubject, ReleaseSigningSubject, SandboxSubject, ToolchainSubject,
+    },
+    release::{RELEASE_MANIFEST_SCHEMA_VERSION, ReleaseManifest},
+};
 
 const PRINCIPAL: &str = "fixture@bullet.invalid";
 const TAG: &str = "v0.1.0-fixture.1";
@@ -370,54 +376,115 @@ fn family_lock_text() -> String {
 }
 
 fn family_lock_text_for(members: &[&str]) -> String {
-    let mut lock = concat!(
-        "schema_version = \"3\"\n",
-        "family = \"bullet-farm\"\n",
-        "tag = \"v0.1.0-fixture.1\"\n",
-        "schema_bundle_hash = \"blake3:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\"\n",
-    )
-    .to_owned();
-    for member in members {
-        let lockfile = if *member == "bullet-portal" {
-            "package-lock.json"
-        } else {
-            "Cargo.lock"
-        };
-        writeln!(lock, "[[member]]").unwrap();
-        writeln!(lock, "name = {member:?}").unwrap();
-        writeln!(
-            lock,
-            "jeryu_url = {:?}",
-            format!("https://jeryu.example/git/root/{member}.git")
-        )
-        .unwrap();
-        writeln!(lock, "jeryu_slug = {:?}", format!("root/{member}")).unwrap();
-        writeln!(lock, "tag = \"v0.1.0-fixture.1\"").unwrap();
-        writeln!(
-            lock,
-            "commit_oid = \"sha1:dddddddddddddddddddddddddddddddddddddddd\""
-        )
-        .unwrap();
-        writeln!(
-            lock,
-            "tree_oid = \"sha1:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\""
-        )
-        .unwrap();
-        writeln!(
-            lock,
-            "release_signing_identity = \"fixture@bullet.invalid|ed25519|SHA256:abc+123=\""
-        )
-        .unwrap();
-        writeln!(lock, "artifact = []").unwrap();
-        writeln!(lock, "[[member.lockfile]]").unwrap();
-        writeln!(lock, "path = {lockfile:?}").unwrap();
-        writeln!(
-            lock,
-            "digest = \"blake3:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\""
-        )
-        .unwrap();
+    let identity = "fixture@bullet.invalid|ed25519|SHA256:abc+123=";
+    let locked_members = members
+        .iter()
+        .map(|member| LockedMember {
+            name: (*member).to_owned(),
+            jeryu_url: Some(format!("https://jeryu.example/git/root/{member}.git")),
+            jeryu_slug: Some(format!("root/{member}")),
+            tag: TAG.to_owned(),
+            commit_oid: lock_oid('d'),
+            tree_oid: lock_oid('e'),
+            release_signing_identity: identity.to_owned(),
+            lockfile: vec![LockedFile {
+                path: if *member == "bullet-portal" {
+                    "package-lock.json".to_owned()
+                } else {
+                    "Cargo.lock".to_owned()
+                },
+                digest: lock_digest('f'),
+            }],
+            artifact: Vec::new(),
+        })
+        .collect();
+    toml::to_string_pretty(&FamilyLock {
+        schema_version: "3".to_owned(),
+        family: "bullet-farm".to_owned(),
+        tag: TAG.to_owned(),
+        schema_bundle_hash: lock_digest('c'),
+        hub: LockedHub {
+            name: "bullet-farm".to_owned(),
+            tag: TAG.to_owned(),
+            release_signing_identity: identity.to_owned(),
+        },
+        member: locked_members,
+        external: external_subjects(identity),
+    })
+    .unwrap()
+}
+
+fn external_subjects(identity: &str) -> ExternalSubjects {
+    ExternalSubjects {
+        toolchain: vec![ToolchainSubject {
+            id: "rust".into(),
+            version: "1.89.0".into(),
+            install_path: "/usr/lib/bullet/toolchains/rust/1.89.0/rustc".into(),
+            binary_digest: lock_digest('1'),
+            manifest_digest: lock_digest('2'),
+            size_bytes: 1,
+        }],
+        provider: vec![ProviderSubject {
+            id: "claude".into(),
+            version: "1.0.0".into(),
+            profile: "service".into(),
+            install_path: "/usr/lib/bullet/providers/claude/1.0.0/claude".into(),
+            binary_digest: lock_digest('3'),
+            protocol_digest: lock_digest('4'),
+            size_bytes: 1,
+        }],
+        portal: PortalSubject {
+            id: "portal".into(),
+            version: "1.0.0".into(),
+            source_commit_oid: lock_oid('d'),
+            source_tree_oid: lock_oid('e'),
+            install_path: "/usr/lib/bullet/portal/1.0.0/index.html".into(),
+            bundle_digest: lock_digest('5'),
+            manifest_digest: lock_digest('6'),
+            size_bytes: 1,
+        },
+        sandbox: vec![SandboxSubject {
+            id: "sandbox-s1".into(),
+            class: "s1".into(),
+            platform: "ubuntu-24-04-x86-64".into(),
+            install_path: "/usr/lib/bullet/sandboxes/s1/rootfs.img".into(),
+            image_digest: lock_digest('7'),
+            policy_digest: lock_digest('8'),
+            size_bytes: 1,
+        }],
+        jeryu: JeryuSubject {
+            id: "jeryu".into(),
+            version: "1.0.0".into(),
+            tag: "v1.0.0".into(),
+            install_path: "/usr/lib/bullet/jeryu/1.0.0/jeryu".into(),
+            manifest_digest: lock_digest('9'),
+            binary_digest: lock_digest('a'),
+            api_schema_digest: lock_digest('b'),
+            capability_digest: lock_digest('c'),
+            sbom_digest: lock_digest('d'),
+            provenance_digest: lock_digest('e'),
+            signature_digest: lock_digest('f'),
+            size_bytes: 1,
+        },
+        release_signing: ReleaseSigningSubject {
+            id: "release-signing".into(),
+            identity: identity.to_owned(),
+            policy_digest: lock_digest('1'),
+            allowed_signers_digest: lock_digest('2'),
+            key_digest: lock_digest('3'),
+            policy_path: "/etc/bullet/release/allowed_signers".into(),
+            not_before_unix_ms: 1,
+            not_after_unix_ms: 2,
+        },
     }
-    lock
+}
+
+fn lock_digest(byte: char) -> String {
+    format!("blake3:{}", byte.to_string().repeat(64))
+}
+
+fn lock_oid(byte: char) -> String {
+    format!("sha1:{}", byte.to_string().repeat(40))
 }
 
 fn append_signed_table(output: &mut String, table: &str, bundle: &Path, payload: &str) {

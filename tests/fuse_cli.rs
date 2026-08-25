@@ -5,6 +5,11 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 
+use bullet_family::family_lock::{
+    ExternalSubjectManifest, ExternalSubjects, JeryuSubject, PortalSubject, ProviderSubject,
+    ReleaseSigningSubject, SandboxSubject, ToolchainSubject,
+};
+
 const TAG: &str = "v1.0.0-fuse.1";
 const PRINCIPAL: &str = "fuse-fixture@bullet.invalid";
 const REPOSITORIES: &[&str] = &[
@@ -164,8 +169,25 @@ impl Fixture {
                 sign_tag(&root.join(name), &key);
             }
         }
-        bullet_family::family_lock::run(&root, &["generate".into(), "--tag".into(), TAG.into()])
-            .expect("generate schema-3 lock from signed member subjects");
+        let subjects = root.join("external-subjects.toml");
+        fs::write(
+            &subjects,
+            ExternalSubjectManifest::new(external_subjects(&root, &public_key, &allowed))
+                .encode()
+                .unwrap(),
+        )
+        .unwrap();
+        bullet_family::family_lock::run(
+            &root,
+            &[
+                "generate".into(),
+                "--tag".into(),
+                TAG.into(),
+                "--subjects".into(),
+                subjects.display().to_string(),
+            ],
+        )
+        .expect("generate schema-3 lock from signed member subjects");
         let hub = root.join("bullet-farm");
         git(&hub, &["add", "family.lock"]);
         git(&hub, &["commit", "-q", "-m", "Bind exact family"]);
@@ -244,6 +266,99 @@ fn write_manifests(root: &Path) {
         }
     }
     fs::write(root.join("repos.manifest.toml"), manifest).unwrap();
+}
+
+fn external_subjects(root: &Path, public_key: &str, allowed: &str) -> ExternalSubjects {
+    let fingerprint = ssh_fingerprint(&root.join("release-key.pub"));
+    ExternalSubjects {
+        toolchain: vec![ToolchainSubject {
+            id: "rust".into(),
+            version: "1.89.0".into(),
+            install_path: "/usr/lib/bullet/toolchains/rust/1.89.0/rustc".into(),
+            binary_digest: digest(b't'),
+            manifest_digest: digest(b'm'),
+            size_bytes: 1,
+        }],
+        provider: vec![ProviderSubject {
+            id: "claude".into(),
+            version: "1.0.0".into(),
+            profile: "service".into(),
+            install_path: "/usr/lib/bullet/providers/claude/1.0.0/claude".into(),
+            binary_digest: digest(b'p'),
+            protocol_digest: digest(b'r'),
+            size_bytes: 1,
+        }],
+        portal: PortalSubject {
+            id: "portal".into(),
+            version: "1.0.0".into(),
+            source_commit_oid: tagged_subject(&root.join("bullet-portal"), "commit"),
+            source_tree_oid: tagged_subject(&root.join("bullet-portal"), "tree"),
+            install_path: "/usr/lib/bullet/portal/1.0.0/index.html".into(),
+            bundle_digest: digest(b'b'),
+            manifest_digest: digest(b'a'),
+            size_bytes: 1,
+        },
+        sandbox: vec![SandboxSubject {
+            id: "sandbox-s1".into(),
+            class: "s1".into(),
+            platform: "ubuntu-24-04-x86-64".into(),
+            install_path: "/usr/lib/bullet/sandboxes/s1/rootfs.img".into(),
+            image_digest: digest(b'i'),
+            policy_digest: digest(b's'),
+            size_bytes: 1,
+        }],
+        jeryu: JeryuSubject {
+            id: "jeryu".into(),
+            version: "1.0.0".into(),
+            tag: "v1.0.0".into(),
+            install_path: "/usr/lib/bullet/jeryu/1.0.0/jeryu".into(),
+            manifest_digest: digest(b'1'),
+            binary_digest: digest(b'2'),
+            api_schema_digest: digest(b'3'),
+            capability_digest: digest(b'4'),
+            sbom_digest: digest(b'5'),
+            provenance_digest: digest(b'6'),
+            signature_digest: digest(b'7'),
+            size_bytes: 1,
+        },
+        release_signing: ReleaseSigningSubject {
+            id: "release-signing".into(),
+            identity: format!("{PRINCIPAL}|ed25519|{fingerprint}"),
+            policy_digest: digest(b'8'),
+            allowed_signers_digest: format!("blake3:{}", blake3::hash(allowed.as_bytes()).to_hex()),
+            key_digest: format!("blake3:{}", blake3::hash(public_key.as_bytes()).to_hex()),
+            policy_path: "/etc/bullet/release/allowed_signers".into(),
+            not_before_unix_ms: 1,
+            not_after_unix_ms: 2,
+        },
+    }
+}
+
+fn digest(seed: u8) -> String {
+    format!("blake3:{}", blake3::hash(&[seed]).to_hex())
+}
+
+fn tagged_subject(repo: &Path, class: &str) -> String {
+    let suffix = if class == "commit" {
+        "^{commit}"
+    } else {
+        "^{tree}"
+    };
+    subject(repo, &format!("{TAG}{suffix}"))
+}
+
+fn ssh_fingerprint(public_key: &Path) -> String {
+    let output = Command::new("/usr/bin/ssh-keygen")
+        .args(["-lf", text(public_key), "-E", "sha256"])
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    String::from_utf8(output.stdout)
+        .unwrap()
+        .split_whitespace()
+        .nth(1)
+        .unwrap()
+        .to_owned()
 }
 
 fn hub_manifest() -> &'static str {

@@ -1,8 +1,12 @@
 use std::{fs, path::PathBuf, process::Command};
 
 use bullet_family::family_lock::{
-    FamilyLock, LOCK_SCHEMA_VERSION, LockedFile, LockedMember, load, parse,
+    ExternalSubjectManifest, ExternalSubjects, FamilyLock, JeryuSubject, LOCK_SCHEMA_VERSION,
+    LockedFile, LockedHub, LockedMember, PortalSubject, ProviderSubject, ReleaseSigningSubject,
+    SandboxSubject, ToolchainSubject, load, parse,
 };
+
+const IDENTITY: &str = "release@bullet.farm|ed25519|SHA256:abc+123=";
 
 fn digest(byte: char) -> String {
     format!("blake3:{}", byte.to_string().repeat(64))
@@ -20,25 +24,110 @@ fn file(path: &str, byte: char) -> LockedFile {
 }
 
 fn valid_lock() -> FamilyLock {
+    let member = vec![
+        member("bullet-git", 'b', 'c'),
+        member("bullet-kernel", 'd', 'e'),
+        member("bullet-portal", 'f', '1'),
+    ];
     FamilyLock {
         schema_version: LOCK_SCHEMA_VERSION.to_owned(),
         family: "bullet-farm".to_owned(),
         tag: "v1.0.0".to_owned(),
         schema_bundle_hash: digest('a'),
-        member: vec![LockedMember {
-            name: "bullet-kernel".to_owned(),
-            jeryu_url: Some("https://jeryu.example/git/root/bullet-kernel.git".to_owned()),
-            jeryu_slug: Some("root/bullet-kernel".to_owned()),
+        hub: LockedHub {
+            name: "bullet-farm".to_owned(),
             tag: "v1.0.0".to_owned(),
-            commit_oid: oid('e'),
-            tree_oid: oid('f'),
-            release_signing_identity: "release@bullet.farm|ed25519|SHA256:abc+123=".to_owned(),
-            lockfile: vec![file("Cargo.lock", '1')],
-            artifact: vec![
-                file("contracts/generated/a.ts", '2'),
-                file("contracts/generated/b.ts", '3'),
-            ],
+            release_signing_identity: IDENTITY.to_owned(),
+        },
+        member,
+        external: valid_external(),
+    }
+}
+
+fn member(name: &str, commit: char, tree: char) -> LockedMember {
+    let lockfile = if name == "bullet-portal" {
+        "package-lock.json"
+    } else {
+        "Cargo.lock"
+    };
+    LockedMember {
+        name: name.to_owned(),
+        jeryu_url: Some(format!("https://jeryu.example/git/root/{name}.git")),
+        jeryu_slug: Some(format!("root/{name}")),
+        tag: "v1.0.0".to_owned(),
+        commit_oid: oid(commit),
+        tree_oid: oid(tree),
+        release_signing_identity: IDENTITY.to_owned(),
+        lockfile: vec![file(lockfile, '2')],
+        artifact: vec![
+            file("contracts/generated/a.txt", '3'),
+            file("contracts/generated/b.txt", '4'),
+        ],
+    }
+}
+
+fn valid_external() -> ExternalSubjects {
+    ExternalSubjects {
+        toolchain: vec![ToolchainSubject {
+            id: "rust".to_owned(),
+            version: "1.89.0".to_owned(),
+            install_path: "/usr/lib/bullet/toolchains/rust/1.89.0/rustc".to_owned(),
+            binary_digest: digest('4'),
+            manifest_digest: digest('5'),
+            size_bytes: 1,
         }],
+        provider: vec![ProviderSubject {
+            id: "claude".to_owned(),
+            version: "1.0.0".to_owned(),
+            profile: "service".to_owned(),
+            install_path: "/usr/lib/bullet/providers/claude/1.0.0/claude".to_owned(),
+            binary_digest: digest('6'),
+            protocol_digest: digest('7'),
+            size_bytes: 2,
+        }],
+        portal: PortalSubject {
+            id: "portal".to_owned(),
+            version: "1.0.0".to_owned(),
+            source_commit_oid: oid('f'),
+            source_tree_oid: oid('1'),
+            install_path: "/usr/lib/bullet/portal/1.0.0/index.html".to_owned(),
+            bundle_digest: digest('8'),
+            manifest_digest: digest('9'),
+            size_bytes: 3,
+        },
+        sandbox: vec![SandboxSubject {
+            id: "sandbox-s1".to_owned(),
+            class: "s1".to_owned(),
+            platform: "ubuntu-24-04-x86-64".to_owned(),
+            install_path: "/usr/lib/bullet/sandboxes/s1/rootfs.img".to_owned(),
+            image_digest: digest('a'),
+            policy_digest: digest('b'),
+            size_bytes: 4,
+        }],
+        jeryu: JeryuSubject {
+            id: "jeryu".to_owned(),
+            version: "1.0.0".to_owned(),
+            tag: "v1.0.0".to_owned(),
+            install_path: "/usr/lib/bullet/jeryu/1.0.0/jeryu".to_owned(),
+            manifest_digest: digest('c'),
+            binary_digest: digest('d'),
+            api_schema_digest: digest('e'),
+            capability_digest: digest('f'),
+            sbom_digest: digest('1'),
+            provenance_digest: digest('2'),
+            signature_digest: digest('3'),
+            size_bytes: 5,
+        },
+        release_signing: ReleaseSigningSubject {
+            id: "release-signing".to_owned(),
+            identity: IDENTITY.to_owned(),
+            policy_digest: digest('4'),
+            allowed_signers_digest: digest('5'),
+            key_digest: digest('6'),
+            policy_path: "/etc/bullet/release/allowed_signers".to_owned(),
+            not_before_unix_ms: 1,
+            not_after_unix_ms: 2,
+        },
     }
 }
 
@@ -53,10 +142,15 @@ type LockMutation = Box<dyn Fn(&mut FamilyLock)>;
 #[test]
 fn strict_schema_accepts_complete_install_authority() {
     let lock = parse(&encoded(&valid_lock())).expect("valid schema 3 lock");
-    assert_eq!(lock.member("bullet-kernel").unwrap().tree_oid, oid('f'));
+    assert_eq!(lock.member("bullet-kernel").unwrap().tree_oid, oid('e'));
     assert!(lock.member("bullet-farm").is_none());
-    lock.validate_required_members(&["bullet-kernel".into(), "bullet-farm".into()])
-        .expect("exact member set");
+    lock.validate_required_members(&[
+        "bullet-farm".into(),
+        "bullet-kernel".into(),
+        "bullet-git".into(),
+        "bullet-portal".into(),
+    ])
+    .expect("exact member set");
     assert!(
         lock.validate_required_members(&["bullet-farm".into()])
             .is_err()
@@ -78,6 +172,21 @@ fn strict_schema_rejects_hostile_identity_and_path_mutations() {
         }),
         Box::new(|lock| lock.member[0].lockfile[0].digest = digest('A')),
         Box::new(|lock| lock.member[0].name = "bullet-farm".to_owned()),
+        Box::new(|lock| {
+            lock.member[1].name = lock.member[0].name.clone();
+        }),
+        Box::new(|lock| {
+            lock.member.pop();
+        }),
+        Box::new(|lock| lock.external.toolchain[0].install_path = "relative/rustc".to_owned()),
+        Box::new(|lock| lock.external.provider[0].binary_digest = "a".repeat(64)),
+        Box::new(|lock| lock.external.provider[0].id = "rust".to_owned()),
+        Box::new(|lock| lock.external.portal.source_commit_oid = oid('a')),
+        Box::new(|lock| lock.external.portal.size_bytes = 9_007_199_254_740_992),
+        Box::new(|lock| lock.external.toolchain.clear()),
+        Box::new(|lock| lock.external.provider.clear()),
+        Box::new(|lock| lock.external.sandbox.clear()),
+        Box::new(|lock| lock.hub.release_signing_identity = "wrong".to_owned()),
     ];
     for mutate in mutations {
         let mut lock = valid_lock();
@@ -87,9 +196,47 @@ fn strict_schema_rejects_hostile_identity_and_path_mutations() {
 }
 
 #[test]
+fn subject_manifest_parser_rejects_hostile_nested_inputs() {
+    let manifest = ExternalSubjectManifest::new(valid_external());
+    let valid = String::from_utf8(manifest.encode().unwrap()).unwrap();
+    ExternalSubjectManifest::parse(valid.as_bytes()).expect("strict subject manifest");
+
+    let unknown = valid.replacen(
+        "profile = \"service\"",
+        "profile = \"service\"\ncaller_selected = true",
+        1,
+    );
+    assert!(ExternalSubjectManifest::parse(unknown.as_bytes()).is_err());
+
+    for mutate in [
+        |external: &mut ExternalSubjects| external.provider[0].id = "rust".to_owned(),
+        |external: &mut ExternalSubjects| external.toolchain[0].install_path = "bin/rustc".into(),
+        |external: &mut ExternalSubjects| {
+            external.release_signing.not_after_unix_ms = 9_007_199_254_740_992;
+        },
+        |external: &mut ExternalSubjects| external.provider.clear(),
+    ] {
+        let mut hostile = ExternalSubjectManifest::new(valid_external());
+        mutate(&mut hostile.external);
+        let bytes = toml::to_string_pretty(&hostile).unwrap();
+        assert!(ExternalSubjectManifest::parse(bytes.as_bytes()).is_err());
+    }
+
+    let mut missing: toml::Value = toml::from_str(&valid).unwrap();
+    missing
+        .get_mut("external")
+        .and_then(toml::Value::as_table_mut)
+        .unwrap()
+        .remove("portal");
+    assert!(ExternalSubjectManifest::parse(toml::to_string(&missing).unwrap().as_bytes()).is_err());
+}
+
+#[test]
 fn strict_schema_rejects_unknown_duplicate_legacy_and_oversized_documents() {
     let text = String::from_utf8(encoded(&valid_lock())).unwrap();
     assert!(parse(format!("{text}\nunexpected = true\n").as_bytes()).is_err());
+    let nested_unknown = text.replacen("id = \"portal\"", "id = \"portal\"\nunexpected = true", 1);
+    assert!(parse(nested_unknown.as_bytes()).is_err());
     assert!(
         parse(
             text.replacen(
@@ -119,24 +266,55 @@ fn lock_loader_rejects_symlinks() {
     fs::write(&target, encoded(&valid_lock())).unwrap();
     symlink(&target, &link).unwrap();
     assert!(load(&link).is_err());
+
+    let subject_target = root.join("subjects.toml");
+    let subject_link = root.join("subjects-link.toml");
+    fs::write(
+        &subject_target,
+        ExternalSubjectManifest::new(valid_external())
+            .encode()
+            .unwrap(),
+    )
+    .unwrap();
+    symlink(&subject_target, &subject_link).unwrap();
+    assert!(ExternalSubjectManifest::load(&subject_link).is_err());
     fs::remove_dir_all(root).unwrap();
 }
 
 #[test]
 fn generation_fails_before_write_without_authenticated_sources() {
     let root = fixture_root("missing-source");
-    for member in ["bullet-farm", "bullet-kernel"] {
+    for member in [
+        "bullet-farm",
+        "bullet-kernel",
+        "bullet-git",
+        "bullet-portal",
+    ] {
         fs::create_dir(root.join(member)).unwrap();
     }
+    let subjects = root.join("subjects.toml");
+    fs::write(
+        &subjects,
+        ExternalSubjectManifest::new(valid_external())
+            .encode()
+            .unwrap(),
+    )
+    .unwrap();
     fs::write(
         root.join("repos.manifest.toml"),
         format!(
             concat!(
                 "family = \"bullet-farm\"\n",
-                "required_repos = [\"bullet-farm\", \"bullet-kernel\"]\n",
+                "required_repos = [\"bullet-farm\", \"bullet-kernel\", \"bullet-git\", \"bullet-portal\"]\n",
                 "[[repo]]\nname = \"bullet-farm\"\npath = \"{root}/bullet-farm\"\n",
                 "[[repo]]\nname = \"bullet-kernel\"\npath = \"{root}/bullet-kernel\"\n",
                 "jeryu_slug = \"root/bullet-kernel\"\n",
+                "[[repo]]\nname = \"bullet-git\"\npath = \"{root}/bullet-git\"\n",
+                "jeryu_url = \"https://jeryu.example/git/root/bullet-git.git\"\n",
+                "jeryu_slug = \"root/bullet-git\"\n",
+                "[[repo]]\nname = \"bullet-portal\"\npath = \"{root}/bullet-portal\"\n",
+                "jeryu_url = \"https://jeryu.example/git/root/bullet-portal.git\"\n",
+                "jeryu_slug = \"root/bullet-portal\"\n",
             ),
             root = root.display()
         ),
@@ -144,11 +322,43 @@ fn generation_fails_before_write_without_authenticated_sources() {
     .unwrap();
     let error = bullet_family::family_lock::run(
         &root,
-        &["generate".into(), "--tag".into(), "v1.0.0".into()],
+        &[
+            "generate".into(),
+            "--tag".into(),
+            "v1.0.0".into(),
+            "--subjects".into(),
+            subjects.display().to_string(),
+        ],
     )
     .expect_err("missing URL must block before Git/tag access");
     assert_eq!(error.code(), "SOURCE_METADATA_UNAVAILABLE");
     assert!(!root.join("bullet-farm/family.lock").exists());
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn generation_rejects_a_relative_subject_manifest_before_writing() {
+    let root = fixture_root("relative-subjects");
+    let hub = root.join("bullet-farm");
+    fs::create_dir(&hub).unwrap();
+    fs::write(
+        root.join("repos.manifest.toml"),
+        "family = \"bullet-farm\"\nrequired_repos = []\n",
+    )
+    .unwrap();
+    let error = bullet_family::family_lock::run(
+        &root,
+        &[
+            "generate".into(),
+            "--tag".into(),
+            "v1.0.0".into(),
+            "--subjects".into(),
+            "subjects.toml".into(),
+        ],
+    )
+    .unwrap_err();
+    assert_eq!(error.code(), "INVALID_LOCK_SUBJECTS");
+    assert!(!hub.join("family.lock").exists());
     fs::remove_dir_all(root).unwrap();
 }
 
@@ -168,14 +378,14 @@ fn public_cli_admits_only_generate_and_verify() {
     let usage = lock_cli(&root, &[]);
     assert_eq!(usage.status.code(), Some(2));
     let usage_error = String::from_utf8(usage.stderr).unwrap();
-    assert!(usage_error.contains("lock <generate|verify>"));
-    assert!(!usage_error.contains("lock <generate|check>"));
+    assert!(usage_error.contains("lock <generate|verify> --tag VERSION"));
 
     let legacy = lock_cli(&root, &["lock", "check", "--tag", "v1.0.0"]);
     assert_eq!(legacy.status.code(), Some(2));
     let legacy_error = String::from_utf8(legacy.stderr).unwrap();
     assert!(legacy_error.contains("USAGE"));
-    assert!(legacy_error.contains("lock <generate|verify>"));
+    assert!(legacy_error.contains("lock generate --tag"));
+    assert!(legacy_error.contains("lock verify --tag"));
     assert!(!legacy_error.contains("generate|check"));
 
     let verify = lock_cli(&root, &["lock", "verify", "--tag", "v1.0.0"]);

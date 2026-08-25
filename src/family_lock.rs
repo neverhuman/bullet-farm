@@ -2,6 +2,8 @@
 
 mod git;
 mod schema;
+#[cfg(test)]
+mod tests;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, OpenOptions};
@@ -10,13 +12,17 @@ use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
-pub use self::schema::{FamilyLock, LOCK_SCHEMA_VERSION, LockedFile, LockedMember, load, parse};
+pub use self::schema::{
+    ExternalSubjectManifest, ExternalSubjects, FamilyLock, JeryuSubject, LOCK_SCHEMA_VERSION,
+    LockedFile, LockedHub, LockedMember, PortalSubject, ProviderSubject, ReleaseSigningSubject,
+    SandboxSubject, ToolchainSubject, encode, load, parse,
+};
 use self::{
     git::{
         digest_dependency_lockfiles, digest_generated_artifacts, digest_tagged_tree, tag_commit,
         tag_tree, verify_tag,
     },
-    schema::{validate, validate_jeryu_source, validate_tag},
+    schema::{validate_jeryu_source, validate_tag},
 };
 use crate::coord::CoordError;
 
@@ -33,6 +39,18 @@ pub(crate) fn run_admitted_git_after_verify(
 const LOCK_FILE: &str = "family.lock";
 const ALLOWED_SIGNERS: &str = "release/allowed_signers";
 const SCHEMA_PREFIX: &str = "crates/bullet-wire";
+const MAX_ALLOWED_SIGNERS_BYTES: u64 = 1024 * 1024;
+const CANONICAL_REPOSITORIES: [&str; 4] = [
+    "bullet-farm",
+    "bullet-git",
+    "bullet-kernel",
+    "bullet-portal",
+];
+
+enum LockAction {
+    Generate { tag: String, subjects: PathBuf },
+    Verify { tag: String },
+}
 
 #[derive(Deserialize)]
 struct Manifest {
@@ -53,16 +71,17 @@ struct ManifestRepo {
 }
 
 pub fn run(root: &Path, args: &[String]) -> Result<String, CoordError> {
-    let (action, tag) = parse_args(args)?;
+    let action = parse_args(args)?;
     let family_root = resolve_family_root(root)?;
     let path = family_root.join("bullet-farm").join(LOCK_FILE);
-    match action.as_str() {
-        "generate" => {
-            let bytes = render(&family_root, &tag, "HEAD")?;
+    match action {
+        LockAction::Generate { tag, subjects } => {
+            let subjects = ExternalSubjectManifest::load(&subjects)?.external;
+            let bytes = render(&family_root, &tag, "HEAD", subjects)?;
             atomic_write(&path, &bytes)?;
             Ok(format!("generated {} for {tag}", path.display()))
         }
-        "verify" => {
+        LockAction::Verify { tag } => {
             let current = fs::read(&path).map_err(CoordError::io)?;
             let lock = parse(&current)?;
             if lock.tag != tag {
@@ -91,7 +110,6 @@ pub fn run(root: &Path, args: &[String]) -> Result<String, CoordError> {
             }
             Ok(format!("{} matches {tag}", path.display()))
         }
-        _ => Err(CoordError::new("USAGE", lock_usage())),
     }
 }
 
@@ -115,26 +133,39 @@ fn resolve_family_root(root: &Path) -> Result<PathBuf, CoordError> {
     ))
 }
 
-fn parse_args(args: &[String]) -> Result<(String, String), CoordError> {
-    if args
-        .first()
-        .is_none_or(|action| !matches!(action.as_str(), "generate" | "verify"))
-    {
-        return Err(CoordError::new("USAGE", lock_usage()));
+fn parse_args(args: &[String]) -> Result<LockAction, CoordError> {
+    match args {
+        [action, flag, tag] if action == "verify" && flag == "--tag" => {
+            validate_cli_tag(tag)?;
+            Ok(LockAction::Verify { tag: tag.clone() })
+        }
+        [action, tag_flag, tag, subjects_flag, subjects]
+            if action == "generate" && tag_flag == "--tag" && subjects_flag == "--subjects" =>
+        {
+            validate_cli_tag(tag)?;
+            Ok(LockAction::Generate {
+                tag: tag.clone(),
+                subjects: PathBuf::from(subjects),
+            })
+        }
+        _ => Err(CoordError::new("USAGE", lock_usage())),
     }
-    if args.len() != 3 || args[1] != "--tag" {
-        return Err(CoordError::new("USAGE", lock_usage()));
-    }
-    let tag = &args[2];
-    validate_tag(tag).map_err(|_| CoordError::new("INVALID_RELEASE_TAG", "invalid release tag"))?;
-    Ok((args[0].clone(), tag.clone()))
+}
+
+fn validate_cli_tag(tag: &str) -> Result<(), CoordError> {
+    validate_tag(tag).map_err(|_| CoordError::new("INVALID_RELEASE_TAG", "invalid release tag"))
 }
 
 fn lock_usage() -> &'static str {
-    "usage: bullet-family [--root PATH] lock <generate|verify> --tag <version>"
+    "usage: bullet-family [--root PATH] lock generate --tag <version> --subjects <absolute-path> | lock verify --tag <version>"
 }
 
-fn render(root: &Path, tag: &str, hub_revision: &str) -> Result<Vec<u8>, CoordError> {
+fn render(
+    root: &Path,
+    tag: &str,
+    hub_revision: &str,
+    external: ExternalSubjects,
+) -> Result<Vec<u8>, CoordError> {
     let manifest_text =
         fs::read_to_string(root.join("repos.manifest.toml")).map_err(CoordError::io)?;
     let manifest: Manifest = toml::from_str(&manifest_text)
@@ -155,12 +186,15 @@ fn render(root: &Path, tag: &str, hub_revision: &str) -> Result<Vec<u8>, CoordEr
             format!("{} does not exist", allowed_signers.display()),
         ));
     }
+    verify_allowed_signers_subject(&allowed_signers, &external)?;
     let mut members = Vec::with_capacity(manifest.required_repos.len().saturating_sub(1));
-    for name in manifest
+    let mut member_names = manifest
         .required_repos
         .iter()
         .filter(|name| name.as_str() != "bullet-farm")
-    {
+        .collect::<Vec<_>>();
+    member_names.sort_unstable();
+    for name in member_names {
         let repo = repos.get(name).ok_or_else(|| {
             CoordError::new(
                 "FAMILY_MEMBER_MISSING",
@@ -190,12 +224,15 @@ fn render(root: &Path, tag: &str, hub_revision: &str) -> Result<Vec<u8>, CoordEr
         family: manifest.family,
         tag: tag.to_owned(),
         schema_bundle_hash,
+        hub: LockedHub {
+            name: "bullet-farm".to_owned(),
+            tag: tag.to_owned(),
+            release_signing_identity: external.release_signing.identity.clone(),
+        },
         member: members,
+        external,
     };
-    validate(&lock)?;
-    let text = toml::to_string_pretty(&lock)
-        .map_err(|error| CoordError::new("FAMILY_LOCK_ENCODE_FAILED", error.to_string()))?;
-    Ok(text.into_bytes())
+    encode(&lock)
 }
 
 fn authenticated_sources(
@@ -251,6 +288,7 @@ pub fn verify_hub_checkout(
     repo: &Path,
     allowed_signers: &Path,
 ) -> Result<String, CoordError> {
+    verify_allowed_signers_subject(allowed_signers, &lock.external)?;
     let tagged_commit = tag_commit(repo, &lock.tag)?;
     let tagged_tree = tag_tree(repo, &lock.tag)?;
     if git::head_commit(repo)? != tagged_commit || git::head_tree(repo)? != tagged_tree {
@@ -273,7 +311,14 @@ pub fn verify_hub_checkout(
             "the invoking family.lock is not the exact lock in the signed hub tag",
         ));
     }
-    verify_tag(repo, &lock.tag, allowed_signers)
+    let signer = verify_tag(repo, &lock.tag, allowed_signers)?;
+    if signer != lock.hub.release_signing_identity {
+        return Err(CoordError::new(
+            "HUB_SIGNER_MISMATCH",
+            "the signed Hub tag does not match the locked release-signing identity",
+        ));
+    }
+    Ok(signer)
 }
 
 pub(crate) fn checkout_subject(repo: &Path) -> Result<(String, String), CoordError> {
@@ -314,13 +359,28 @@ fn indexed_repos(
             "required_repos contains duplicates",
         ));
     }
+    let canonical = CANONICAL_REPOSITORIES
+        .into_iter()
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>();
+    if required != canonical {
+        return Err(CoordError::new(
+            "FAMILY_MEMBER_SET_MISMATCH",
+            "schema-3 generation requires exactly the four canonical Bullet repositories",
+        ));
+    }
     let mut repos = BTreeMap::new();
     for entry in &manifest.repo {
         crate::coord::validate_repo_name(&entry.name)?;
-        if entry.path.file_name().and_then(|name| name.to_str()) != Some(entry.name.as_str()) {
+        if !entry.path.is_absolute()
+            || entry.path.file_name().and_then(|name| name.to_str()) != Some(entry.name.as_str())
+        {
             return Err(CoordError::new(
                 "INVALID_MEMBER_PATH",
-                format!("manifest path does not end with {}", entry.name),
+                format!(
+                    "manifest path for {} must be absolute and end with its repository name",
+                    entry.name
+                ),
             ));
         }
         if repos
@@ -342,6 +402,34 @@ fn indexed_repos(
     Ok(repos)
 }
 
+fn verify_allowed_signers_subject(
+    path: &Path,
+    external: &ExternalSubjects,
+) -> Result<(), CoordError> {
+    let metadata = fs::symlink_metadata(path).map_err(CoordError::io)?;
+    if !metadata.file_type().is_file() || metadata.file_type().is_symlink() {
+        return Err(CoordError::new(
+            "INVALID_ALLOWED_SIGNERS",
+            "release/allowed_signers must be a regular, non-symlink file",
+        ));
+    }
+    if metadata.len() > MAX_ALLOWED_SIGNERS_BYTES {
+        return Err(CoordError::new(
+            "INVALID_ALLOWED_SIGNERS",
+            "release/allowed_signers exceeds the 1 MiB admission limit",
+        ));
+    }
+    let bytes = fs::read(path).map_err(CoordError::io)?;
+    let digest = format!("blake3:{}", blake3::hash(&bytes).to_hex());
+    if digest != external.release_signing.allowed_signers_digest {
+        return Err(CoordError::new(
+            "ALLOWED_SIGNERS_SUBJECT_MISMATCH",
+            "release/allowed_signers does not match the locked external subject",
+        ));
+    }
+    Ok(())
+}
+
 fn atomic_write(path: &Path, bytes: &[u8]) -> Result<(), CoordError> {
     let parent = path
         .parent()
@@ -359,65 +447,4 @@ fn atomic_write(path: &Path, bytes: &[u8]) -> Result<(), CoordError> {
     fs::rename(&temporary, path).map_err(CoordError::io)?;
     let directory = fs::File::open(parent).map_err(CoordError::io)?;
     directory.sync_all().map_err(CoordError::io)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn release_tag_parser_is_fail_closed() {
-        assert!(parse_args(&["generate".into(), "--tag".into(), "v0.1.0-alpha.1".into()]).is_ok());
-        for tag in ["alpha", "v1/escape", "v1..\n"] {
-            assert!(parse_args(&["generate".into(), "--tag".into(), tag.into()]).is_err());
-        }
-    }
-
-    #[test]
-    fn framed_digest_distinguishes_field_boundaries() {
-        let digest = |parts: &[&[u8]]| {
-            let mut hasher = blake3::Hasher::new();
-            for part in parts {
-                git::frame(&mut hasher, part);
-            }
-            hasher.finalize()
-        };
-        assert_ne!(digest(&[b"ab", b"c"]), digest(&[b"a", b"bc"]));
-    }
-
-    #[test]
-    fn ssh_status_requires_one_ed25519_identity() {
-        let good = "Good \"git\" signature for bot@jekko.ai with ED25519 key SHA256:abc+123\n";
-        assert_eq!(
-            git::signer_identity(good, "v1").unwrap(),
-            "bot@jekko.ai|ed25519|SHA256:abc+123"
-        );
-        for denied in [
-            "",
-            "Good \"file\" signature for bot@jekko.ai with ED25519 key SHA256:abc\n",
-            "Good \"git\" signature for bot@jekko.ai with RSA key SHA256:abc\n",
-            "Good \"git\" signature for bad principal with ED25519 key SHA256:abc\n",
-        ] {
-            assert!(git::signer_identity(denied, "v1").is_err());
-        }
-    }
-
-    #[test]
-    fn family_root_resolves_from_split_root_and_hub_checkout() {
-        let outer =
-            std::env::temp_dir().join(format!("bullet-family-lock-root-{}", std::process::id()));
-        if outer.exists() {
-            fs::remove_dir_all(&outer).unwrap();
-        }
-        let hub = outer.join("bullet-farm");
-        fs::create_dir_all(&hub).unwrap();
-        fs::write(
-            outer.join("repos.manifest.toml"),
-            "family = \"bullet-farm\"\n",
-        )
-        .unwrap();
-        assert_eq!(resolve_family_root(&hub).unwrap(), outer);
-        assert_eq!(resolve_family_root(&outer).unwrap(), outer);
-        fs::remove_dir_all(outer).unwrap();
-    }
 }
