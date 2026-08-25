@@ -1,9 +1,42 @@
-//! Static negative inventory. No file or environment input can clear these gates.
+//! Release inventory. One gate admits external semantic evidence; 25 stay static.
 
-use super::model::{CheckModelError, CheckReport, CheckTier, GateClass, GateResult};
+use std::path::Path;
 
+use super::{
+    model::{CheckModelError, CheckReport, CheckTier, GateClass, GateResult},
+    release_evidence::{self, Evaluation},
+};
+
+#[cfg(test)]
 pub(super) fn report_release() -> Result<CheckReport, CheckModelError> {
     CheckReport::new(CheckTier::Release, release_gates()?)
+}
+
+pub(super) fn report_release_with_evidence(hub: &Path) -> Result<CheckReport, CheckModelError> {
+    let mut gates = release_gates()?;
+    let index = gates
+        .iter()
+        .position(|gate| gate.id() == "release.rust-msrv-1-95")
+        .ok_or_else(|| {
+            CheckModelError::new(
+                "MSRV_GATE_MISSING",
+                "release.rust-msrv-1-95 is absent from the release catalog",
+            )
+        })?;
+    gates[index] = match release_evidence::evaluate(hub) {
+        Evaluation::Absent => gates[index].clone(),
+        Evaluation::Rejected(detail) => GateResult::fail(
+            "release.rust-msrv-1-95",
+            GateClass::Release,
+            format!("externally supplied Rust 1.95 evidence was rejected: {detail}"),
+            "preserve the evidence, repair the operator admission/policy/receipt/time subjects, and obtain a new independent attestation; never weaken semantic checks",
+        )?,
+        Evaluation::Verified { detail, subjects } => {
+            GateResult::pass("release.rust-msrv-1-95", GateClass::Release, detail)?
+                .with_subjects(subjects)?
+        }
+    };
+    CheckReport::new(CheckTier::Release, gates)
 }
 
 pub(super) fn required_blockers() -> Result<Vec<GateResult>, CheckModelError> {

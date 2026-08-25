@@ -7,7 +7,7 @@ use std::{
 
 use super::{
     MAX_POLICY_BYTES, MAX_RECEIPT_BYTES, MAX_SIGNATURE_BYTES, ReleaseReceipt, ReleaseReceiptPolicy,
-    SIGNATURE_NAMESPACE, policy_digest,
+    SIGNATURE_NAMESPACE, identity_parts, policy_digest, validate_identity,
 };
 use crate::{
     coord::CoordError,
@@ -18,6 +18,69 @@ use crate::{
 pub(in crate::release) struct VerifiedReleaseReceipt {
     pub(in crate::release) receipt: ReleaseReceipt,
     pub(in crate::release) policy_digest: String,
+}
+
+pub(crate) struct VerifiedDetached {
+    pub(crate) bytes: Vec<u8>,
+    pub(crate) digest: String,
+}
+
+/// Verify one bounded payload against paths already selected by a higher-level
+/// operator policy. This helper does not choose trust roots or interpret results.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn verify_detached(
+    payload_path: &Path,
+    signature_path: &Path,
+    allowed_signers_path: &Path,
+    signing_identity: &str,
+    namespace: &str,
+    label: &str,
+    maximum: u64,
+) -> Result<VerifiedDetached, CoordError> {
+    validate_identity(signing_identity, |reason| {
+        CoordError::new("INVALID_RELEASE_SIGNING_IDENTITY", reason)
+    })?;
+    signature::admit_verifier()?;
+    let (mut allowed_signers, _) = snapshot(
+        allowed_signers_path,
+        "externally admitted allowed signers",
+        MAX_POLICY_BYTES,
+    )?;
+    let (mut payload, bytes) = snapshot(payload_path, label, maximum)?;
+    let (mut signature_input, _) = snapshot(
+        signature_path,
+        "detached release evidence signature",
+        MAX_SIGNATURE_BYTES,
+    )?;
+    let (principal, fingerprint) = identity_parts(signing_identity).ok_or_else(|| {
+        CoordError::new(
+            "INVALID_RELEASE_SIGNING_IDENTITY",
+            "release signing identity is malformed",
+        )
+    })?;
+    let streamed = signature::verify(
+        &signature_input.file,
+        &allowed_signers.file,
+        payload.file.try_clone().map_err(CoordError::io)?,
+        principal,
+        fingerprint,
+        namespace,
+        label,
+    )?;
+    let digest = blake3::hash(&bytes);
+    if streamed.byte_count != bytes.len() as u64 || streamed.digest != *digest.as_bytes() {
+        return Err(CoordError::new(
+            "RELEASE_EVIDENCE_SUBJECT_MISMATCH",
+            "streamed signature subject differs from the immutable evidence snapshot",
+        ));
+    }
+    let _ = input::read_open_bounded(&mut allowed_signers.file, MAX_POLICY_BYTES)?;
+    let _ = input::read_open_bounded(&mut payload.file, maximum)?;
+    let _ = input::read_open_bounded(&mut signature_input.file, MAX_SIGNATURE_BYTES)?;
+    Ok(VerifiedDetached {
+        bytes,
+        digest: format!("blake3:{}", digest.to_hex()),
+    })
 }
 
 pub(in crate::release) fn verify(

@@ -293,6 +293,24 @@ fn release_inventory_is_stable_sorted_and_blocked() {
             .windows(2)
             .all(|pair| pair[0]["id"].as_str() < pair[1]["id"].as_str())
     );
+    let msrv = gates
+        .iter()
+        .find(|gate| gate["id"] == "release.rust-msrv-1-95")
+        .unwrap();
+    assert_eq!(msrv["status"], "BLOCKED");
+    assert!(msrv["detail"].as_str().unwrap().contains("receipt"));
+
+    let ignored_environment = Command::new(env!("CARGO_BIN_EXE_bullet-family"))
+        .args(["check", "release", "--json"])
+        .env(
+            "BULLET_RELEASE_EVIDENCE_ADMISSION",
+            "/tmp/self-selected-policy",
+        )
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .unwrap();
+    assert_eq!(ignored_environment.status.code(), Some(3));
+    assert_eq!(ignored_environment.stdout, first.stdout);
 }
 
 #[test]

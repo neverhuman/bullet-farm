@@ -15,6 +15,7 @@ const VERIFY_USAGE: &str =
 const EXTRACT_USAGE: &str = "usage: bullet-family release extract --bundle ABSOLUTE_PATH --allowed-signers ABSOLUTE_PATH --target TARGET --destination ABSOLUTE_PATH";
 const RECEIPT_VERIFY_USAGE: &str = "usage: bullet-family release receipt-verify --receipt ABSOLUTE_PATH --signature ABSOLUTE_PATH --policy ABSOLUTE_PATH";
 
+pub(crate) use receipt::verify_detached;
 pub use receipt::{
     RELEASE_RECEIPT_POLICY_SCHEMA_VERSION, RELEASE_RECEIPT_SCHEMA_VERSION, ReleaseReceipt,
     ReleaseReceiptKind, ReleaseReceiptPolicy, ReleaseReceiptResult, ReleaseReceiptSigner,

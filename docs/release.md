@@ -64,6 +64,30 @@ decision as an operator shift brief and keeps exit code 3. The portable generate
 copy is [`assurance/release-truth.generated.md`](assurance/release-truth.generated.md);
 it is a drift-checked projection, not a receipt.
 
+Exactly one gate, `release.rust-msrv-1-95`, has a semantic receipt-admission
+path. Its absence still produces the blocker above; the other 25 gates remain
+unconditionally blocked. Production discovery reads only the fixed
+`/etc/bullet-farm/release-msrv-1-95-admission.toml` descriptor. That
+root-owned descriptor selects a separately root-owned policy, an external
+evidence directory, and distinct source-tag, build-attestor, and trusted-time
+roots. Environment variables and repository files cannot redirect it. Every
+operator input and ancestor is admitted with no-follow descriptor reads,
+root ownership, non-writable mode, single-link identity, and bounded stable
+bytes. The three roots must contain distinct actual Ed25519 keys, not merely
+different pathnames or principals.
+
+The admitted evidence directory uses fixed receipt, detached-signature, and
+trusted-time filenames. Its canonical typed payload binds the schema-3 lock,
+current clean signed Hub/member commits and trees, every dependency-lock
+digest, exact admitted Rust 1.95 rustc/cargo bytes, and the fixed locked/offline
+build and test argv for all three Rust workspaces. Every build and test
+observation must be nonempty with exit zero, zero failures, and zero skips.
+The independently signed time observation binds the receipt digest, nonce,
+policy, gate, expiry, future-skew limit, and freshness window. A generic result
+digest, a self-selected signer file, or a receipt from another subject cannot
+clear the gate. Even when this one gate is receipted, the family release remains
+blocked until the remaining 25 gates have their own kind-specific authority.
+
 ## Current component receipt snapshot
 
 These reviewed commits are component evidence, not release or live evidence:

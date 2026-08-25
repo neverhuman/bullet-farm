@@ -7,6 +7,7 @@ use crate::coord::CoordError;
 
 mod verify;
 pub(super) use verify::verify;
+pub(crate) use verify::verify_detached;
 
 pub const RELEASE_RECEIPT_SCHEMA_VERSION: &str = "1";
 pub const RELEASE_RECEIPT_POLICY_SCHEMA_VERSION: &str = "1";

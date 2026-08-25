@@ -38,7 +38,7 @@ const REPOSITORIES: &[&str] = &[
 
 pub(super) fn report(hub: &Path, tier: CheckTier) -> Result<CheckReport, CoordError> {
     if tier == CheckTier::Release {
-        return prerequisites::report_release().map_err(model_error);
+        return prerequisites::report_release_with_evidence(hub).map_err(model_error);
     }
     let repositories =
         match RepositorySet::discover(hub) {
@@ -272,12 +272,12 @@ fn admit_script(repository: &Path, relative: &str) -> Result<PathBuf, CoordError
     Ok(canonical)
 }
 
-struct RepositorySet {
+pub(super) struct RepositorySet {
     paths: BTreeMap<&'static str, PathBuf>,
 }
 
 impl RepositorySet {
-    fn discover(hub: &Path) -> Result<Self, CoordError> {
+    pub(super) fn discover(hub: &Path) -> Result<Self, CoordError> {
         let hub = hub.canonicalize().map_err(CoordError::io)?;
         let family = hub.parent().ok_or_else(|| {
             CoordError::new("FAMILY_LAYOUT_UNAVAILABLE", "hub has no family parent")
@@ -318,7 +318,7 @@ impl RepositorySet {
         Ok(Self { paths })
     }
 
-    fn path(&self, name: &str) -> Result<&Path, CoordError> {
+    pub(super) fn path(&self, name: &str) -> Result<&Path, CoordError> {
         self.paths.get(name).map(PathBuf::as_path).ok_or_else(|| {
             CoordError::new(
                 "INVALID_CHECK_CATALOG",
@@ -334,7 +334,7 @@ impl RepositorySet {
         }
     }
 
-    fn capture_family(&self) -> Result<Vec<RepositorySubject>, CoordError> {
+    pub(super) fn capture_family(&self) -> Result<Vec<RepositorySubject>, CoordError> {
         REPOSITORIES
             .iter()
             .map(|&name| capture_subject(name, self.path(name)?))

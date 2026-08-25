@@ -3,6 +3,7 @@
 mod catalog;
 mod executor;
 mod prerequisites;
+mod release_evidence;
 mod subject;
 mod truth;
 
