@@ -73,6 +73,7 @@ export type PatchPreimageKindV1 = \"absent\" | \"digest\";\n\
 export type PatchMutationKindV1 = \"write\" | \"delete\";\n\
 export type ReleaseReceiptKindV1 = \"artifact\" | \"containment\" | \"forge\" | \"operations\" | \"profile-closure\" | \"provider\" | \"rust-toolchain\" | \"scanner\" | \"transaction\";\n\
 export type ReleaseEvidenceKindV1 = \"artifact\" | \"audit-anchor\" | \"candidate\" | \"check\" | \"configuration\" | \"effect\" | \"environment\" | \"evidence\" | \"integration\" | \"jeryu\" | \"observation\" | \"platform\" | \"policy\" | \"profile-graph\" | \"proof-bundle\" | \"provider\" | \"provenance\" | \"sandbox\" | \"sbom\" | \"scanner\" | \"schema\" | \"toolchain\" | \"transaction\";\n\
+export type ReleaseRegistryObjectKindV1 = \"gate-receipt\" | \"gate-receipt-signature\" | \"gate-spec\" | \"profile-graph\" | \"signer-policy\" | \"trusted-time-observation\" | \"trusted-time-signature\" | \"verification-request\";\n\
 export type ReleaseSignerRoleV1 = \"artifact-release\" | \"gate-attestor\" | \"registry-curator\" | \"source-tag\" | \"trusted-time\";\n\
 export type ReleaseRepositoryNameV1 = \"bullet-farm\" | \"bullet-git\" | \"bullet-kernel\" | \"bullet-portal\";\n\
 export type KeyPurposeV1 = \"authority-signing\" | \"release-signing\";\n\
@@ -160,6 +161,8 @@ const fn rust_type(field_type: FieldTypeV1) -> &'static str {
         | FieldTypeV1::GitOid
         | FieldTypeV1::TaggedBlake3Digest
         | FieldTypeV1::ReleaseGateId
+        | FieldTypeV1::ReleaseNativeSubjectId
+        | FieldTypeV1::ReleaseProfileId
         | FieldTypeV1::ReleaseTag
         | FieldTypeV1::SigningIdentity
         | FieldTypeV1::SshEd25519PublicKey
@@ -177,6 +180,7 @@ const fn rust_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::PatchMutationKind => "PatchMutationKindV1",
         FieldTypeV1::ReleaseReceiptKind => "ReleaseReceiptKindV1",
         FieldTypeV1::ReleaseEvidenceKind => "ReleaseEvidenceKindV1",
+        FieldTypeV1::ReleaseRegistryObjectKind => "ReleaseRegistryObjectKindV1",
         FieldTypeV1::ReleaseSignerRole => "ReleaseSignerRoleV1",
         FieldTypeV1::ReleaseRepositoryName => "ReleaseRepositoryNameV1",
         FieldTypeV1::KeyPurpose => "KeyPurposeV1",
@@ -206,14 +210,18 @@ const fn rust_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::PatchOperationArray => "Vec<PatchOperationV1>",
         FieldTypeV1::CandidateIdArray
         | FieldTypeV1::GateIdArray
+        | FieldTypeV1::ReleaseGateIdArray
         | FieldTypeV1::ReleaseProfileIdArray
         | FieldTypeV1::RepoPathArray => "Vec<String>",
+        FieldTypeV1::ReleaseEvidenceKindArray => "Vec<ReleaseEvidenceKindV1>",
         FieldTypeV1::CleanupAuthorization => "CleanupAuthorizationV1",
         FieldTypeV1::ReleaseFamilySubject => "ReleaseFamilySubjectV1",
         FieldTypeV1::ReleaseRepositorySubjectArray => "Vec<ReleaseRepositorySubjectV1>",
         FieldTypeV1::ReleaseEvidenceSubjectArray => "Vec<ReleaseEvidenceSubjectV1>",
+        FieldTypeV1::ReleaseProfileNodeArray => "Vec<ReleaseProfileNodeV1>",
         FieldTypeV1::ReleaseSignerKeyArray => "Vec<ReleaseSignerKeyV1>",
         FieldTypeV1::ReleaseRegistryEntryArray => "Vec<ReleaseRegistryEntryV1>",
+        FieldTypeV1::ReleaseRegistryObjectArray => "Vec<ReleaseRegistryObjectV1>",
         FieldTypeV1::ReleaseReplayBindingArray => "Vec<ReleaseReplayBindingV1>",
     }
 }
@@ -256,6 +264,8 @@ const fn typescript_type(field_type: FieldTypeV1) -> &'static str {
         | FieldTypeV1::GitOid
         | FieldTypeV1::TaggedBlake3Digest
         | FieldTypeV1::ReleaseGateId
+        | FieldTypeV1::ReleaseNativeSubjectId
+        | FieldTypeV1::ReleaseProfileId
         | FieldTypeV1::ReleaseTag
         | FieldTypeV1::SigningIdentity
         | FieldTypeV1::SshEd25519PublicKey
@@ -273,6 +283,7 @@ const fn typescript_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::PatchMutationKind => "PatchMutationKindV1",
         FieldTypeV1::ReleaseReceiptKind => "ReleaseReceiptKindV1",
         FieldTypeV1::ReleaseEvidenceKind => "ReleaseEvidenceKindV1",
+        FieldTypeV1::ReleaseRegistryObjectKind => "ReleaseRegistryObjectKindV1",
         FieldTypeV1::ReleaseSignerRole => "ReleaseSignerRoleV1",
         FieldTypeV1::ReleaseRepositoryName => "ReleaseRepositoryNameV1",
         FieldTypeV1::KeyPurpose => "KeyPurposeV1",
@@ -303,14 +314,18 @@ const fn typescript_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::PatchOperationArray => "PatchOperationV1[]",
         FieldTypeV1::CandidateIdArray
         | FieldTypeV1::GateIdArray
+        | FieldTypeV1::ReleaseGateIdArray
         | FieldTypeV1::ReleaseProfileIdArray
         | FieldTypeV1::RepoPathArray => "string[]",
+        FieldTypeV1::ReleaseEvidenceKindArray => "ReleaseEvidenceKindV1[]",
         FieldTypeV1::CleanupAuthorization => "CleanupAuthorizationV1",
         FieldTypeV1::ReleaseFamilySubject => "ReleaseFamilySubjectV1",
         FieldTypeV1::ReleaseRepositorySubjectArray => "ReleaseRepositorySubjectV1[]",
         FieldTypeV1::ReleaseEvidenceSubjectArray => "ReleaseEvidenceSubjectV1[]",
+        FieldTypeV1::ReleaseProfileNodeArray => "ReleaseProfileNodeV1[]",
         FieldTypeV1::ReleaseSignerKeyArray => "ReleaseSignerKeyV1[]",
         FieldTypeV1::ReleaseRegistryEntryArray => "ReleaseRegistryEntryV1[]",
+        FieldTypeV1::ReleaseRegistryObjectArray => "ReleaseRegistryObjectV1[]",
         FieldTypeV1::ReleaseReplayBindingArray => "ReleaseReplayBindingV1[]",
     }
 }

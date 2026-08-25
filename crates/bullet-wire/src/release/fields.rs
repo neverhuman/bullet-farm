@@ -1,6 +1,9 @@
 use crate::{
     WireError,
-    v1alpha1::{ReleaseEvidenceKindV1, ReleaseRepositoryNameV1, ReleaseSignerRoleV1},
+    v1alpha1::{
+        ReleaseEvidenceKindV1, ReleaseRegistryObjectKindV1, ReleaseRepositoryNameV1,
+        ReleaseSignerRoleV1,
+    },
 };
 
 pub(super) const MAX_SAFE_INTEGER: u64 = 9_007_199_254_740_991;
@@ -136,7 +139,7 @@ pub(super) fn gate_id(value: &str) -> Result<(), WireError> {
 pub(super) fn profile_id(value: &str) -> Result<(), WireError> {
     let first = value.as_bytes().first().copied();
     let last = value.as_bytes().last().copied();
-    if value.is_empty()
+    if value.len() < 2
         || value.len() > 64
         || first.is_none_or(|byte| !byte.is_ascii_lowercase())
         || last.is_none_or(|byte| !byte.is_ascii_alphanumeric())
@@ -167,6 +170,48 @@ pub(super) fn sorted_unique(
         previous = Some(value);
     }
     Ok(())
+}
+
+pub(super) fn sorted_unique_optional(
+    values: &[String],
+    validate: fn(&str) -> Result<(), WireError>,
+    label: &str,
+) -> Result<(), WireError> {
+    if values.len() > 64 {
+        return Err(invalid(format!("{label} exceed 64 values")));
+    }
+    let mut previous = None;
+    for value in values {
+        validate(value)?;
+        if previous.is_some_and(|prior: &str| prior >= value.as_str()) {
+            return Err(invalid(format!("{label} must be byte-sorted and unique")));
+        }
+        previous = Some(value);
+    }
+    Ok(())
+}
+
+pub(super) fn native_subject_id(value: &str, kind: ReleaseEvidenceKindV1) -> Result<(), WireError> {
+    let (namespace, typed) = value
+        .split_once(':')
+        .ok_or_else(|| invalid("native subject ID lacks its evidence namespace"))?;
+    if namespace != evidence_kind(kind) {
+        return Err(invalid(
+            "native subject ID namespace does not match its kind",
+        ));
+    }
+    let (prefix, hex) = typed
+        .split_once('_')
+        .ok_or_else(|| invalid("native subject ID lacks a typed prefix"))?;
+    if !(2..=32).contains(&prefix.len())
+        || !prefix.as_bytes()[0].is_ascii_lowercase()
+        || !prefix
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+    {
+        return Err(invalid("native subject ID prefix is malformed"));
+    }
+    lower_hex(hex, 64, "native subject ID")
 }
 
 pub(super) fn release_tag(value: &str) -> Result<(), WireError> {
@@ -286,6 +331,19 @@ pub(super) const fn evidence_kind(value: ReleaseEvidenceKindV1) -> &'static str 
         ReleaseEvidenceKindV1::Schema => "schema",
         ReleaseEvidenceKindV1::Toolchain => "toolchain",
         ReleaseEvidenceKindV1::Transaction => "transaction",
+    }
+}
+
+pub(super) const fn registry_object_kind(value: ReleaseRegistryObjectKindV1) -> &'static str {
+    match value {
+        ReleaseRegistryObjectKindV1::GateReceipt => "gate-receipt",
+        ReleaseRegistryObjectKindV1::GateReceiptSignature => "gate-receipt-signature",
+        ReleaseRegistryObjectKindV1::GateSpec => "gate-spec",
+        ReleaseRegistryObjectKindV1::ProfileGraph => "profile-graph",
+        ReleaseRegistryObjectKindV1::SignerPolicy => "signer-policy",
+        ReleaseRegistryObjectKindV1::TrustedTimeObservation => "trusted-time-observation",
+        ReleaseRegistryObjectKindV1::TrustedTimeSignature => "trusted-time-signature",
+        ReleaseRegistryObjectKindV1::VerificationRequest => "verification-request",
     }
 }
 

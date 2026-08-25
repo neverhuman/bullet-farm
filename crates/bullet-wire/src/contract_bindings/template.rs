@@ -139,6 +139,19 @@ pub enum ReleaseEvidenceKindV1 {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
+pub enum ReleaseRegistryObjectKindV1 {
+    GateReceipt,
+    GateReceiptSignature,
+    GateSpec,
+    ProfileGraph,
+    SignerPolicy,
+    TrustedTimeObservation,
+    TrustedTimeSignature,
+    VerificationRequest,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum ReleaseSignerRoleV1 {
     ArtifactRelease,
     GateAttestor,

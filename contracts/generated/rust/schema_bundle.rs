@@ -4,11 +4,11 @@
 // DO NOT EDIT BY HAND.
 pub const SCHEMA_VERSION: &str = "v1alpha1";
 pub const SCHEMA_BUNDLE_HASH: &str =
-    "039cc7c285432997ec602a4b396dfe13d1f907048fb7ed406313e7b2b6d2798d";
+    "b9949c496a6cf7026d2dcafd2163860620c0fa85f93466e1ffb3b3e339f3507b";
 pub const INVARIANT_REGISTRY_HASH: &str =
     "978a8b4ebb14ff0c978afb431c154647adef2f9839de322356a765c59a0c3858";
 pub const POLICY_SNAPSHOT_HASH: &str =
-    "9db09c2fd9abfa941c86ceeecc2da471793a998671d536ec960b8b0d1116835c";
+    "a7438c2368c6838fd78a5368327523df9584a9d66f9a47e1990f7a3ecbc932bd";
 pub const CANONICAL_GOLDEN_JSON: &str = r##"{"a":"é","array":[true,null,17],"z":"last"}"##;
 pub const CANONICAL_GOLDEN_HASH: &str =
     "1d800cb94962906f78d42cb8cc84c2c078311a50e35ca515240b800abc3d2263";
@@ -135,6 +135,19 @@ pub enum ReleaseEvidenceKindV1 {
     Schema,
     Toolchain,
     Transaction,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum ReleaseRegistryObjectKindV1 {
+    GateReceipt,
+    GateReceiptSignature,
+    GateSpec,
+    ProfileGraph,
+    SignerPolicy,
+    TrustedTimeObservation,
+    TrustedTimeSignature,
+    VerificationRequest,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -785,6 +798,7 @@ pub struct GateReceiptV1 {
     pub profile_ids: Vec<String>,
     pub evidence_nonce: String,
     pub request_digest: String,
+    pub gate_spec_digest: String,
     pub profile_graph_digest: String,
     pub gate_policy_digest: String,
     pub family_subject: ReleaseFamilySubjectV1,
@@ -1212,6 +1226,7 @@ pub struct ReleaseEvidenceSubjectV1 {
     pub schema_version: String,
     pub subject_kind: ReleaseEvidenceKindV1,
     pub subject_id: String,
+    pub native_subject_id: String,
     pub subject_digest: String,
 }
 
@@ -1227,9 +1242,61 @@ pub struct ReleaseFamilySubjectV1 {
 
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct ReleaseGateSpecV1 {
+    pub schema_version: String,
+    pub gate_spec_id: String,
+    pub gate_id: String,
+    pub gate_version: u64,
+    pub receipt_kind: ReleaseReceiptKindV1,
+    pub profile_ids: Vec<String>,
+    pub required_evidence_kinds: Vec<ReleaseEvidenceKindV1>,
+    pub gate_policy_digest: String,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseGateVerificationRequestV1 {
+    pub schema_version: String,
+    pub verification_request_id: String,
+    pub gate_id: String,
+    pub gate_version: u64,
+    pub receipt_kind: ReleaseReceiptKindV1,
+    pub profile_ids: Vec<String>,
+    pub evidence_nonce: String,
+    pub gate_spec_digest: String,
+    pub profile_graph_digest: String,
+    pub gate_policy_digest: String,
+    pub family_subject: ReleaseFamilySubjectV1,
+    pub evidence_subjects: Vec<ReleaseEvidenceSubjectV1>,
+    pub requested_at_unix_ms: u64,
+    pub expires_at_unix_ms: u64,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseProfileGraphV1 {
+    pub schema_version: String,
+    pub profile_graph_id: String,
+    pub family: String,
+    pub generation: u64,
+    pub profiles: Vec<ReleaseProfileNodeV1>,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseProfileNodeV1 {
+    pub schema_version: String,
+    pub profile_id: String,
+    pub dependency_profile_ids: Vec<String>,
+    pub gate_ids: Vec<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ReleaseRegistryEntryV1 {
     pub schema_version: String,
     pub gate_id: String,
+    pub profile_ids: Vec<String>,
     pub gate_receipt_id: String,
     pub receipt_digest: String,
     pub receipt_path: String,
@@ -1254,7 +1321,18 @@ pub struct ReleaseRegistryManifestV1 {
     pub created_at_unix_ms: u64,
     pub expires_at_unix_ms: u64,
     pub registry_signer_key_id: String,
+    pub objects: Vec<ReleaseRegistryObjectV1>,
     pub entries: Vec<ReleaseRegistryEntryV1>,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReleaseRegistryObjectV1 {
+    pub schema_version: String,
+    pub object_id: String,
+    pub object_kind: ReleaseRegistryObjectKindV1,
+    pub object_digest: String,
+    pub object_path: String,
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
@@ -1291,8 +1369,7 @@ pub struct ReleaseRepositorySubjectV1 {
     pub commit_oid: String,
     pub tree_oid: String,
     pub release_signing_identity: String,
-    pub dependency_lock_digest: String,
-    pub artifact_manifest_digest: String,
+    pub source_subject_digest: String,
 }
 
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]

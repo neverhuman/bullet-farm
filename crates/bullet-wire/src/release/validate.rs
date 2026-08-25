@@ -6,9 +6,9 @@ use crate::{
     WireError, decode_canonical,
     v1alpha1::{
         GateReceiptV1, ReleaseEvidenceSubjectV1, ReleaseFamilySubjectV1, ReleaseRegistryEntryV1,
-        ReleaseRegistryManifestV1, ReleaseReplayBindingV1, ReleaseReplayStateV1,
-        ReleaseRepositorySubjectV1, ReleaseSignerKeyV1, ReleaseSignerPolicyV1,
-        TrustedTimeObservationV1,
+        ReleaseRegistryManifestV1, ReleaseRegistryObjectKindV1, ReleaseReplayBindingV1,
+        ReleaseReplayStateV1, ReleaseRepositorySubjectV1, ReleaseSignerKeyV1,
+        ReleaseSignerPolicyV1, TrustedTimeObservationV1,
     },
 };
 
@@ -36,6 +36,7 @@ impl ReleaseWireRecord for GateReceiptV1 {
         raw_digest(&self.evidence_nonce, "evidence nonce")?;
         for (label, digest) in [
             ("request", &self.request_digest),
+            ("gate spec", &self.gate_spec_digest),
             ("profile graph", &self.profile_graph_digest),
             ("gate policy", &self.gate_policy_digest),
         ] {
@@ -107,8 +108,7 @@ impl ReleaseWireRecord for ReleaseRepositorySubjectV1 {
         git_oid(&self.commit_oid)?;
         git_oid(&self.tree_oid)?;
         signing_identity(&self.release_signing_identity)?;
-        tagged_digest(&self.dependency_lock_digest, "dependency lock")?;
-        tagged_digest(&self.artifact_manifest_digest, "artifact manifest")
+        tagged_digest(&self.source_subject_digest, "source subject")
     }
 }
 
@@ -116,6 +116,7 @@ impl ReleaseWireRecord for ReleaseEvidenceSubjectV1 {
     fn validate_release(&self) -> Result<(), WireError> {
         schema(&self.schema_version)?;
         typed_id(&self.subject_id, "cnt")?;
+        native_subject_id(&self.native_subject_id, self.subject_kind)?;
         tagged_digest(&self.subject_digest, "evidence subject")
     }
 }
@@ -124,6 +125,7 @@ impl ReleaseWireRecord for ReleaseRegistryEntryV1 {
     fn validate_release(&self) -> Result<(), WireError> {
         schema(&self.schema_version)?;
         gate_id(&self.gate_id)?;
+        sorted_unique(&self.profile_ids, profile_id, "registry entry profile IDs")?;
         typed_id(&self.gate_receipt_id, "grc")?;
         for (label, digest) in [
             ("receipt", &self.receipt_digest),
@@ -167,18 +169,85 @@ impl ReleaseWireRecord for ReleaseRegistryManifestV1 {
             "registry validity",
         )?;
         key_id(&self.registry_signer_key_id)?;
+        if self.objects.is_empty() || self.objects.len() > 2_048 {
+            return Err(invalid("registry objects require 1..=2048 entries"));
+        }
+        let mut previous_object = None;
+        let mut object_ids = BTreeSet::new();
+        let mut object_paths = BTreeSet::new();
+        for object in &self.objects {
+            object.validate_release()?;
+            let identity = (
+                registry_object_kind(object.object_kind),
+                object.object_id.as_str(),
+            );
+            if previous_object.is_some_and(|prior| prior >= identity) {
+                return Err(invalid(
+                    "registry objects must be sorted by kind and object ID",
+                ));
+            }
+            if !object_ids.insert(object.object_id.as_str())
+                || !object_paths.insert(object.object_path.as_str())
+            {
+                return Err(invalid("registry object IDs and paths must be unique"));
+            }
+            previous_object = Some(identity);
+        }
         if self.entries.len() > 512 {
             return Err(invalid("registry exceeds 512 active entries"));
         }
         let mut previous = None;
+        let mut gate_profiles = BTreeSet::new();
         for entry in &self.entries {
             entry.validate_release()?;
-            if previous.is_some_and(|gate: &str| gate >= entry.gate_id.as_str()) {
+            let identity = (
+                entry.gate_id.as_str(),
+                entry.profile_ids.as_slice(),
+                entry.gate_receipt_id.as_str(),
+            );
+            if previous.is_some_and(|prior| prior >= identity) {
                 return Err(invalid(
-                    "registry entries must be byte-sorted with unique gate IDs",
+                    "registry entries must be sorted by gate, profiles, and receipt ID",
                 ));
             }
-            previous = Some(&entry.gate_id);
+            for profile in &entry.profile_ids {
+                if !gate_profiles.insert((entry.gate_id.as_str(), profile.as_str())) {
+                    return Err(invalid(
+                        "registry entries overlap for the same gate and profile",
+                    ));
+                }
+            }
+            for (kind, digest, path) in [
+                (
+                    ReleaseRegistryObjectKindV1::GateReceipt,
+                    entry.receipt_digest.as_str(),
+                    entry.receipt_path.as_str(),
+                ),
+                (
+                    ReleaseRegistryObjectKindV1::GateReceiptSignature,
+                    entry.receipt_signature_digest.as_str(),
+                    entry.receipt_signature_path.as_str(),
+                ),
+                (
+                    ReleaseRegistryObjectKindV1::TrustedTimeObservation,
+                    entry.trusted_time_digest.as_str(),
+                    entry.trusted_time_path.as_str(),
+                ),
+                (
+                    ReleaseRegistryObjectKindV1::TrustedTimeSignature,
+                    entry.trusted_time_signature_digest.as_str(),
+                    entry.trusted_time_signature_path.as_str(),
+                ),
+            ] {
+                if !self.objects.iter().any(|object| {
+                    object.object_kind == kind
+                        && object.object_digest == digest
+                        && object.object_path == path
+                }) {
+                    return Err(invalid("registry entry references an unmanifested object"));
+                }
+            }
+            previous = Some(identity);
         }
         Ok(())
     }

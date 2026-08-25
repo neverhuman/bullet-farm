@@ -3,9 +3,9 @@
 // Command: just contract-generate
 // DO NOT EDIT BY HAND.
 export const SCHEMA_VERSION = "v1alpha1" as const;
-export const SCHEMA_BUNDLE_HASH = "039cc7c285432997ec602a4b396dfe13d1f907048fb7ed406313e7b2b6d2798d" as const;
+export const SCHEMA_BUNDLE_HASH = "b9949c496a6cf7026d2dcafd2163860620c0fa85f93466e1ffb3b3e339f3507b" as const;
 export const INVARIANT_REGISTRY_HASH = "978a8b4ebb14ff0c978afb431c154647adef2f9839de322356a765c59a0c3858" as const;
-export const POLICY_SNAPSHOT_HASH = "9db09c2fd9abfa941c86ceeecc2da471793a998671d536ec960b8b0d1116835c" as const;
+export const POLICY_SNAPSHOT_HASH = "a7438c2368c6838fd78a5368327523df9584a9d66f9a47e1990f7a3ecbc932bd" as const;
 export const CANONICAL_GOLDEN_JSON = "{\"a\":\"é\",\"array\":[true,null,17],\"z\":\"last\"}" as const;
 export const CANONICAL_GOLDEN_HASH = "1d800cb94962906f78d42cb8cc84c2c078311a50e35ca515240b800abc3d2263" as const;
 export const AUTHORITY_GOLDEN_HASH = "4ff1ce8a4ba7a37ae705a8d2459e5a9d900abe55610f6d6984fe514cd37860df" as const;
@@ -21,6 +21,7 @@ export type PatchPreimageKindV1 = "absent" | "digest";
 export type PatchMutationKindV1 = "write" | "delete";
 export type ReleaseReceiptKindV1 = "artifact" | "containment" | "forge" | "operations" | "profile-closure" | "provider" | "rust-toolchain" | "scanner" | "transaction";
 export type ReleaseEvidenceKindV1 = "artifact" | "audit-anchor" | "candidate" | "check" | "configuration" | "effect" | "environment" | "evidence" | "integration" | "jeryu" | "observation" | "platform" | "policy" | "profile-graph" | "proof-bundle" | "provider" | "provenance" | "sandbox" | "sbom" | "scanner" | "schema" | "toolchain" | "transaction";
+export type ReleaseRegistryObjectKindV1 = "gate-receipt" | "gate-receipt-signature" | "gate-spec" | "profile-graph" | "signer-policy" | "trusted-time-observation" | "trusted-time-signature" | "verification-request";
 export type ReleaseSignerRoleV1 = "artifact-release" | "gate-attestor" | "registry-curator" | "source-tag" | "trusted-time";
 export type ReleaseRepositoryNameV1 = "bullet-farm" | "bullet-git" | "bullet-kernel" | "bullet-portal";
 export type KeyPurposeV1 = "authority-signing" | "release-signing";
@@ -473,6 +474,7 @@ export interface GateReceiptV1 {
   profile_ids: string[];
   evidence_nonce: string;
   request_digest: string;
+  gate_spec_digest: string;
   profile_graph_digest: string;
   gate_policy_digest: string;
   family_subject: ReleaseFamilySubjectV1;
@@ -842,6 +844,7 @@ export interface ReleaseEvidenceSubjectV1 {
   schema_version: string;
   subject_kind: ReleaseEvidenceKindV1;
   subject_id: string;
+  native_subject_id: string;
   subject_digest: string;
 }
 
@@ -853,9 +856,53 @@ export interface ReleaseFamilySubjectV1 {
   repositories: ReleaseRepositorySubjectV1[];
 }
 
+export interface ReleaseGateSpecV1 {
+  schema_version: string;
+  gate_spec_id: string;
+  gate_id: string;
+  gate_version: number;
+  receipt_kind: ReleaseReceiptKindV1;
+  profile_ids: string[];
+  required_evidence_kinds: ReleaseEvidenceKindV1[];
+  gate_policy_digest: string;
+}
+
+export interface ReleaseGateVerificationRequestV1 {
+  schema_version: string;
+  verification_request_id: string;
+  gate_id: string;
+  gate_version: number;
+  receipt_kind: ReleaseReceiptKindV1;
+  profile_ids: string[];
+  evidence_nonce: string;
+  gate_spec_digest: string;
+  profile_graph_digest: string;
+  gate_policy_digest: string;
+  family_subject: ReleaseFamilySubjectV1;
+  evidence_subjects: ReleaseEvidenceSubjectV1[];
+  requested_at_unix_ms: number;
+  expires_at_unix_ms: number;
+}
+
+export interface ReleaseProfileGraphV1 {
+  schema_version: string;
+  profile_graph_id: string;
+  family: string;
+  generation: number;
+  profiles: ReleaseProfileNodeV1[];
+}
+
+export interface ReleaseProfileNodeV1 {
+  schema_version: string;
+  profile_id: string;
+  dependency_profile_ids: string[];
+  gate_ids: string[];
+}
+
 export interface ReleaseRegistryEntryV1 {
   schema_version: string;
   gate_id: string;
+  profile_ids: string[];
   gate_receipt_id: string;
   receipt_digest: string;
   receipt_path: string;
@@ -878,7 +925,16 @@ export interface ReleaseRegistryManifestV1 {
   created_at_unix_ms: number;
   expires_at_unix_ms: number;
   registry_signer_key_id: string;
+  objects: ReleaseRegistryObjectV1[];
   entries: ReleaseRegistryEntryV1[];
+}
+
+export interface ReleaseRegistryObjectV1 {
+  schema_version: string;
+  object_id: string;
+  object_kind: ReleaseRegistryObjectKindV1;
+  object_digest: string;
+  object_path: string;
 }
 
 export interface ReleaseReplayBindingV1 {
@@ -909,8 +965,7 @@ export interface ReleaseRepositorySubjectV1 {
   commit_oid: string;
   tree_oid: string;
   release_signing_identity: string;
-  dependency_lock_digest: string;
-  artifact_manifest_digest: string;
+  source_subject_digest: string;
 }
 
 export interface ReleaseSignerKeyV1 {

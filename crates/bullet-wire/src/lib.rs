@@ -48,7 +48,16 @@ pub use manifest::{
 pub use outcome::*;
 pub use policy::*;
 pub use proposal::*;
-pub use release::{ReleaseWireRecord, decode_release_record};
+pub use release::{
+    RELEASE_GATE_RECEIPT_DIGEST_DOMAIN, RELEASE_GATE_RECEIPT_SIGNATURE_DOMAIN,
+    RELEASE_GATE_SPEC_DIGEST_DOMAIN, RELEASE_PROFILE_GRAPH_DIGEST_DOMAIN,
+    RELEASE_REGISTRY_MANIFEST_DIGEST_DOMAIN, RELEASE_REGISTRY_MANIFEST_SIGNATURE_DOMAIN,
+    RELEASE_REGISTRY_OBJECT_DIGEST_DOMAIN, RELEASE_SIGNER_POLICY_DIGEST_DOMAIN,
+    RELEASE_SIGNER_POLICY_SIGNATURE_DOMAIN, RELEASE_SOURCE_SUBJECT_DIGEST_DOMAIN,
+    RELEASE_TRUSTED_TIME_DIGEST_DOMAIN, RELEASE_TRUSTED_TIME_SIGNATURE_DOMAIN,
+    RELEASE_VERIFICATION_REQUEST_DIGEST_DOMAIN, ReleaseWireRecord, decode_release_record,
+    validate_release_bindings,
+};
 
 /// Normative generated wire records. Security-sensitive consumers must decode this namespace.
 pub mod v1alpha1 {
