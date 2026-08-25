@@ -297,6 +297,35 @@ fn generated_pin_accepts_only_exact_canonical_contract_bytes() {
 }
 
 #[test]
+fn enforced_floor_does_not_fall_below_four() {
+    let bytes = fs::read(root().join("policy/v1alpha1/invariant-registry.json")).unwrap();
+    let registry = decode_canonical::<InvariantRegistryV1>(&bytes).unwrap();
+    let enforced: Vec<_> = registry
+        .entries
+        .iter()
+        .filter(|entry| entry.lifecycle == bullet_wire::InvariantLifecycle::Enforced)
+        .collect();
+    assert!(
+        enforced.len() >= 4,
+        "enforced count {} fell below the committed floor of 4",
+        enforced.len()
+    );
+    assert_eq!(registry.entries.len(), 51);
+    for entry in enforced {
+        assert!(
+            !entry.proof_command.is_empty(),
+            "{} missing proof_command",
+            entry.id
+        );
+        assert!(
+            !entry.enforcement_target.is_empty(),
+            "{} missing enforcement_target",
+            entry.id
+        );
+    }
+}
+
+#[test]
 fn generated_records_are_strict_runtime_types() {
     let value = serde_json::json!({
         "schema_version": "v1alpha1",
