@@ -122,7 +122,7 @@ From a clean canonical family checkout:
 
 ```bash
 bullet-family checkout verify
-bullet-family lock verify
+bullet-family lock verify --tag <version>
 bullet-family check fast
 bullet-family check required
 bullet-family check release
