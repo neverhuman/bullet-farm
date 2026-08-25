@@ -184,7 +184,8 @@ fn dependencies_compose_without_smuggling_evolution_into_universal() {
     assert!(self_hosted.is_subset(&evolution));
     assert!(evolution.contains("release.profile.evolution-v1"));
 
-    let universal = ids(&report("universal-v1", registry.path()));
+    let universal_report = report("universal-v1", registry.path());
+    let universal = ids(&universal_report);
     for required in [
         "release.profile.self-hosted-v1",
         "release.profile.provider-claude",
@@ -210,6 +211,22 @@ fn dependencies_compose_without_smuggling_evolution_into_universal() {
         "release.profile.saga-v1",
     ] {
         assert!(!universal.contains(excluded), "leaked {excluded}");
+    }
+    for native in ["release.package-linux-x86_64", "release.systemd-v1"] {
+        assert!(universal.contains(native), "missing {native}");
+        assert_eq!(
+            universal_report["gates"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|gate| gate["id"] == native)
+                .count(),
+            1,
+            "duplicated {native}",
+        );
+    }
+    for preview_only in ["release.evolution-v1", "release.operations-v1"] {
+        assert!(!universal.contains(preview_only), "leaked {preview_only}");
     }
 
     let saga = ids(&report("saga-v1", registry.path()));

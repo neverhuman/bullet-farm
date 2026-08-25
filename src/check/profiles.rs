@@ -122,10 +122,12 @@ fn expected_receipt_kind(gate: &str) -> Result<ReleaseReceiptKindV1, CheckModelE
         "release.checksums"
         | "release.installable-lock"
         | "release.manifest-non-circular"
+        | "release.package-linux-x86_64"
         | "release.package-matrix"
         | "release.provenance"
         | "release.sbom"
         | "release.signatures" => ReleaseReceiptKindV1::Artifact,
+        "release.systemd-v1" => ReleaseReceiptKindV1::Operations,
         _ => {
             return Err(CheckModelError::new(
                 "PROFILE_RECEIPT_KIND_MISSING",

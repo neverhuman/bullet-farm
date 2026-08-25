@@ -78,6 +78,17 @@ const PLATFORM_GATES: &[&str] = &[
     "release.signatures",
 ];
 
+const PLATFORM_LINUX_X86_64_GATES: &[&str] = &[
+    "release.checksums",
+    "release.package-linux-x86_64",
+    "release.platform-containment",
+    "release.provenance",
+    "release.receipt-contracts",
+    "release.sbom",
+    "release.signatures",
+    "release.systemd-v1",
+];
+
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub(in crate::check) enum ReleaseProfile {
     SelfHostedV1,
@@ -214,8 +225,8 @@ impl ReleaseProfile {
             ],
             Self::GithubAdapterV1 => &["release.forge.github-app", "release.receipt-contracts"],
             Self::GitlabAdapterV1 | Self::GitlabSelfManagedV1 => &["release.receipt-contracts"],
-            Self::PlatformLinuxX86_64
-            | Self::PlatformLinuxAarch64
+            Self::PlatformLinuxX86_64 => PLATFORM_LINUX_X86_64_GATES,
+            Self::PlatformLinuxAarch64
             | Self::PlatformMacosX86_64
             | Self::PlatformMacosAarch64
             | Self::PlatformWindowsX86_64 => PLATFORM_GATES,

@@ -1,4 +1,4 @@
-//! Release inventory. One gate admits external semantic evidence; 25 stay static.
+//! Release inventory. One gate admits external semantic evidence; 27 stay static.
 
 use std::path::Path;
 
@@ -161,6 +161,12 @@ fn release_gates() -> Result<Vec<GateResult>, CheckModelError> {
             "build and smoke Linux x86_64/aarch64, macOS x86_64/arm64, and Windows x64 archives from the exact tagged family with the Portal embedded",
         ),
         (
+            "release.package-linux-x86_64",
+            GateClass::Release,
+            "the signed Ubuntu 24.04 x86_64 package with embedded Portal, services, migrations, sandbox assets, and guest image is absent",
+            "build and semantically verify the exact tagged x86_64-unknown-linux-gnu package and its supply-chain subjects",
+        ),
+        (
             "release.platform-containment",
             GateClass::Release,
             "platform containment or fail-closed refusal receipts are absent",
@@ -256,6 +262,12 @@ fn release_gates() -> Result<Vec<GateResult>, CheckModelError> {
             "the exact offline five-plane transaction demo receipt is absent",
             "run the non-synthetic tagged transaction demo and register its independent exact-subject receipt",
         ),
+        (
+            "release.systemd-v1",
+            GateClass::Release,
+            "the native systemd install, upgrade, activation, rollback, uninstall, and non-destructive retention receipt is absent",
+            "run two clean Ubuntu 24.04 installs plus lifecycle and disaster drills from the signed package bytes",
+        ),
     ]
     .into_iter()
     .map(|(id, class, detail, repair)| blocked(id, class, detail, repair))
@@ -305,6 +317,7 @@ mod tests {
             "release.transaction-demo",
             "release.jankurai-90",
             "release.package-matrix",
+            "release.package-linux-x86_64",
             "release.installer-twice",
             "release.sbom",
             "release.checksums",
@@ -324,9 +337,10 @@ mod tests {
             "release.scan.license",
             "release.scan.secret",
             "release.scan.workflow",
+            "release.systemd-v1",
         ] {
             assert!(ids.contains(&required), "missing {required}");
         }
-        assert_eq!(ids.len(), 26);
+        assert_eq!(ids.len(), 28);
     }
 }
