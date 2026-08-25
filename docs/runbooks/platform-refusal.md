@@ -13,10 +13,11 @@ One runner is supported: Linux GNU. An archive existing for a platform never aut
 both the Linux containment receipt and the fail-closed refusal receipts for the other four exist). The `cfg`
 gates below select on OS/libc, not on architecture; no aarch64 Linux receipt exists either.
 
-Every refusal below is a typed reason code produced **before** any filesystem, network, or process mutation.
-Each was confirmed by reading the named source; none can be observed on this Linux GNU host, so no exit was
-recorded for them here. The hub codes map to exit `2` through the default arm of `CoordError::exit_code`
-(`src/coord/mod.rs`); `UNSUPPORTED_SCHEMA` is exit `4`.
+Every refusal below is produced before authority-bearing mutation. Some read-only commands first admit and read
+their subjects or run a bounded signature verifier; that work is not installation or publication. Each
+platform-specific refusal was confirmed by reading the named source; none can be observed on this Linux GNU host,
+so no exit was recorded for them here. The hub codes map to exit `2` through the default arm of
+`CoordError::exit_code` (`src/coord/mod.rs`); `UNSUPPORTED_SCHEMA` is exit `4`.
 
 ## 1. Hub (`bullet-family`)
 
@@ -26,12 +27,19 @@ recorded for them here. The hub codes map to exit `2` through the default arm of
 | `setup` staging/publication | Unix | descriptor-relative staging, manifest publication, and `finish` all refuse | `UNSUPPORTED_PLATFORM_CONTAINMENT` | `src/setup/transaction.rs` non-Unix module |
 | `checkout verify` exact working-tree bytes/modes | Unix | refuses | `UNSUPPORTED_PLATFORM_CONTAINMENT` — "exact working-tree byte/mode verification is unavailable on this platform" | `src/checkout/git.rs` `verify_exact_worktree` |
 | `fuse` publication | Linux GNU | no-replace/exchange publication refuses | `UNSUPPORTED_PLATFORM_CONTAINMENT` — "atomic no-replace/exchange fusion publication is not verified on this platform" | `src/fuse/publish.rs` `require_platform` |
+| `release build` | nowhere through the public CLI | always refuses before argument parsing, validation, or mutation | `RELEASE_BUILD_CONTAINMENT_UNAVAILABLE` — production needs private exact-OID reconstruction, a sealed toolchain, and a different-identity build broker | `src/release.rs` `run`, `release_build_containment_unavailable` |
 | `release verify` | Linux | archive/SBOM/provenance bytes cannot be sealed into an immutable snapshot | `RELEASE_VERIFICATION_PLATFORM_UNSUPPORTED` | `src/release/verify.rs` `immutable_snapshot` |
-| `release extract` | Linux GNU | archive snapshot refuses off Linux; destination admission and no-replace publication refuse off Linux GNU | `RELEASE_EXTRACTION_PLATFORM_UNSUPPORTED` | `src/release/archive.rs` `snapshot_archive`; `src/release/archive/publish.rs` `admit_destination`, `publish_no_replace` |
+| `release extract` | nowhere through the public CLI | on Linux, an exact valid bundle reaches the unconditional publication refusal; off Linux, structural verification can refuse first; no destination is admitted or changed | `RELEASE_PUBLICATION_CONTAINMENT_UNAVAILABLE` after successful verification, otherwise the earlier typed verification error — production publication needs a different-UID or privileged containment backend | `src/release.rs` `run` |
+
+The internal `src/release/archive.rs` scanner and `archive/publish.rs` no-replace publisher remain quarantined
+components. Their platform refusal codes and hostile-archive tests are component evidence only: the public CLI
+does not call them, so they cannot produce an installation or platform-containment receipt.
 
 Observed on this host (Linux GNU, so the platform gates pass and the next check speaks):
 
 ```text
+bullet-family release build
+  -> RELEASE_BUILD_CONTAINMENT_UNAVAILABLE (exit 2; before argument parsing or mutation)
 bullet-family release verify --bundle /nonexistent/bundle --allowed-signers /nonexistent/allowed_signers
   -> COORD_IO_FAILED (exit 2)
 bullet-family release
@@ -39,6 +47,10 @@ bullet-family release
 bullet-family setup --root /home/…/bullet --source jeryu --cargo-bin … --node-bin … --npm-cli … --offline
   -> UNSUPPORTED_SCHEMA: family.lock schema 2 is not installable; … (exit 4, nothing staged)
 ```
+
+The signed-fixture integration test additionally observes that public `release extract` verifies the exact
+preassembled bundle and then returns `RELEASE_PUBLICATION_CONTAINMENT_UNAVAILABLE` while the requested destination
+remains absent. That is a fail-closed component observation, not a platform or installer receipt.
 
 The order inside `setup::run` is fixed: platform containment → admitted root → hub location → lock schema →
 toolchain admission → environment → transaction. A macOS or Windows host therefore never reaches the schema

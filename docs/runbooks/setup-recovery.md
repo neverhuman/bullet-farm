@@ -16,7 +16,8 @@ publication. It never deletes.
 `bullet-family setup` (`src/setup.rs::run`) validates every fallible input first (platform containment,
 admitted family-root descriptor, hub location, lock schema, Cargo/Node/npm subjects, environment), then runs
 one transaction (`src/setup/transaction.rs`): members are cloned into a `0700`, descriptor-relative staging
-directory named `.bullet-family-setup.<random>` beside the members, published with no-replace rename, fsynced,
+directory named `.bullet-family-setup.checkout.<pid>.<nanoseconds>.<sequence>` beside the members, published with
+no-replace rename, fsynced,
 and finally the outer completion marker — the family-root `repos.manifest.toml`, byte-equal to the signed hub
 manifest — is published last.
 
@@ -36,7 +37,9 @@ preserve an unsafe orphan instead of guessing.
 
 ## 2. The drill
 
-Run from the hub checkout. Every command is read-only.
+Run from the hub checkout. Under the checked-in schema-2 lock, the Bullet operations below refuse before product
+state mutation. `cargo run` can still update ordinary compiler output under `target/`; use an already built exact
+local binary when compiler-cache writes would interfere with evidence preservation.
 
 1. **Diagnose.**
 
@@ -78,17 +81,31 @@ Run from the hub checkout. Every command is read-only.
    Record every present member path. With the same authenticated schema-3 lock, setup admits an existing
    member only after verifying its exact signed identity and cleanliness; it refuses conflicting state.
 
-4. **Re-run the refused setup to prove it is still pre-mutation.**
+4. **Exercise both refused setup entrypoints without inventing bootstrap authority.**
 
    ```bash
    (cd /tmp && /abs/path/to/bullet-farm/scripts/setup.sh --offline); echo EXIT=$?
    ```
 
-   Observed: the same `UNSUPPORTED_SCHEMA` line, `EXIT=4`, no staging directory created, `git status --short`
-   in the hub unchanged. This is exactly what `ops/ci/required.sh` asserts. Running the binary directly needs
-   the full argument set: `setup --root ABS --source jeryu --cargo-bin ABS --node-bin ABS --npm-cli ABS
-   [--offline]` (the wrapper resolves those subjects; observed `EXIT=4` as well). On a non-Linux-GNU host the
-   very first check answers `UNSUPPORTED_PLATFORM_CONTAINMENT` instead ([`platform-refusal.md`](platform-refusal.md)).
+   Observed: `operator-pre-admitted bootstrap unavailable`, `EXIT=4`, no staging directory created, and no ambient
+   Cargo shim executed. This is exactly what `ops/ci/setup-refusal.sh` asserts. It is intentionally earlier than
+   the Rust schema check: the wrapper requires `BULLET_SETUP_ADMITTED_BIN` to name an absolute canonical,
+   non-symlink executable outside the source family and also requires explicit absolute
+   `BULLET_SETUP_CARGO_BIN`, `BULLET_SETUP_NODE_BIN`, and `BULLET_SETUP_NPM_CLI` values. It does not discover,
+   authenticate, or resolve those subjects, and no signed prebuilt installer is published.
+
+   The source-built binary's direct refusal is the separate schema check:
+
+   ```bash
+   cargo run --locked --quiet --bin bullet-family -- setup \
+     --root /abs/path/to/family --source jeryu --offline; echo EXIT=$?
+   ```
+
+   In the canonical family this returns `UNSUPPORTED_SCHEMA`, `EXIT=4`, before tool admission or staging. An
+   operator-selected external binary with all four explicit wrapper subjects would reach the same Rust ordering,
+   but that selection is not signed package admission and must not be recorded as installer evidence. On a
+   non-Linux-GNU host the first Rust check instead answers `UNSUPPORTED_PLATFORM_CONTAINMENT`
+   ([`platform-refusal.md`](platform-refusal.md)).
 
 5. **Confirm the hub itself is intact.**
 
