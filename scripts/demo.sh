@@ -15,6 +15,8 @@ else
 fi
 
 echo "== Bullet Farm demo =="
+echo "evidence_class: SYNTHETIC_PROOF"
+echo "release_gate_eligible: false"
 echo "kernel: $KERNEL"
 echo "data:   $DATA"
 
