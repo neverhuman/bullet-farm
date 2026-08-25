@@ -42,6 +42,9 @@ just hooks-install
 The hook runs the same deterministic fast lane used by CI. `just ci-doctor`
 reports missing local tools before a lane starts; `just ci-doctor audit`
 additionally requires the exact locally admitted Jankurai 1.6.11 binary.
+`just ci-doctor toolchain-pinned` additionally requires rustup toolchain 1.97.1 and
+`b3sum` 1.8.2 for the explicit pinned-toolchain lane; the repository pin and every
+other lane still refuse any rustc that is not 1.95.0.
 
 ## Installation status
 
@@ -200,8 +203,10 @@ just contract-check # generated policy/schema/client byte drift
 just model-check    # exactly two pinned TLC models and state locks
 just contract       # hub-only canonical contract + model gate
 just check-family   # hub plus every member required lane
+just security       # gitleaks, the committed cargo-deny policy (licenses/advisories/bans/sources), and zizmor
 just family-contract # family required lanes + canonical contract + models
 just release-truth  # regenerate docs/assurance/release-truth.generated.md (decision exit 3 kept)
+just toolchain-pinned # build + test this workspace under pinned Rust 1.97.1 (local-only; writes the ignored .bullet-family/toolchain-1.97.1-bullet-farm.json observation, never a receipt)
 cargo run --locked --quiet --bin bullet-family -- check release --report   # 26-gate operator brief, exit 3 while BLOCKED
 ```
 

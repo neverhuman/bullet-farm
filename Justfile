@@ -44,6 +44,9 @@ release-truth:
 audit:
     bash scripts/ci-local.sh audit
 
+toolchain-pinned:
+    bash scripts/ci-local.sh toolchain-pinned
+
 paper:
     bash scripts/paper-build.sh
 

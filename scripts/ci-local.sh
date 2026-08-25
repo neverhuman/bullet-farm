@@ -11,6 +11,7 @@ case "$lane" in
   family-contract) bash ops/ci/family-contract.sh ;;
   security) bash ops/ci/security.sh ;;
   audit)    bash ops/ci/audit.sh ;;
+  toolchain-pinned) bash ops/ci/toolchain-pinned.sh ;;
   gates|all) bash ops/ci/required.sh && bash ops/ci/contract.sh ;;
-  *) echo "usage: $0 {required|fast|contract|family-contract|family|security|audit|all}" >&2; exit 2 ;;
+  *) echo "usage: $0 {required|fast|contract|family-contract|family|security|audit|toolchain-pinned|all}" >&2; exit 2 ;;
 esac
