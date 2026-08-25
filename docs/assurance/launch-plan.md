@@ -61,7 +61,7 @@ path-exactly with receipts. IDs refer to the inventory.
 ### Wave 1 from the capability study (2026-08-25 10:11Z–11:03Z) — landed
 | Item | What | Status |
 | --- | --- | --- |
-| L-04 | A crashed runner blocked its Variant forever: `expire_leases` had no production caller | **done** — kernel `4effc37d`: reclaim inside the acquisition transaction, `LeaseService::expire_due`, `bullet farm reap`; mutation-proved. farmd tick: `claude-farmd-tick` in flight |
+| L-04 | A crashed runner blocked its Variant forever: `expire_leases` had no production caller | **done** — kernel `4effc37d` (reclaim inside the acquisition transaction, `LeaseService::expire_due`, `bullet farm reap`) + `107c5cd5` (farmd reaper tick, ≤500 ms, never disableable, contention-tested against the acquisition path); both mutation-proved |
 | L-01 | `doctor` exited 0 while reporting BLOCKED | **done** — hub `f00171ff`: exits 3 on BLOCKED; required lane asserts exit/JSON agreement |
 | L-03 | OD-B told the operator to run `gh auth login` (Jeryu: do-not-run) | **done** — hub `f00171ff` (ADR 0013 OD-B: `jeryu gh-setup --token-file`); corrected in every out-of-repo copy |
 | Jankurai | hub 58 / kernel 57 / portal 60 vs ≥ 90 | `claude-audit-caps` in flight; hosted half EXTERNAL |
