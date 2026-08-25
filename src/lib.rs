@@ -8,4 +8,5 @@ pub mod family_lock;
 pub mod fuse;
 pub mod hub_check;
 mod process;
+pub mod release;
 pub mod setup;

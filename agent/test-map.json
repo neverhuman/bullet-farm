@@ -93,6 +93,10 @@
       "command": "cargo test --locked --test doctor",
       "purpose": "prove standalone-hub diagnosis remains read-only and fail-closed"
     },
+    "tests/release_bundle.rs": {
+      "command": "cargo test --locked --test release_bundle",
+      "purpose": "prove the five-platform release manifest, bytes, and detached signatures fail closed"
+    },
     "Cargo.toml": {
       "command": "cargo test --locked",
       "purpose": "verify the Rust family tool dependency graph"

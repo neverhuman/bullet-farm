@@ -1,10 +1,10 @@
 use std::{
-    fs,
+    fs::{self, File},
     process::Command,
     time::{Duration, Instant},
 };
 
-use super::{Limits, run_bounded};
+use super::{Limits, run_bounded, run_bounded_with_input_file};
 
 fn limits(timeout: Duration, bytes: usize) -> Limits {
     Limits {
@@ -27,6 +27,30 @@ fn captures_bounded_output_and_exit_status() {
     assert_eq!(output.status.code(), Some(7));
     assert_eq!(output.stdout, b"out");
     assert_eq!(output.stderr, b"err");
+}
+
+#[test]
+fn file_input_is_pinned_before_a_pathname_is_replaced() {
+    let directory = tempfile_directory();
+    let path = directory.join("input");
+    let admitted = directory.join("admitted");
+    fs::write(&path, "admitted bytes").unwrap();
+    let input = File::open(&path).unwrap();
+    fs::rename(&path, &admitted).unwrap();
+    fs::write(&path, "replacement bytes").unwrap();
+
+    let output = run_bounded_with_input_file(
+        &mut Command::new("/bin/cat"),
+        "pinned input fixture",
+        limits(Duration::from_secs(2), 64),
+        input,
+    )
+    .unwrap();
+    assert!(output.output.status.success());
+    assert_eq!(output.output.stdout, b"admitted bytes");
+    assert_eq!(output.byte_count, 14);
+    assert_eq!(output.digest, *blake3::hash(b"admitted bytes").as_bytes());
+    fs::remove_dir_all(directory).unwrap();
 }
 
 #[test]

@@ -6,7 +6,7 @@ use crate::coord::{
     discover_family_root, unix_millis,
 };
 
-const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|checkout verify|hub check|deps check|lock <generate|check> --tag VERSION|fuse --source <local|lock>|check <fast|required|release> [--json]|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]>";
+const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release verify --bundle ABSOLUTE_PATH --allowed-signers ABSOLUTE_PATH|checkout verify|hub check|deps check|lock <generate|check> --tag VERSION|fuse --source <local|lock>|check <fast|required|release> [--json]|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]>";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CliOutcome {
@@ -87,6 +87,15 @@ pub fn run(
     let current_dir = current_dir.map_err(CoordError::io)?;
     if args.first().is_some_and(|arg| arg == "setup") {
         return crate::setup::run(&current_dir, explicit_root.as_deref(), &args[1..]);
+    }
+    if args.first().is_some_and(|arg| arg == "release") {
+        if explicit_root.is_some() {
+            return Err(CoordError::new(
+                "USAGE",
+                "release verification does not accept --root",
+            ));
+        }
+        return crate::release::run(&args[1..]);
     }
     if args.first().is_some_and(|arg| arg == "checkout") {
         return crate::checkout::run(&current_dir, explicit_root.as_deref(), &args[1..]);

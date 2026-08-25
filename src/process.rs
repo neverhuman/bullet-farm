@@ -1,8 +1,9 @@
 //! Bounded child-process execution for local authority and installation tools.
 
 use std::{
-    io::{self, Read},
-    process::{Command, Output, Stdio},
+    fs::File,
+    io::{self, Read, Write},
+    process::{ChildStdin, Command, Output, Stdio},
     sync::{
         Arc,
         atomic::{AtomicBool, Ordering},
@@ -25,18 +26,65 @@ pub(crate) struct Limits {
     pub(crate) stderr_bytes: usize,
 }
 
+pub(crate) struct InputFileOutput {
+    pub(crate) output: Output,
+    pub(crate) byte_count: u64,
+    pub(crate) digest: [u8; 32],
+}
+
+struct ExecutionOutput {
+    output: Output,
+    input: Option<InputSubject>,
+}
+
+struct InputSubject {
+    byte_count: u64,
+    digest: [u8; 32],
+}
+
 pub(crate) fn run_bounded(
     command: &mut Command,
     label: &str,
     limits: Limits,
 ) -> Result<Output, CoordError> {
+    Ok(run_bounded_inner(command, label, limits, None)?.output)
+}
+
+pub(crate) fn run_bounded_with_input_file(
+    command: &mut Command,
+    label: &str,
+    limits: Limits,
+    input: File,
+) -> Result<InputFileOutput, CoordError> {
+    let execution = run_bounded_inner(command, label, limits, Some(input))?;
+    let input = execution.input.ok_or_else(|| {
+        CoordError::new(
+            "COMMAND_INPUT_FAILED",
+            format!("{label} returned no input receipt"),
+        )
+    })?;
+    Ok(InputFileOutput {
+        output: execution.output,
+        byte_count: input.byte_count,
+        digest: input.digest,
+    })
+}
+
+fn run_bounded_inner(
+    command: &mut Command,
+    label: &str,
+    limits: Limits,
+    input: Option<File>,
+) -> Result<ExecutionOutput, CoordError> {
     let deadline = Instant::now().checked_add(limits.timeout).ok_or_else(|| {
         CoordError::new("INVALID_COMMAND_DEADLINE", "command deadline overflowed")
     })?;
-    command
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
+    command.stdin(if input.is_some() {
+        Stdio::piped()
+    } else {
+        Stdio::null()
+    });
+    command.stdout(Stdio::piped()).stderr(Stdio::piped());
     #[cfg(unix)]
     command.process_group(0);
 
@@ -62,13 +110,33 @@ pub(crate) fn run_bounded(
             format!("{label} stderr pipe was unavailable"),
         ));
     };
+    let mut input_writer = match input {
+        Some(input) => {
+            let Some(stdin) = child.stdin.take() else {
+                terminate_process_group(&mut child);
+                let _ = child.wait();
+                return Err(CoordError::new(
+                    "COMMAND_INPUT_FAILED",
+                    format!("{label} stdin pipe was unavailable"),
+                ));
+            };
+            Some(capture_input(input, stdin).map_err(|error| {
+                terminate_process_group(&mut child);
+                let _ = child.wait();
+                CoordError::new(
+                    "COMMAND_INPUT_FAILED",
+                    format!("could not start {label} input writer: {error}"),
+                )
+            })?)
+        }
+        None => None,
+    };
     let stdout_exceeded = Arc::new(AtomicBool::new(false));
     let stderr_exceeded = Arc::new(AtomicBool::new(false));
     let stdout_reader = match capture(stdout, limits.stdout_bytes, Arc::clone(&stdout_exceeded)) {
         Ok(reader) => reader,
         Err(error) => {
-            terminate_process_group(&mut child);
-            let _ = child.wait();
+            terminate_and_join_input(&mut child, &mut input_writer, label);
             return Err(CoordError::new(
                 "COMMAND_IO_FAILED",
                 format!("could not start {label} stdout reader: {error}"),
@@ -78,8 +146,7 @@ pub(crate) fn run_bounded(
     let stderr_reader = match capture(stderr, limits.stderr_bytes, Arc::clone(&stderr_exceeded)) {
         Ok(reader) => reader,
         Err(error) => {
-            terminate_process_group(&mut child);
-            let _ = child.wait();
+            terminate_and_join_input(&mut child, &mut input_writer, label);
             let _ = join_capture(stdout_reader, label, "stdout");
             return Err(CoordError::new(
                 "COMMAND_IO_FAILED",
@@ -89,15 +156,13 @@ pub(crate) fn run_bounded(
     };
     let status = loop {
         if stdout_exceeded.load(Ordering::Acquire) || stderr_exceeded.load(Ordering::Acquire) {
-            terminate_process_group(&mut child);
-            let _ = child.wait();
+            terminate_and_join_input(&mut child, &mut input_writer, label);
             drop(stdout_reader);
             drop(stderr_reader);
             return Err(output_limit_error(label, limits));
         }
         if Instant::now() >= deadline {
-            terminate_process_group(&mut child);
-            let _ = child.wait();
+            terminate_and_join_input(&mut child, &mut input_writer, label);
             drop(stdout_reader);
             drop(stderr_reader);
             return Err(CoordError::new(
@@ -110,15 +175,13 @@ pub(crate) fn run_bounded(
         }
         if stdout_reader.is_finished() && stderr_reader.is_finished() {
             if stdout_exceeded.load(Ordering::Acquire) || stderr_exceeded.load(Ordering::Acquire) {
-                terminate_process_group(&mut child);
-                let _ = child.wait();
+                terminate_and_join_input(&mut child, &mut input_writer, label);
                 let _ = join_capture(stdout_reader, label, "stdout");
                 let _ = join_capture(stderr_reader, label, "stderr");
                 return Err(output_limit_error(label, limits));
             }
             if Instant::now() >= deadline {
-                terminate_process_group(&mut child);
-                let _ = child.wait();
+                terminate_and_join_input(&mut child, &mut input_writer, label);
                 let _ = join_capture(stdout_reader, label, "stdout");
                 let _ = join_capture(stderr_reader, label, "stderr");
                 return Err(CoordError::new(
@@ -133,8 +196,7 @@ pub(crate) fn run_bounded(
                 Ok(Some(status)) => break status,
                 Ok(None) => {}
                 Err(error) => {
-                    terminate_process_group(&mut child);
-                    let _ = child.wait();
+                    terminate_and_join_input(&mut child, &mut input_writer, label);
                     let _ = join_capture(stdout_reader, label, "stdout");
                     let _ = join_capture(stderr_reader, label, "stderr");
                     return Err(CoordError::new(
@@ -153,11 +215,77 @@ pub(crate) fn run_bounded(
     }
     let stdout = stdout?;
     let stderr = stderr?;
-    Ok(Output {
-        status,
-        stdout,
-        stderr,
+    let input = join_input(&mut input_writer, label)?;
+    Ok(ExecutionOutput {
+        output: Output {
+            status,
+            stdout,
+            stderr,
+        },
+        input,
     })
+}
+
+fn capture_input(
+    mut input: File,
+    mut stdin: ChildStdin,
+) -> io::Result<JoinHandle<io::Result<InputSubject>>> {
+    thread::Builder::new()
+        .name("bullet-child-input".to_owned())
+        .spawn(move || {
+            let mut byte_count = 0_u64;
+            let mut hasher = blake3::Hasher::new();
+            let mut buffer = [0_u8; 64 * 1024];
+            loop {
+                let count = input.read(&mut buffer)?;
+                if count == 0 {
+                    stdin.flush()?;
+                    return Ok(InputSubject {
+                        byte_count,
+                        digest: *hasher.finalize().as_bytes(),
+                    });
+                }
+                stdin.write_all(&buffer[..count])?;
+                hasher.update(&buffer[..count]);
+                byte_count = byte_count
+                    .checked_add(count as u64)
+                    .ok_or_else(|| io::Error::other("child input byte count overflow"))?;
+            }
+        })
+}
+
+fn join_input(
+    writer: &mut Option<JoinHandle<io::Result<InputSubject>>>,
+    label: &str,
+) -> Result<Option<InputSubject>, CoordError> {
+    let Some(writer) = writer.take() else {
+        return Ok(None);
+    };
+    writer
+        .join()
+        .map_err(|_| {
+            CoordError::new(
+                "COMMAND_INPUT_FAILED",
+                format!("{label} input writer panicked"),
+            )
+        })?
+        .map(Some)
+        .map_err(|error| {
+            CoordError::new(
+                "COMMAND_INPUT_FAILED",
+                format!("could not stream {label} input: {error}"),
+            )
+        })
+}
+
+fn terminate_and_join_input(
+    child: &mut std::process::Child,
+    writer: &mut Option<JoinHandle<io::Result<InputSubject>>>,
+    label: &str,
+) {
+    terminate_process_group(child);
+    let _ = child.wait();
+    let _ = join_input(writer, label);
 }
 
 fn output_limit_error(label: &str, limits: Limits) -> CoordError {
