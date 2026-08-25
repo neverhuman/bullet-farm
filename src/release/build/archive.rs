@@ -115,6 +115,22 @@ pub(super) fn reread(
                 entry.path
             )));
         }
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+
+            let actual_mode = fs::metadata(&materialized)
+                .map_err(CoordError::io)?
+                .permissions()
+                .mode()
+                & 0o777;
+            if actual_mode != entry.mode {
+                return Err(mismatch(format!(
+                    "{} has mode {actual_mode:04o} after extraction; expected {:04o}",
+                    entry.path, entry.mode
+                )));
+            }
+        }
     }
     if !checksums
         .entries

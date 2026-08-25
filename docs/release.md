@@ -213,8 +213,9 @@ post-verification pathname swap cannot execute attacker bytes. It retains the ad
 uses 0700 descriptor-relative staging, checks root/staging identity around path-dependent children,
 publishes members and the final outer manifest without replacement, fsyncs authority boundaries,
 and confines cleanup with no-follow depth/entry limits. Fallible dependency, generated-contract,
-and exact-family checks complete before publication; injected transaction boundaries recover to
-prior or complete next state. Setup rejects unsupported platforms before mutation. Active same-UID
+and exact-family checks complete before publication; injected transaction boundaries recover from
+prior state or an exact partial publication to one complete next state without replacing verified
+members, while indeterminate staging/orphans remain preserved. Setup rejects unsupported platforms before mutation. Active same-UID
 mutation during clone transport Git/helper use, transient or between-child repository object/ref/index/config/file
 changes, non-Git work-tree traversal, and allowed-signers path admission remains beyond this descriptor boundary; a cleanup limit may
 safely leave an orphan, and an error after publication requires exact setup/verify reconciliation. The
@@ -253,9 +254,11 @@ manifest binds the hub tag without embedding its own digest.
 
 `bullet-family release build --target x86_64-unknown-linux-gnu --out ABSOLUTE_ABSENT_PATH`
 produces one unsigned Linux x86_64 bundle from a clean four-repository committed
-subject: a `bullet-farm/`-rooted deterministic `tar.zst` carrying seven locked
-release binaries, with `bullet-farmd` built `--features embedded-portal` from a
-scratch clone of the committed Portal subject and its own bundle manifest; a
+subject: a `bullet-farm/`-rooted deterministic `tar.zst` carrying eight locked
+release binaries, including the read-only `bullet-mcpd`, with `bullet-farmd`
+built `--features embedded-portal` from a scratch clone of the committed Portal
+subject and its own bundle manifest; all eight direct `bin/` entries are required
+and re-read as executable on Unix while package data remains non-executable; a
 CycloneDX 1.6 SBOM in which every component carries a name, version, package URL,
 and a license admitted from the committed `deny.toml` allow-lists; an unsigned
 in-toto provenance statement recording builder identity, every input subject, and

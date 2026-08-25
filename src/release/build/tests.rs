@@ -35,6 +35,11 @@ fn sources(root: &Path) -> Vec<(String, std::path::PathBuf, u32)> {
         ("bin/bullet", "#!/bin/true\n", 0o755),
         ("bin/bullet-family", "#!/bin/true\n", 0o755),
         ("bin/bullet-farmd", "#!/bin/true\n", 0o755),
+        ("bin/bullet-gitd", "#!/bin/true\n", 0o755),
+        ("bin/bullet-mcpd", "#!/bin/true\n", 0o755),
+        ("bin/bullet-effects", "#!/bin/true\n", 0o755),
+        ("bin/bullet-runner", "#!/bin/true\n", 0o755),
+        ("bin/bullet-verifier", "#!/bin/true\n", 0o755),
     ] {
         let path = root.join(name.replace('/', "_"));
         fs::write(&path, body).expect("stage source");
@@ -58,8 +63,13 @@ fn archive_entries_are_root_first_and_byte_sorted() {
             "bullet-farm/LICENSE",
             "bullet-farm/bin",
             "bullet-farm/bin/bullet",
+            "bullet-farm/bin/bullet-effects",
             "bullet-farm/bin/bullet-family",
             "bullet-farm/bin/bullet-farmd",
+            "bullet-farm/bin/bullet-gitd",
+            "bullet-farm/bin/bullet-mcpd",
+            "bullet-farm/bin/bullet-runner",
+            "bullet-farm/bin/bullet-verifier",
             "bullet-farm/share",
             "bullet-farm/share/family.lock",
         ]
@@ -115,24 +125,33 @@ fn a_produced_archive_is_admitted_by_the_committed_extractor() {
     let destination = bundle_root.join("extracted");
     crate::release::archive::extract(&bundle_root, &readback, TARGET, &destination)
         .expect("the committed extractor admits the produced archive");
-    for (name, mode) in [("bin/bullet-family", 0o755_u32), ("LICENSE", 0o644)] {
+    for name in crate::release::archive::PACKAGED_BINARY_NAMES {
         use std::os::unix::fs::PermissionsExt;
 
-        let metadata = fs::metadata(destination.join(name)).expect("materialized entry");
+        let path = format!("bin/{name}");
+        let metadata = fs::metadata(destination.join(&path)).expect("materialized executable");
         assert!(metadata.is_file());
-        assert_eq!(metadata.permissions().mode() & 0o777, mode, "{name}");
+        assert_eq!(metadata.permissions().mode() & 0o777, 0o755, "{path}");
     }
-    // Recorded defect: the committed extractor marks exactly one path executable,
-    // so every other packaged binary lands at 0644 and cannot be run.
-    let farmd = fs::metadata(destination.join("bin/bullet-farmd")).expect("farmd entry");
+    let license = fs::metadata(destination.join("LICENSE")).expect("materialized license");
     assert_eq!(
         {
             use std::os::unix::fs::PermissionsExt;
-            farmd.permissions().mode() & 0o777
+            license.permissions().mode() & 0o777
         },
         0o644,
-        "release.package-matrix is blocked on this: only bullet-family is made executable"
+        "non-executable package data must remain read-only"
     );
+}
+
+#[test]
+fn builder_and_extractor_bind_the_same_exact_binary_names() {
+    let mut built = super::BINARIES
+        .iter()
+        .map(|(_, _, name)| *name)
+        .collect::<Vec<_>>();
+    built.sort_unstable();
+    assert_eq!(built, crate::release::archive::PACKAGED_BINARY_NAMES);
 }
 
 #[test]

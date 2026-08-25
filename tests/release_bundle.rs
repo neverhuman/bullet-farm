@@ -234,6 +234,23 @@ fn signed_archive_extracts_once_without_overwrite_or_execution() {
         fs::metadata(&executable).unwrap().permissions().mode() & 0o777,
         0o755
     );
+    for name in [
+        "bullet",
+        "bullet-effects",
+        "bullet-farmd",
+        "bullet-gitd",
+        "bullet-mcpd",
+        "bullet-runner",
+        "bullet-verifier",
+    ] {
+        let path = destination.join("bin").join(name);
+        assert_eq!(
+            fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+            0o755,
+            "{}",
+            path.display()
+        );
+    }
     let before = snapshot(&destination);
     assert_eq!(
         fixture
@@ -456,14 +473,21 @@ fn digest(bytes: &[u8]) -> String {
 }
 
 fn archive_bytes(target: &str) -> Vec<u8> {
-    let executable = format!(
-        "bullet-farm/bin/bullet-family{}",
-        if target == "x86_64-pc-windows-msvc" {
-            ".exe"
-        } else {
-            ""
-        }
-    );
+    let suffix = if target == "x86_64-pc-windows-msvc" {
+        ".exe"
+    } else {
+        ""
+    };
+    let executables = [
+        "bullet",
+        "bullet-effects",
+        "bullet-family",
+        "bullet-farmd",
+        "bullet-gitd",
+        "bullet-mcpd",
+        "bullet-runner",
+        "bullet-verifier",
+    ];
     let payload = format!("fixture:{target}\n");
     if target == "x86_64-pc-windows-msvc" {
         let mut writer = ::zip::ZipWriter::new(Cursor::new(Vec::new()));
@@ -472,15 +496,36 @@ fn archive_bytes(target: &str) -> Vec<u8> {
             .unix_permissions(0o755);
         writer.add_directory("bullet-farm/", directory).unwrap();
         writer.add_directory("bullet-farm/bin/", directory).unwrap();
-        writer.start_file(executable, directory).unwrap();
-        writer.write_all(payload.as_bytes()).unwrap();
+        for executable in executables {
+            writer
+                .start_file(format!("bullet-farm/bin/{executable}{suffix}"), directory)
+                .unwrap();
+            writer
+                .write_all(if executable == "bullet-family" {
+                    payload.as_bytes()
+                } else {
+                    b"fixture-tool\n"
+                })
+                .unwrap();
+        }
         writer.finish().unwrap().into_inner()
     } else {
         let encoder = zstd::stream::write::Encoder::new(Vec::new(), 3).unwrap();
         let mut builder = tar::Builder::new(encoder);
         append_tar(&mut builder, "bullet-farm", &[], true);
         append_tar(&mut builder, "bullet-farm/bin", &[], true);
-        append_tar(&mut builder, &executable, payload.as_bytes(), false);
+        for executable in executables {
+            append_tar(
+                &mut builder,
+                &format!("bullet-farm/bin/{executable}{suffix}"),
+                if executable == "bullet-family" {
+                    payload.as_bytes()
+                } else {
+                    b"fixture-tool\n"
+                },
+                false,
+            );
+        }
         builder.finish().unwrap();
         builder.into_inner().unwrap().finish().unwrap()
     }

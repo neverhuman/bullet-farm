@@ -31,12 +31,17 @@ directories only, parents before children.
 ```
 bullet-farm/
 bullet-farm/LICENSE
-bullet-farm/bin/{bullet,bullet-effects,bullet-family,bullet-farmd,bullet-gitd,bullet-runner,bullet-verifier}
+bullet-farm/bin/{bullet,bullet-effects,bullet-family,bullet-farmd,bullet-gitd,bullet-mcpd,bullet-runner,bullet-verifier}
 bullet-farm/share/family.lock
 ```
 
 `bullet-farmd` is built with `--features embedded-portal`, so the Portal is
-inside the daemon binary, not shipped as loose files.
+inside the daemon binary, not shipped as loose files. `bullet-mcpd` is the
+read-only MCP projection adapter; it is packaged beside the other trust-boundary
+binaries. The extractor requires this exact eight-binary set and materializes
+each direct `bin/` entry as mode 0755 on Unix while retaining package data as
+0644. Native extraction remains refused outside Linux until that platform has an
+equivalent exact snapshot and permission boundary.
 
 ## What it does not produce
 
@@ -89,7 +94,7 @@ Ordered stages, each of which refuses instead of continuing:
    tracked `dist`;
 3. re-read every emitted Portal file against that bundle manifest before the
    bytes reach the Rust build script;
-4. `cargo build --locked --release` for all seven binaries, into a scratch target
+4. `cargo build --locked --release` for all eight binaries, into a scratch target
    directory so no member checkout is written to;
 5. write the deterministic `tar.zst` (uid/gid 0, mtime 0, ustar, one Zstandard
    frame);
@@ -99,7 +104,8 @@ Ordered stages, each of which refuses instead of continuing:
    subject it names;
 9. write the non-circular build manifest and re-read it;
 10. re-extract the archive through the committed extractor into
-    `<out>/.scratch/extracted` and compare every byte to the checksum manifest.
+    `<out>/.scratch/extracted` and compare every byte and Unix mode to the
+    checksum manifest.
 
 ## SBOM admission
 
@@ -144,13 +150,8 @@ for the same reason, because extraction is gated on complete verification. The
 build's own step 10 is the only extraction proof available today, and it runs
 through the same committed `src/release/archive.rs` code path.
 
-## Known defects this lane records but does not fix
+## Known CLI limit
 
-- `src/release/archive.rs` marks exactly one archive path executable,
-  `bullet-farm/bin/bullet-family`. Every other packaged binary materializes at
-  mode `0644` and cannot be run from an extracted tree. A five-archive release
-  needs all seven. `src/release/build/tests.rs` asserts the current behavior so
-  the defect cannot be lost.
 - There is no `bullet-family --version`; the binary answers `USAGE`.
 
 ## Gate status

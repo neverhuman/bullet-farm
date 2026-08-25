@@ -29,6 +29,16 @@ const MAX_EXPANSION_RATIO: u64 = 100;
 const MAX_ENTRIES: usize = 4096;
 const MAX_PATH_BYTES: usize = 512;
 const MAX_SEGMENT_BYTES: usize = 255;
+pub(super) const PACKAGED_BINARY_NAMES: [&str; 8] = [
+    "bullet",
+    "bullet-effects",
+    "bullet-family",
+    "bullet-farmd",
+    "bullet-gitd",
+    "bullet-mcpd",
+    "bullet-runner",
+    "bullet-verifier",
+];
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) enum EntryKind {
@@ -53,7 +63,7 @@ pub(super) struct PlannedEntry {
 #[derive(Debug)]
 pub(super) struct ArchivePlan {
     entries: Vec<PlannedEntry>,
-    executable: String,
+    executable: BTreeSet<String>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -134,11 +144,15 @@ impl ArchivePlan {
         if raw.is_empty() || raw.len() > MAX_ENTRIES {
             return Err(limit("archive entry count is outside the admitted bound"));
         }
-        let executable = if target == "x86_64-pc-windows-msvc" {
-            format!("{ARCHIVE_ROOT}/bin/bullet-family.exe")
+        let suffix = if target == "x86_64-pc-windows-msvc" {
+            ".exe"
         } else {
-            format!("{ARCHIVE_ROOT}/bin/bullet-family")
+            ""
         };
+        let executable = PACKAGED_BINARY_NAMES
+            .iter()
+            .map(|name| format!("{ARCHIVE_ROOT}/bin/{name}{suffix}"))
+            .collect::<BTreeSet<_>>();
         let ratio_limit = archive_size
             .checked_mul(MAX_EXPANSION_RATIO)
             .unwrap_or(MAX_EXPANDED_BYTES)
@@ -204,11 +218,22 @@ impl ArchivePlan {
                 size: raw_entry.size,
             });
         }
-        if !entries.iter().any(|entry| {
-            entry.path == executable && entry.kind == EntryKind::File && entry.size > 0
+        for required in &executable {
+            if !entries.iter().any(|entry| {
+                entry.path == *required && entry.kind == EntryKind::File && entry.size > 0
+            }) {
+                return Err(invalid_archive(format!(
+                    "archive does not contain required packaged executable {required}"
+                )));
+            }
+        }
+        if entries.iter().any(|entry| {
+            entry.kind == EntryKind::File
+                && entry.path.starts_with("bullet-farm/bin/")
+                && !executable.contains(&entry.path)
         }) {
             return Err(invalid_archive(
-                "archive does not contain the exact target executable",
+                "archive contains an executable outside the exact packaged binary set",
             ));
         }
         Ok(Self {
@@ -239,7 +264,7 @@ pub(super) fn materialize_entry<R: Read + ?Sized>(
     actual: &RawEntry,
     expected: &PlannedEntry,
     output: &Path,
-    executable: &str,
+    executable: &BTreeSet<String>,
 ) -> Result<(), CoordError> {
     let path = admit_path(&actual.name, actual.kind)?;
     if path != expected.path || actual.kind != expected.kind || actual.size != expected.size {
@@ -262,7 +287,7 @@ pub(super) fn materialize_entry<R: Read + ?Sized>(
             copy_exact(reader, &mut file, expected.size)?;
             set_mode(
                 &destination,
-                if expected.path == executable {
+                if executable.contains(&expected.path) {
                     0o755
                 } else {
                     0o644

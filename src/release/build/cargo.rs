@@ -70,6 +70,8 @@ pub(super) fn build_binaries(
             "-p",
             "bullet-effects",
             "-p",
+            "bullet-mcpd",
+            "-p",
             "bullet-runner",
             "-p",
             "bullet-verifier",

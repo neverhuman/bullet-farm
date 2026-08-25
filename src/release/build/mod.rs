@@ -37,12 +37,13 @@ pub(super) const SUPPORTED_TARGET: &str = "x86_64-unknown-linux-gnu";
 
 /// Rust binaries copied into `bullet-farm/bin/` of the archive, as
 /// `(member, cargo package, binary name)`.
-const BINARIES: [(&str, &str, &str); 7] = [
+const BINARIES: [(&str, &str, &str); 8] = [
     ("bullet-kernel", "bullet", "bullet"),
     ("bullet-kernel", "bullet-effects", "bullet-effects"),
     ("bullet-farm", "bullet-family", "bullet-family"),
     ("bullet-kernel", "bullet-farmd", "bullet-farmd"),
     ("bullet-git", "bullet-gitd", "bullet-gitd"),
+    ("bullet-kernel", "bullet-mcpd", "bullet-mcpd"),
     ("bullet-kernel", "bullet-runner", "bullet-runner"),
     ("bullet-kernel", "bullet-verifier", "bullet-verifier"),
 ];

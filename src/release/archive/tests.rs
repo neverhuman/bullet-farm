@@ -58,11 +58,33 @@ fn plan_rejects_hostile_names_collisions_and_missing_layout() {
 
 #[test]
 fn plan_enforces_target_executable_and_decompression_budget() {
-    let unix = minimal_entries("bullet-farm/bin/bullet-family");
+    let unix = minimal_entries("");
     ArchivePlan::admit(unix.clone(), "x86_64-unknown-linux-gnu", 1024)
         .expect("Unix executable layout");
     assert_eq!(
         ArchivePlan::admit(unix, "x86_64-pc-windows-msvc", 1024)
+            .unwrap_err()
+            .code(),
+        "INVALID_RELEASE_ARCHIVE"
+    );
+
+    for omitted in PACKAGED_BINARY_NAMES {
+        let mut missing = minimal_entries("");
+        missing.retain(|entry| entry.name != format!("bullet-farm/bin/{omitted}").as_bytes());
+        assert_eq!(
+            ArchivePlan::admit(missing, "x86_64-unknown-linux-gnu", 1024)
+                .unwrap_err()
+                .code(),
+            "INVALID_RELEASE_ARCHIVE",
+            "omitting {omitted} must fail"
+        );
+    }
+
+    let mut unexpected = minimal_entries("");
+    unexpected.push(file("bullet-farm/bin/unreviewed-tool", 1));
+    unexpected.sort_by(|left, right| left.name.cmp(&right.name));
+    assert_eq!(
+        ArchivePlan::admit(unexpected, "x86_64-unknown-linux-gnu", 1024)
             .unwrap_err()
             .code(),
         "INVALID_RELEASE_ARCHIVE"
@@ -132,6 +154,17 @@ fn valid_tar_and_stored_zip_materialize_deterministically() {
             fs::read(output.join("bullet-farm/bin/bullet-family")).expect("binary"),
             b"fixture-binary\n"
         );
+        for executable in PACKAGED_BINARY_NAMES {
+            use std::os::unix::fs::PermissionsExt;
+
+            let path = output.join(format!("bullet-farm/bin/{executable}"));
+            assert_eq!(
+                fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+                0o755,
+                "{}",
+                path.display()
+            );
+        }
     }
 }
 
@@ -227,12 +260,12 @@ fn destination_refuses_symlinked_components() {
     );
 }
 
-fn minimal_entries(executable: &str) -> Vec<RawEntry> {
-    vec![
-        directory("bullet-farm"),
-        directory("bullet-farm/bin"),
-        file(executable, 1),
-    ]
+fn minimal_entries(suffix: &str) -> Vec<RawEntry> {
+    let mut entries = vec![directory("bullet-farm"), directory("bullet-farm/bin")];
+    entries.extend(
+        PACKAGED_BINARY_NAMES.map(|name| file(&format!("bullet-farm/bin/{name}{suffix}"), 1)),
+    );
+    entries
 }
 
 fn directory(path: &str) -> RawEntry {
@@ -270,11 +303,17 @@ fn tar_bytes(pax: bool, special: Option<tar::EntryType>) -> Vec<u8> {
         header.set_cksum();
         builder.append(&header, std::io::empty()).unwrap();
     } else {
-        append_tar_file(
-            &mut builder,
-            "bullet-farm/bin/bullet-family",
-            b"fixture-binary\n",
-        );
+        for executable in PACKAGED_BINARY_NAMES {
+            append_tar_file(
+                &mut builder,
+                &format!("bullet-farm/bin/{executable}"),
+                if executable == "bullet-family" {
+                    b"fixture-binary\n"
+                } else {
+                    b"fixture-tool\n"
+                },
+            );
+        }
     }
     builder.finish().expect("finish TAR");
     builder.into_inner().unwrap().finish().unwrap()
@@ -320,10 +359,18 @@ fn zip_bytes(symlink: bool) -> Vec<u8> {
             .add_symlink("bullet-farm/bin/link", "target", file)
             .unwrap();
     } else {
-        writer
-            .start_file("bullet-farm/bin/bullet-family", file)
-            .unwrap();
-        writer.write_all(b"fixture-binary\n").unwrap();
+        for executable in PACKAGED_BINARY_NAMES {
+            writer
+                .start_file(format!("bullet-farm/bin/{executable}"), file)
+                .unwrap();
+            writer
+                .write_all(if executable == "bullet-family" {
+                    b"fixture-binary\n"
+                } else {
+                    b"fixture-tool\n"
+                })
+                .unwrap();
+        }
     }
     writer.finish().unwrap().into_inner()
 }
