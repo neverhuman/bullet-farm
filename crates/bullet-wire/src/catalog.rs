@@ -6,7 +6,10 @@ use serde_json::{Map, Value, json};
 use crate::{WireError, policy::POLICY_SCHEMA_VERSION};
 
 mod constraints;
+mod launch;
+mod records;
 use constraints::conditional_constraints;
+use records::required_records;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -281,7 +284,7 @@ fn field_schema(field: &ContractFieldV1) -> Value {
             "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*(?:^|/)\\.git(?:/|$)).+$"
         }),
         FieldTypeV1::AuthorityAudience => json!({
-            "type": "string", "enum": ["bullet-gitd", "effect-broker"]
+            "type": "string", "enum": ["bullet-gitd", "effect-broker", "provider-runner"]
         }),
         FieldTypeV1::MutationOperation => json!({
             "type": "string",
@@ -344,7 +347,7 @@ fn field_schema(field: &ContractFieldV1) -> Value {
         FieldTypeV1::ObjectArray => json!({"type": "array", "items": {"type": "object"}}),
         FieldTypeV1::AuthorityAudienceArray => json!({
             "type": "array", "items": {
-                "type": "string", "enum": ["bullet-gitd", "effect-broker"]
+                "type": "string", "enum": ["bullet-gitd", "effect-broker", "provider-runner"]
             }
         }),
         FieldTypeV1::IssuerKeyArray => ref_array("IssuerKeyV1"),
@@ -395,98 +398,3 @@ fn optional_schema_ref(name: &str) -> Value {
 fn typed_string_array(pattern: &str) -> Value {
     json!({"type": "array", "items": {"type": "string", "pattern": pattern}})
 }
-
-fn required_records() -> BTreeSet<&'static str> {
-    TRANSACTION_RECORDS
-        .iter()
-        .chain(RESEARCH_RECORDS.iter())
-        .copied()
-        .collect()
-}
-
-const TRANSACTION_RECORDS: &[&str] = &[
-    "AcceptanceContractV1",
-    "AuthorityClaimsV1",
-    "ApplyPatchRequestV1",
-    "AuditBatchV1",
-    "BudgetPolicyV1",
-    "CandidateManifestV1",
-    "CheckIntentV1",
-    "CheckpointRequestV1",
-    "CleanupAuthorizationV1",
-    "CleanupWorkspaceRequestV1",
-    "CloneWorkspaceRequestV1",
-    "DeliveryGrantV1",
-    "EffectIntentV1",
-    "EvidenceV1",
-    "EvidencePolicyV1",
-    "FinalAuthorityCheckRequestV1",
-    "FinalAuthorityDecisionV1",
-    "GateReceiptV1",
-    "GraphDeltaV1",
-    "IntegrationIntentV1",
-    "InterventionV1",
-    "IssuerKeyV1",
-    "LaunchGrantV1",
-    "MutationPermitClaimsV1",
-    "MutationReplayResultV1",
-    "MutationSettlementRequestV1",
-    "MutationSettlementResultV1",
-    "ObservationV1",
-    "PlanRevisionV1",
-    "PolicySnapshotV1",
-    "PatchOperationV1",
-    "PatchProposalV1",
-    "PrepareCandidateRequestV1",
-    "PreserveWorkspaceRequestV1",
-    "ProofBundleV1",
-    "ScopeGrantV1",
-    "RiskPolicyV1",
-    "RoutePolicyV1",
-    "SandboxPolicyV1",
-    "SignedAuthorityEnvelopeV1",
-    "SignedMutationPermitV1",
-    "DispatchEffectRequestV1",
-    "ReadWorkspaceRequestV1",
-    "ReconcileEffectRequestV1",
-    "VerificationIntentV1",
-];
-
-const RESEARCH_RECORDS: &[&str] = &[
-    "ActivationPointer",
-    "AdjudicationReceipt",
-    "AggregateEvaluationV1",
-    "AllocationReceiptV1",
-    "ArchivePolicyV1",
-    "AttackProposal",
-    "BehaviorTraceV1",
-    "CertificationKey",
-    "CertificationRecord",
-    "ContaminationDecision",
-    "DecertificationReceipt",
-    "DelayedOutcomeLink",
-    "DriftSignal",
-    "EvaluationVectorV1",
-    "ExperimentProtocolV1",
-    "ExposureEdge",
-    "FailureClass",
-    "HoldoutLease",
-    "HoldoutSuiteManifest",
-    "HumanDecision",
-    "OpponentSetSnapshot",
-    "OverrideReceipt",
-    "PromotionDecision",
-    "QueryIntent",
-    "QueryReceipt",
-    "ReviewReceipt",
-    "ReviewerAssignment",
-    "RouteDecision",
-    "RouteRequest",
-    "RouterUpdateBatch",
-    "SanitizationReceipt",
-    "SentinelResult",
-    "SystemFingerprint",
-    "TaskCorpusManifestV1",
-    "TaskSpecV1",
-    "TeamRecipeV1",
-];

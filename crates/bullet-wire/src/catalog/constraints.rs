@@ -3,6 +3,7 @@ use serde_json::{Value, json};
 pub(super) fn conditional_constraints(record_name: &str) -> Option<Value> {
     match record_name {
         "AuthorityClaimsV1" | "MutationPermitClaimsV1" => Some(operation_audience_constraints()),
+        "LaunchGrantClaimsV1" => Some(super::launch::launch_grant_claims_constraints()),
         "PatchOperationV1" => Some(json!([
             {
                 "if": {"properties": {"preimage_kind": {"const": "absent"}}},

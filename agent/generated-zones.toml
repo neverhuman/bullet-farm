@@ -60,6 +60,12 @@ command = "just contract-generate"
 read_only = true
 
 [[zone]]
+path = "fixtures/canonical/launch-grant-golden.json"
+source = "crates/bullet-wire/src/contract_tool/launch.rs"
+command = "just contract-generate"
+read_only = true
+
+[[zone]]
 path = "docs/assurance/invariant-crosswalk.generated.md"
 source = "policy/v1alpha1/invariant-registry.json"
 command = "just contract-generate"

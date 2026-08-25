@@ -17,11 +17,17 @@ pub use authority::{
     AUTHORITY_IMPLICIT_ASSERTION, AUTHORITY_SCHEMA_VERSION, AuthorityAudience, AuthorityClaims,
     AuthorityDecisionKind, AuthorityExpectation, AuthorityRequest, AuthorityRequestBinding,
     AuthoritySigningKey, AuthorityVerificationKey, FinalAuthorityCheckRequest,
-    FinalAuthorityDecision, MAX_AUTHORITY_TTL_MS, MAX_MUTATION_PERMIT_TTL_MS,
-    MUTATION_PERMIT_IMPLICIT_ASSERTION, MutationOperation, MutationOutcome, MutationPermitClaims,
-    MutationPermitExpectation, MutationPermitSubject, MutationReplayResult, MutationResultState,
-    MutationSettlementRequest, MutationSettlementResult, PreservationDecision, ReplayDisposition,
-    SettlementStatus, SignedAuthorityEnvelope, SignedMutationPermit, authority_request_digest,
+    FinalAuthorityDecision, LAUNCH_GRANT_CLAIMS_DOMAIN, LAUNCH_GRANT_ENVELOPE_DOMAIN,
+    LAUNCH_GRANT_ENVIRONMENT_DOMAIN, LAUNCH_GRANT_IMPLICIT_ASSERTION, LAUNCH_GRANT_POLICY_DOMAIN,
+    LAUNCH_GRANT_SIGNING_PURPOSE, LAUNCH_GRANT_WORKSPACE_NONCE_DOMAIN, LaunchGrantClaims,
+    LaunchGrantExpectation, LaunchLeaseSubject, LaunchOperation, LaunchProvider,
+    LaunchProviderSubject, MAX_AUTHORITY_TTL_MS, MAX_LAUNCH_GRANT_GATE_IDS,
+    MAX_LAUNCH_GRANT_TTL_MS, MAX_MUTATION_PERMIT_TTL_MS, MUTATION_PERMIT_IMPLICIT_ASSERTION,
+    MutationOperation, MutationOutcome, MutationPermitClaims, MutationPermitExpectation,
+    MutationPermitSubject, MutationReplayResult, MutationResultState, MutationSettlementRequest,
+    MutationSettlementResult, PreservationDecision, ReplayDisposition, SettlementStatus,
+    SignedAuthorityEnvelope, SignedLaunchGrant, SignedMutationPermit, authority_request_digest,
+    environment_digest, policy_snapshot_digest, workspace_nonce_digest,
 };
 pub use canonical::{MAX_CANONICAL_DOCUMENT_BYTES, decode_canonical, decode_canonical_value};
 pub use catalog::*;
