@@ -2,8 +2,8 @@
 
 Status: Enforced
 Owner: Bullet Farm maintainers
-Last reviewed: 2026-08-24
-Applies to: World-Class Closure Program Wave 1
+Last reviewed: 2026-08-25
+Applies to: V1-S1 wire/schema/IPC component map; not a second closure plan
 
 | Assertion | Machine source | Enforcement | Proof |
 | --- | --- | --- | --- |
@@ -14,11 +14,12 @@ Applies to: World-Class Closure Program Wave 1
 | Unknown fields fail closed | catalog `unknown_fields=reject`; Rust `deny_unknown_fields` | strict schema generation and typed decoder | unknown-field mutation tests |
 | Every C/EV control is visible exactly once | invariant registry | exact crosswalk-set equality | `registry_is_complete_tiered_and_phase_honest` |
 | Future controls cannot claim enforcement | invariant lifecycle and first wave | registry semantic validator | policy registry suite |
-| Live admission remains unavailable | policy template | `PolicySnapshotV1::validate` | offline policy test plus family provider quarantine tests |
+| Live admission remains unavailable | committed v1alpha1 policy; v1alpha2 is a validator/fixture only | `PolicySnapshotV1::validate`; ADR 0012 Proposed | offline policy test plus family provider quarantine tests. Kernel loader still accepts v1alpha1 only |
 | Lease/fence/scope/freeze/restore interleavings are bounded | `LeaseFence.tla/.cfg` | TLC 1.7.4 pinned module/config/state lock; exact trace replay through Kernel SQLite leases and the domain mutation guard | `just model-check` and Kernel `lease_fence_trace_replays_against_sqlite_and_domain_guard` |
 | Effect/check ambiguity is read back before adoption | `EffectCheck.tla/.cfg` | TLC 1.7.4 pinned module/config/state lock; exact traces replay through Kernel SQLite effect rows and the domain effect machine | `just model-check` and Kernel `effect_check_traces_replay_against_sqlite_and_effect_machine` |
 | Generated policy/schema/client constants do not drift | contract catalog, registry, template | deterministic contract tool `check` mode and atomic family sync `check` mode | `committed_generated_contracts_have_zero_byte_drift` plus member required lanes |
 | Consumers refuse altered policy/schema identities | Farm-generated Rust verifier and TypeScript identity binding | domain-separated exact-byte pin plus bundle-manifest generated-client hash | `generated_pin_accepts_only_exact_canonical_contract_bytes` and consumer contract tests |
 
 No row proves signed authority, authentication, sandboxing, vector budgets, durable freeze, external
-audit anchoring, or production effects. Those remain Wave 2 gates.
+audit anchoring, or production effects. Those remain V1-S2..S8 and [`../release.md`](../release.md)
+gates.

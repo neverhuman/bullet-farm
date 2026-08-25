@@ -2,7 +2,7 @@
 
 Status: Active
 Owner: Bullet Farm maintainers
-Last reviewed: 2026-08-24
+Last reviewed: 2026-08-25
 Applies to: all bullet repos
 
 Coordination is rooted at the outermost ancestor containing `repos.manifest.toml`; no public file
@@ -35,5 +35,7 @@ Only the orchestrator commits. Proof commands are per-repo
 `bash scripts/ci-local.sh required` plus the lane-specific Cargo/npm commands. Zero Git worktrees,
 zero pushes, zero new remotes.
 Provider CLI execution is quarantined. `BULLET_LIVE_PROVIDERS`, provider OAuth state, and forge
-tokens do not authorize a run. A later signed admission validator must bind the exact provider,
-binary, profile, budget, policy, epoch, request, and expiry before any live lane can exist.
+tokens do not authorize a run. A signed launch-grant validator already exists (ADR 0011). Live
+dispatch stays policy-disabled: committed policy is v1alpha1 / generation 1 /
+`live_admission_enabled=false`. ADR 0012 ratification plus a Kernel loader mirror are operator
+acts, not environment variables.

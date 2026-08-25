@@ -54,5 +54,7 @@ unsupported, skipped, flaky, infrastructure error, or writer-produced proof
 never becomes `VERIFIED`.
 
 The current implementation and its gaps are indexed in
-[`../assurance/v1-closure-plan.md`](../assurance/v1-closure-plan.md). Historical
+[`../assurance/v1-closure-plan.md`](../assurance/v1-closure-plan.md),
+[`../release.md`](../release.md), and
+[`../assurance/product-gaps.md`](../assurance/product-gaps.md). Historical
 Centerrail material under `docs/spec/` explains design provenance only.

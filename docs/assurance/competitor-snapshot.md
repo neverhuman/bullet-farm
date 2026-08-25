@@ -12,7 +12,7 @@ test. It is not a benchmark result and makes no superiority claim.
 
 | Project | Subject observed | Source |
 | --- | --- | --- |
-| Gas Town | release `v1.2.1`, peeled commit `319d33a91b2deca59bba6dd26be6b9daf8eaacf6` | [release](https://github.com/gastownhall/gastown/releases/tag/v1.2.1), [commit](https://github.com/gastownhall/gastown/commit/319d33a91b2deca59bba6dd26be6b9daf8eaacf6) |
+| Gas Town | release `v1.2.1`, peeled commit `319d33a91b2deca59bba6dd26be6b9daf8eaacf6`, observed 2026-08-25 | [release](https://github.com/gastownhall/gastown/releases/tag/v1.2.1), [commit](https://github.com/gastownhall/gastown/commit/319d33a91b2deca59bba6dd26be6b9daf8eaacf6) |
 | Gas City release | release `v1.4.1` (2026-08-15), tag object `610666314a884cd2db7386c1df3b6ef7c521706e`, peeled commit `58ef17e3bd685fd5cf7f21286277b208d3324590` | [release](https://github.com/gastownhall/gascity/releases/tag/v1.4.1), [commit](https://github.com/gastownhall/gascity/commit/58ef17e3bd685fd5cf7f21286277b208d3324590) |
 | Gas City development | `main` commit `2cd07e018bf3680d24b037b509e6a4bad5e623ba` observed 2026-08-25 | [repository](https://github.com/gastownhall/gascity), [commit](https://github.com/gastownhall/gascity/commit/2cd07e018bf3680d24b037b509e6a4bad5e623ba) |
 | DeepSeek Harness | developer-preview tag `dsh-v0.1.1-rc.2`, commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e` (2026-08-21) | [tag](https://github.com/deepseek-ai/DeepSeek-Harness/releases/tag/dsh-v0.1.1-rc.2), [commit](https://github.com/deepseek-ai/DeepSeek-Harness/commit/b150a551b8d465e31e418e1b2eaf5e79bbb7d28e), [architecture](https://github.com/deepseek-ai/DeepSeek-Harness/blob/b150a551b8d465e31e418e1b2eaf5e79bbb7d28e/docs/architecture.md) |

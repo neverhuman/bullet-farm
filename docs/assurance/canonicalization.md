@@ -2,7 +2,7 @@
 
 Status: Enforced
 Owner: Bullet Farm contracts
-Last reviewed: 2026-08-24
+Last reviewed: 2026-08-25
 Applies to: security-sensitive v1alpha1 documents
 
 The only accepted byte pipeline is:
@@ -23,8 +23,9 @@ CRLF/LF whitespace, non-NFC text, duplicate keys, overlong input, unsafe integer
 ambiguity. The preserved TEAM bytes are never canonicalized in place.
 
 The generated `bullet_wire::v1alpha1` namespace is the sole normative wire-record namespace. It
-contains all 55 catalog records as strict Rust types and is copied byte-for-byte to Kernel and
-BulletGit; Portal receives the corresponding generated TypeScript interfaces. Pre-v1 proposal,
+contains all 83 catalog records as strict Rust types and is copied byte-for-byte to Kernel and
+BulletGit; Portal receives the corresponding generated TypeScript interfaces. Nested records stay
+`v1alpha1` even after the policy catalog gained a `v1alpha2` field. Pre-v1 proposal,
 checkpoint, preservation, Candidate-proof, and integration-proof shapes remain offline component
 primitives and are exported only with explicit `Component` names. They cannot satisfy a v1alpha1
 gateway. Replacing their Kernel/BulletGit call sites is a Wave 3 requirement, not Gate-0 evidence.
