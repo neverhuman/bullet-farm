@@ -52,7 +52,8 @@ pub(super) fn check_tools() -> DoctorCheck {
     let mut versions = Vec::new();
     let mut missing = Vec::new();
     for (label, command, args) in probes {
-        match command_version(command, args) {
+        match command_version(command, args).and_then(|version| admit_tool_version(label, version))
+        {
             Ok(version) => versions.push(format!("{label}={version}")),
             Err(reason) => missing.push(format!("{label} ({reason})")),
         }
@@ -283,6 +284,16 @@ fn command_version(command: &str, args: &[&str]) -> Result<String, String> {
     Ok(line.chars().take(160).collect())
 }
 
+fn admit_tool_version(label: &str, version: String) -> Result<String, String> {
+    if label == "node" && !crate::setup::supported_node_version(&version) {
+        return Err(format!(
+            "requires stable Node {} or later; found {version}",
+            crate::setup::MINIMUM_NODE_MAJOR_VERSION
+        ));
+    }
+    Ok(version)
+}
+
 fn git(repo: &Path, args: &[&str]) -> Result<String, String> {
     let output = run_bounded(
         Command::new(GIT_BIN)
@@ -313,4 +324,28 @@ fn git(repo: &Path, args: &[&str]) -> Result<String, String> {
         return Err(format!("git exited {:?}", output.status.code()));
     }
     String::from_utf8(output.stdout).map_err(|_| "git emitted non-UTF-8 output".to_owned())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::admit_tool_version;
+
+    #[test]
+    fn doctor_blocks_unsupported_node_versions() {
+        assert_eq!(
+            admit_tool_version("node", "v22.0.0".into()).unwrap(),
+            "v22.0.0"
+        );
+        assert!(
+            admit_tool_version("node", "v21.99.99".into())
+                .unwrap_err()
+                .contains("Node 22")
+        );
+        assert!(admit_tool_version("node", "v22.0".into()).is_err());
+        assert!(admit_tool_version("node", "v18446744073709551616.0.0".into()).is_err());
+        assert_eq!(
+            admit_tool_version("cargo", "cargo 1.97.1".into()).unwrap(),
+            "cargo 1.97.1"
+        );
+    }
 }

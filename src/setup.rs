@@ -24,6 +24,29 @@ use transaction::{admitted_root_for_test, publish_staged_for_test};
 const GIT_BIN: &str = "/usr/bin/git";
 const BASH_BIN: &str = "/bin/bash";
 const STAGING_PREFIX: &str = ".bullet-family-setup.";
+pub(crate) const MINIMUM_NODE_MAJOR_VERSION: u64 = 22;
+
+pub(crate) fn supported_node_version(value: &str) -> bool {
+    let Some(version) = value.strip_prefix('v') else {
+        return false;
+    };
+    let mut components = version.split('.');
+    let Some(major) = components.next().and_then(|part| part.parse::<u64>().ok()) else {
+        return false;
+    };
+    let Some(minor) = components.next() else {
+        return false;
+    };
+    let Some(patch) = components.next() else {
+        return false;
+    };
+    major >= MINIMUM_NODE_MAJOR_VERSION
+        && !minor.is_empty()
+        && minor.bytes().all(|byte| byte.is_ascii_digit())
+        && !patch.is_empty()
+        && patch.bytes().all(|byte| byte.is_ascii_digit())
+        && components.next().is_none()
+}
 
 pub fn run(
     current_dir: &Path,

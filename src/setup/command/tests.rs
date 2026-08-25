@@ -9,6 +9,24 @@ use std::{
 use super::{CommandSpec, SetupEnvironment, ToolIdentity, Toolchain};
 use crate::setup::transaction::AdmittedRoot;
 
+#[test]
+fn node_version_floor_is_exact_and_fail_closed() {
+    for admitted in ["v22.0.0", "v26.1.0", "v18446744073709551615.0.0"] {
+        assert!(crate::setup::supported_node_version(admitted), "{admitted}");
+    }
+    for refused in [
+        "v21.99.99",
+        "v22",
+        "v22.0",
+        "v22.0.0-rc.1",
+        "v18446744073709551616.0.0",
+        "22.0.0",
+        "node v22.0.0",
+    ] {
+        assert!(!crate::setup::supported_node_version(refused), "{refused}");
+    }
+}
+
 #[cfg(unix)]
 #[test]
 fn tool_admission_rejects_missing_relative_noncanonical_and_mismatched_inputs() {
@@ -23,6 +41,11 @@ fn tool_admission_rejects_missing_relative_noncanonical_and_mismatched_inputs() 
     let node = executable(&fixture, "node-real", "#!/bin/sh\nprintf 'v26.1.0\\n'\n");
     let npm_cli = fixture.join("npm-cli.js");
     fs::write(&npm_cli, "fixture\n").expect("npm fixture");
+
+    let old_node = executable(&fixture, "node-old", "#!/bin/sh\nprintf 'v21.99.99\\n'\n");
+    let error = Toolchain::admit(Some(&cargo), Some(&old_node), Some(&npm_cli))
+        .expect_err("Node below the minimum major must fail closed");
+    assert_eq!(error.code(), "SETUP_TOOL_IDENTITY_MISMATCH");
 
     let error = Toolchain::admit(None, Some(&node), Some(&npm_cli))
         .expect_err("missing Cargo path must fail closed");

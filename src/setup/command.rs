@@ -308,7 +308,7 @@ impl ToolIdentity {
                 .strip_prefix("cargo ")
                 .and_then(|rest| rest.split_whitespace().next())
                 .is_some_and(is_version),
-            Self::Node => version.strip_prefix('v').is_some_and(is_version),
+            Self::Node => super::supported_node_version(version),
             Self::Npm => is_version(version),
             Self::Bash => version.starts_with("GNU bash, version "),
             Self::Git => version.strip_prefix("git version ").is_some_and(is_version),
