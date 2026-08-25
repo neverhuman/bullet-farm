@@ -3,7 +3,7 @@
 Status: **diagnostics only; no export or removal command exists**  
 Owner: Bullet Farm maintainers  
 Last reviewed: 2026-08-25  
-Applies to: bullet-farm `d762f86`, bullet-kernel `0109a90` (SQLite ledger), the checked-in schema-2
+Applies to: bullet-farm `347da232`, bullet-kernel `c4731aa` (SQLite ledger), the checked-in schema-2
 `family.lock`
 
 Rule (frozen in [`../assurance/v1-closure-plan.md`](../assurance/v1-closure-plan.md)): **pre-1.0 schemas are
@@ -17,13 +17,13 @@ disposable.** An unknown or legacy database, lock, manifest, or log fails closed
 | `family.lock` (install authority) | `src/family_lock/schema.rs` `load`/`validate` | schema `3` | "family.lock schema N is not installable; remove it or regenerate schema 3 from authenticated signed tags" | exit 4 (`src/coord/mod.rs`) |
 | `family.lock` (diagnostic read) | `src/doctor/discovery.rs` | schema `3` read as current; `2` read as legacy diagnostic | any other version: "family.lock schema N is not supported" | `doctor` exit 3 with `source_metadata` `BLOCKED` for schema 2 |
 | Hub `repos.manifest.toml` | `src/checkout.rs` | `schema_version = "1.2.0"`, family/umbrella `bullet-farm` | "hub manifest is not the supported Bullet Farm 1.2.0 schema" | exit 4 |
-| Release manifest | `src/release/schema.rs` | `release_manifest_schema_version = "1"` binding `family_lock_schema_version = "3"` | own version: `UNSUPPORTED_RELEASE_MANIFEST_SCHEMA`; lock version: "release manifest must bind family.lock schema 3" | exit 2 / 4 |
+| Release manifest | `src/release/schema.rs` | `release_manifest_schema_version = "2"` binding `family_lock_schema_version = "3"`; five byte-sorted targets, each with separately signed archive/checksum/CycloneDX/SPDX/provenance subjects | own version: `UNSUPPORTED_RELEASE_MANIFEST_SCHEMA`; lock version: "release manifest must bind family.lock schema 3" | exit 2 / 4 |
 | Coordination ledger `.bullet-family/coord/events.jsonl` | `src/coord/store.rs` | record `schema_version` == current | "line N uses an unsupported schema" | exit 4 |
 | Policy snapshot | `crates/bullet-wire/src/policy.rs` | `v1alpha1`, `v1alpha2` | `UNSUPPORTED_POLICY_SCHEMA` (ADR 0012) | validator error |
 | Kernel SQLite ledger | `crates/adapters/src/sqlite/mod.rs` `SqliteLedger::open`, `migrations.rs` | the exact disposable schema this binary owns | `LedgerError::UnsupportedSchema { detail }` before any mutation; farmd maps it to HTTP `412 UNSUPPORTED_SCHEMA` (`apps/bullet-farmd/src/errors.rs`) | daemon refuses to open |
 | Restored Kernel ledger | `SqliteLedger::open` | admitted databases only | `RESTORE_ADMISSION_REQUIRED` while `pending_admission=true` | see [`backup-restore.md`](backup-restore.md) |
 
-## 2. Observed on this host (2026-08-25, hub `d762f86`)
+## 2. Observed on this host (2026-08-25, hub `347da232`)
 
 ```text
 bullet-family doctor --json      -> status BLOCKED, exit 3
@@ -32,12 +32,21 @@ bullet-family doctor --json      -> status BLOCKED, exit 3
             exact trees, lockfiles, and artifact checksums"
 bullet-family checkout verify    -> UNSUPPORTED_SCHEMA: family.lock schema 2 is not installable; remove it or
                                     regenerate schema 3 from authenticated signed tags   (exit 4)
-scripts/setup.sh --offline       -> same UNSUPPORTED_SCHEMA line, exit 4, before any member directory or
-                                    staging directory is created
+scripts/setup.sh --offline       -> refuses first because no external pre-admitted binary/tool subjects were
+                                    supplied; it never falls back to ambient Cargo or bullet-family
+wrapper with all explicit        -> UNSUPPORTED_SCHEMA, exit 4, before any member or staging directory is created
+absolute tool subjects
 ```
 
-`ops/ci/required.sh` asserts exactly this: while the lock says `schema_version = "2"`, `setup.sh --offline`
-must fail and must print `UNSUPPORTED_SCHEMA`. A lock that "unexpectedly authorized setup" fails the lane.
+The Hub setup-refusal tests assert both boundaries: the wrapper refuses before
+launch without explicit external subjects, and an explicitly selected component
+reaches the schema-2 `UNSUPPORTED_SCHEMA` refusal before publication. A lock that
+unexpectedly authorizes setup fails the lane.
+
+ReleaseManifest v2 is independently disposable. Schema-1 release manifests now
+fail with `UNSUPPORTED_RELEASE_MANIFEST_SCHEMA`; no compatibility parser silently
+promotes them. V2's signed byte bindings remain structural-only until the
+package, checksum, SBOM, and provenance semantic validators are admitted.
 
 ## 3. What an operator does today
 

@@ -3,9 +3,8 @@
 Status: **offline worker reconciliation available; live read-back blocked**  
 Owner: Bullet Farm maintainers  
 Last reviewed: 2026-08-25  
-Applies to: bullet-kernel `77a0ecd`+ (authenticated offline command reconciliation; observed here with the
-shared checkout's debug `bullet-farmd` built 2026-08-25T07:25Z; farmd sources last changed in `529bad1`), bullet-farm `d762f86`, bullet-portal
-`95108e3`+ (projection rules)
+Applies to: bullet-kernel `c4731aa` (authenticated offline command reconciliation), bullet-farm `347da232`,
+bullet-portal `6b294ce` (projection rules and same-origin component proof)
 
 This runbook covers what an operator can settle **today**: a `PENDING` public command that no execution
 adapter will ever pick up. It does not cover live forge read-back; that half cannot be written until the
@@ -13,13 +12,13 @@ Jeryu or GitHub effect lanes have a receipt (see §5).
 
 ## 1. The ladder
 
-Every public mutation is `POST /v1/commands`, answers `202` with a `PENDING` subject, and thereafter moves
+Every public mutation is `POST /api/v1/commands`, answers `202` with a `PENDING` subject, and thereafter moves
 only through the closed set below (`status_name` in `apps/bullet-farmd/src/commands.rs`; frozen in
 [`../assurance/v1-closure-plan.md`](../assurance/v1-closure-plan.md)):
 
 | Phase | Meaning | Who may set it today |
 | --- | --- | --- |
-| `PENDING` | admitted, durable, one correlated outbox row and one `command_submitted` event | `POST /v1/commands` |
+| `PENDING` | admitted, durable, one correlated outbox row and one `command_submitted` event | `POST /api/v1/commands` |
 | `APPLIED` | dispatched to an execution adapter; not yet read back | nobody (no adapter exists) |
 | `VERIFIED` | read-back proved the exact intended effect | nobody (no adapter exists) |
 | `FAILED` | durably refused; nothing was executed | the offline worker, for an unknown command kind |
@@ -69,7 +68,7 @@ bullet-farmd --data-dir /abs/data --bind 127.0.0.1:7420 \
 
    ```bash
    curl -s -D headers -H 'Origin: http://127.0.0.1:7420' -H 'Content-Type: application/json' \
-     -d '{"bootstrap_token":"boot_…"}' http://127.0.0.1:7420/v1/auth/bootstrap
+     -d '{"bootstrap_token":"boot_…"}' http://127.0.0.1:7420/api/v1/auth/bootstrap
    # 200; set-cookie: bullet_session=…; body carries "csrf_token"
    ```
 
@@ -78,7 +77,7 @@ bullet-farmd --data-dir /abs/data --bind 127.0.0.1:7420 \
    ```bash
    curl -s -H 'Origin: http://127.0.0.1:7420' -H 'Cookie: bullet_session=…' -H 'X-Bullet-CSRF: …' \
      -H 'Content-Type: application/json' \
-     -d '{"idempotency_key":"<unique>","kind":"run_demo","payload":{}}' http://127.0.0.1:7420/v1/commands
+     -d '{"idempotency_key":"<unique>","kind":"run_demo","payload":{}}' http://127.0.0.1:7420/api/v1/commands
    # 202 {"id":"cmd_…","status":"PENDING","kind":"run_demo","payload_digest":"…"}
    ```
 
@@ -91,7 +90,7 @@ bullet-farmd --data-dir /abs/data --bind 127.0.0.1:7420 \
 
    Observed: `200` with `{"id":…,"status":"UNKNOWN","kind":"run_demo","payload_digest":…,
    "result":{"code":"EXECUTION_ADAPTER_UNAVAILABLE","command_id":…,"payload_digest":…,"detail":…,"repair":…}}`.
-   Re-running the same call returned a byte-identical body; `GET /v1/commands/{id}` with the session cookie
+   Re-running the same call returned a byte-identical body; `GET /api/v1/commands/{id}` with the session cookie
    returned the same body; the ledger held exactly one `command_submitted` and one `command_reconciled` event.
 
 4. Record the settled body with the command id and payload digest as the maintenance evidence. Do not submit
@@ -133,6 +132,7 @@ Today this runs only against the in-process `LocalBareForge`/`LostResponseForge`
 | Live forge read-back | no authenticated Jeryu or GitHub App test repository; the running forge must not be modified to fake capability | [ADR 0013](../decisions/0013-operator-decision-register.md) OD-B/OD-C; gates `release.forge.jeryu`, `release.forge.github-app` |
 | Identity-exact adoption (C9: fence + desired OID) | command idempotency is a component; graph mint is not a live path | [`../assurance/product-gaps.md`](../assurance/product-gaps.md) C9 |
 | `APPLIED`/`VERIFIED` for any command | no admitted runner/verifier/effect adapter is connected to the worker | closure plan V1-S4/V1-S5; [`../release.md`](../release.md) "Production Kernel transaction" |
+| Runner dispatch | the product `bullet-runner` exits with `LEASE_TRANSPORT_ADMISSION_UNAVAILABLE`; the existing Unix/HTTP components are not production-admitted authority | closure plan V1-S4; peer/process identity, inherited connected transport, replay/read-back, and restart-safe request settlement remain |
 | Backup/restore settling outbox ambiguity | restore is quarantined and does not reconcile effects | [`backup-restore.md`](backup-restore.md) |
 
 A `200` from the reconcile route is an honest `UNKNOWN`, not progress toward green.

@@ -1,6 +1,6 @@
 # Source setup and installation boundary
 
-Status: **contributor setup available; trusted public installation blocked**  
+Status: **existing-family contributor proof available; trusted public installation blocked**
 Owner: Bullet Farm maintainers  
 Last reviewed: 2026-08-25
 
@@ -64,13 +64,20 @@ Do not publish a public install command until all inputs exist:
 3. a signed schema-3 family lock with authenticated Jeryu URL/slug, tag,
    commit/tree, dependency-lock, generated-artifact, and checksum subjects;
 4. five package archives with SBOM, provenance, checksums, and signatures; and
-5. installer smoke receipts from clean supported hosts.
+5. installer smoke receipts from clean supported hosts; and
+6. a different-UID publication broker plus a minimal pathless root helper that
+   installs only exact signed entries into retained root-owned generations and
+   reconciles an ambiguous activation as `UNKNOWN`.
 
 The existing Linux `bullet-family release verify` command only verifies an
-already materialized bundle. A separate `release extract` command can safely
-materialize one verified archive at an absent destination. Neither command
-downloads, builds, activates, rolls back, provisions signers, or interprets
-binary/SBOM/provenance semantics.
+already materialized ReleaseManifest v2 bundle. It structurally validates and
+re-reads the separately signed archive, checksum, CycloneDX, SPDX, and provenance
+subjects for all five targets; it does not interpret their semantics. Public
+`release build` refuses before validation or mutation with
+`RELEASE_BUILD_CONTAINMENT_UNAVAILABLE`. Public `release extract` verifies its
+input, then refuses before publication with
+`RELEASE_PUBLICATION_CONTAINMENT_UNAVAILABLE`. Neither command downloads,
+builds, installs, activates, rolls back, or provisions signers.
 
 ## Setup transaction rules
 
@@ -102,12 +109,13 @@ does not imply prior state because exact members publish one at a time before th
 outer manifest. See [`setup-recovery.md`](setup-recovery.md) for the executable
 classification drill.
 
-The Rust setup boundary now snapshots admitted Cargo, Node, Bash, and npm bytes
-into sealed read-only memfds on Linux and executes those descriptor subjects;
-a swap after verification cannot execute replacement bytes. This does not
+The Rust setup boundary now snapshots admitted Cargo, Node, Bash, npm, setup
+mutation Git, family-lock verification Git, and checkout-verification Git bytes
+into sealed read-only memfds on Linux and executes those descriptor subjects; a
+swap after verification cannot execute replacement bytes. This does not
 authenticate the wrapper-selected external `bullet-family` as a signed release
-artifact, and active same-UID swap-and-restore races inside path-based Git
-execution remain.
+artifact. Clone-transport Git/helpers, non-Git traversal, and transient or
+between-child repository mutation remain outside that boundary.
 A trusted public path therefore still starts from a signed prebuilt and must pin
 or isolate Git. Bounded cleanup intentionally
 preserves an orphan if identity, depth, or entry limits prevent a safe removal.
