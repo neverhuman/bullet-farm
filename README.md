@@ -21,14 +21,15 @@ Mission → immutable Plan → fenced Attempt → exact Candidate
 A model saying “done,” a terminal going idle, a process exiting zero, or a
 pull request opening has **no completion authority**.
 
-## Quick start
+## Contributor quick start
 
-Prerequisites: Rust stable, Node 22+, `just`, Git.
+Prerequisites: Rust stable, Node 22+, `just`, Git, and the four ordinary sibling
+checkouts in `repos.manifest.toml`.
 
 ```bash
 cd /path/to/bullet/bullet-farm
 cargo run --locked --quiet --bin bullet-family -- doctor --json
-just setup
+just fast
 just demo
 ```
 
@@ -42,6 +43,8 @@ The hook runs the same deterministic fast lane used by CI. `just ci-doctor`
 reports missing local tools before a lane starts; `just ci-doctor audit`
 additionally requires the exact locally admitted Jankurai 1.6.11 binary.
 
+## Installation status
+
 This alpha requires the four ordinary sibling checkouts listed in `repos.manifest.toml`. A hub-only
 clone is diagnosis-only because the checked-in `family.lock` is the legacy schema-2 snapshot and
 does not carry install authority. The Rust installer and `checkout verify` command are implemented:
@@ -50,6 +53,24 @@ signer, dependency-lock digest, and generated-artifact manifest for every non-hu
 those release inputs are published, `doctor` reports `BLOCKED` and `just setup` returns
 `UNSUPPORTED_SCHEMA` before creating member directories or running dependency tools. Do not create
 Git worktrees or infer source locations from local paths.
+
+Accordingly, there is no trusted public install command yet. `scripts/setup.sh`
+is a contributor source-bootstrap wrapper around the Rust setup mechanism; it
+is not an authenticated installer and currently reaches the same schema-2
+refusal. A release install starts only from a signed prebuilt `bullet-family`,
+a verified schema-3 lock, and a verified five-platform release bundle.
+
+On Linux, a local operator can verify an already-materialized bundle without
+mutating it:
+
+```bash
+bullet-family release verify \
+  --bundle /absolute/path/to/bundle \
+  --allowed-signers /absolute/path/to/allowed_signers
+```
+
+That command verifies exact manifest, lock, payload, detached-signature, and
+signer subjects. It does not build, download, extract, or install packages.
 
 `just demo` runs a deterministic ledger simulator (no provider process, forge
 credential, or network effect). It demonstrates component behavior only:
@@ -70,6 +91,7 @@ Readiness is intentionally explicit:
 | `bullet demo-synthetic` | Simulator-only integration scaffolding with `transaction_gate_eligible=false` |
 | Gate 0 contracts | Canonical v1alpha1 policy/schema bundle, hostile fixtures, invariant registry, and exactly two bounded models |
 | Hub-only installer | Mechanism and signed two-run local fixture implemented; real schema-3 Jeryu lock/tag publication remains blocked |
+| Release verifier | Signed five-target bundle integrity is implemented on Linux; package production, semantic artifact validation, and installer smoke remain blocked |
 | Transaction-ready | Not yet achieved; requires the signed Wave-4 offline receipt |
 | Production-ready | Not yet achieved; live providers and credentialed forges are quarantined |
 

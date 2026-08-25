@@ -42,14 +42,14 @@ receipt never certifies another provider or profile.
 | Gate | Status | Evidence needed to clear it |
 | --- | --- | --- |
 | Hub-only installation | `BLOCKED` | Publish a real schema-3 lock with authenticated Jeryu URL/slug and signed exact subjects, then reproduce the already-tested two-run clean-install invariant from tagged release bytes in a fresh home |
-| Production Kernel transaction | `BLOCKED` | Atomic lease/command/event/outbox, snapshots, authenticated ingress, and typed operation decisions are committed; no internal worker exists, and normalized truth, signed capabilities, CAS, backup/restore, and crash receipts remain |
+| Production Kernel transaction | `BLOCKED` | Atomic lease/command/event/outbox, snapshots, authenticated ingress, typed operation decisions, and an authenticated exact-ID offline reconciler are committed; signed dispatch, execution, verification/effects, normalized truth, CAS, backup/restore, and crash receipts remain |
 | Production BulletGit transaction | `BLOCKED` | Durable CAS/journal, generation-atomic apply, and preservation-bound cleanup are committed; online authority, complete Candidate/Integration manifests, shared-wire consumption, and reviewed tagged `jeryu-gitd` remain |
 | Offline five-plane proof | `BLOCKED` | One signed `TRANSACTION_PROOF` covering authority, runner death/salvage, independent verification, ambiguous-effect reconciliation, protected integration, preservation, and truthful portal projection |
 | Jeryu live effect | `BLOCKED` | Operator-restored authentication and read-back/reconciliation receipt; the running forge must not be modified to work around missing capability |
 | GitHub live effect | `BLOCKED` | Configured GitHub App test repository and exact-subject integration/reconciliation receipt |
 | Provider conformance | `BLOCKED` | Offline binary/environment/OAuth/canary/process-tree admission is committed but dispatch fails closed without signed authority and egress; four protocol adapters and live receipts remain |
 | Security quality | `BLOCKED` | Pinned scanners are executable, but current Hub Jankurai is 57/raw 57 with 9 caps/36 findings/25 hard; release needs at least 90 and zero caps/hard plus all required scans |
-| Release supply chain | `BLOCKED` | Reproducible archives, SBOM, checksums, signatures, provenance, installer smoke, and final non-circular signed release manifest |
+| Release supply chain | `BLOCKED` | The Linux verifier now checks an exact non-circular signed five-target manifest and every declared byte subject; reproducible archives, semantic SBOM/provenance validation, package signatures from protected release keys, installer smoke, and tagged release receipts remain |
 | Platform containment | `BLOCKED` | Linux production containment plus fail-closed proof on every other packaged platform until an equivalent native backend passes |
 
 Missing credentials produce a neutral, unregistered live lane only when that
@@ -67,12 +67,14 @@ just check-family
 just family-contract
 just security
 just audit
+bullet-family check release --json
 ```
 
 These commands prove repository and family prerequisites only. They do not
 authorize a release until the transaction, live, recovery, packaging, and
-signing receipts above exist. There is intentionally no green no-op nightly
-and no `release` command while those mechanisms are absent.
+signing receipts above exist. `check release` is a read-only, fail-closed
+inventory of those blockers; it executes no release mutation while the
+mechanisms are absent. There is intentionally no green no-op nightly.
 
 The release build must compile at MSRV Rust 1.95 and pinned Rust 1.97.1, use
 `cargo --locked` and `npm ci`, verify generated output in a temporary directory,
@@ -98,6 +100,19 @@ Rust admission boundary exists, so running it is not authenticated installer or 
 Release installation requires a signed prebuilt `bullet-family` binary whose release manifest and
 checksums have been verified. Before any mutation, that binary must bind the canonical absolute Cargo,
 Node, and npm CLI subjects it admits.
+
+The read-only Linux verifier is available as:
+
+```bash
+bullet-family release verify \
+  --bundle /absolute/path/to/bundle \
+  --allowed-signers /absolute/path/to/allowed_signers
+```
+
+It binds the manifest, schema-3 lock, five byte-sorted target entries, archive/SBOM/provenance bytes,
+detached signatures, and exact Ed25519 signer status. It does not produce packages, interpret SBOM or
+provenance semantics, extract archives, run an installer, provision signing trust, or claim safety from
+concurrent replacement of intermediate bundle directories.
 
 The Rust setup/checkout mechanism and its signed local four-repository fixture implement these
 rules, including two idempotent exact installs. Fallible dependency, generated-contract, and exact-
