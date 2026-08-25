@@ -5,6 +5,9 @@ pub(crate) fn write_structural_registry(root: &Path) {
         fs::remove_dir_all(root).unwrap();
     }
     fs::create_dir_all(root).unwrap();
+    let release_bundle_manifest = b"release bundle manifest v2 structural fixture";
+    let release_bundle_digest = release_bundle_manifest_v2_digest(release_bundle_manifest).unwrap();
+    let release_bundle_hex = release_bundle_digest.strip_prefix("blake3:").unwrap();
     let graph = ReleaseProfileGraphV1 {
         schema_version: "v1alpha1".to_owned(),
         profile_graph_id: release_id("rpg", '1'),
@@ -29,6 +32,7 @@ pub(crate) fn write_structural_registry(root: &Path) {
         receipt_kind: ReleaseReceiptKindV1::Provider,
         profile_ids: vec!["provider-codex".to_owned()],
         required_evidence_kinds: vec![
+            ReleaseEvidenceKindV1::Artifact,
             ReleaseEvidenceKindV1::Environment,
             ReleaseEvidenceKindV1::Policy,
             ReleaseEvidenceKindV1::Provider,
@@ -51,6 +55,13 @@ pub(crate) fn write_structural_registry(root: &Path) {
         ],
     };
     let evidence_subjects = vec![
+        ReleaseEvidenceSubjectV1 {
+            schema_version: "v1alpha1".to_owned(),
+            subject_kind: ReleaseEvidenceKindV1::Artifact,
+            subject_id: release_id("cnt", '6'),
+            native_subject_id: format!("artifact:release-manifest-v2_{release_bundle_hex}"),
+            subject_digest: release_bundle_digest.clone(),
+        },
         registry_evidence(ReleaseEvidenceKindV1::Environment, '1'),
         registry_evidence(ReleaseEvidenceKindV1::Policy, '2'),
         registry_evidence(ReleaseEvidenceKindV1::Provider, '3'),
@@ -137,6 +148,7 @@ pub(crate) fn write_structural_registry(root: &Path) {
         receipt_kind: ReleaseReceiptKindV1::ProfileClosure,
         profile_ids: vec!["provider-codex".to_owned()],
         required_evidence_kinds: vec![
+            ReleaseEvidenceKindV1::Artifact,
             ReleaseEvidenceKindV1::Environment,
             ReleaseEvidenceKindV1::Policy,
             ReleaseEvidenceKindV1::Schema,
@@ -286,6 +298,12 @@ pub(crate) fn write_structural_registry(root: &Path) {
                 "profiles/graph.json",
             ),
             registry_object(
+                ReleaseRegistryObjectKindV1::ReleaseBundleManifestV2,
+                '9',
+                release_bundle_digest,
+                "artifacts/release-manifest-v2.toml",
+            ),
+            registry_object(
                 ReleaseRegistryObjectKindV1::SignerPolicy,
                 '5',
                 policy_digest,
@@ -352,6 +370,12 @@ pub(crate) fn write_structural_registry(root: &Path) {
         &root.join("requests/provider-codex-closure.json"),
         &closure_request,
     );
+    fs::create_dir_all(root.join("artifacts")).unwrap();
+    fs::write(
+        root.join("artifacts/release-manifest-v2.toml"),
+        release_bundle_manifest,
+    )
+    .unwrap();
     fs::create_dir_all(root.join("signatures")).unwrap();
     fs::write(
         root.join("signatures/provider-codex.sig"),

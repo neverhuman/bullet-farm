@@ -5,6 +5,7 @@ use bullet_wire::{
     RELEASE_PROFILE_GRAPH_DIGEST_DOMAIN, RELEASE_REGISTRY_OBJECT_DIGEST_DOMAIN,
     RELEASE_SIGNER_POLICY_DIGEST_DOMAIN, RELEASE_TRUSTED_TIME_DIGEST_DOMAIN,
     RELEASE_VERIFICATION_REQUEST_DIGEST_DOMAIN, canonical_json, hash_canonical, hash_framed_bytes,
+    release_bundle_manifest_v2_digest,
     v1alpha1::{
         GateReceiptV1, ReleaseEvidenceKindV1, ReleaseEvidenceSubjectV1, ReleaseFamilySubjectV1,
         ReleaseGateSpecV1, ReleaseGateVerificationRequestV1, ReleaseProfileGraphV1,
@@ -139,8 +140,11 @@ pub(super) fn mutate_registry_manifest(root: &Path, mutation: impl FnOnce(&mut s
 pub(super) struct RegistryMutation {
     pub(super) graph: ReleaseProfileGraphV1,
     pub(super) spec: ReleaseGateSpecV1,
+    pub(super) closure_spec: ReleaseGateSpecV1,
     pub(super) request: ReleaseGateVerificationRequestV1,
+    pub(super) closure_request: ReleaseGateVerificationRequestV1,
     pub(super) receipt: GateReceiptV1,
+    pub(super) closure_receipt: GateReceiptV1,
     pub(super) policy: ReleaseSignerPolicyV1,
     pub(super) time: TrustedTimeObservationV1,
     pub(super) closure_time: TrustedTimeObservationV1,
@@ -155,8 +159,11 @@ pub(super) fn rewrite_registry(root: &Path, mutation: impl FnOnce(&mut RegistryM
     let mut records = RegistryMutation {
         graph: load(root, "profiles/graph.json"),
         spec: load(root, "specs/provider-codex.json"),
+        closure_spec: load(root, "specs/provider-codex-closure.json"),
         request: load(root, "requests/provider-codex.json"),
+        closure_request: load(root, "requests/provider-codex-closure.json"),
         receipt: load(root, "receipts/provider-codex.json"),
+        closure_receipt: load(root, "receipts/provider-codex-closure.json"),
         policy: load(root, "policy/signers.json"),
         time: load(root, "time/provider-codex.json"),
         closure_time: load(root, "time/provider-codex-closure.json"),
@@ -180,10 +187,42 @@ pub(super) fn rewrite_registry(root: &Path, mutation: impl FnOnce(&mut RegistryM
         .clone_from(&graph_digest);
     records.receipt.gate_spec_digest.clone_from(&spec_digest);
     let receipt_digest = canonical_digest(RELEASE_GATE_RECEIPT_DIGEST_DOMAIN, &records.receipt);
+    let closure_spec_digest =
+        canonical_digest(RELEASE_GATE_SPEC_DIGEST_DOMAIN, &records.closure_spec);
+    records
+        .closure_request
+        .profile_graph_digest
+        .clone_from(&graph_digest);
+    records
+        .closure_request
+        .gate_spec_digest
+        .clone_from(&closure_spec_digest);
+    let closure_request_digest = canonical_digest(
+        RELEASE_VERIFICATION_REQUEST_DIGEST_DOMAIN,
+        &records.closure_request,
+    );
+    records
+        .closure_receipt
+        .request_digest
+        .clone_from(&closure_request_digest);
+    records
+        .closure_receipt
+        .profile_graph_digest
+        .clone_from(&graph_digest);
+    records
+        .closure_receipt
+        .gate_spec_digest
+        .clone_from(&closure_spec_digest);
+    let closure_receipt_digest =
+        canonical_digest(RELEASE_GATE_RECEIPT_DIGEST_DOMAIN, &records.closure_receipt);
     let policy_digest = canonical_digest(RELEASE_SIGNER_POLICY_DIGEST_DOMAIN, &records.policy);
     records.time.receipt_digest.clone_from(&receipt_digest);
     records.time.signer_policy_digest.clone_from(&policy_digest);
     let time_digest = canonical_digest(RELEASE_TRUSTED_TIME_DIGEST_DOMAIN, &records.time);
+    records
+        .closure_time
+        .receipt_digest
+        .clone_from(&closure_receipt_digest);
     records
         .closure_time
         .signer_policy_digest
@@ -219,25 +258,52 @@ pub(super) fn rewrite_registry(root: &Path, mutation: impl FnOnce(&mut RegistryM
         .find(|entry| entry.gate_id == "release.profile.provider-codex")
         .unwrap();
     closure_entry
+        .gate_id
+        .clone_from(&records.closure_receipt.gate_id);
+    closure_entry
+        .profile_ids
+        .clone_from(&records.closure_receipt.profile_ids);
+    closure_entry
+        .gate_receipt_id
+        .clone_from(&records.closure_receipt.gate_receipt_id);
+    closure_entry
+        .receipt_digest
+        .clone_from(&closure_receipt_digest);
+    closure_entry
         .trusted_time_digest
         .clone_from(&closure_time_digest);
     for object in &mut records.manifest.objects {
         object.object_digest = match object.object_path.as_str() {
             "receipts/provider-codex.json" => receipt_digest.clone(),
+            "receipts/provider-codex-closure.json" => closure_receipt_digest.clone(),
             "specs/provider-codex.json" => spec_digest.clone(),
+            "specs/provider-codex-closure.json" => closure_spec_digest.clone(),
             "profiles/graph.json" => graph_digest.clone(),
             "policy/signers.json" => policy_digest.clone(),
             "time/provider-codex.json" => time_digest.clone(),
             "time/provider-codex-closure.json" => closure_time_digest.clone(),
             "requests/provider-codex.json" => request_digest.clone(),
+            "requests/provider-codex-closure.json" => closure_request_digest.clone(),
             _ => continue,
         };
     }
 
     write_canonical(&root.join("profiles/graph.json"), &records.graph);
     write_canonical(&root.join("specs/provider-codex.json"), &records.spec);
+    write_canonical(
+        &root.join("specs/provider-codex-closure.json"),
+        &records.closure_spec,
+    );
     write_canonical(&root.join("requests/provider-codex.json"), &records.request);
+    write_canonical(
+        &root.join("requests/provider-codex-closure.json"),
+        &records.closure_request,
+    );
     write_canonical(&root.join("receipts/provider-codex.json"), &records.receipt);
+    write_canonical(
+        &root.join("receipts/provider-codex-closure.json"),
+        &records.closure_receipt,
+    );
     write_canonical(&root.join("policy/signers.json"), &records.policy);
     write_canonical(&root.join("time/provider-codex.json"), &records.time);
     write_canonical(

@@ -5,6 +5,8 @@ mod graph;
 
 use std::{collections::BTreeSet, path::Path};
 
+use bullet_wire::v1alpha1::ReleaseReceiptKindV1;
+
 use super::{
     model::{CheckModelError, GateClass, GateResult},
     semantic_registry::{self, Evaluation, RequestedProfile},
@@ -49,22 +51,8 @@ pub(super) fn select(
     if profile != ReleaseProfile::LegacyV1_26 {
         let requested_profiles = closure
             .iter()
-            .map(|item| {
-                RequestedProfile::new(
-                    item.as_str(),
-                    item.dependencies()
-                        .iter()
-                        .map(|dependency| dependency.as_str())
-                        .collect(),
-                    item.catalog_gate_ids()
-                        .iter()
-                        .copied()
-                        .filter(|gate| *gate != "release.receipt-contracts")
-                        .chain(std::iter::once(item.condition_gate_id()))
-                        .collect(),
-                )
-            })
-            .collect::<Vec<_>>();
+            .map(|item| requested_profile(*item))
+            .collect::<Result<Vec<_>, _>>()?;
         replace_receipt_registry_gate(
             &mut selected,
             semantic_registry::evaluate(registry, profile.as_str(), &requested_profiles),
@@ -80,6 +68,72 @@ pub(super) fn select(
         selected.extend(linux_preview_specific_gates()?);
     }
     Ok(selected)
+}
+
+fn requested_profile(profile: ReleaseProfile) -> Result<RequestedProfile, CheckModelError> {
+    Ok(RequestedProfile::new(
+        profile.as_str(),
+        profile
+            .dependencies()
+            .iter()
+            .map(|dependency| dependency.as_str())
+            .collect(),
+        requested_gate_bindings(profile)?,
+    ))
+}
+
+fn requested_gate_bindings(
+    profile: ReleaseProfile,
+) -> Result<Vec<(&'static str, ReleaseReceiptKindV1)>, CheckModelError> {
+    let mut gates = profile
+        .catalog_gate_ids()
+        .iter()
+        .copied()
+        .filter(|gate| *gate != "release.receipt-contracts")
+        .map(|gate| expected_receipt_kind(gate).map(|kind| (gate, kind)))
+        .collect::<Result<Vec<_>, _>>()?;
+    if profile.has_condition_gate() {
+        gates.push((
+            profile.condition_gate_id(),
+            ReleaseReceiptKindV1::ProfileClosure,
+        ));
+    }
+    Ok(gates)
+}
+
+fn expected_receipt_kind(gate: &str) -> Result<ReleaseReceiptKindV1, CheckModelError> {
+    let kind = match gate {
+        "release.backup-restore" | "release.installer-twice" => ReleaseReceiptKindV1::Operations,
+        "release.fault-suite" | "release.transaction-demo" => ReleaseReceiptKindV1::Transaction,
+        "release.forge.github-app" | "release.forge.jeryu" => ReleaseReceiptKindV1::Forge,
+        "release.platform-containment" => ReleaseReceiptKindV1::Containment,
+        "release.provider.antigravity"
+        | "release.provider.claude"
+        | "release.provider.codex"
+        | "release.provider.cursor" => ReleaseReceiptKindV1::Provider,
+        "release.rust-msrv-1-95" | "release.rust-pinned-1-97-1" => {
+            ReleaseReceiptKindV1::RustToolchain
+        }
+        "release.jankurai-90"
+        | "release.scan.dependency"
+        | "release.scan.license"
+        | "release.scan.secret"
+        | "release.scan.workflow" => ReleaseReceiptKindV1::Scanner,
+        "release.checksums"
+        | "release.installable-lock"
+        | "release.manifest-non-circular"
+        | "release.package-matrix"
+        | "release.provenance"
+        | "release.sbom"
+        | "release.signatures" => ReleaseReceiptKindV1::Artifact,
+        _ => {
+            return Err(CheckModelError::new(
+                "PROFILE_RECEIPT_KIND_MISSING",
+                format!("release gate {gate} has no immutable receipt-kind binding"),
+            ));
+        }
+    };
+    Ok(kind)
 }
 
 fn dependency_closure(profile: ReleaseProfile) -> Vec<ReleaseProfile> {
@@ -225,4 +279,26 @@ fn blocked(
     repair: &str,
 ) -> Result<GateResult, CheckModelError> {
     GateResult::blocked(id, class, detail, repair)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn requested_gate_bindings_include_only_declared_profile_conditions() {
+        let preview = requested_gate_bindings(ReleaseProfile::LinuxPreview).unwrap();
+        assert!(
+            !preview
+                .iter()
+                .any(|(gate, _)| gate.starts_with("release.profile."))
+        );
+
+        let provider = requested_gate_bindings(ReleaseProfile::ProviderCodex).unwrap();
+        assert!(provider.contains(&(
+            "release.profile.provider-codex",
+            ReleaseReceiptKindV1::ProfileClosure,
+        )));
+        assert!(provider.contains(&("release.provider.codex", ReleaseReceiptKindV1::Provider,)));
+    }
 }

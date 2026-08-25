@@ -19,8 +19,9 @@ use bullet_wire::{
     hash_framed_bytes, release_bundle_manifest_v2_digest,
     v1alpha1::{
         GateReceiptV1, ReleaseGateSpecV1, ReleaseGateVerificationRequestV1, ReleaseProfileGraphV1,
-        ReleaseRegistryManifestV1, ReleaseRegistryObjectKindV1, ReleaseRegistryObjectV1,
-        ReleaseSignerPolicyV1, ReleaseSignerRoleV1, TrustedTimeObservationV1,
+        ReleaseReceiptKindV1, ReleaseRegistryManifestV1, ReleaseRegistryObjectKindV1,
+        ReleaseRegistryObjectV1, ReleaseSignerPolicyV1, ReleaseSignerRoleV1,
+        TrustedTimeObservationV1,
     },
     validate_release_bindings,
 };
@@ -41,19 +42,28 @@ pub(super) enum Evaluation {
 pub(super) struct RequestedProfile {
     id: &'static str,
     dependencies: Vec<&'static str>,
-    gate_ids: Vec<&'static str>,
+    gates: Vec<RequestedGate>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct RequestedGate {
+    id: &'static str,
+    receipt_kind: ReleaseReceiptKindV1,
 }
 
 impl RequestedProfile {
     pub(super) fn new(
         id: &'static str,
         dependencies: Vec<&'static str>,
-        gate_ids: Vec<&'static str>,
+        gates: Vec<(&'static str, ReleaseReceiptKindV1)>,
     ) -> Self {
         Self {
             id,
             dependencies,
-            gate_ids,
+            gates: gates
+                .into_iter()
+                .map(|(id, receipt_kind)| RequestedGate { id, receipt_kind })
+                .collect(),
         }
     }
 }
@@ -129,6 +139,7 @@ fn evaluate_unix(
         loaded.push(LoadedObject {
             subject: object,
             decoded,
+            bytes: input.bytes,
         });
     }
     root.ensure_identity()?;
@@ -171,6 +182,7 @@ fn exact_object<'a>(
 struct LoadedObject<'a> {
     subject: &'a ReleaseRegistryObjectV1,
     decoded: DecodedObject,
+    bytes: Vec<u8>,
 }
 
 enum DecodedObject {

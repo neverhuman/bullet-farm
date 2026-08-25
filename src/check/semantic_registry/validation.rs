@@ -1,5 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
+use bullet_wire::{v1alpha1::ReleaseEvidenceKindV1, validate_release_bundle_manifest_v2_binding};
+
 use super::*;
 
 pub(super) fn validate_registry(
@@ -32,7 +34,7 @@ pub(super) fn validate_registry(
         policy_object.subject.object_path.as_str(),
     ]);
     let mut gate_profiles = BTreeSet::new();
-    let mut selected_gate_profiles = BTreeSet::new();
+    let mut selected_gate_profiles = BTreeMap::new();
     let mut selected_bindings = 0;
     for entry in &manifest.entries {
         for profile in &entry.profile_ids {
@@ -91,6 +93,7 @@ pub(super) fn validate_registry(
         referenced.insert(request_object.subject.object_path.as_str());
         validate_release_bindings(graph, spec_object.decoded.gate_spec()?, request, receipt)
             .map_err(|error| reject(format!("release binding is invalid: {error}")))?;
+        validate_artifact_binding(receipt, objects, &mut referenced)?;
         validate_entry(
             entry,
             request,
@@ -113,14 +116,22 @@ pub(super) fn validate_registry(
             ));
         }
         for profile in selected_profiles {
-            selected_gate_profiles.insert((entry.gate_id.as_str(), profile.as_str()));
+            selected_gate_profiles.insert(
+                (entry.gate_id.as_str(), profile.as_str()),
+                receipt.receipt_kind,
+            );
         }
         selected_bindings += selected;
     }
     let expected_gate_profiles = requested_profiles
         .iter()
-        .flat_map(|profile| profile.gate_ids.iter().map(move |gate| (*gate, profile.id)))
-        .collect::<BTreeSet<_>>();
+        .flat_map(|profile| {
+            profile
+                .gates
+                .iter()
+                .map(move |gate| ((gate.id, profile.id), gate.receipt_kind))
+        })
+        .collect::<BTreeMap<_, _>>();
     if selected_gate_profiles != expected_gate_profiles {
         return Err(reject(
             "registry gate/profile coverage differs from the selected profile closure",
@@ -160,7 +171,11 @@ fn validate_requested_graph(
                         .iter()
                         .copied()
                         .collect::<BTreeSet<_>>(),
-                    profile.gate_ids.iter().copied().collect::<BTreeSet<_>>(),
+                    profile
+                        .gates
+                        .iter()
+                        .map(|gate| gate.id)
+                        .collect::<BTreeSet<_>>(),
                 ),
             )
         })
@@ -271,7 +286,13 @@ fn validate_entry(
             "gate receipt execution lies outside its attestor key lifecycle",
         ));
     }
-    if receipt.expires_at_unix_ms > request.expires_at_unix_ms
+    if request.requested_at_unix_ms < policy.activates_at_unix_ms
+        || request.expires_at_unix_ms > policy.expires_at_unix_ms
+        || receipt.started_at_unix_ms < policy.activates_at_unix_ms
+        || receipt.expires_at_unix_ms > policy.expires_at_unix_ms
+        || time.observed_at_unix_ms < policy.activates_at_unix_ms
+        || time.valid_until_unix_ms > policy.expires_at_unix_ms
+        || receipt.expires_at_unix_ms > request.expires_at_unix_ms
         || time.observed_at_unix_ms < receipt.completed_at_unix_ms
         || time.observed_at_unix_ms >= receipt.expires_at_unix_ms
         || time.observed_at_unix_ms < time_key.activates_at_unix_ms
@@ -288,6 +309,43 @@ fn validate_entry(
             "release request, receipt, trusted-time, and registry windows are incoherent",
         ));
     }
+    Ok(())
+}
+
+fn validate_artifact_binding<'a>(
+    receipt: &GateReceiptV1,
+    objects: &[LoadedObject<'a>],
+    referenced: &mut BTreeSet<&'a str>,
+) -> Result<(), Reject> {
+    if !receipt
+        .evidence_subjects
+        .iter()
+        .any(|subject| subject.subject_kind == ReleaseEvidenceKindV1::Artifact)
+    {
+        return Ok(());
+    }
+    let mut manifests = objects.iter().filter(|object| {
+        object.subject.object_kind == ReleaseRegistryObjectKindV1::ReleaseBundleManifestV2
+    });
+    let manifest = manifests
+        .next()
+        .ok_or_else(|| reject("release bundle manifest v2 requires exactly one registry object"))?;
+    if manifests.next().is_some() {
+        return Err(reject(
+            "release bundle manifest v2 requires exactly one registry object",
+        ));
+    }
+    validate_release_bundle_manifest_v2_binding(
+        &receipt.evidence_subjects,
+        std::slice::from_ref(manifest.subject),
+        &manifest.bytes,
+    )
+    .map_err(|error| {
+        reject(format!(
+            "release bundle manifest binding is invalid: {error}"
+        ))
+    })?;
+    referenced.insert(manifest.subject.object_path.as_str());
     Ok(())
 }
 
