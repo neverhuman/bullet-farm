@@ -1,6 +1,8 @@
 {
   "schema_version": "scorecard-v1",
   "rubric": "d2-v1",
+  "status": "frozen-baseline",
+  "criterion_inventory_complete": false,
   "blend": {
     "architecture": 0.2,
     "implemented": 0.6,
@@ -33,12 +35,12 @@
     {"id": "d4.jeryu-live", "dimension": 4, "kind": "gate", "claim": "release.forge.jeryu admitted", "evidence": null},
     {"id": "d5.budgets", "dimension": 5, "kind": "ci-test", "claim": "Atomic dual-tree reservation/settlement", "evidence": null},
     {"id": "d6.two-providers", "dimension": 6, "kind": "receipt", "claim": "Two providers dispatch through the router", "evidence": null},
-    {"id": "d7.evolution-off", "dimension": 7, "kind": "ci-test", "claim": "evolutionary_authority remains false until OD-H", "evidence": "policy/v1alpha1/policy.json"},
+    {"id": "d7.evolution-off", "dimension": 7, "kind": "ci-test", "claim": "evolutionary_authority remains false until OD-H", "evidence": null},
     {"id": "d8.fifteen-surfaces", "dimension": 8, "kind": "ci-test", "claim": "Fifteen portal surfaces render durable subjects", "evidence": null},
     {"id": "d9.schema-3", "dimension": 9, "kind": "gate", "claim": "release.installable-lock admitted", "evidence": null},
     {"id": "d10.jankurai-90", "dimension": 10, "kind": "gate", "claim": "release.jankurai-90 admitted", "evidence": null},
     {"id": "d11.invariants-51", "dimension": 11, "kind": "ci-test", "claim": "51/51 invariants enforced", "evidence": null},
-    {"id": "d12.signed-jeryu-tags", "dimension": 12, "kind": "commit", "claim": "Jeryu tags are annotated and signed", "evidence": null},
+    {"id": "d12.signed-jeryu-tags", "dimension": 12, "kind": "source-receipt", "claim": "Jeryu tags are annotated and signed", "evidence": null},
     {"id": "g2.transaction-proof", "dimension": 1, "kind": "gate", "claim": "release.transaction-demo admitted", "evidence": null}
   ]
 }

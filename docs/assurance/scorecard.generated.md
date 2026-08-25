@@ -1,6 +1,6 @@
 # Scorecard (generated)
 
-Status: **instrument only; not release authority.**
+Status: **frozen baseline estimate; instrument only; not release authority.**
 
 Rubric `d2-v1`. Blended **43.3** (architecture 94.5, implemented 39.7, stranger 3).
 
@@ -19,22 +19,22 @@ Rubric `d2-v1`. Blended **43.3** (architecture 94.5, implemented 39.7, stranger 
 | 11 | Test and assurance depth | 90 | 57 |
 | 12 | Documentation honesty | 94 | 86 |
 
-| Row | Admitted | Claim |
-| --- | --- | --- |
-| `d1.nonce-ledger` | no | Durable nonce issue/consume separated |
-| `d1.signed-transport` | no | Signed lease transport mounted internally |
-| `d2.egress-ci` | no | Three egress proofs run every push |
-| `d3.proof-root-eight` | no | ProofRoot over eight inputs with tamper tests |
-| `d4.attestor` | no | Attestor binary posts exact-SHA checks |
-| `d4.jeryu-live` | no | release.forge.jeryu admitted |
-| `d5.budgets` | no | Atomic dual-tree reservation/settlement |
-| `d6.two-providers` | no | Two providers dispatch through the router |
-| `d7.evolution-off` | yes | evolutionary_authority remains false until OD-H |
-| `d8.fifteen-surfaces` | no | Fifteen portal surfaces render durable subjects |
-| `d9.schema-3` | no | release.installable-lock admitted |
-| `d10.jankurai-90` | no | release.jankurai-90 admitted |
-| `d11.invariants-51` | no | 51/51 invariants enforced |
-| `d12.signed-jeryu-tags` | no | Jeryu tags are annotated and signed |
-| `g2.transaction-proof` | no | release.transaction-demo admitted |
+| Row | Admitted | Refusal | Claim |
+| --- | --- | --- | --- |
+| `d1.nonce-ledger` | no | `NO_EVIDENCE_REFERENCE` | Durable nonce issue/consume separated |
+| `d1.signed-transport` | no | `NO_EVIDENCE_REFERENCE` | Signed lease transport mounted internally |
+| `d2.egress-ci` | no | `NO_EVIDENCE_REFERENCE` | Three egress proofs run every push |
+| `d3.proof-root-eight` | no | `NO_EVIDENCE_REFERENCE` | ProofRoot over eight inputs with tamper tests |
+| `d4.attestor` | no | `NO_EVIDENCE_REFERENCE` | Attestor binary posts exact-SHA checks |
+| `d4.jeryu-live` | no | `NO_EVIDENCE_REFERENCE` | release.forge.jeryu admitted |
+| `d5.budgets` | no | `NO_EVIDENCE_REFERENCE` | Atomic dual-tree reservation/settlement |
+| `d6.two-providers` | no | `NO_EVIDENCE_REFERENCE` | Two providers dispatch through the router |
+| `d7.evolution-off` | no | `NO_EVIDENCE_REFERENCE` | evolutionary_authority remains false until OD-H |
+| `d8.fifteen-surfaces` | no | `NO_EVIDENCE_REFERENCE` | Fifteen portal surfaces render durable subjects |
+| `d9.schema-3` | no | `NO_EVIDENCE_REFERENCE` | release.installable-lock admitted |
+| `d10.jankurai-90` | no | `NO_EVIDENCE_REFERENCE` | release.jankurai-90 admitted |
+| `d11.invariants-51` | no | `NO_EVIDENCE_REFERENCE` | 51/51 invariants enforced |
+| `d12.signed-jeryu-tags` | no | `NO_EVIDENCE_REFERENCE` | Jeryu tags are annotated and signed |
+| `g2.transaction-proof` | no | `NO_EVIDENCE_REFERENCE` | release.transaction-demo admitted |
 
-A row moves the implemented score only after an admitted evidence subject exists.
+Rows are diagnostic only in `scorecard-v1`: no semantic evidence verifier is connected, so no row can move the frozen baseline.
