@@ -17,14 +17,23 @@ pub use store::CoordStore;
 #[derive(Debug)]
 pub struct CoordError {
     code: &'static str,
+    purpose: &'static str,
     reason: String,
+    common_fixes: &'static [&'static str],
+    docs_url: &'static str,
+    repair_hint: &'static str,
 }
 
 impl CoordError {
     pub fn new(code: &'static str, reason: impl Into<String>) -> Self {
+        let repair = repair_metadata(code);
         Self {
             code,
+            purpose: repair.purpose,
             reason: reason.into(),
+            common_fixes: repair.common_fixes,
+            docs_url: repair.docs_url,
+            repair_hint: repair.repair_hint,
         }
     }
 
@@ -40,12 +49,144 @@ impl CoordError {
         self.code
     }
 
+    /// Operation the failed boundary was protecting.
+    pub const fn purpose(&self) -> &'static str {
+        self.purpose
+    }
+
+    /// Ordered, bounded repair choices for this error class.
+    pub const fn common_fixes(&self) -> &'static [&'static str] {
+        self.common_fixes
+    }
+
+    /// Repository-relative operator documentation.
+    pub const fn docs_url(&self) -> &'static str {
+        self.docs_url
+    }
+
+    /// Narrow next diagnostic or proof step.
+    pub const fn repair_hint(&self) -> &'static str {
+        self.repair_hint
+    }
+
     pub fn exit_code(&self) -> u8 {
         match self.code {
             "CLAIM_OVERLAP" | "CLAIM_NOT_ACTIVE" | "CLAIM_OWNER_MISMATCH" => 3,
             "CORRUPT_COORD_LOG" | "UNSUPPORTED_SCHEMA" | "PARTIAL_COORD_WRITE" => 4,
             _ => 2,
         }
+    }
+}
+
+struct RepairMetadata {
+    purpose: &'static str,
+    common_fixes: &'static [&'static str],
+    docs_url: &'static str,
+    repair_hint: &'static str,
+}
+
+fn repair_metadata(code: &str) -> RepairMetadata {
+    if code.contains("TIMEOUT") || code.ends_with("_UNKNOWN") {
+        return RepairMetadata {
+            purpose: "preserve an ambiguous mutation outcome",
+            common_fixes: &[
+                "reconcile by the original request and desired-state identity",
+                "do not dispatch a second write or switch providers",
+            ],
+            docs_url: "docs/errors.md#outcome-unknown",
+            repair_hint: "run authoritative read-back and keep the subject frozen",
+        };
+    }
+    if code.contains("CORRUPT") || code.contains("PARTIAL_") {
+        return RepairMetadata {
+            purpose: "stop replay of incomplete or corrupt durable state",
+            common_fixes: &[
+                "preserve the bytes before cleanup",
+                "restore verified authority state or rebuild only generated projections",
+            ],
+            docs_url: "docs/errors.md#unsupported-or-corrupt-state",
+            repair_hint: "run the owning integrity and recovery proof before mutation",
+        };
+    }
+    if code.contains("UNSUPPORTED_SCHEMA") || code.contains("SCHEMA_MISMATCH") {
+        return RepairMetadata {
+            purpose: "reject a schema outside the admitted version set",
+            common_fixes: &[
+                "follow the explicit export or removal procedure",
+                "use the binary and lock version that own the subject",
+            ],
+            docs_url: "docs/errors.md#unsupported-or-corrupt-state",
+            repair_hint: "follow the schema-removal or setup-recovery runbook",
+        };
+    }
+    if code.contains("CONFLICT")
+        || code.contains("OVERLAP")
+        || code.contains("MISMATCH")
+        || code.contains("_CHANGED")
+        || code.contains("DIRTY_")
+        || code.ends_with("_EXISTS")
+        || code.ends_with("_NOT_ACTIVE")
+    {
+        return RepairMetadata {
+            purpose: "preserve one-writer and exact-subject transaction boundaries",
+            common_fixes: &[
+                "read back current state before issuing a new command",
+                "preserve foreign bytes and choose a new subject only when intent changed",
+            ],
+            docs_url: "docs/errors.md#conflict-or-changed-subject",
+            repair_hint: "inspect coordinator status and the exact current subject",
+        };
+    }
+    if code.contains("UNAVAILABLE")
+        || code.contains("_MISSING")
+        || code.ends_with("_NOT_FOUND")
+        || code.ends_with("_UNPROBED")
+    {
+        return RepairMetadata {
+            purpose: "refuse substitution for an unavailable exact prerequisite",
+            common_fixes: &[
+                "run bullet-family doctor --json",
+                "provision the pinned prerequisite without using ambient authority",
+            ],
+            docs_url: "docs/errors.md#dependency-unavailable",
+            repair_hint: "rerun doctor and the narrow lane named by the failed prerequisite",
+        };
+    }
+    if code == "USAGE"
+        || code.starts_with("INVALID_")
+        || code.starts_with("MISSING_")
+        || code.starts_with("DUPLICATE_")
+        || code.starts_with("UNKNOWN_")
+    {
+        return RepairMetadata {
+            purpose: "reject malformed or noncanonical input before mutation",
+            common_fixes: &[
+                "repair the exact field named by the stable error code",
+                "regenerate derived subjects with their mapped command",
+            ],
+            docs_url: "docs/errors.md#invalid-input",
+            repair_hint: "rerun the owner/test-map command for the rejected subject",
+        };
+    }
+    if code.contains("RECEIPT") || code.ends_with("_GATE_MISSING") {
+        return RepairMetadata {
+            purpose: "keep component observations separate from release authority",
+            common_fixes: &[
+                "produce independently signed exact-subject evidence",
+                "register it only after kind-specific semantic verification",
+            ],
+            docs_url: "docs/errors.md#receipt-missing",
+            repair_hint: "follow the blocked gate repair from check release --json",
+        };
+    }
+    RepairMetadata {
+        purpose: "keep process completion separate from exact-subject verification",
+        common_fixes: &[
+            "inspect the exact failing subject and raw proof output",
+            "produce new evidence after repairing or changing the subject",
+        ],
+        docs_url: "docs/errors.md#verification-failed",
+        repair_hint: "rerun the mapped proof without skip or allow-failure behavior",
     }
 }
 
@@ -239,7 +380,7 @@ fn verify_root(root: &Path) -> Result<PathBuf, CoordError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{validate_commit_oid, validate_path};
+    use super::{CoordError, validate_commit_oid, validate_path};
 
     #[test]
     fn validates_repository_relative_paths() {
@@ -255,5 +396,28 @@ mod tests {
         assert!(validate_commit_oid(&"a".repeat(40)).is_ok());
         assert!(validate_commit_oid(&"f".repeat(64)).is_ok());
         assert!(validate_commit_oid(&"A".repeat(40)).is_err());
+    }
+
+    #[test]
+    fn every_error_class_carries_agent_readable_repair_metadata() {
+        for error in [
+            CoordError::new("INVALID_PATH", "bad path"),
+            CoordError::new("CLAIM_OVERLAP", "owned"),
+            CoordError::new("UNSUPPORTED_SCHEMA", "old state"),
+            CoordError::new("CORRUPT_COORD_LOG", "bad checksum"),
+            CoordError::new("SETUP_TOOL_UNAVAILABLE", "missing tool"),
+            CoordError::new("COMMAND_TIMEOUT", "response lost"),
+            CoordError::new("MSRV_GATE_MISSING", "no receipt"),
+            CoordError::new("PROOF_FAILED", "red proof"),
+        ] {
+            assert!(!error.purpose().is_empty());
+            assert!(error.common_fixes().len() >= 2);
+            assert!(error.docs_url().starts_with("docs/errors.md#"));
+            assert!(!error.repair_hint().is_empty());
+            assert_eq!(
+                error.to_string(),
+                format!("{}: {}", error.code(), error.reason)
+            );
+        }
     }
 }

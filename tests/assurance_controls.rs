@@ -70,6 +70,116 @@ fn control_manifests_route_to_real_local_proof() {
         boundaries["db"]["root_paths"].as_array().map(Vec::len),
         Some(0)
     );
+
+    let audit = parse_toml("agent/audit-policy.toml");
+    assert_eq!(audit["minimum_score"].as_integer(), Some(58));
+    assert_eq!(
+        audit["fail_on"]
+            .as_array()
+            .expect("audit fail_on")
+            .iter()
+            .filter_map(TomlValue::as_str)
+            .collect::<Vec<_>>(),
+        ["critical"]
+    );
+    assert_eq!(
+        audit["scan"]["excluded_paths"].as_array().map(Vec::len),
+        Some(0),
+        "audit policy must not hide source paths to raise the score"
+    );
+
+    let adoption = parse_toml("agent/tool-adoption.toml");
+    let tools = adoption["tools"].as_array().expect("adopted tools");
+    assert_eq!(tools.len(), 1, "unproved tool adoption was declared");
+    assert_eq!(tools[0]["id"].as_str(), Some("audit-ci"));
+    assert_eq!(tools[0]["mode"].as_str(), Some("auto"));
+
+    let audit_lane = read("ops/ci/audit.sh");
+    assert!(audit_lane.contains("--policy \"$AUDIT_POLICY\""));
+    assert!(!audit_lane.contains("--fail-under"));
+    assert!(!audit_lane.contains("--fail-on"));
+}
+
+#[test]
+fn exception_repairs_and_documented_budgets_are_complete_and_policy_bound() {
+    let exceptions = parse_toml("agent/exceptions.toml");
+    let surface = exceptions["exception_surface"]
+        .as_table()
+        .expect("exception surface");
+    assert_eq!(surface["owner"].as_str(), Some("ops"));
+    assert_eq!(surface["docs_url"].as_str(), Some("docs/errors.md"));
+    let required = surface["required_fields"]
+        .as_array()
+        .expect("required exception fields")
+        .iter()
+        .map(|field| field.as_str().expect("field name"))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        required,
+        [
+            "purpose",
+            "reason",
+            "common_fixes",
+            "docs_url",
+            "repair_hint"
+        ]
+    );
+
+    let kinds = exceptions["error_kind"].as_array().expect("error kinds");
+    assert!(kinds.len() >= 8, "repair taxonomy is too narrow");
+    for kind in kinds {
+        for field in &required {
+            let value = &kind[*field];
+            let populated = value.as_str().is_some_and(|text| !text.trim().is_empty())
+                || value.as_array().is_some_and(|items| !items.is_empty());
+            assert!(populated, "error kind missing {field}: {kind:?}");
+        }
+    }
+
+    let errors = read("docs/errors.md");
+    for heading in [
+        "## Invalid input",
+        "## Conflict or changed subject",
+        "## Unsupported or corrupt state",
+        "## Dependency unavailable",
+        "## Verification failed",
+        "## Outcome unknown",
+        "## Receipt missing",
+    ] {
+        assert!(
+            errors.contains(heading),
+            "missing repair heading: {heading}"
+        );
+    }
+
+    let policy: JsonValue =
+        serde_json::from_str(&read("policy/v1alpha1/policy.json")).expect("policy JSON");
+    let budget = &policy["budget_policy"];
+    let testing = read("docs/testing.md");
+    for (field, label) in [
+        ("maximum_lease_ttl_seconds", "15-second maximum lease TTL"),
+        ("maximum_attempt_seconds", "1,800-second maximum Attempt"),
+        ("maximum_changed_paths", "128 changed paths"),
+    ] {
+        assert!(budget[field].as_u64().is_some(), "missing policy {field}");
+        assert!(
+            testing.contains(label),
+            "testing guide does not explain current policy field {field}"
+        );
+    }
+    assert_eq!(budget["unknown_quota_is_headroom"].as_bool(), Some(false));
+    assert!(testing.contains("`unknown_quota_is_headroom` is `false`"));
+    assert!(read("docs/exceptions/README.md").contains("expiry date"));
+
+    let docs_index = read("docs/README.md");
+    for entrypoint in ["architecture.md", "boundaries.md", "errors.md"] {
+        assert!(
+            docs_index.contains(entrypoint),
+            "documentation entrypoint is not indexed: {entrypoint}"
+        );
+    }
+    assert!(read("docs/architecture.md").contains("## Current proof boundary"));
+    assert!(read("docs/boundaries.md").contains("## Credential custody"));
 }
 
 #[test]

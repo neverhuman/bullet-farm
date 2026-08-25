@@ -20,6 +20,9 @@ Candidate, Evidence result, effect, or release true.
 | Which controls have executable enforcement? | [`assurance/invariant-registry.md`](assurance/invariant-registry.md) and the generated [`assurance/invariant-crosswalk.generated.md`](assurance/invariant-crosswalk.generated.md) |
 | What is the rendered release decision? | [`assurance/release-truth.generated.md`](assurance/release-truth.generated.md) (generated projection, exit 3; `check release` wins) |
 | Which architecture decisions are current? | [`decisions/`](decisions/) |
+| What is the shortest normative architecture map? | [`architecture.md`](architecture.md) |
+| Where are trust, repository, credential, and evidence boundaries? | [`boundaries.md`](boundaries.md) |
+| What does a stable Hub error mean and how is it repaired? | [`errors.md`](errors.md) |
 | What runs in the current dependency order? | [`assurance/phase-1-dependency-map.md`](assurance/phase-1-dependency-map.md) and the repository test maps |
 | Which competitor subjects are pinned? | [`assurance/competitor-snapshot.md`](assurance/competitor-snapshot.md) |
 | How do agents coordinate? | [`runbooks/fleet.md`](runbooks/fleet.md) |
@@ -36,6 +39,12 @@ green through documentation.
 
 ## Explanatory documents
 
+- [`architecture.md`](architecture.md) is the canonical short architecture
+  entrypoint and current proof boundary.
+- [`boundaries.md`](boundaries.md) maps repository, authority, credential,
+  evidence, effect, and projection crossings to their fail-closed behavior.
+- [`errors.md`](errors.md) maps stable Hub error classes to bounded repair and
+  escalation steps; `UNKNOWN` remains an outcome state, never a green result.
 - [`paper/`](paper/) is the IEEEtran arXiv preprint source. A compile is not
   a release, installer, or benchmark receipt.
 - [`workplan.md`](workplan.md) is an opportunity backlog for paper evidence,

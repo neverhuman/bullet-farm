@@ -41,9 +41,45 @@
       "command": "just fast",
       "purpose": "verify manifests remain parseable"
     },
+    "agent/audit-policy.toml": {
+      "command": "bash ops/ci/audit.sh",
+      "purpose": "enforce the explicit Jankurai floor and severity policy from a clean artifact set"
+    },
+    "agent/exceptions.toml": {
+      "command": "cargo test --locked --test assurance_controls",
+      "purpose": "verify every agent-readable exception kind carries complete repair metadata"
+    },
+    "agent/tool-adoption.toml": {
+      "command": "bash ops/ci/audit.sh",
+      "purpose": "report only Jankurai tools with actual local invocation while keeping missing CI evidence visible"
+    },
     "docs/": {
       "command": "just fast",
       "purpose": "verify spec corpus and architecture docs remain routed"
+    },
+    "docs/README.md": {
+      "command": "cargo test --locked --test assurance_controls",
+      "purpose": "verify the canonical documentation entrypoints remain routed"
+    },
+    "docs/architecture.md": {
+      "command": "cargo test --locked --test assurance_controls",
+      "purpose": "verify the normative architecture entrypoint stays linked to executable proof"
+    },
+    "docs/boundaries.md": {
+      "command": "cargo test --locked --test assurance_controls",
+      "purpose": "verify trust-boundary guidance remains mapped to the family proof lane"
+    },
+    "docs/errors.md": {
+      "command": "cargo test --locked --test assurance_controls",
+      "purpose": "verify the stable Hub error taxonomy stays linked to executable repair guidance"
+    },
+    "docs/exceptions/": {
+      "command": "cargo test --locked --test assurance_controls",
+      "purpose": "verify exception requirements remain bounded, expiring, and non-authoritative"
+    },
+    "docs/testing.md": {
+      "command": "cargo test --locked --test assurance_controls",
+      "purpose": "verify policy budgets and stop conditions stay synchronized with generated policy"
     },
     "docs/release.md": {
       "command": "just audit",
@@ -112,6 +148,10 @@
     "Cargo.lock": {
       "command": "cargo test --locked",
       "purpose": "verify the pinned Rust dependency graph"
+    },
+    "deny.toml": {
+      "command": "just security",
+      "purpose": "verify licenses, advisories, bans, and sources against the committed policy"
     },
     "rust-toolchain.toml": {
       "command": "just fast",

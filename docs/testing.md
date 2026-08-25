@@ -37,6 +37,36 @@ There are two deliberately different command layers:
   component CI can be green while product `required` and `release` correctly
   remain `BLOCKED`.
 
+### Execution budgets and stop evidence
+
+The generated V1 policy is the executable source, not this prose. Its current
+exact bounds are a 15-second maximum lease TTL, a 1,800-second maximum Attempt,
+and 128 changed paths. `unknown_quota_is_headroom` is `false`. The contract
+drift lane and `assurance_controls` test bind these documented values back to
+`policy/v1alpha1/policy.json`; changing the policy without updating the
+operator explanation fails required CI.
+
+These are ceilings, not reservations. Paid provider dispatch remains blocked
+until Kernel durably records a budget and quota reservation tied to the exact
+task, provider profile, Attempt, fence, routing/configuration/policy snapshots,
+expiry, and settlement. An absent, expired, contradictory, or `UNKNOWN` quota
+observation is never schedulable headroom. A bounded probe reservation may be
+introduced only through a separately versioned policy and receipt; none exists
+in the V1 implementation today.
+
+Mutation freezes and the provider process tree is terminated when lease
+renewal updates zero rows, the authority service is unavailable, the Attempt
+deadline expires, cancellation is acknowledged, the admitted byte/turn/cost
+budget is exhausted, or the provider violates its framed protocol. The
+workspace is preserved before cleanup. Restart requires a successor fence and
+exact checkpoint; it does not extend the old budget implicitly.
+
+Release evidence for this control is not a log line. It must bind the policy
+digest, reservations and settlements, stop command, runner acknowledgements or
+lease expiry, process-tree death, preservation receipt, and final portal
+projection. Until that connected receipt exists, the kill switch, budget, and
+cost controls remain release blockers even when their component tests pass.
+
 ### Lanes
 
 | Lane | Where | What it proves |
