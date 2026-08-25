@@ -283,10 +283,12 @@ fn setup_recipe_preserves_literal_arguments() {
     let temp = tempfile::tempdir().expect("setup recipe fixture");
     let bin = temp.path().join("bin");
     fs::create_dir(&bin).expect("create fake bin");
+    let capture = temp.path().join("argv");
+    let marker = temp.path().join("ambient-cargo-executed");
     let cargo = bin.join("cargo");
     fs::write(
         &cargo,
-        "#!/usr/bin/env bash\nset -euo pipefail\nprintf '%s\\0' \"$@\" >\"${BULLET_TEST_CAPTURE:?}\"\n",
+        format!("#!/bin/bash\nprintf executed > '{}'\n", marker.display()),
     )
     .expect("write fake cargo");
     let mut permissions = fs::metadata(&cargo)
@@ -295,13 +297,70 @@ fn setup_recipe_preserves_literal_arguments() {
     permissions.set_mode(0o755);
     fs::set_permissions(&cargo, permissions).expect("make fake cargo executable");
 
-    let capture = temp.path().join("argv");
-    let marker = temp.path().join("injected");
+    let setup = temp.path().join("bullet-family");
+    fs::write(
+        &setup,
+        format!(
+            "#!/bin/bash\nset -euo pipefail\nprintf '%s\\0' \"$@\" > '{}'\n",
+            capture.display()
+        ),
+    )
+    .expect("write fake setup binary");
+    let mut permissions = fs::metadata(&setup)
+        .expect("fake setup metadata")
+        .permissions();
+    permissions.set_mode(0o755);
+    fs::set_permissions(&setup, permissions).expect("make fake setup executable");
+
+    let injection_marker = temp.path().join("injected");
     let spaced = temp.path().join("member root");
-    let injected = format!("; /usr/bin/touch {}", marker.display());
+    let injected = format!("; /usr/bin/touch {}", injection_marker.display());
     let mut path = OsString::from(bin.as_os_str());
     path.push(":");
     path.push(env::var_os("PATH").expect("PATH is set"));
+
+    let refused = Command::new("just")
+        .arg("setup")
+        .current_dir(root())
+        .env("PATH", &path)
+        .env_remove("BULLET_SETUP_ADMITTED_BIN")
+        .env("BULLET_SETUP_CARGO_BIN", "/bin/true")
+        .env("BULLET_SETUP_NODE_BIN", "/bin/true")
+        .env("BULLET_SETUP_NPM_CLI", "/bin/true")
+        .output()
+        .expect("run setup without admitted bootstrap");
+    assert!(!refused.status.success());
+    assert!(
+        String::from_utf8_lossy(&refused.stderr)
+            .contains("operator-pre-admitted bootstrap unavailable"),
+        "unexpected refusal: {}",
+        String::from_utf8_lossy(&refused.stderr)
+    );
+    assert!(!marker.exists(), "missing bootstrap executed ambient Cargo");
+
+    let in_family = Command::new("just")
+        .arg("setup")
+        .current_dir(root())
+        .env("PATH", &path)
+        .env(
+            "BULLET_SETUP_ADMITTED_BIN",
+            env!("CARGO_BIN_EXE_bullet-family"),
+        )
+        .env("BULLET_SETUP_CARGO_BIN", "/bin/true")
+        .env("BULLET_SETUP_NODE_BIN", "/bin/true")
+        .env("BULLET_SETUP_NPM_CLI", "/bin/true")
+        .output()
+        .expect("run setup with in-family bootstrap");
+    assert!(!in_family.status.success());
+    assert!(
+        String::from_utf8_lossy(&in_family.stderr).contains("outside the source family"),
+        "unexpected refusal: {}",
+        String::from_utf8_lossy(&in_family.stderr)
+    );
+    assert!(
+        !marker.exists(),
+        "in-family bootstrap executed ambient Cargo"
+    );
 
     let status = Command::new("just")
         .args([
@@ -312,7 +371,7 @@ fn setup_recipe_preserves_literal_arguments() {
         ])
         .current_dir(root())
         .env("PATH", path)
-        .env("BULLET_TEST_CAPTURE", &capture)
+        .env("BULLET_SETUP_ADMITTED_BIN", &setup)
         .env("BULLET_SETUP_CARGO_BIN", "/bin/true")
         .env("BULLET_SETUP_NODE_BIN", "/bin/true")
         .env("BULLET_SETUP_NPM_CLI", "/bin/true")
@@ -321,18 +380,36 @@ fn setup_recipe_preserves_literal_arguments() {
 
     assert!(status.success());
     assert!(
-        !marker.exists(),
+        !injection_marker.exists(),
         "recipe executed an interpolated shell command"
     );
-    let captured = fs::read(&capture).expect("captured Cargo argv");
+    assert!(
+        !marker.exists(),
+        "external bootstrap executed ambient Cargo"
+    );
+    let captured = fs::read(&capture).expect("captured setup argv");
     let arguments = captured
         .split(|byte| *byte == 0)
         .filter(|argument| !argument.is_empty())
         .map(|argument| String::from_utf8(argument.to_vec()).expect("UTF-8 argument"))
         .collect::<Vec<_>>();
-    let expected = ["--root".to_owned(), spaced.display().to_string(), injected];
-    assert!(
-        arguments.ends_with(&expected),
-        "setup argv did not preserve its literal tail: {arguments:?}"
+    assert_eq!(
+        arguments,
+        [
+            "setup".to_owned(),
+            "--root".to_owned(),
+            root().parent().unwrap().display().to_string(),
+            "--source".to_owned(),
+            "jeryu".to_owned(),
+            "--cargo-bin".to_owned(),
+            "/bin/true".to_owned(),
+            "--node-bin".to_owned(),
+            "/bin/true".to_owned(),
+            "--npm-cli".to_owned(),
+            "/bin/true".to_owned(),
+            "--root".to_owned(),
+            spaced.display().to_string(),
+            injected,
+        ]
     );
 }

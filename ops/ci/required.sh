@@ -22,17 +22,52 @@ for member in bullet-farm bullet-kernel bullet-git bullet-portal; do
   fi
 done
 if grep -qx 'schema_version = "2"' family.lock; then
-  setup_smoke="$(mktemp)"
-  if (cd /tmp && "$REPO_ROOT/scripts/setup.sh" --offline) >"$setup_smoke" 2>&1; then
-    echo "legacy lock unexpectedly authorized setup" >&2
-    rm -f "$setup_smoke"
+  schema_smoke="$(mktemp)"
+  if cargo run --locked --quiet --bin bullet-family -- setup \
+    --root "${REPO_ROOT%/*}" --source jeryu --offline >"$schema_smoke" 2>&1
+  then
+    echo "legacy lock unexpectedly authorized direct setup" >&2
+    rm -f "$schema_smoke"
     exit 1
   fi
-  grep -q 'UNSUPPORTED_SCHEMA' "$setup_smoke" || {
-    cat "$setup_smoke" >&2
-    rm -f "$setup_smoke"
+  grep -q 'UNSUPPORTED_SCHEMA' "$schema_smoke" || {
+    cat "$schema_smoke" >&2
+    rm -f "$schema_smoke"
     exit 1
   }
+  rm -f "$schema_smoke"
+
+  setup_smoke="$(mktemp)"
+  setup_shim="$(mktemp -d)"
+  setup_marker="$setup_shim/ambient-cargo-executed"
+  printf '%s\n' '#!/bin/sh' ": > \"\${BULLET_SETUP_CARGO_MARKER:?}\"" 'exit 99' \
+    >"$setup_shim/cargo"
+  chmod 700 "$setup_shim/cargo"
+  if (cd /tmp && PATH="$setup_shim:$PATH" BULLET_SETUP_CARGO_MARKER="$setup_marker" \
+    "$REPO_ROOT/scripts/setup.sh" --offline) >"$setup_smoke" 2>&1
+  then
+    echo "source wrapper unexpectedly ran without operator-pre-admitted bootstrap" >&2
+    rm -f "$setup_smoke"
+    rm -f "$setup_shim/cargo" "$setup_marker"
+    rmdir "$setup_shim"
+    exit 1
+  fi
+  grep -q 'operator-pre-admitted bootstrap unavailable' "$setup_smoke" || {
+    cat "$setup_smoke" >&2
+    rm -f "$setup_smoke"
+    rm -f "$setup_shim/cargo" "$setup_marker"
+    rmdir "$setup_shim"
+    exit 1
+  }
+  if [[ -e "$setup_marker" ]]; then
+    echo "source wrapper executed ambient Cargo before bootstrap admission" >&2
+    rm -f "$setup_smoke"
+    rm -f "$setup_shim/cargo" "$setup_marker"
+    rmdir "$setup_shim"
+    exit 1
+  fi
   rm -f "$setup_smoke"
+  rm -f "$setup_shim/cargo"
+  rmdir "$setup_shim"
 fi
 log "required lane passed"

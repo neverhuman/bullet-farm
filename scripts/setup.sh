@@ -1,37 +1,48 @@
 #!/usr/bin/env bash
 set -euo pipefail
-HUB="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-FAMILY="$(cd "$HUB/.." && pwd)"
-cd "$HUB"
 
-resolve_on_path() {
-  local name="$1"
-  local resolved
-  resolved="$(command -v -- "$name")" || {
-    printf 'setup: required tool is unavailable: %s\n' "$name" >&2
-    exit 4
-  }
-  [[ "$resolved" = /* ]] || {
-    printf 'setup: required tool is not an absolute path: %s\n' "$name" >&2
-    exit 4
-  }
-  printf '%s\n' "$resolved"
+fail() {
+  printf 'setup: %s\n' "$1" >&2
+  exit 4
 }
 
-cargo_launcher="$(resolve_on_path cargo)"
-cargo_resolved="$(/usr/bin/readlink -f -- "$cargo_launcher")"
-cargo_bin="${BULLET_SETUP_CARGO_BIN:-}"
-if [[ -z "$cargo_bin" ]]; then
-  if [[ "${cargo_resolved##*/}" == rustup ]]; then
-    rustup_launcher="$(resolve_on_path rustup)"
-    cargo_bin="$("$rustup_launcher" which cargo)"
-  else
-    cargo_bin="$cargo_resolved"
-  fi
+script_dir="${BASH_SOURCE[0]%/*}"
+if [[ "$script_dir" == "${BASH_SOURCE[0]}" ]]; then
+  script_dir=.
 fi
-node_bin="${BULLET_SETUP_NODE_BIN:-$(/usr/bin/readlink -f -- "$(resolve_on_path node)")}"
-npm_cli="${BULLET_SETUP_NPM_CLI:-$(/usr/bin/readlink -f -- "$(resolve_on_path npm)")}"
+cd -P -- "$script_dir/.." || fail "cannot resolve the Hub checkout"
+HUB="$PWD"
+cd -P -- "$HUB/.." || fail "cannot resolve the family root"
+FAMILY="$PWD"
+cd -- "$HUB"
 
-exec "$cargo_launcher" run --locked --quiet --manifest-path "$HUB/Cargo.toml" \
-  --bin bullet-family -- setup --root "$FAMILY" --source jeryu \
+setup_bin="${BULLET_SETUP_ADMITTED_BIN:-}"
+[[ -n "$setup_bin" ]] || fail \
+  "operator-pre-admitted bootstrap unavailable; BULLET_SETUP_ADMITTED_BIN must name an external bullet-family selected by the operator"
+[[ "$setup_bin" = /* ]] || fail "BULLET_SETUP_ADMITTED_BIN must be an absolute path"
+setup_resolved="$(/usr/bin/readlink -f -- "$setup_bin")" || fail \
+  "BULLET_SETUP_ADMITTED_BIN cannot be resolved"
+[[ "$setup_resolved" == "$setup_bin" ]] || fail \
+  "BULLET_SETUP_ADMITTED_BIN must use its canonical non-symlink path"
+if [[ "$setup_resolved" == "$FAMILY" || "$setup_resolved" == "$FAMILY/"* ]]; then
+  fail "BULLET_SETUP_ADMITTED_BIN must resolve outside the source family"
+fi
+[[ -f "$setup_resolved" && -x "$setup_resolved" && ! -L "$setup_resolved" ]] || fail \
+  "BULLET_SETUP_ADMITTED_BIN must be a regular executable, not a symlink"
+
+cargo_bin="${BULLET_SETUP_CARGO_BIN:-}"
+node_bin="${BULLET_SETUP_NODE_BIN:-}"
+npm_cli="${BULLET_SETUP_NPM_CLI:-}"
+for subject in \
+  "BULLET_SETUP_CARGO_BIN:$cargo_bin" \
+  "BULLET_SETUP_NODE_BIN:$node_bin" \
+  "BULLET_SETUP_NPM_CLI:$npm_cli"
+do
+  name="${subject%%:*}"
+  value="${subject#*:}"
+  [[ "$value" = /* ]] || fail "$name must name an explicit absolute path"
+done
+
+exec /usr/bin/env -i HOME=/ PATH=/usr/bin:/bin LC_ALL=C \
+  "$setup_resolved" setup --root "$FAMILY" --source jeryu \
   --cargo-bin "$cargo_bin" --node-bin "$node_bin" --npm-cli "$npm_cli" "$@"
