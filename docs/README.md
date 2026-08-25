@@ -1,7 +1,7 @@
 # Bullet Farm documentation map
 
 Status: **pre-release; release authority remains blocked**  
-Last reviewed: 2026-08-24
+Last reviewed: 2026-08-25
 
 This index separates executable product authority from design provenance. A
 document can explain a decision, but it cannot make a command, receipt,
@@ -27,6 +27,11 @@ green through documentation.
 
 - [`architecture/overview.md`](architecture/overview.md) is the concise system
   orientation.
+- [`architecture/evolutionary-control.md`](architecture/evolutionary-control.md)
+  defines roles, Variants, evidence-bound fitness, selection, fusion, budgets,
+  and the V1 adaptation boundary.
+- [`testing.md`](testing.md) maps test profiles, evidence classes, ownership,
+  negative cases, and live-lane admission.
 - [`runbooks/`](runbooks/) describes operator procedures; a runbook does not
   bypass an API or policy gate.
 - [`assurance/`](assurance/) maps claims to code, schemas, and tests.
@@ -50,7 +55,8 @@ just audit
 ```
 
 The meaning and limitations of those lanes are defined in
-[`release.md`](release.md). Live-provider, live-forge, package, signing, and
+[`testing.md`](testing.md) and [`release.md`](release.md). Live-provider,
+live-forge, package, signing, and
 release evidence must use their separately admitted lanes and exact subjects;
 the commands above do not substitute for them.
 
