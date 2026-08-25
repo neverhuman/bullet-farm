@@ -181,6 +181,7 @@ fn doctor_and_pre_push_gate_are_executable_controls() {
     let doctor = Command::new("bash")
         .args(["scripts/ci-doctor.sh", "fast"])
         .current_dir(root())
+        .env_remove("RUSTUP_TOOLCHAIN")
         .status()
         .expect("run CI doctor");
     assert!(doctor.success());
