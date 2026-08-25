@@ -9,11 +9,11 @@ use fs2::FileExt;
 use super::{
     ClaimInput, CommitReceiptGroupInput, CommitReceiptInput, CoordError, HandoffInput,
     HeartbeatInput, ReceiptCorrectionInput,
-    git::verify_commit_paths,
+    git::commit_paths,
     model::{ClaimState, ClaimSummary, GroupReceipt, Record, SCHEMA_VERSION, Status},
     state::{
-        claim_id, expiry, normalized_paths, reject_outside_claim, reject_overlap, require_active,
-        summaries,
+        claim_id, expiry, normalized_paths, receipt_paths_for_scopes, reject_outside_claim,
+        reject_overlap, require_active, summaries, validate_receipt_coverage,
     },
     validate_commit_oid, validate_field, validate_repo_name, validate_ttl,
 };
@@ -167,13 +167,9 @@ impl CoordStore {
                     "receipt requires a handed-off claim without an existing commit",
                 ));
             }
-            if claim.changed_paths != committed_paths {
-                return Err(CoordError::new(
-                    "COMMITTED_PATH_MISMATCH",
-                    "receipt paths must exactly equal the handed-off changed paths",
-                ));
-            }
-            verify_commit_paths(&self.root, &claim.repo, &input.commit_oid, &committed_paths)?;
+            validate_input_coverage(&claim.changed_paths, &committed_paths)?;
+            let actual = commit_paths(&self.root, &claim.repo, &input.commit_oid)?;
+            require_exact_paths(&input.commit_oid, &actual, &committed_paths)?;
             claim.last_event_unix_ms = now;
             claim.commit_oid = Some(input.commit_oid.clone());
             claim.commit_orchestrator = Some(input.orchestrator.clone());
@@ -213,13 +209,9 @@ impl CoordStore {
                     "correction must bind the currently recorded commit OID",
                 ));
             }
-            if claim.changed_paths != committed_paths {
-                return Err(CoordError::new(
-                    "COMMITTED_PATH_MISMATCH",
-                    "correction paths must exactly equal the handed-off changed paths",
-                ));
-            }
-            verify_commit_paths(&self.root, &claim.repo, &input.commit_oid, &committed_paths)?;
+            validate_input_coverage(&claim.changed_paths, &committed_paths)?;
+            let actual = commit_paths(&self.root, &claim.repo, &input.commit_oid)?;
+            require_exact_paths(&input.commit_oid, &actual, &committed_paths)?;
             claim.last_event_unix_ms = now;
             claim.commit_oid = Some(input.commit_oid.clone());
             claim.commit_orchestrator = Some(input.orchestrator.clone());
@@ -261,7 +253,7 @@ impl CoordStore {
             let claims = summaries(records, now)?;
             let mut selected = Vec::with_capacity(claim_ids.len());
             let mut repo = None;
-            let mut union = Vec::new();
+            let mut handoff_scopes = Vec::new();
             for claim_id in &claim_ids {
                 let claim = claims.get(claim_id).ok_or_else(|| {
                     CoordError::new("CLAIM_NOT_FOUND", format!("no claim {claim_id}"))
@@ -279,22 +271,25 @@ impl CoordStore {
                     ));
                 }
                 repo = Some(claim.repo.clone());
-                union.extend(claim.changed_paths.iter().cloned());
+                handoff_scopes.extend(claim.changed_paths.iter().cloned());
                 selected.push(claim.clone());
             }
-            union.sort();
-            union.dedup();
+            handoff_scopes.sort();
+            handoff_scopes.dedup();
             let repo = repo.ok_or_else(|| {
                 CoordError::new("RECEIPT_GROUP_REQUIRED", "group has no repository")
             })?;
-            verify_commit_paths(&self.root, &repo, &input.commit_oid, &union)?;
+            let actual = commit_paths(&self.root, &repo, &input.commit_oid)?;
+            validate_receipt_coverage(&handoff_scopes, &actual)?;
             let receipts = selected
                 .iter()
-                .map(|claim| GroupReceipt {
-                    claim_id: claim.claim_id.clone(),
-                    committed_paths: claim.changed_paths.clone(),
+                .map(|claim| {
+                    Ok(GroupReceipt {
+                        claim_id: claim.claim_id.clone(),
+                        committed_paths: receipt_paths_for_scopes(&claim.changed_paths, &actual)?,
+                    })
                 })
-                .collect();
+                .collect::<Result<Vec<_>, CoordError>>()?;
             for claim in &mut selected {
                 claim.last_event_unix_ms = now;
                 claim.commit_oid = Some(input.commit_oid.clone());
@@ -342,6 +337,32 @@ impl CoordStore {
             options.mode(0o600);
         }
         options.open(&self.log_path).map_err(CoordError::io)
+    }
+}
+
+fn validate_input_coverage(scopes: &[String], committed: &[String]) -> Result<(), CoordError> {
+    validate_receipt_coverage(scopes, committed).map_err(|error| {
+        CoordError::new(
+            "COMMITTED_PATH_MISMATCH",
+            format!("receipt leaf paths do not match the handoff: {error}"),
+        )
+    })
+}
+
+fn require_exact_paths(
+    commit_oid: &str,
+    actual: &[String],
+    expected: &[String],
+) -> Result<(), CoordError> {
+    if actual == expected {
+        Ok(())
+    } else {
+        Err(CoordError::new(
+            "COMMIT_PATH_MISMATCH",
+            format!(
+                "commit {commit_oid} leaf paths {actual:?} differ from receipted leaf paths {expected:?}"
+            ),
+        ))
     }
 }
 

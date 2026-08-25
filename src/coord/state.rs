@@ -184,6 +184,55 @@ pub(super) fn reject_outside_claim(
     Ok(())
 }
 
+pub(super) fn validate_receipt_coverage(
+    handoff_scopes: &[String],
+    commit_paths: &[String],
+) -> Result<(), CoordError> {
+    if commit_paths.is_empty() {
+        return Err(CoordError::new(
+            "COMMIT_PATH_MISMATCH",
+            "receipted commit has no leaf paths",
+        ));
+    }
+    for path in commit_paths {
+        if !handoff_scopes
+            .iter()
+            .any(|scope| contains_path(scope, path))
+        {
+            return Err(CoordError::new(
+                "COMMIT_PATH_MISMATCH",
+                format!("commit leaf {path} is outside every handed-off path"),
+            ));
+        }
+    }
+    for scope in handoff_scopes {
+        if !commit_paths.iter().any(|path| contains_path(scope, path)) {
+            return Err(CoordError::new(
+                "COMMIT_PATH_MISMATCH",
+                format!("handed-off path {scope} covers no commit leaf"),
+            ));
+        }
+    }
+    Ok(())
+}
+
+pub(super) fn receipt_paths_for_scopes(
+    handoff_scopes: &[String],
+    commit_paths: &[String],
+) -> Result<Vec<String>, CoordError> {
+    let paths = commit_paths
+        .iter()
+        .filter(|path| {
+            handoff_scopes
+                .iter()
+                .any(|scope| contains_path(scope, path))
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+    validate_receipt_coverage(handoff_scopes, &paths)?;
+    Ok(paths)
+}
+
 pub(super) fn normalized_paths(paths: &[String]) -> Result<Vec<String>, CoordError> {
     if paths.is_empty() {
         return Err(CoordError::new(
@@ -303,7 +352,7 @@ fn paths_overlap(left: &str, right: &str) -> bool {
     contains_path(left, right) || contains_path(right, left)
 }
 
-fn contains_path(root: &str, path: &str) -> bool {
+pub(super) fn contains_path(root: &str, path: &str) -> bool {
     root == "."
         || root == path
         || path

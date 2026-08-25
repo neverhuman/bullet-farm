@@ -10,12 +10,11 @@ const GIT_LIMITS: Limits = Limits {
     stderr_bytes: 16 * 1024 * 1024,
 };
 
-pub(super) fn verify_commit_paths(
+pub(super) fn commit_paths(
     family_root: &Path,
     repo: &str,
     commit_oid: &str,
-    expected_paths: &[String],
-) -> Result<(), CoordError> {
+) -> Result<Vec<String>, CoordError> {
     validate_repo_name(repo)?;
     let repo_root = family_root.join(repo);
     if !repo_root.join(".git").is_dir() {
@@ -35,29 +34,40 @@ pub(super) fn verify_commit_paths(
             "--root",
             "--no-commit-id",
             "--name-only",
+            "-z",
             "-r",
             commit_oid,
         ],
     )?;
+    if !output.is_empty() && output.last() != Some(&0) {
+        return Err(CoordError::new(
+            "INVALID_GIT_OUTPUT",
+            "Git leaf-path output lacks its terminal NUL",
+        ));
+    }
     let mut actual = output
-        .lines()
-        .map(validate_path)
+        .strip_suffix(&[0])
+        .unwrap_or_default()
+        .split(|byte| *byte == 0)
+        .filter(|path| !path.is_empty())
+        .map(|path| {
+            let path = std::str::from_utf8(path).map_err(|_| {
+                CoordError::new("INVALID_GIT_OUTPUT", "Git emitted a non-UTF-8 leaf path")
+            })?;
+            validate_path(path).map_err(|error| {
+                CoordError::new(
+                    "INVALID_GIT_OUTPUT",
+                    format!("Git emitted an invalid leaf path: {error}"),
+                )
+            })
+        })
         .collect::<Result<Vec<_>, _>>()?;
     actual.sort();
     actual.dedup();
-    if actual != expected_paths {
-        return Err(CoordError::new(
-            "COMMIT_PATH_MISMATCH",
-            format!(
-                "commit {commit_oid} paths {:?} differ from handed-off paths {:?}",
-                actual, expected_paths
-            ),
-        ));
-    }
-    Ok(())
+    Ok(actual)
 }
 
-fn git(repo_root: &Path, args: &[&str]) -> Result<String, CoordError> {
+fn git(repo_root: &Path, args: &[&str]) -> Result<Vec<u8>, CoordError> {
     let output = run_bounded(
         Command::new(GIT_BIN)
             .arg("-C")
@@ -77,6 +87,5 @@ fn git(repo_root: &Path, args: &[&str]) -> Result<String, CoordError> {
             ),
         ));
     }
-    String::from_utf8(output.stdout)
-        .map_err(|_| CoordError::new("INVALID_GIT_OUTPUT", "Git emitted non-UTF-8 paths"))
+    Ok(output.stdout)
 }

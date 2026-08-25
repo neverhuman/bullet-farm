@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use super::{
     CoordError,
     model::{ClaimState, ClaimSummary, Record},
-    state::normalized_paths,
+    state::{contains_path, normalized_paths, validate_receipt_coverage},
     validate_commit_oid, validate_field,
 };
 
@@ -105,11 +105,7 @@ fn apply_existing_receipt(
     let claim = claims
         .get_mut(claim_id)
         .ok_or_else(|| corrupt(format!("receipt references missing claim {claim_id}")))?;
-    if claim.changed_paths != paths {
-        return Err(corrupt(format!(
-            "claim {claim_id} receipt paths differ from its handoff"
-        )));
-    }
+    validate_receipt_coverage(&claim.changed_paths, paths).map_err(as_corrupt)?;
     if at < claim.last_event_unix_ms {
         return Err(corrupt(format!("claim {claim_id} time moved backwards")));
     }
@@ -141,6 +137,43 @@ fn apply_group(
             return Err(corrupt("group receipt claim IDs are not unique and sorted"));
         }
         previous = Some(receipt.claim_id.as_str());
+        let paths = normalized_paths(&receipt.committed_paths).map_err(as_corrupt)?;
+        if paths != receipt.committed_paths {
+            return Err(corrupt(format!(
+                "claim {} has noncanonical grouped receipt paths",
+                receipt.claim_id
+            )));
+        }
+    }
+    let union = receipts
+        .iter()
+        .flat_map(|receipt| receipt.committed_paths.iter().cloned())
+        .collect::<BTreeSet<_>>();
+    for receipt in receipts {
+        let claim = claims.get(&receipt.claim_id).ok_or_else(|| {
+            corrupt(format!(
+                "group receipt references missing claim {}",
+                receipt.claim_id
+            ))
+        })?;
+        let expected = union
+            .iter()
+            .filter(|path| {
+                claim
+                    .changed_paths
+                    .iter()
+                    .any(|scope| contains_path(scope, path))
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        if receipt.committed_paths != expected {
+            return Err(corrupt(format!(
+                "claim {} grouped receipt does not deterministically bind every covered leaf",
+                receipt.claim_id
+            )));
+        }
+    }
+    for receipt in receipts {
         apply_receipt(
             claims,
             at,
