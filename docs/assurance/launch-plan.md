@@ -81,7 +81,7 @@ path-exactly with receipts. IDs refer to the inventory.
 | Item | What | Lane |
 | --- | --- | --- |
 | R-05 / V1-S5-d | Embed the manifest-verified Portal bundle in farmd; Playwright against the packaged origin | **done** — kernel `d59c5a72` + `0c10cd9e`, portal `f4b8975e`; browser suite 2/2 against farmd's own origin |
-| R-02 | `bullet-family release build` for the exact five-target matrix; checksums; SBOM (Rust + npm); provenance producer; non-circular manifest generator; release workflow (R-13) | next, after R-05 |
+| R-02 | `bullet-family release build` for the exact five-target matrix; checksums; SBOM (Rust + npm); provenance producer; non-circular manifest generator; release workflow (R-13) | Linux x86_64 **done** — hub `a1b7ab38` (deterministic bundle, 445-component CycloneDX SBOM gated on `deny.toml`, checksums re-read, unsigned in-toto provenance, other four targets refused by name). Still open for the five-target matrix: signing (OD-E), schema-3 lock (OD-D), four external build hosts (OD-F), release workflow (R-13), and a found defect — `archive.rs` extracts six of seven binaries without the executable bit |
 | V1-S7-a…d | Signed admission of the wrapper-selected executable; clone-transport helper subjects; transaction-wide repository stability; allowed-signers admission | next |
 | Post-V1 evolution | Frozen T0/T3 study, deterministic allocation/evaluation, external confirmation, R0/R1 canary and rollback evidence | explicitly post-V1; keep `evolutionary_authority=false` |
 
