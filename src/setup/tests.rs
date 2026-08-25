@@ -54,7 +54,11 @@ fn checkout_publication_never_replaces_a_racing_destination() {
     use std::os::unix::fs::symlink;
 
     let fixture = fixture_root("publication-race");
-    let staged = fixture.join("staged");
+    let root = admitted_root_for_test(&fixture).expect("admit fixture root");
+    let staging = root
+        .create_staging("checkout-test")
+        .expect("private staging");
+    let staged = staging.path().join("bullet-kernel");
     let target = fixture.join("bullet-kernel");
     let raced_checkout = fixture.join("raced-checkout");
     fs::create_dir(&staged).expect("staged checkout");
@@ -63,7 +67,7 @@ fn checkout_publication_never_replaces_a_racing_destination() {
     fs::write(raced_checkout.join("sentinel"), "preserve me\n").expect("race sentinel");
     symlink(&raced_checkout, &target).expect("racing destination symlink");
 
-    let error = publish_checkout_no_replace(&staged, &target, "bullet-kernel")
+    let error = publish_staged_for_test(&staging, "bullet-kernel")
         .expect_err("publication must not replace a path created after preflight");
     assert_eq!(error.code(), "CHECKOUT_CONFLICT");
     assert!(
@@ -77,6 +81,7 @@ fn checkout_publication_never_replaces_a_racing_destination() {
         "preserve me\n"
     );
     assert!(staged.join("candidate").is_file());
+    staging.finish().expect("remove private staging");
     fs::remove_dir_all(fixture).expect("remove publication fixture");
 }
 

@@ -5,25 +5,21 @@ mod command;
 mod transaction;
 mod validate;
 
-use std::{
-    ffi::OsStr,
-    path::{Path, PathBuf},
-};
+use std::{ffi::OsStr, path::Path};
 
 use crate::{
-    checkout::ensure_regular_directory,
     coord::CoordError,
     family_lock::{self, LockedMember},
 };
 use args::parse_args;
 use command::{SetupEnvironment, Toolchain, run_git};
-use transaction::{NoFault, install_transaction};
+use transaction::{AdmittedRoot, NoFault, install_transaction};
 use validate::SetupValidator;
 
 #[cfg(test)]
 use transaction::ExactOnlyValidator;
 #[cfg(test)]
-use transaction::publish_checkout_no_replace;
+use transaction::{admitted_root_for_test, publish_staged_for_test};
 
 const GIT_BIN: &str = "/usr/bin/git";
 const BASH_BIN: &str = "/bin/bash";
@@ -36,9 +32,10 @@ pub fn run(
 ) -> Result<String, CoordError> {
     let options = parse_args(explicit_root, args)?;
     require_setup_containment()?;
+    let family_root = AdmittedRoot::open(&options.root)?;
     let hub_root = crate::doctor::discover_hub(current_dir, None)?;
-    let family_root = canonical_family_root(&options.root)?;
-    let expected_hub = family_root.join("bullet-farm");
+    family_root.ensure_path_identity()?;
+    let expected_hub = family_root.path().join("bullet-farm");
     if expected_hub.canonicalize().map_err(CoordError::io)?
         != hub_root.canonicalize().map_err(CoordError::io)?
     {
@@ -50,6 +47,7 @@ pub fn run(
             ),
         ));
     }
+    family_root.ensure_path_identity()?;
     let lock = family_lock::load(&hub_root.join("family.lock"))?;
     let toolchain = Toolchain::admit(
         options.cargo_bin.as_deref(),
@@ -57,16 +55,19 @@ pub fn run(
         options.npm_cli.as_deref(),
     )?;
     let environment = SetupEnvironment::create(&family_root, &toolchain)?;
-    let validator = SetupValidator::new(options.offline, &toolchain, &environment);
-    install_transaction(
-        &family_root,
-        &hub_root,
-        &lock,
-        options.offline,
-        &JeryuTransport,
-        &validator,
-        &NoFault,
-    )?;
+    {
+        let validator = SetupValidator::new(options.offline, &toolchain, &environment);
+        install_transaction(
+            &family_root,
+            &hub_root,
+            &lock,
+            options.offline,
+            &JeryuTransport,
+            &validator,
+            &NoFault,
+        )?;
+    }
+    environment.finish()?;
     Ok(format!(
         "setup complete: {} members at {}",
         lock.member.len() + 1,
@@ -85,11 +86,6 @@ fn require_setup_containment() -> Result<(), CoordError> {
         "UNSUPPORTED_PLATFORM_CONTAINMENT",
         "setup cannot mutate on this platform until process-tree termination and atomic no-replace publication have equivalent release evidence",
     ))
-}
-
-fn canonical_family_root(root: &Path) -> Result<PathBuf, CoordError> {
-    ensure_regular_directory(root, "setup root")?;
-    root.canonicalize().map_err(CoordError::io)
 }
 
 trait CloneTransport {
@@ -137,8 +133,9 @@ fn install(
     offline: bool,
     transport: &dyn CloneTransport,
 ) -> Result<(), CoordError> {
+    let family_root = AdmittedRoot::open(family_root)?;
     install_transaction(
-        family_root,
+        &family_root,
         hub_root,
         lock,
         offline,

@@ -5,6 +5,7 @@ use std::{
 };
 
 use super::{SetupEnvironment, Toolchain};
+use crate::setup::transaction::AdmittedRoot;
 
 #[cfg(unix)]
 #[test]
@@ -116,7 +117,8 @@ fn admitted_tool_child(fixture: &Path) {
         Some(&fixture.join("npm-cli.js")),
     )
     .expect("admit exact fixture tools");
-    let environment = SetupEnvironment::create(fixture, &toolchain).expect("isolated setup HOME");
+    let root = AdmittedRoot::open(fixture).expect("admit command fixture root");
+    let environment = SetupEnvironment::create(&root, &toolchain).expect("isolated setup HOME");
     let home = environment.home_path().to_path_buf();
     toolchain
         .run_cargo(fixture, &["fetch", "--locked", "--offline"], &environment)
@@ -133,8 +135,47 @@ fn admitted_tool_child(fixture: &Path) {
         assert!(!observed.contains("/shim"), "{observed}");
         assert!(observed.contains(&format!("home={}\n", home.display())));
     }
-    drop(environment);
+    environment.finish().expect("remove ephemeral setup HOME");
     assert!(!home.exists(), "ephemeral setup HOME survived drop");
+}
+
+#[cfg(unix)]
+#[test]
+fn setup_environment_detects_root_replacement_and_cleans_only_the_pinned_root() {
+    let fixture = fixture_root("environment-root-replacement");
+    let moved = fixture.with_extension("original");
+    let _ = fs::remove_dir_all(&moved);
+    tool_fixtures(&fixture);
+    let toolchain = Toolchain::admit(
+        Some(&fixture.join("cargo-real")),
+        Some(&fixture.join("node-real")),
+        Some(&fixture.join("npm-cli.js")),
+    )
+    .expect("admit exact fixture tools");
+    let root = AdmittedRoot::open(&fixture).expect("admit command fixture root");
+    let environment = SetupEnvironment::create(&root, &toolchain).expect("isolated setup HOME");
+
+    fs::rename(&fixture, &moved).expect("move admitted root");
+    fs::create_dir(&fixture).expect("replacement root");
+    fs::write(fixture.join("sentinel"), "preserve replacement\n").expect("replacement sentinel");
+    let error = environment
+        .verify()
+        .expect_err("replaced environment root must fail closed");
+    assert_eq!(error.code(), "SETUP_ROOT_REPLACED");
+    drop(environment);
+    assert_eq!(
+        fs::read_to_string(fixture.join("sentinel")).unwrap(),
+        "preserve replacement\n"
+    );
+    assert!(fs::read_dir(&moved).unwrap().all(|entry| {
+        !entry
+            .unwrap()
+            .file_name()
+            .to_string_lossy()
+            .starts_with(crate::setup::STAGING_PREFIX)
+    }));
+    fs::remove_dir_all(fixture).unwrap();
+    fs::remove_dir_all(moved).unwrap();
 }
 
 #[cfg(unix)]

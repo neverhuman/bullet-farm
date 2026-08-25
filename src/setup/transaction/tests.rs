@@ -1,7 +1,7 @@
 use std::{cell::Cell, fs, path::Path};
 
 #[cfg(unix)]
-use std::os::unix::fs::MetadataExt;
+use std::os::unix::fs::{MetadataExt, PermissionsExt, symlink};
 
 use super::*;
 use crate::setup::tests::{
@@ -33,6 +33,29 @@ impl FaultInjector for CrashAt {
                 "INJECTED_SETUP_CRASH",
                 format!("{boundary:?} at {}", member.unwrap_or("family")),
             ));
+        }
+        Ok(())
+    }
+}
+
+struct ReplaceRootAt {
+    boundary: Boundary,
+    root: PathBuf,
+    moved: PathBuf,
+    fired: Cell<bool>,
+}
+
+impl FaultInjector for ReplaceRootAt {
+    fn reach(&self, boundary: Boundary, _member: Option<&str>) -> Result<(), CoordError> {
+        if !self.fired.get() && boundary == self.boundary {
+            fs::rename(&self.root, &self.moved).map_err(CoordError::io)?;
+            fs::create_dir(&self.root).map_err(CoordError::io)?;
+            fs::write(
+                self.root.join("replacement-sentinel"),
+                "preserve replacement\n",
+            )
+            .map_err(CoordError::io)?;
+            self.fired.set(true);
         }
         Ok(())
     }
@@ -149,6 +172,7 @@ fn every_transaction_boundary_recovers_to_one_complete_exact_family() {
         let root = fixture.join(format!("install-{index}"));
         fs::create_dir(&root).unwrap();
         let hub = install_hub(&sources, &root, &home);
+        let admitted = AdmittedRoot::open(&root).unwrap();
         let lock = crate::family_lock::load(&hub.join("family.lock")).unwrap();
         let transport = LocalTransport {
             sources: sources.clone(),
@@ -157,7 +181,7 @@ fn every_transaction_boundary_recovers_to_one_complete_exact_family() {
         let validator = SideEffectValidator::clean();
         let crash = CrashAt::new(boundary, member);
         let error = install_with_verifier(
-            &root,
+            &admitted,
             &hub,
             &lock,
             true,
@@ -179,7 +203,7 @@ fn every_transaction_boundary_recovers_to_one_complete_exact_family() {
         let existing = existing_identities(&root);
 
         install_with_verifier(
-            &root,
+            &admitted,
             &hub,
             &lock,
             true,
@@ -208,6 +232,87 @@ fn every_transaction_boundary_recovers_to_one_complete_exact_family() {
     fs::remove_dir_all(fixture).unwrap();
 }
 
+#[cfg(unix)]
+#[test]
+fn root_replacement_cannot_redirect_member_or_manifest_publication() {
+    let fixture = fixture_root("transaction-root-replacement");
+    let sources = fixture.join("sources");
+    let home = fixture.join("home");
+    fs::create_dir(&sources).unwrap();
+    fs::create_dir(&home).unwrap();
+    let key = create_signing_key(&fixture);
+    create_source_family(&sources, &home, &key);
+
+    for (index, boundary) in [Boundary::BeforeMemberPublish, Boundary::ManifestFileSynced]
+        .into_iter()
+        .enumerate()
+    {
+        let root = fixture.join(format!("replace-{index}"));
+        let moved = fixture.join(format!("original-{index}"));
+        fs::create_dir(&root).unwrap();
+        let hub = install_hub(&sources, &root, &home);
+        let lock = crate::family_lock::load(&hub.join("family.lock")).unwrap();
+        let admitted = AdmittedRoot::open(&root).unwrap();
+        let transport = LocalTransport {
+            sources: sources.clone(),
+            clone_count: Cell::new(0),
+        };
+        let replacement = ReplaceRootAt {
+            boundary,
+            root: root.clone(),
+            moved: moved.clone(),
+            fired: Cell::new(false),
+        };
+        let error = install_with_verifier(
+            &admitted,
+            &hub,
+            &lock,
+            true,
+            &transport,
+            &SideEffectValidator::clean(),
+            Controls {
+                faults: &replacement,
+                verifier: &FastVerifier,
+            },
+        )
+        .expect_err("a replaced admitted root must fail closed");
+        assert_eq!(error.code(), "SETUP_ROOT_REPLACED");
+        assert!(replacement.fired.get());
+        assert_eq!(
+            fs::read_to_string(root.join("replacement-sentinel")).unwrap(),
+            "preserve replacement\n"
+        );
+        assert_eq!(fs::read_dir(&root).unwrap().count(), 1);
+        assert!(!moved.join("repos.manifest.toml").exists());
+        assert_no_staging(&moved);
+        assert_authority_invariant(&moved, &moved.join("bullet-farm"), &lock, &FastVerifier);
+    }
+    fs::remove_dir_all(fixture).unwrap();
+}
+
+#[cfg(unix)]
+#[test]
+fn staging_is_private_and_cleanup_never_follows_symlinks() {
+    let fixture = fixture_root("private-staging");
+    let outside = fixture_root("private-staging-outside");
+    fs::write(outside.join("sentinel"), "preserve outside\n").unwrap();
+    let root = AdmittedRoot::open(&fixture).unwrap();
+    let staging = root.create_staging("permission-test").unwrap();
+    let mode = fs::metadata(staging.path()).unwrap().permissions().mode() & 0o777;
+    assert_eq!(mode, 0o700);
+    fs::create_dir(staging.path().join("nested")).unwrap();
+    fs::write(staging.path().join("nested/data"), "cleanup me\n").unwrap();
+    symlink(&outside, staging.path().join("outside-link")).unwrap();
+    staging.finish().unwrap();
+    assert_no_staging(&fixture);
+    assert_eq!(
+        fs::read_to_string(outside.join("sentinel")).unwrap(),
+        "preserve outside\n"
+    );
+    fs::remove_dir_all(fixture).unwrap();
+    fs::remove_dir_all(outside).unwrap();
+}
+
 #[test]
 fn tracked_tool_mutation_and_hostile_partial_state_never_publish_authority() {
     let fixture = fixture_root("transaction-negative");
@@ -221,6 +326,7 @@ fn tracked_tool_mutation_and_hostile_partial_state_never_publish_authority() {
     let corrupt_root = fixture.join("corrupt-install");
     fs::create_dir(&corrupt_root).unwrap();
     let corrupt_hub = install_hub(&sources, &corrupt_root, &home);
+    let corrupt_admitted = AdmittedRoot::open(&corrupt_root).unwrap();
     let lock = crate::family_lock::load(&corrupt_hub.join("family.lock")).unwrap();
     let transport = LocalTransport {
         sources: sources.clone(),
@@ -231,7 +337,7 @@ fn tracked_tool_mutation_and_hostile_partial_state_never_publish_authority() {
         calls: Cell::new(0),
     };
     let error = install_transaction(
-        &corrupt_root,
+        &corrupt_admitted,
         &corrupt_hub,
         &lock,
         true,
@@ -250,6 +356,7 @@ fn tracked_tool_mutation_and_hostile_partial_state_never_publish_authority() {
     let hostile_root = fixture.join("hostile-install");
     fs::create_dir(&hostile_root).unwrap();
     let hostile_hub = install_hub(&sources, &hostile_root, &home);
+    let hostile_admitted = AdmittedRoot::open(&hostile_root).unwrap();
     fs::write(
         hostile_root.join("repos.manifest.toml"),
         fs::read(hostile_hub.join("repos.manifest.toml")).unwrap(),
@@ -261,7 +368,7 @@ fn tracked_tool_mutation_and_hostile_partial_state_never_publish_authority() {
         clone_count: Cell::new(0),
     };
     let error = install_transaction(
-        &hostile_root,
+        &hostile_admitted,
         &hostile_hub,
         &lock,
         true,

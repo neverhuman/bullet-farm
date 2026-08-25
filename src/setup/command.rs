@@ -201,6 +201,7 @@ impl CommandSpec {
         args: &[&str],
         environment: &SetupEnvironment,
     ) -> Result<(), CoordError> {
+        environment.verify()?;
         self.program.verify()?;
         for companion in &self.companions {
             companion.verify()?;
@@ -208,7 +209,9 @@ impl CommandSpec {
         let mut command = Command::new(&self.program.path);
         command.current_dir(repo).args(&self.prefix_args).args(args);
         environment.apply(&mut command);
-        let output = run_bounded(&mut command, self.identity.label(), TOOL_LIMITS)?;
+        let output = run_bounded(&mut command, self.identity.label(), TOOL_LIMITS);
+        environment.verify()?;
+        let output = output?;
         if output.status.success() {
             Ok(())
         } else {

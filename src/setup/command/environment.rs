@@ -1,20 +1,16 @@
-use std::{
-    ffi::{OsStr, OsString},
-    fs,
-    path::{Path, PathBuf},
-    process::Command,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::{ffi::OsString, path::PathBuf, process::Command};
 
 use super::Toolchain;
-use crate::{coord::CoordError, setup::STAGING_PREFIX};
+use crate::{
+    coord::CoordError,
+    setup::transaction::{AdmittedRoot, Staging},
+};
 
 const HOME_COMPONENT: &str = "home";
 
 #[derive(Debug)]
 pub(in crate::setup) struct SetupEnvironment {
-    family_root: PathBuf,
-    root: PathBuf,
+    staging: Option<Staging>,
     home: PathBuf,
     cargo_home: PathBuf,
     npm_cache: PathBuf,
@@ -24,62 +20,44 @@ pub(in crate::setup) struct SetupEnvironment {
 
 impl SetupEnvironment {
     pub(in crate::setup) fn create(
-        family_root: &Path,
+        family_root: &AdmittedRoot,
         toolchain: &Toolchain,
     ) -> Result<Self, CoordError> {
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|error| CoordError::new("CLOCK_BEFORE_EPOCH", error.to_string()))?
-            .as_nanos();
-        for sequence in 0..64 {
-            let root = family_root.join(format!(
-                "{STAGING_PREFIX}{HOME_COMPONENT}.{}.{}.{}",
-                std::process::id(),
-                now,
-                sequence
-            ));
-            match fs::create_dir(&root) {
-                Ok(()) => {
-                    return Self::initialize(
-                        family_root,
-                        root,
-                        toolchain.trusted_path().to_owned(),
-                    );
-                }
-                Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
-                Err(error) => return Err(CoordError::io(error)),
-            }
-        }
-        Err(CoordError::new(
-            "STAGING_COLLISION",
-            "could not allocate an ephemeral setup HOME",
-        ))
-    }
-
-    fn initialize(
-        family_root: &Path,
-        root: PathBuf,
-        trusted_path: OsString,
-    ) -> Result<Self, CoordError> {
-        let home = root.join("home");
-        let cargo_home = root.join("cargo");
-        let npm_cache = root.join("npm-cache");
-        let temporary = root.join("tmp");
-        for path in [&home, &cargo_home, &npm_cache, &temporary] {
-            if let Err(error) = fs::create_dir(path) {
-                let _ = fs::remove_dir_all(&root);
-                return Err(CoordError::io(error));
-            }
+        let staging = family_root.create_staging(HOME_COMPONENT)?;
+        let home = staging.path().join("home");
+        let cargo_home = staging.path().join("cargo");
+        let npm_cache = staging.path().join("npm-cache");
+        let temporary = staging.path().join("tmp");
+        for name in ["home", "cargo", "npm-cache", "tmp"] {
+            staging.create_private_dir(name)?;
         }
         Ok(Self {
-            family_root: family_root.to_path_buf(),
-            root,
+            staging: Some(staging),
             home,
             cargo_home,
             npm_cache,
             temporary,
-            trusted_path,
+            trusted_path: toolchain.trusted_path().to_owned(),
         })
+    }
+
+    pub(super) fn verify(&self) -> Result<(), CoordError> {
+        self.staging
+            .as_ref()
+            .ok_or_else(|| {
+                CoordError::new(
+                    "SETUP_STAGING_CLOSED",
+                    "setup environment is already closed",
+                )
+            })?
+            .ensure_path_identity()
+    }
+
+    pub(in crate::setup) fn finish(mut self) -> Result<(), CoordError> {
+        self.staging
+            .take()
+            .expect("setup environment staging exists")
+            .finish()
     }
 
     pub(super) fn apply(&self, command: &mut Command) {
@@ -98,20 +76,7 @@ impl SetupEnvironment {
     }
 
     #[cfg(test)]
-    pub(super) fn home_path(&self) -> &Path {
+    pub(super) fn home_path(&self) -> &std::path::Path {
         &self.home
-    }
-}
-
-impl Drop for SetupEnvironment {
-    fn drop(&mut self) {
-        let safe_name = self
-            .root
-            .file_name()
-            .and_then(OsStr::to_str)
-            .is_some_and(|name| name.starts_with(&format!("{STAGING_PREFIX}{HOME_COMPONENT}.")));
-        if safe_name && self.root.parent() == Some(self.family_root.as_path()) {
-            let _ = fs::remove_dir_all(&self.root);
-        }
     }
 }
