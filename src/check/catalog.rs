@@ -86,7 +86,7 @@ const REQUIRED: &[CommandGate] = &[
     ),
     gate(
         "required.demo-component",
-        GateClass::Synthetic,
+        GateClass::Component,
         SubjectScope::Family,
         "bullet-farm",
         "scripts/demo.sh",
@@ -139,6 +139,6 @@ mod tests {
         }
         assert!(FAST.iter().all(|gate| gate.class == GateClass::Component));
         assert_eq!(REQUIRED[0].class, GateClass::Component);
-        assert_eq!(REQUIRED[1].class, GateClass::Synthetic);
+        assert_eq!(REQUIRED[1].class, GateClass::Component);
     }
 }
