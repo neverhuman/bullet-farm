@@ -1,5 +1,6 @@
-//! The 26 gate claim rows. Sorted by gate id; the parent module's tests enforce
-//! exact catalog coverage, gap coverage, vocabulary, and command existence.
+//! Historical gate rows plus the conditions selected by `universal-v1`.
+//! Each table is sorted by gate id; the parent module's tests enforce exact
+//! profile coverage, gap coverage, vocabulary, and command existence.
 
 use super::{ClaimRow, Owner, command, none};
 
@@ -11,6 +12,89 @@ const PROVIDER_OWNER: Owner = Owner::External(
 const PROVIDER_NOTE: &str = "real mode refuses to start without an absolute operator-ratified policy path; under the checked-in v1alpha1 policy the lane exits 78 (neutral refusal) and spawns nothing";
 const RELEASE_VERIFY: &str =
     "bullet-family release verify --bundle /abs/bundle --allowed-signers /abs/allowed_signers";
+const RELEASE_BUILD_LINUX_X64: &str =
+    "bullet-family release build --target x86_64-unknown-linux-gnu --out /abs/absent-output";
+
+const PROFILE_WHY: &str = "A dependency graph selects a condition; it does not establish the independently trusted, exact-subject semantics that condition names.";
+const PROFILE_ACCEPTANCE: &str = "Register exact current-family evidence only after signer lifecycle, dependency closure, schema-3 family, policy/toolchain/environment fingerprints, trusted time, replay state, and the condition-specific semantic validator all pass.";
+const PROFILE_EXISTS: &str = "an explicit profile graph and bounded structural registry parser that remain fail-closed without external trust, replay state, current-family admission, and condition-specific semantics";
+const PROFILE_OWNER: Owner = Owner::LocalThenExternal {
+    offline: "condition-specific semantic validators and typed refusals are local engineering",
+    external: "independently admitted signer roots, trusted time, replay state, exact signed family subjects, credentials, services, and target platforms",
+};
+
+const fn profile_condition(id: &'static str, gap_ids: &'static [&'static str]) -> ClaimRow {
+    ClaimRow {
+        id,
+        gap_ids,
+        claim: "No current independently admitted receipt establishes this selected release-profile condition.",
+        why: PROFILE_WHY,
+        acceptance: PROFILE_ACCEPTANCE,
+        exists: PROFILE_EXISTS,
+        owner: PROFILE_OWNER,
+        next: command(
+            "bullet-family check release --profile universal-v1 --receipts /absolute/admitted-registry --json",
+            "reports the condition against the selected registry; structural or absent input cannot clear it",
+        ),
+    }
+}
+
+pub(crate) const CONDITION_ROWS: &[ClaimRow] = &[
+    profile_condition("release.profile.github-adapter-v1", &["G7"]),
+    profile_condition("release.profile.gitlab-adapter-v1", &["G7"]),
+    profile_condition("release.profile.gitlab-self-managed-v1", &["G7"]),
+    profile_condition("release.profile.jeryu-forge-v1", &["G6"]),
+    profile_condition("release.profile.platform-linux-aarch64", &["G9", "G10"]),
+    profile_condition("release.profile.platform-linux-x86_64", &["G9", "G10"]),
+    profile_condition("release.profile.platform-macos-aarch64", &["G9", "G10"]),
+    profile_condition("release.profile.platform-macos-x86_64", &["G9", "G10"]),
+    profile_condition("release.profile.platform-windows-x86_64", &["G9", "G10"]),
+    profile_condition("release.profile.provider-antigravity", &["G5"]),
+    profile_condition("release.profile.provider-claude", &["G5"]),
+    profile_condition("release.profile.provider-codex", &["G5"]),
+    profile_condition("release.profile.provider-cursor", &["G5"]),
+    profile_condition(
+        "release.profile.self-hosted-v1",
+        &["G1", "G2", "G3", "G5", "G6", "G8", "G9", "G10"],
+    ),
+    profile_condition(
+        "release.profile.universal-v1",
+        &["G1", "G2", "G3", "G5", "G6", "G7", "G8", "G9", "G10"],
+    ),
+];
+
+pub(crate) const NATIVE_ROWS: &[ClaimRow] = &[
+    ClaimRow {
+        id: "release.package-linux-x86_64",
+        gap_ids: &["G9"],
+        claim: "No signed Ubuntu 24.04 x86_64 package with the embedded Portal, services, migrations, sandbox assets, and guest image exists.",
+        why: "The portable profile needs the concrete native archive and its supply-chain subjects; a platform condition or an internal builder test is not a package.",
+        acceptance: "Build the exact tagged x86_64-unknown-linux-gnu package inside the admitted different-identity builder, semantically verify every subject, and register its signed receipt.",
+        exists: "a quarantined internal one-target builder component exercised by focused tests; the public `release build` command refuses before parsing or output because different-identity containment is absent",
+        owner: Owner::LocalThenExternal {
+            offline: "the different-identity builder boundary and package semantic verifier are Hub release engineering",
+            external: "exact signed family subjects, protected signing roots, and the admitted Linux builder environment",
+        },
+        next: none(
+            "the public `release build` command returns RELEASE_BUILD_CONTAINMENT_UNAVAILABLE before parsing or output; no admitted package-build command exists yet",
+        ),
+    },
+    ClaimRow {
+        id: "release.systemd-v1",
+        gap_ids: &["G1", "G9"],
+        claim: "No native systemd install, upgrade, activation, rollback, uninstall, and non-destructive retention receipt exists.",
+        why: "A signed archive is not an operable Linux release until native lifecycle transitions preserve the prior or whole next generation and read their service state back.",
+        acceptance: "Run two clean Ubuntu 24.04 installs plus upgrade, activation, rollback, uninstall, retention, and disaster drills from signed package bytes and register the exact receipt.",
+        exists: "release and setup runbooks plus structural bundle verification; no activation helper, generation lifecycle, clean-host drill, or signed lifecycle receipt",
+        owner: Owner::LocalThenExternal {
+            offline: "the narrow activation service, generation lifecycle, rollback, and fault harness are Hub release engineering",
+            external: "two clean Ubuntu 24.04 hosts, signed package bytes, protected signing roots, and trusted time",
+        },
+        next: none(
+            "no typed native activation or lifecycle-drill command exists; source setup and archive extraction are not installers",
+        ),
+    },
+];
 
 const fn provider(
     id: &'static str,
@@ -53,13 +137,14 @@ pub(crate) const ROWS: &[ClaimRow] = &[
         claim: "No checksum set exists for any release archive, because no release archive exists.",
         why: "Without checksums an installer cannot tell substituted bytes from released bytes.",
         acceptance: "Generate and re-read checksums for every exact archive in the five-target matrix and bind them in the signed release manifest.",
-        exists: "hub `release verify` re-reads checksums only inside an already signed bundle (`352f963`, `ba09056`); no archive or package builder",
+        exists: "hub `a1b7ab3` + `ab1fd8f` build and re-read a BLAKE3 checksum manifest for one unsigned Linux x86_64 component bundle; it is not a five-target checksum set, signature, or release receipt",
         owner: Owner::LocalThenExternal {
-            offline: "a package builder and checksum generation over its archives are hub engineering (V1-S7)",
+            offline: "the remaining target builders and five-target checksum aggregation are hub engineering (V1-S7)",
             external: "the five archives on macOS/Windows build platforms and the signed manifest that binds the checksums",
         },
-        next: none(
-            "no package builder exists; `bullet-family release verify` only re-reads checksums inside an assembled signed bundle",
+        next: command(
+            RELEASE_BUILD_LINUX_X64,
+            "the public command refuses before parsing or output with RELEASE_BUILD_CONTAINMENT_UNAVAILABLE; only quarantined internal tests exercise the one-target checksum component",
         ),
     },
     ClaimRow {
@@ -167,11 +252,14 @@ pub(crate) const ROWS: &[ClaimRow] = &[
         claim: "None of the five release archives (Linux x86_64/aarch64, macOS x86_64/arm64, Windows x64) has been built with the Portal embedded.",
         why: "A release is bytes on every declared platform; the Vite preview lane and a separately built farmd are not package evidence.",
         acceptance: "Build and smoke all five archives from the exact tagged family with the Portal embedded in the Rust distribution and register each archive digest.",
-        exists: "Portal `8272844` deterministic clean-commit bundle manifest and a separately built farmd; no archive, embedding, or package builder",
+        exists: "hub `a1b7ab3` + `ab1fd8f` emit one unsigned Linux x86_64 component archive with the committed Portal embedded and all eight release binaries; the other four targets, signatures, and release receipt are absent",
         owner: Owner::External(
             "macOS x86_64/arm64 and Windows x64 build platforms plus the embedded Portal build; Linux alone is not the matrix",
         ),
-        next: none("no package builder or Rust embedding of the Portal bundle exists"),
+        next: command(
+            RELEASE_BUILD_LINUX_X64,
+            "the public command refuses before parsing or output with RELEASE_BUILD_CONTAINMENT_UNAVAILABLE; only quarantined internal tests exercise the unsigned one-target component",
+        ),
     },
     ClaimRow {
         id: "release.platform-containment",
@@ -254,7 +342,7 @@ pub(crate) const ROWS: &[ClaimRow] = &[
             external: "a root-owned descriptor with three distinct signer roots, an independently signed time observation, and the schema-3 lock the receipt must bind",
         },
         next: command(
-            "bullet-family check release --json",
+            "bullet-family check release --profile universal-v1 --receipts /absolute/admitted-registry --json",
             "reads only the fixed `/etc/bullet-farm/release-msrv-1-95-admission.toml` descriptor (root-owned; environment variables and repository files cannot redirect it); this one gate becomes PASS only from an admitted receipt",
         ),
     },
@@ -264,13 +352,14 @@ pub(crate) const ROWS: &[ClaimRow] = &[
         claim: "Nobody has built and tested the exact tagged family with pinned Rust 1.97.1 and registered the receipt.",
         why: "The pinned toolchain is the second required build; one toolchain receipt never covers the other.",
         acceptance: "Build and test the exact tagged family with the admitted pinned Rust 1.97.1 toolchain under cargo --locked and register the receipt.",
-        exists: "nothing beyond the MSRV admission pattern; `scripts/ci-doctor.sh` accepts rustc 1.95.0 only and no 1.97.1 lane or admission path exists",
+        exists: "the explicit `just toolchain-pinned` Rust 1.97.1 build/test lane emits a subject-, tool-, argv-, environment-, and output-bound machine-local observation; it is unsigned diagnostic input, and no condition-specific admission path or release receipt exists",
         owner: Owner::LocalThenExternal {
-            offline: "a pinned 1.97.1 lane and its admission path are ordinary hub engineering",
+            offline: "the pinned 1.97.1 lane exists; its condition-specific semantic admission path remains hub engineering",
             external: "the exact tagged family bytes and the same signer/time roots as the MSRV receipt",
         },
-        next: none(
-            "no 1.97.1 lane exists; `scripts/ci-doctor.sh` refuses any rustc other than 1.95.0",
+        next: command(
+            "just toolchain-pinned",
+            "builds and tests this Hub under pinned Rust 1.97.1 and emits an unsigned observation only; it cannot clear the release gate",
         ),
     },
     ClaimRow {
@@ -279,12 +368,15 @@ pub(crate) const ROWS: &[ClaimRow] = &[
         claim: "No software bill of materials exists for any release archive.",
         why: "Consumers cannot audit or respond to a vulnerability in bytes whose contents were never enumerated.",
         acceptance: "Generate and validate an SBOM for every exact release archive and bind each digest in the signed manifest.",
-        exists: "hub `release verify` re-reads SBOM bytes inside a signed bundle; no archive, SBOM generator, or semantic SBOM validation",
+        exists: "hub `a1b7ab3` + `ab1fd8f` generate and re-read a CycloneDX 1.6 SBOM with typed component, package URL, and admitted-license fields for one unsigned Linux x86_64 component bundle; no five-target signed SBOM set or release receipt exists",
         owner: Owner::LocalThenExternal {
             offline: "SBOM generation and validation over built archives",
             external: "the five archives of the package matrix and the signed manifest that binds each SBOM digest",
         },
-        next: none("no package builder or admitted SBOM generator exists"),
+        next: command(
+            RELEASE_BUILD_LINUX_X64,
+            "the public command refuses before parsing or output with RELEASE_BUILD_CONTAINMENT_UNAVAILABLE; only quarantined internal tests exercise the one-target CycloneDX component",
+        ),
     },
     ClaimRow {
         id: "release.scan.dependency",
@@ -292,14 +384,14 @@ pub(crate) const ROWS: &[ClaimRow] = &[
         claim: "No pinned dependency scan receipt exists for the exact release lockfiles.",
         why: "A scan run on a working tree at some earlier commit says nothing about the tagged lockfiles.",
         acceptance: "Run the admitted cargo-deny 0.19.8 against the exact tagged lockfiles and register its receipt.",
-        exists: "`cargo deny check bans` under the pinned cargo-deny 0.19.8 in `just security` on this checkout; advisories and tagged lockfiles are not covered",
+        exists: "pinned cargo-deny 0.19.8 checks advisories, licenses, bans, and sources against this checkout after refreshing and age-checking RustSec; no tagged-family scan receipt exists",
         owner: Owner::LocalThenExternal {
-            offline: "the pinned cargo-deny lane over this checkout, extended to advisories",
+            offline: "the pinned four-category cargo-deny lane over this checkout",
             external: "the exact tagged lockfiles of all three Rust workspaces",
         },
         next: command(
             "just security",
-            "runs gitleaks, `cargo deny check bans`, and zizmor on this checkout only; not the tagged lockfiles",
+            "runs current-tree secrets, canary, cargo-deny advisories/licenses/bans/sources, and strict workflow analysis on this checkout only; not the exact tagged family",
         ),
     },
     ClaimRow {
@@ -308,13 +400,14 @@ pub(crate) const ROWS: &[ClaimRow] = &[
         claim: "No pinned license policy scan receipt exists for the exact release artifacts.",
         why: "License violations discovered after tagging invalidate the release bytes.",
         acceptance: "Run the admitted license scanner against the exact archives and SBOMs and register its receipt.",
-        exists: "no license scan is admitted; `just security` runs `cargo deny check bans` only",
+        exists: "pinned cargo-deny 0.19.8 checks the configured license policy for this checkout together with advisories, bans, and sources; no exact-archive or SBOM receipt exists",
         owner: Owner::LocalThenExternal {
-            offline: "a pinned license policy scan is local engineering",
+            offline: "the pinned cargo-deny license-policy lane over this checkout",
             external: "the exact tagged archives and SBOMs it must run against",
         },
-        next: none(
-            "`just security` runs `cargo deny check bans` only; no license scanner is admitted yet",
+        next: command(
+            "just security",
+            "checks the checkout's lockfile license policy; exact tagged archives, their SBOMs, and an admitted release receipt remain",
         ),
     },
     ClaimRow {
@@ -323,14 +416,14 @@ pub(crate) const ROWS: &[ClaimRow] = &[
         claim: "No pinned secret scan receipt exists for the exact tagged trees.",
         why: "A canary or credential in tagged bytes is unrecoverable once published.",
         acceptance: "Run the admitted gitleaks 8.21.2 against every exact tagged tree and register its receipt.",
-        exists: "`gitleaks detect --source . --no-git --redact` under the pinned gitleaks 8.21.2 in `just security` on this working tree",
+        exists: "pinned gitleaks 8.21.2 scans the current Hub source and lockfiles before dependency resolution, and a secret-shaped canary proves genuine findings fail; no exact tagged-family receipt exists",
         owner: Owner::LocalThenExternal {
-            offline: "the pinned gitleaks lane over this working tree",
+            offline: "the pinned current-tree scan and genuine-finding canary",
             external: "every exact tagged tree of the four repositories",
         },
         next: command(
             "just security",
-            "gitleaks over this working tree only (`--no-git`); the tagged trees of all four repositories remain",
+            "scans this current Hub tree and proves a canary is detected; the exact tagged trees of all four repositories remain",
         ),
     },
     ClaimRow {
@@ -339,14 +432,14 @@ pub(crate) const ROWS: &[ClaimRow] = &[
         claim: "No pinned workflow policy scan receipt exists for the exact workflow bytes.",
         why: "Hosted workflows are a supply-chain surface; unpinned or over-permissioned steps break provenance.",
         acceptance: "Run the admitted zizmor 1.25.2 against the exact workflow bytes and register its receipt.",
-        exists: "`zizmor .` under the pinned zizmor 1.25.2 in `just security` on this checkout",
+        exists: "pinned zizmor 1.25.2 runs offline with ignores disabled and strict collection on this checkout; actionlint 1.7.8 and repository policy meta-tests cover the same workflow inventory in lint",
         owner: Owner::LocalThenExternal {
             offline: "the pinned zizmor lane over this checkout",
             external: "the exact tagged workflow bytes",
         },
         next: command(
             "just security",
-            "zizmor over this checkout's workflows only; not the tagged workflow bytes",
+            "runs strict workflow analysis on this checkout only; not the exact tagged workflow bytes or a hosted release receipt",
         ),
     },
     ClaimRow {
@@ -365,16 +458,16 @@ pub(crate) const ROWS: &[ClaimRow] = &[
     ClaimRow {
         id: "release.transaction-demo",
         gap_ids: &["G2"],
-        claim: "Nobody has produced a signed five-plane TRANSACTION_PROOF from `just demo`; the demo still ends in synthetic success.",
-        why: "The offline transaction is the baseline every live and release gate builds on; synthetic success renamed is still synthetic.",
-        acceptance: "Run the non-synthetic tagged demo through real child boundaries and the protected local forge simulator, ending in one signed TRANSACTION_PROOF covering authority, runner death/salvage, independent verification, ambiguous-effect reconciliation, protected integration, preservation, and truthful projection.",
-        exists: "`just demo` runs the Kernel simulator demo and prints synthetic receipts; atomic lease/command/outbox, fail-closed `bullet-gitd`, the fixture E2 verifier, and Portal PENDING→UNKNOWN are COMPONENT_PROOF",
+        claim: "Nobody has produced a signed five-plane TRANSACTION_PROOF from `just demo`; the demo ends in self-signed component evidence.",
+        why: "The offline transaction is the baseline every live and release gate builds on; component evidence renamed is still not a transaction.",
+        acceptance: "Run the connected tagged demo through real child boundaries and the protected local forge simulator, ending in one signed TRANSACTION_PROOF covering authority, runner death/salvage, independent verification, ambiguous-effect reconciliation, protected integration, preservation, and truthful projection.",
+        exists: "`just demo` runs the Kernel simulator and emits a self-signed COMPONENT_PROOF receipt; atomic lease/command/outbox, fail-closed `bullet-gitd`, the fixture E2 verifier, and Portal PENDING→UNKNOWN remain component evidence",
         owner: Owner::Local(
             "Kernel + BulletGit + Portal engineering (V1-S4); the TRANSACTION_PROOF is credential-free and offline",
         ),
         next: command(
             "just demo",
-            "today ends in synthetic success from the simulator; the receipt must replace that success, not rename it",
+            "today ends in self-signed component evidence from the simulator; a connected receipt must replace that evidence, not rename it",
         ),
     },
 ];

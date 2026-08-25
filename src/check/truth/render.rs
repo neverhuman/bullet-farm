@@ -267,6 +267,8 @@ fn gate_row(
     }
     let headline = if receipted {
         format!("Receipted: {}", gate.detail())
+    } else if rows::is_condition(gate.id()) {
+        gate.detail().to_owned()
     } else {
         row.claim.to_owned()
     };
@@ -306,11 +308,15 @@ fn crosswalk(out: &mut String, facts: &Facts, report: &CheckReport) {
         "\n{CROSSWALK_HEADING}\n\nEvery G-id of `{}` is answered exactly once: by the gate rows that name it, by the ungated section below, or by this inventory. Titles are compiled; the crosswalk rows are read from the register and compared here.\n\n| Gap | Title | Answered by |\n| --- | --- | --- |",
         super::facts::PRODUCT_GAP_REGISTER
     );
+    let profile = report.profile().unwrap_or("unprofiled");
     for &(gap, title) in rows::PRODUCT_GAPS {
-        let gates = rows::gates_for(gap);
+        let gates = rows::gates_for(gap)
+            .into_iter()
+            .filter(|id| report.gates().iter().any(|gate| gate.id() == *id))
+            .collect::<Vec<_>>();
         let answer = if gap == rows::INVENTORY_GAP {
             format!(
-                "this inventory — {} gates, {} receipted (`bullet-family check release --json`)",
+                "this `{profile}` inventory — {} selected gates, {} receipted (historical diagnostic: `bullet-family check release --profile legacy-v1-26 --receipts ABSOLUTE_REGISTRY --report --portable`)",
                 report.gates().len(),
                 receipted(report)
             )
@@ -383,7 +389,7 @@ fn excluded(out: &mut String) {
     let _ = writeln!(
         out,
         "\n## Excluded from this decision\n\n\
-- Synthetic receipts, including the `required.demo-component` simulator lane: SYNTHETIC_PROOF never counts toward a release gate.\n\
+- Self-signed component receipts, including the `required.demo-component` simulator lane: COMPONENT_PROOF never counts toward a transaction, live, or release gate.\n\
 - Simulator runs, fixture-only policies, and the fixture-only live-enabled v1alpha2 policy: none is an operator ratification.\n\
 - Prose: `docs/release.md`, `docs/assurance/product-gaps.md`, `docs/assurance/v1-closure-plan.md`, ADRs, changelog, and coordination chat describe evidence; they are not evidence.\n\
 - Component receipts named in `docs/release.md` and in the “exists but does not count” text above: COMPONENT_PROOF for one crate or surface, never transaction, live, or release evidence.\n\
@@ -420,7 +426,7 @@ fn freshness(out: &mut String, facts: &Facts) {
         out,
         "| claim rows | `src/check/truth/rows.rs` + `rows/gates.rs` + `rows/ungated.rs` (compiled into `bullet-family {}`) | {} gate rows + {} ungated rows over {} G-ids | — |",
         env!("CARGO_PKG_VERSION"),
-        rows::ROWS.len(),
+        rows::row_count(),
         rows::UNGATED.len(),
         rows::PRODUCT_GAPS.len()
     );

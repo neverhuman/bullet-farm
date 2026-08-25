@@ -1,4 +1,4 @@
-//! Explicit legacy release report: deterministic, portable, never green.
+//! Explicit `universal-v1` release report: deterministic, portable, never green.
 
 use std::{
     fs,
@@ -8,12 +8,14 @@ use std::{
 };
 
 static FIXTURE_SEQUENCE: AtomicU64 = AtomicU64::new(0);
+const SELECTED_GATES: usize = 43;
+const UNGATED_GAPS: usize = 5;
+const BLOCKING_UNGATED_GAPS: usize = 4;
 
 const LOCK: &str = include_str!("fixtures/release-truth/family.lock");
-const RELEASE_INDEX: &str = "# Fixture release contract\n\nStatus: **BLOCKED — fixture**  \nOwner: fixture\nLast reviewed: 2026-01-01\n";
-const MANIFEST: &str = "schema_version = \"1.2.0\"\nfamily = \"bullet-farm\"\numbrella_repo = \"bullet-farm\"\nrequired_repos = [\"bullet-farm\", \"bullet-kernel\", \"bullet-git\", \"bullet-portal\"]\n";
-/// The register's two bound tables, byte-stable for the golden page; prose is omitted on purpose.
-const REGISTER: &str = "# Fixture product gap register\n\n| ID | Gap |\n| --- | --- |\n| G1 | Hub-only signed install |\n| G2 | Connected five-plane transaction |\n| G3 | Production Kernel write path |\n| G4 | Production BulletGit write path |\n| G5 | Live provider conformance |\n| G6 | Jeryu live effect |\n| G7 | GitHub live effect |\n| G8 | Security release floor |\n| G9 | Signed five-target release |\n| G10 | Non-Linux containment |\n| G11 | Evolutionary runtime |\n| G12 | Family `check release` |\n| G13 | Portal product surfaces |\n| G14 | farmd production API |\n| G15 | Cognitive persistence |\n\n| Gate ID | Product gap | Class |\n| --- | --- | --- |\n| `release.installable-lock` | G1 | Release |\n| `release.installer-twice` | G1 | Release |\n| `release.transaction-demo` | G2 | Transaction |\n| `release.fault-suite` | G2, G3 | Release |\n| `release.backup-restore` | G3, G9 | Release |\n| `release.provider.claude` | G5 | Live |\n| `release.provider.codex` | G5 | Live |\n| `release.provider.cursor` | G5 | Live |\n| `release.provider.antigravity` | G5 | Live |\n| `release.forge.jeryu` | G6 | Live |\n| `release.forge.github-app` | G7 | Live |\n| `release.jankurai-90` | G8 | Release |\n| `release.scan.dependency` | G8, G9 | Release |\n| `release.scan.license` | G8, G9 | Release |\n| `release.scan.secret` | G8, G9 | Release |\n| `release.scan.workflow` | G8, G9 | Release |\n| `release.checksums` | G9 | Release |\n| `release.manifest-non-circular` | G9 | Release |\n| `release.package-matrix` | G9 | Release |\n| `release.provenance` | G9 | Release |\n| `release.receipt-contracts` | G9 | Release |\n| `release.rust-msrv-1-95` | G9 | Release |\n| `release.rust-pinned-1-97-1` | G9 | Release |\n| `release.sbom` | G9 | Release |\n| `release.signatures` | G9 | Release |\n| `release.platform-containment` | G10 | Release |\n";
+const RELEASE_INDEX: &str = include_str!("../docs/release.md");
+const MANIFEST: &str = include_str!("../repos.manifest.toml");
+const REGISTER: &str = include_str!("../docs/assurance/product-gaps.md");
 
 struct Fixture {
     root: PathBuf,
@@ -96,7 +98,7 @@ impl Fixture {
             "check",
             "release",
             "--profile",
-            "legacy-v1-26",
+            "universal-v1",
             "--receipts",
             registry.to_str().expect("UTF-8 registry"),
             "--report",
@@ -169,8 +171,11 @@ fn gate_lines(page: &str) -> Vec<&str> {
 const OWNER_LABELS: [&str; 3] = ["LOCAL (", "LOCAL-then-EXTERNAL (", "EXTERNAL ("];
 
 fn assert_fields_are_closed_vocabulary(page: &str) {
-    assert_eq!(page.matches("   - Product gap: G").count(), 26);
-    assert_eq!(page.matches("   - Release-blocking: yes").count(), 26 + 4);
+    assert_eq!(page.matches("   - Product gap: G").count(), SELECTED_GATES);
+    assert_eq!(
+        page.matches("   - Release-blocking: yes").count(),
+        SELECTED_GATES + BLOCKING_UNGATED_GAPS
+    );
     assert_eq!(page.matches("   - Release-blocking: no for V1").count(), 1);
     let mut owners = 0;
     for line in page.lines().filter(|line| line.starts_with("   - Owner: ")) {
@@ -181,7 +186,7 @@ fn assert_fields_are_closed_vocabulary(page: &str) {
         );
         owners += 1;
     }
-    assert_eq!(owners, 26 + 5);
+    assert_eq!(owners, SELECTED_GATES + UNGATED_GAPS);
     let mut nexts = 0;
     for line in page
         .lines()
@@ -194,12 +199,12 @@ fn assert_fields_are_closed_vocabulary(page: &str) {
         );
         nexts += 1;
     }
-    assert_eq!(nexts, 26 + 5);
+    assert_eq!(nexts, SELECTED_GATES + UNGATED_GAPS);
 }
 
 fn assert_never_closed(page: &str) {
     let lines = gate_lines(page);
-    assert_eq!(lines.len(), (26 + 5) * 3);
+    assert_eq!(lines.len(), (SELECTED_GATES + UNGATED_GAPS) * 3);
     for line in lines {
         for token in line.split(|byte: char| !byte.is_ascii_alphanumeric()) {
             assert!(
@@ -223,17 +228,17 @@ fn portable_report_matches_the_golden_page_from_a_hub_only_checkout() {
     assert_eq!(first.stdout, second.stdout);
     let page = String::from_utf8(first.stdout).unwrap();
     let golden = fs::read_to_string(
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/release-truth/golden.md"),
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("docs/assurance/release-truth.generated.md"),
     )
-    .expect("golden page");
+    .expect("generated release-truth page");
     assert_eq!(page, golden, "portable page drifted from golden");
     assert!(!page.contains(fixture.root.to_str().unwrap()));
     assert_never_closed(&page);
     assert_fields_are_closed_vocabulary(&page);
     assert!(page.contains("`release.backup-restore` BLOCKED\n   - Product gap: G3, G9\n"));
-    assert!(page.contains("Agreement with `docs/assurance/product-gaps.md`: YES — all 26 crosswalk rows and the G-id list agree"));
+    assert!(page.contains("Agreement with `docs/assurance/product-gaps.md`: YES — all 43 crosswalk rows and the G-id list agree"));
     assert!(
-        page.contains("| G12 | Family `check release` | this inventory — 26 gates, 0 receipted")
+        page.contains("| G12 | Family `check release` | this `universal-v1` inventory — 43 selected gates, 0 receipted")
     );
     for gap in ["G4", "G11", "G13", "G14", "G15"] {
         assert!(
@@ -246,7 +251,7 @@ fn portable_report_matches_the_golden_page_from_a_hub_only_checkout() {
         );
     }
     assert!(page.contains(
-        "Release-blocking: no for V1 — self-tuning optimization is post-V1; `linux-preview` surfaces an extra evolution diagnostic that cannot alter the canonical 26-gate GA contract"
+        "Release-blocking: no for V1 — self-tuning optimization is post-V1; `linux-preview` surfaces an extra evolution diagnostic that cannot alter the `universal-v1` dependency closure"
     ));
     for provider in ["claude", "codex", "cursor", "agy"] {
         assert!(page.contains(&format!(
@@ -302,7 +307,7 @@ fn live_report_binds_subjects_and_check_report_freshness() {
     assert!(page.contains("| binds current HEADs | NO — bullet-farm locked `4d7f2173"));
     assert!(page.contains("| Mechanical gates (fast) | NOT RUN (no generated check report) |"));
     assert!(page.contains("| Mechanical gates (required) | NOT RUN (no generated check report) |"));
-    assert!(page.contains("| Evidence completeness | 0 of 26 receipted |"));
+    assert!(page.contains("| Evidence completeness | 0 of 43 receipted |"));
     assert!(page.contains("| Release review | HOLD"));
     assert!(page.contains("| Deployment match | N/A"));
     assert!(page.contains("| Post-deploy survival | NOT ESTABLISHED |"));

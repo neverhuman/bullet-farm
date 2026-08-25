@@ -11,7 +11,7 @@
 mod gates;
 mod ungated;
 
-pub(super) use gates::ROWS;
+pub(super) use gates::{CONDITION_ROWS, NATIVE_ROWS, ROWS};
 pub(super) use ungated::UNGATED;
 
 use super::facts::RegisterTable;
@@ -183,8 +183,20 @@ impl UngatedRow {
     }
 }
 
+pub(super) fn all_rows() -> impl Iterator<Item = &'static ClaimRow> {
+    ROWS.iter().chain(NATIVE_ROWS).chain(CONDITION_ROWS)
+}
+
+pub(super) const fn row_count() -> usize {
+    ROWS.len() + NATIVE_ROWS.len() + CONDITION_ROWS.len()
+}
+
+pub(super) fn is_condition(id: &str) -> bool {
+    CONDITION_ROWS.iter().any(|row| row.id == id)
+}
+
 pub(super) fn find(id: &str) -> Option<&'static ClaimRow> {
-    ROWS.iter().find(|row| row.id == id)
+    all_rows().find(|row| row.id == id)
 }
 
 pub(super) fn gap_title(gap_id: &str) -> Option<&'static str> {
@@ -196,7 +208,7 @@ pub(super) fn gap_title(gap_id: &str) -> Option<&'static str> {
 
 /// Gate ids whose row names `gap_id`, in catalog order.
 pub(super) fn gates_for(gap_id: &str) -> Vec<&'static str> {
-    ROWS.iter()
+    all_rows()
         .filter(|row| row.gap_ids.contains(&gap_id))
         .map(|row| row.id)
         .collect()
@@ -209,7 +221,7 @@ pub(super) fn ungated_for(gap_id: &str) -> Option<&'static UngatedRow> {
 /// Every disagreement between the register's crosswalk and the compiled rows.
 pub(super) fn crosswalk_diffs(table: &RegisterTable) -> Vec<String> {
     let mut diffs = Vec::new();
-    for row in ROWS {
+    for row in all_rows() {
         match table.gates.iter().find(|(gate, _)| gate == row.id) {
             None => diffs.push(format!("`{}` is missing from the register", row.id)),
             Some((_, ids)) if ids != row.gap_ids => diffs.push(format!(
@@ -253,14 +265,19 @@ mod tests {
     }
 
     #[test]
-    fn rows_cover_the_release_catalog_exactly_once() {
-        let report = prerequisites::report_release().unwrap();
+    fn rows_cover_the_universal_release_profile_exactly_once() {
+        let profile = crate::check::profiles::ReleaseProfile::parse("universal-v1").unwrap();
+        let report = prerequisites::report_release_profile(
+            profile,
+            std::path::Path::new("/nonexistent/bullet-release-truth-registry"),
+        )
+        .unwrap();
         let catalog = report
             .gates()
             .iter()
             .map(|gate| gate.id())
             .collect::<Vec<_>>();
-        let rows = ROWS.iter().map(|row| row.id).collect::<Vec<_>>();
+        let rows = all_rows().map(|row| row.id).collect::<Vec<_>>();
         for id in &catalog {
             assert!(rows.contains(id), "catalog gate without a claim row: {id}");
         }
@@ -271,9 +288,12 @@ mod tests {
             );
         }
         assert_eq!(rows.len(), catalog.len());
+        assert!(ROWS.windows(2).all(|pair| pair[0].id < pair[1].id));
+        assert!(NATIVE_ROWS.windows(2).all(|pair| pair[0].id < pair[1].id));
         assert!(
-            rows.windows(2).all(|pair| pair[0] < pair[1]),
-            "rows must stay sorted"
+            CONDITION_ROWS
+                .windows(2)
+                .all(|pair| pair[0].id < pair[1].id)
         );
     }
 
@@ -286,7 +306,7 @@ mod tests {
                 .windows(2)
                 .all(|pair| gap_number(pair[0]) < gap_number(pair[1]))
         );
-        for row in ROWS {
+        for row in all_rows() {
             assert!(!row.gap_ids.is_empty(), "{} names no product gap", row.id);
             for gap in row.gap_ids {
                 assert!(known.contains(gap), "{} names unknown gap {gap}", row.id);
@@ -322,8 +342,7 @@ mod tests {
 
     #[test]
     fn unreceipted_claims_never_read_as_closed() {
-        let sentences = ROWS
-            .iter()
+        let sentences = all_rows()
             .flat_map(|row| {
                 [
                     (row.id, row.claim),
@@ -341,8 +360,7 @@ mod tests {
         for (id, text) in sentences {
             assert!(text.ends_with('.'), "{id} field is not a sentence: {text}");
         }
-        let texts = ROWS
-            .iter()
+        let texts = all_rows()
             .flat_map(|row| row.texts().into_iter().map(move |text| (row.id, text)))
             .chain(
                 UNGATED
@@ -368,8 +386,7 @@ mod tests {
             .filter(|(name, _)| !name.starts_with(' ') && !name.starts_with('['))
             .map(|(name, _)| name.split_whitespace().next().unwrap_or(""))
             .collect::<Vec<_>>();
-        let nexts = ROWS
-            .iter()
+        let nexts = all_rows()
             .map(|row| (row.id, row.next))
             .chain(UNGATED.iter().map(|row| (row.gap_id, row.next)));
         for (id, next) in nexts {

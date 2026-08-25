@@ -26,10 +26,12 @@ product.
 | Closer | Who or what can close it |
 | Authority | Document that may flip the status |
 
-`bullet-family check release --json` is the executable form of the canonical
-26-gate V1 GA contract. The narrower `linux-preview` profile is a non-release
-diagnostic; it cannot waive any canonical provider, effect, or package gate.
-If this page and the canonical command disagree, the command wins.
+`bullet-family check release --profile universal-v1 --receipts
+<admitted-absolute-registry> --json` is the executable form of the complete
+frozen portable V1 contract. `legacy-v1-26` preserves the historical 26-gate
+projection and `linux-preview` is a narrower non-release diagnostic; neither
+can waive a provider, effect, platform, or package gate in `universal-v1`. If
+this page and the explicitly profiled command disagree, the command wins.
 
 ## What an agent may close versus what it may not
 
@@ -42,7 +44,7 @@ operator secret, signer, or policy generation flip is required.
 | Operator-blocked | G1, G5, G6, G7 | Document the exact act. Do not invent a lock, flip `live_admission_enabled`, or patch Jeryu/GitHub to look green. |
 | Engineering, predecessor-blocked | G2, G3, G4, G9, G12, G13, G14, G15 | Implement only behind an unexpired `coord claim`. A component receipt does not clear the family gate. |
 | Quality / platform | G8, G10 | Reduce hard findings; add a native backend. A local Jankurai binary is not CI evidence. |
-| Explicitly post-V1 | G11 | Keep `evolutionary_authority=false`. The `linux-preview` evolution diagnostic cannot alter the canonical V1 gate set or start an evolutionary campaign. |
+| Explicitly post-V1 | G11 | Keep `evolutionary_authority=false`. The `linux-preview` evolution diagnostic cannot alter the `universal-v1` dependency closure or start an evolutionary campaign. |
 
 A gap that is *fully specified, fail-closed, and indexed* is a **documented
 open gap**, not a missing product definition. That is the only sense in which
@@ -59,34 +61,37 @@ documentation can “close” G1–G15 today.
 | G5 | Live provider conformance | Committed policy is v1alpha1 / generation 1 / `live_admission_enabled=false`; the common production path therefore refuses before provider spawn and has no live receipt | Four bounded adapters; signed launch grant; Linux egress; common policy-to-sealed-receipt orchestration; neutral four-provider zero-spawn nightly; deep fake-process proof for Claude only | Operator ratifies v1alpha2 + runner key and proves conformant native read-only turns for Claude, Codex, Cursor, and Antigravity against the same frozen release subject | [ADR 0012](../decisions/0012-policy-v1alpha2-live-admission.md), [`runbooks/live-conformance.md`](../runbooks/live-conformance.md) |
 | G6 | Jeryu live effect | No authenticated read-back/reconciliation receipt | Local bare-forge component; Jeryu adapter is typed quarantine | Operator restores scoped Jeryu auth on an unmodified forge | [`release.md`](../release.md) |
 | G7 | GitHub live effect | No App-test-repo integration receipt; the frozen V1 GA contract requires this second effect adapter in addition to Jeryu | Effect adapter is specified, not certified | Operator configures a GitHub App test repository and produces an exact reconciliation receipt | [`release.md`](../release.md), [ADR 0002](../decisions/0002-jeryu-forge-requirements.md), [0008](../decisions/0008-forge-gates.md) |
-| G8 | Security release floor | Hub Jankurai 58 (raw 58), 10 caps, 29 hard findings; no portable CI artifact | Pinned local scan that fails closed | Hard findings to zero; score ≥90; checksum-pinned CI binary | [`release.md`](../release.md) |
-| G9 | Signed five-target release | No reproducible builder, dual SBOMs, provenance, protected signing, lifecycle smoke, or signed archives exist for the complete five-target V1 matrix | Linux verify + safe extract of an already-signed archive; Portal bundle manifest | Release engineering produces and verifies Linux x86_64/aarch64, macOS x86_64/arm64, and Windows x64 archives; Linux remains the only production mutation platform until native containment passes | [`release.md`](../release.md), [ADR 0010](../decisions/0010-supply-chain-policy.md) |
+| G8 | Security release floor | Hub Jankurai 65 (raw 66), five caps, and zero critical/hard findings; no portable CI artifact | Pinned local scan that fails closed | Score ≥90 with the remaining caps resolved; checksum-pinned CI binary and portable exact-subject report | [`release.md`](../release.md) |
+| G9 | Signed five-target release | Only one unsigned Linux x86_64 component builder exists; the other four target builders, protected signing, lifecycle smoke, and signed archives are absent from the complete five-target V1 matrix | The component builder embeds the Portal and eight binaries, then re-reads its archive, CycloneDX SBOM, provenance, BLAKE3 checksums, and non-circular build manifest; signed-bundle verify + safe extract also exist | Release engineering produces and verifies Linux x86_64/aarch64, macOS x86_64/arm64, and Windows x64 archives; Linux remains the only production mutation platform until native containment passes | [`release.md`](../release.md), [ADR 0010](../decisions/0010-supply-chain-policy.md) |
 | G10 | Non-Linux containment | Mutation on macOS/Windows fails until a native backend passes | Linux is the strong-isolation reference | Platform owners | [ADR 0007](../decisions/0007-sandbox-secret-taint.md) |
 | G11 | Evolutionary runtime | Self-tuning optimization and evolutionary campaigns are explicitly post-V1 | [`evolutionary-control.md`](../architecture/evolutionary-control.md); policy `evolutionary_authority=false`; a preview-only diagnostic | Keep disabled for V1. A later release may close the bounded offline study and R0/R1 canary gates before any R2+ exact signed human approval | [`phase-9-10.md`](../phase-9-10.md) |
-| G12 | Family `check release` | The canonical 26-gate V1 catalog remains 26/26 `BLOCKED`; `linux-preview` separately remains 25/25 `BLOCKED` | Fail-closed canonical and named diagnostic reports; supplied generic registries cannot clear a gate | Kind-specific semantic receipt admission for every canonical V1 gate | `bullet-family check release --json`; [`release-truth.generated.md`](release-truth.generated.md) |
-| G13 | Portal product surfaces | Six of fifteen spec surfaces have no durable ledger subject and stay explicit UNKNOWN; Context Lineage exposes revision-one subjects only, and Portal is not packaged/embedded | Control Tower, Mission Graph, Live Attempt, Incidents and Audit, Fleet, Session Supervisor, Merge Rail, Quality Lab, and Context Lineage projections; CSRF/202; `PENDING→UNKNOWN`; SSE STALE | Portal + farmd owners after G2/G3 add Cognitive Router, Fusion Lab, Quota/Capacity, Struggle, Behavior, and Workspace Hygiene, plus successor/compression lineage | Portal architecture; V1-S5 |
+| G12 | Family `check release` | The complete `universal-v1` dependency closure remains `BLOCKED`; the historical `legacy-v1-26` projection remains 26/26 `BLOCKED`, and `linux-preview` remains a narrower blocked diagnostic | Fail-closed explicit profiles and diagnostic reports; supplied generic registries cannot clear a gate | Kind-specific semantic receipt admission for every gate in the complete `universal-v1` closure | `bullet-family check release --profile universal-v1 --receipts <admitted-absolute-registry> --json`; [`release-truth.generated.md`](release-truth.generated.md) |
+| G13 | Portal product surfaces | Six of fifteen spec surfaces have no durable ledger subject and stay explicit UNKNOWN; Context Lineage exposes revision-one subjects only; same-origin embedding is component-proved, but no signed package or installation receipt exists | Control Tower, Mission Graph, Live Attempt, Incidents and Audit, Fleet, Session Supervisor, Merge Rail, Quality Lab, and Context Lineage projections; CSRF/202; `PENDING→UNKNOWN`; SSE STALE; packaged-farmd browser proof | Portal + farmd owners after G2/G3 add Cognitive Router, Fusion Lab, Quota/Capacity, Struggle, Behavior, and Workspace Hygiene, plus successor/compression lineage; release engineering supplies the signed package/install receipt under G9 | Portal architecture; V1-S5 |
 | G14 | farmd production API | Public surface is the authenticated command/snapshot/SSE subset plus six read-only operational projections, not the designed ~80-route control plane | Loopback origin, no-wildcard CORS, command 202, ready/outbox/missions plus Fleet/Session/Merge/Quality/Audit/Context snapshots | Kernel API after signed dispatch and the missing ledger subjects exist | V1-S5 |
 | G15 | Cognitive persistence | One immutable revision-one Context Capsule is now normalized and atomically bound to graph materialization, lease, fence, and Attempt; CognitiveTask / SelectionGroup / Role / Fusion, quotas, budgets, routing decisions, successor lineage, and compression remain absent or design-only | Context Capsule schema/migration/replay and exact projection; wire shapes; offline provider parsers | Kernel V1-S6 after G2 | [`evolutionary-control.md`](../architecture/evolutionary-control.md) |
 
-## Canonical 26-gate V1 catalog and diagnostic profiles
+## Historical 26-gate catalog and release profiles
 
-The unprofiled 26-gate catalog is the canonical frozen V1 GA contract. It
-requires Claude, Codex, Cursor, Antigravity, Jeryu, GitHub App reconciliation,
-and five signed archives. `linux-preview` is a deliberately narrower Ubuntu
-x86_64/Jeryu/Claude diagnostic and is not release authority. Other named
-provider, forge, platform, and team profiles are also diagnostic slices: a
-receipt for one never certifies another or clears the canonical catalog.
+`universal-v1` is the complete frozen portable V1 product profile. Its
+dependency closure requires Claude, Codex, Cursor, Antigravity, the admitted
+forge adapters, and all five platform profiles without implicitly admitting
+post-V1 evolution. `legacy-v1-26` preserves the old 26-gate catalog solely as
+a historical diagnostic. `linux-preview` is a deliberately narrower Ubuntu
+x86_64/Jeryu/Claude diagnostic and is not release authority. A receipt for one
+profile never certifies another or clears the `universal-v1` closure.
 
 The profiled JSON report uses schema 3 and names its `profile`. The current
 registry boundary is intentionally conservative: an absolute registry may be
 selected, but generic signed envelopes cannot clear gates until kind-specific
 semantic validators and externally admitted signer/trusted-time roots exist.
 
-The following 26 rows are the canonical V1 catalog used by the generated
-portable truth page.
+The first 26 rows are the historical catalog preserved by the generated
+portable page.
 
-These IDs are the static negative inventory in `src/check/prerequisites.rs`.
-Every row is `BLOCKED`. A green component crate cannot clear any of them.
+These IDs are the static negative inventory preserved by `legacy-v1-26` in
+`src/check/prerequisites.rs`. Every row is `BLOCKED`. A green component crate
+cannot clear any of them, and this historical list is not a substitute for
+evaluating the full `universal-v1` dependency closure.
 
 | Gate ID | Product gap | Class |
 | --- | --- | --- |
@@ -117,13 +122,44 @@ Every row is `BLOCKED`. A green component crate cannot clear any of them.
 | `release.signatures` | G9 | Release |
 | `release.platform-containment` | G10 | Release |
 
-G4, G11, G13, G14, and G15 are product gaps that are not themselves a canonical
+Through its Linux x86_64 platform dependency, `universal-v1` also selects two
+native lifecycle gates. Both remain blocked; neither is implied by the generic
+platform condition.
+
+| Gate ID | Product gap | Class |
+| --- | --- | --- |
+| `release.package-linux-x86_64` | G9 | Release |
+| `release.systemd-v1` | G1, G9 | Release |
+
+The profile also selects these fifteen condition gates. They make the
+dependency closure visible; they do not duplicate or clear the historical or
+native capability gates above.
+
+| Gate ID | Product gap | Class |
+| --- | --- | --- |
+| `release.profile.github-adapter-v1` | G7 | Release |
+| `release.profile.gitlab-adapter-v1` | G7 | Release |
+| `release.profile.gitlab-self-managed-v1` | G7 | Release |
+| `release.profile.jeryu-forge-v1` | G6 | Release |
+| `release.profile.platform-linux-aarch64` | G9, G10 | Release |
+| `release.profile.platform-linux-x86_64` | G9, G10 | Release |
+| `release.profile.platform-macos-aarch64` | G9, G10 | Release |
+| `release.profile.platform-macos-x86_64` | G9, G10 | Release |
+| `release.profile.platform-windows-x86_64` | G9, G10 | Release |
+| `release.profile.provider-antigravity` | G5 | Release |
+| `release.profile.provider-claude` | G5 | Release |
+| `release.profile.provider-codex` | G5 | Release |
+| `release.profile.provider-cursor` | G5 | Release |
+| `release.profile.self-hosted-v1` | G1, G2, G3, G5, G6, G8, G9, G10 | Release |
+| `release.profile.universal-v1` | G1, G2, G3, G5, G6, G7, G8, G9, G10 | Release |
+
+G4, G11, G13, G14, and G15 are product gaps that are not themselves a historical
 catalog `release.*` id. G4, G13, G14, and G15 still block G2 and therefore
 `release.transaction-demo`. G11 is explicitly post-V1; the extra evolution
-diagnostic surfaced by `linux-preview` cannot alter the canonical 26-gate
-contract. G12 is the inventory of this table. The generated page
-([`release-truth.generated.md`](release-truth.generated.md)) binds this table's
-26 `release.*` rows and G-ID list by digest: a crosswalk change requires
+diagnostic surfaced by `linux-preview` cannot alter the `universal-v1`
+dependency closure. G12 is the inventory of these tables. The generated page
+([`release-truth.generated.md`](release-truth.generated.md)) binds all 43
+`release.*` crosswalk rows and the G-ID list by digest: a crosswalk change requires
 `just release-truth` in the same commit or `required` fails on drift.
 
 ## How to verify each gap is still open
@@ -132,7 +168,8 @@ From the hub checkout:
 
 ```bash
 bullet-family doctor --json          # G1: BLOCKED / UNSUPPORTED_SCHEMA is honest
-bullet-family check release --json   # canonical V1 GA: 26/26 BLOCKED
+bullet-family check release --profile universal-v1 --receipts /absolute/admitted-registry --json
+bullet-family check release --profile legacy-v1-26 --receipts /absolute/empty-registry --report --portable
 bullet-family check release --profile linux-preview --receipts /absolute/registry --json
 just fast && just contract           # component lanes; never G2–G15
 ```
@@ -146,7 +183,8 @@ Do not convert a green `just fast` into a closed G-row.
 | `just fast` | Mapped component lanes on this checkout | G2–G15, live, install, release |
 | `just contract` | Generated wire/schema identity | A running issuer or published tag |
 | `bullet-family doctor --json` | Honest refusal of schema-2 hub-only install | That schema-3 exists |
-| `bullet-family check release --json` | The canonical 26-gate V1 GA inventory and exact blockers | That an absent/generic registry is evidence |
+| `bullet-family check release --profile universal-v1 --receipts <admitted-absolute-registry> --json` | The complete frozen portable V1 dependency closure and exact blockers | That an absent or generic registry entry is evidence |
+| `bullet-family check release --profile legacy-v1-26 --receipts <empty-registry> --report --portable` | The historical 26-gate diagnostic projection and exact blockers | Complete `universal-v1` release authority |
 | `bullet-family check release --profile linux-preview --receipts <registry> --json` | A non-release Ubuntu/Jeryu/Claude diagnostic slice | Any omitted provider, GitHub, package, or canonical GA gate |
 | Archived 2026-08-24 live demo | That one past tree spawned under then-policy | HEAD conformance |
 
@@ -160,7 +198,7 @@ Do not convert a green `just fast` into a closed G-row.
 | Can I turn on live Claude/Codex/Cursor/Antigravity? | Not from this tree. Ratify ADR 0012 with a real runner key (G5). The v1alpha2 validator is not a live policy. |
 | Why does `doctor` fail? | The checked-in lock is schema 2. That refusal is the product. |
 | Did the white paper close the product? | No. The paper inventories G1–G15. Closing prose is not a receipt. |
-| Is `just fast` enough to ship? | No. It is a component lane. Canonical V1 remains 26/26 `BLOCKED`; `linux-preview` also remains 25/25 `BLOCKED`. |
+| Is `just fast` enough to ship? | No. It is a component lane. The `universal-v1` dependency closure remains `BLOCKED`; the historical 26-gate projection and `linux-preview` diagnostic also remain blocked. |
 | What is the same-UID install hole? | The Rust boundary seals Cargo/Node/Bash/npm plus setup mutation, family-lock verification, and checkout verification Git bytes, and the wrapper no longer invokes ambient Cargo. G1 still includes unsigned selection of the external prebuilt, clone transport Git/helpers, transient and between-child repository object/ref/index/config/file races, non-Git work-tree traversal, and allowed-signers path admission; signed prebuilt admission plus complete Git/helper isolation closes those surfaces. |
 | Does ADR 0012 mean the committed policy enables live providers? | No. The Kernel loader can validate v1alpha2 since `0d848f6`, but the committed v1alpha1 generation-1 policy still disables live admission and refuses before spawn. |
 | Where is `docs/INDEX.md`? | It must not exist. This family's index is [`../README.md`](../README.md). |
@@ -226,7 +264,7 @@ fail-closed.
 | Topic | Where it is closed |
 | --- | --- |
 | Public name, five planes, providers-propose | [`architecture/overview.md`](../architecture/overview.md), [ADR 0001](../decisions/0001-provider-execution-mode.md), [0003](../decisions/0003-five-trust-planes.md) |
-| Competitor pins (Gas Town, Gas City, DeepSeek, Omnigent) | [`competitor-snapshot.md`](competitor-snapshot.md) |
+| Competitor pins (README: Gas Town, DeepSeek Harness, Omnigent; paper: Gas City also) | [Dated README snapshot](competitor-snapshot.md); [paper evidence lock](../paper/evidence.json) |
 | IEEE preprint source | [`../paper/`](../paper/) |
 | Why authority-bearing evolution is post-V1 | [`evolutionary-control.md`](../architecture/evolutionary-control.md) |
 | Evidence classes and skip-green ban | [`testing.md`](../testing.md) |

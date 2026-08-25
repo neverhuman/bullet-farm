@@ -129,7 +129,7 @@ mod tests {
             for truth in [
                 "| Mechanical gates (fast) | STALE — PASS over 7 gates",
                 "| Mechanical gates (required) | NOT RUN",
-                "| Evidence completeness | 0 of 26 receipted |",
+                "| Evidence completeness | 0 of 28 receipted |",
                 "| Release review | HOLD",
                 "| Deployment match | N/A",
                 "| Post-deploy survival | NOT ESTABLISHED |",
@@ -139,12 +139,12 @@ mod tests {
             assert!(first.contains("| bullet-kernel | UNKNOWN | UNKNOWN | absent |"));
             assert!(first.contains("| tag | `v0.0.0-fixture` |"));
             assert!(!first.ends_with('\n'));
-            assert_eq!(first.matches("   - Release-blocking: yes\n").count(), 26);
-            assert_eq!(first.matches("   - Product gap: G").count(), 26);
-            assert_eq!(first.matches("   - Next command: ").count(), 26 + 5);
-            assert!(first.contains("Agreement with `docs/assurance/product-gaps.md`: YES — all 26 crosswalk rows and the G-id list agree"));
+            assert_eq!(first.matches("   - Release-blocking: yes\n").count(), 28);
+            assert_eq!(first.matches("   - Product gap: G").count(), 28);
+            assert_eq!(first.matches("   - Next command: ").count(), 28 + 5);
+            assert!(first.contains("Agreement with `docs/assurance/product-gaps.md`: YES — all 43 crosswalk rows and the G-id list agree"));
             assert!(first.contains(
-                "| G12 | Family `check release` | this inventory — 26 gates, 0 receipted"
+                "| G12 | Family `check release` | this `unprofiled` inventory — 28 selected gates, 0 receipted"
             ));
             assert!(first.contains("| G4 | Production BulletGit write path | ungated — see"));
         }
@@ -172,7 +172,7 @@ mod tests {
             );
             blocks += 1;
         }
-        assert_eq!(blocks, (26 + 5) * 3);
+        assert_eq!(blocks, (28 + 5) * 3);
         for line in page.lines().filter(|line| line.starts_with("   - Owner: ")) {
             let owner = line.trim_start_matches("   - Owner: ");
             assert!(
@@ -219,8 +219,8 @@ mod tests {
         let Register::Read(table) = facts::parse_register(&hub_register()) else {
             panic!("hub register did not parse");
         };
-        assert_eq!(table.gates.len(), rows::ROWS.len());
-        for row in rows::ROWS {
+        assert_eq!(table.gates.len(), rows::row_count());
+        for row in rows::all_rows() {
             let (_, ids) = table
                 .gates
                 .iter()

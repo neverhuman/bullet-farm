@@ -31,7 +31,7 @@ STAGING="$(mktemp "${TARGET}.XXXXXX")"
 REGISTRY="$(mktemp -d /tmp/bullet-release-truth-registry.XXXXXX)"
 status=0
 (cd "$HUB" && cargo run --locked --quiet --bin bullet-family -- check release \
-  --profile legacy-v1-26 --receipts "$REGISTRY" --report --portable) \
+  --profile universal-v1 --receipts "$REGISTRY" --report --portable) \
   >"$STAGING" || status=$?
 case "$status" in
   0|1|3) ;;
