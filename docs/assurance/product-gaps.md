@@ -50,21 +50,21 @@ documentation can “close” G1–G15 today.
 
 | ID | Gap | Why it is still open | What already exists | Closer | Authority |
 | --- | --- | --- | --- | --- | --- |
-| G1 | Hub-only signed install | Checked-in lock is schema 2 and is refused on purpose. The source wrapper launches Cargo before admission, Git remains path-based, and no production Jeryu/validator two-run, package lifecycle, or signed prebuilt exists | Descriptor-relative setup, no-replace publish, sealed Linux Cargo/Node/Bash/npm subjects, two-run component fixture | Operator publishes schema-3 lock + signed prebuilt `bullet-family`; engineering pins/isolate Git and replays production setup | [`release.md`](../release.md), [`runbooks/source-setup.md`](../runbooks/source-setup.md) |
+| G1 | Hub-only signed install | Checked-in lock is schema 2 and is refused on purpose. The build-free `scripts/setup.sh` refuses unless the operator selects an external `bullet-family` executable, but that selection is not signed package admission. Clone transport helpers still use path-selected Git, and no production Jeryu/validator two-run, package lifecycle, or signed prebuilt exists | Descriptor-relative setup, no-replace publish, sealed Linux Cargo/Node/Bash/npm/setup-mutation/family-lock/checkout Git subjects, default-refusing wrapper, two-run component fixture | Operator publishes schema-3 lock + signed prebuilt `bullet-family`; engineering admits every remaining Git/helper subject and replays production setup | [`release.md`](../release.md), [`runbooks/source-setup.md`](../runbooks/source-setup.md) |
 | G2 | Connected five-plane transaction | No signed `TRANSACTION_PROOF` covering crash, salvage, verify, ambiguous effect, integration, portal truth | Atomic lease/command/outbox; fail-closed `bullet-gitd`; fixture E2; Portal `PENDING→UNKNOWN` | Kernel + BulletGit + Portal owners land one exact offline saga | [`v1-closure-plan.md`](v1-closure-plan.md) V1-S4 |
 | G3 | Production Kernel write path | Signed full-subject lease transport, durable reservation, JSON-RPC, provider/effect dispatch, CAS/GC, production restore remain | DB-clock leases; authenticated ingress; UNKNOWN/FAILED worker; launch-grant + Linux egress components | Kernel V1-S2/S4; do not remount unauthenticated `HttpLeaseClient` | [`release.md`](../release.md), [ADR 0011](../decisions/0011-signed-launch-grant-and-egress-isolation.md) |
-| G4 | Production BulletGit write path | Public `clone` still returns `AUTHORITY_CONTRACT_UNAVAILABLE`; no published immutable `bullet-wire` tag | Dissociate clone, hostile-git, generations, preservation, honest cleanup UNKNOWN | Operator publishes wire tag; Kernel online reservation/settlement | [`v1-closure-plan.md`](v1-closure-plan.md) V1-S3 |
+| G4 | Production BulletGit write path | Public `clone` still returns `AUTHORITY_CONTRACT_UNAVAILABLE`; no published immutable `bullet-wire` tag, online reservation/settlement, complete Integration proof, or tagged Jeryu service | Dissociate clone, hostile-git, generations, preservation, honest cleanup UNKNOWN, and a complete provenance-bound local Candidate manifest/identity | Operator publishes wire/Jeryu tags; Kernel supplies online reservation/settlement | [`v1-closure-plan.md`](v1-closure-plan.md) V1-S3 |
 | G5 | Live provider conformance | Committed policy is v1alpha1 / generation 1 / `live_admission_enabled=false`; the common production path therefore refuses before provider spawn and has no live receipt | Four bounded adapters; signed launch grant; Linux egress; common policy-to-sealed-receipt orchestration; neutral four-provider zero-spawn nightly; deep fake-process proof for Claude only | Operator ratifies v1alpha2 + runner key and real profiles; prove native behavior and live one-turn canaries for all four providers | [ADR 0012](../decisions/0012-policy-v1alpha2-live-admission.md), [`runbooks/live-conformance.md`](../runbooks/live-conformance.md) |
 | G6 | Jeryu live effect | No authenticated read-back/reconciliation receipt | Local bare-forge component; Jeryu adapter is typed quarantine | Operator restores scoped Jeryu auth on an unmodified forge | [`release.md`](../release.md) |
 | G7 | GitHub live effect | No App-test-repo integration receipt | Effect adapter is specified, not certified | Operator configures a GitHub App test repository | [`release.md`](../release.md), [ADR 0002](../decisions/0002-jeryu-forge-requirements.md), [0008](../decisions/0008-forge-gates.md) |
 | G8 | Security release floor | Hub Jankurai 58 (raw 58), 10 caps, 29 hard findings; no portable CI artifact | Pinned local scan that fails closed | Hard findings to zero; score ≥90; checksum-pinned CI binary | [`release.md`](../release.md) |
 | G9 | Signed five-target release | No package builder, SBOM/provenance, protected signing, installer smoke | Linux verify + safe extract of an already-signed archive; Portal bundle manifest | Release engineering from tagged bytes | [`release.md`](../release.md), [ADR 0010](../decisions/0010-supply-chain-policy.md) |
 | G10 | Non-Linux containment | Mutation on macOS/Windows fails until a native backend passes | Linux is the strong-isolation reference | Platform owners | [ADR 0007](../decisions/0007-sandbox-secret-taint.md) |
-| G11 | Evolutionary runtime | Recipes, archive, promotion are design-only | [`evolutionary-control.md`](../architecture/evolutionary-control.md); policy `evolutionary_authority=false` | After G2; never by flipping the policy bit first | [`phase-9-10.md`](../phase-9-10.md) |
+| G11 | Evolutionary runtime | Recipes, archive, promotion are design-only | [`evolutionary-control.md`](../architecture/evolutionary-control.md); policy `evolutionary_authority=false` | Post-V1, after V1-S0..S8 and the complete safety substrate are receipted; never by flipping the policy bit first | [`phase-9-10.md`](../phase-9-10.md) |
 | G12 | Family `check release` | 26/26 gates `BLOCKED`; the generated truth report records 0/26 receipts | Read-only negative inventory plus deterministic `--report` projection; no skip-green nightly | Receipts for G1–G10 | `bullet-family check release --json`; [`release-truth.generated.md`](release-truth.generated.md) |
-| G13 | Portal product surfaces | Seven of fifteen spec surfaces have no durable ledger subject and stay explicit UNKNOWN; Portal is not packaged/embedded | Control Tower, Mission Graph, Live Attempt, Incidents, Fleet, Session Supervisor, Merge Rail, Quality Lab, and Audit projections; CSRF/202; `PENDING→UNKNOWN`; SSE STALE | Portal + farmd owners after G2/G3 add Cognitive Router, Fusion Lab, Context Lineage, Quota/Capacity, Struggle, Behavior, and Workspace Hygiene | Portal architecture; V1-S5 |
-| G14 | farmd production API | Public surface is the authenticated command/snapshot/SSE subset plus five read-only operational projections, not the designed ~80-route control plane | Loopback origin, no-wildcard CORS, command 202, ready/outbox/missions plus Fleet/Session/Merge/Quality/Audit snapshots | Kernel API after signed dispatch and the missing ledger subjects exist | V1-S5 |
-| G15 | Cognitive persistence | CognitiveTask / SelectionGroup / Role / Fusion are IDs or design, not durable scheduler objects | Wire shapes; routing provenance records; offline provider parsers | Kernel V1-S6 after G2 | [`evolutionary-control.md`](../architecture/evolutionary-control.md) |
+| G13 | Portal product surfaces | Six of fifteen spec surfaces have no durable ledger subject and stay explicit UNKNOWN; Context Lineage exposes revision-one subjects only, and Portal is not packaged/embedded | Control Tower, Mission Graph, Live Attempt, Incidents and Audit, Fleet, Session Supervisor, Merge Rail, Quality Lab, and Context Lineage projections; CSRF/202; `PENDING→UNKNOWN`; SSE STALE | Portal + farmd owners after G2/G3 add Cognitive Router, Fusion Lab, Quota/Capacity, Struggle, Behavior, and Workspace Hygiene, plus successor/compression lineage | Portal architecture; V1-S5 |
+| G14 | farmd production API | Public surface is the authenticated command/snapshot/SSE subset plus six read-only operational projections, not the designed ~80-route control plane | Loopback origin, no-wildcard CORS, command 202, ready/outbox/missions plus Fleet/Session/Merge/Quality/Audit/Context snapshots | Kernel API after signed dispatch and the missing ledger subjects exist | V1-S5 |
+| G15 | Cognitive persistence | One immutable revision-one Context Capsule is now normalized and atomically bound to graph materialization, lease, fence, and Attempt; CognitiveTask / SelectionGroup / Role / Fusion, quotas, budgets, routing decisions, successor lineage, and compression remain absent or design-only | Context Capsule schema/migration/replay and exact projection; wire shapes; offline provider parsers | Kernel V1-S6 after G2 | [`evolutionary-control.md`](../architecture/evolutionary-control.md) |
 
 ## The 26 `check release` gates
 
@@ -101,8 +101,12 @@ Every row is `BLOCKED`. A green component crate cannot clear any of them.
 | `release.platform-containment` | G10 | Release |
 
 G4, G11, G13, G14, and G15 are product gaps that are not themselves a named
-`release.*` id. They still block G2 and therefore `release.transaction-demo`.
-G12 is the inventory of this table.
+`release.*` id. G4, G13, G14, and G15 still block G2 and therefore
+`release.transaction-demo`; G11 is post-V1 and blocks only an evolutionary
+product claim. G12 is the inventory of this table. The generated page
+([`release-truth.generated.md`](release-truth.generated.md)) binds this table's
+26 `release.*` rows and G-ID list by digest: a crosswalk change requires
+`just release-truth` in the same commit or `required` fails on drift.
 
 ## How to verify each gap is still open
 
@@ -137,8 +141,8 @@ Do not convert a green `just fast` into a closed G-row.
 | Why does `doctor` fail? | The checked-in lock is schema 2. That refusal is the product. |
 | Did the white paper close the product? | No. The paper inventories G1–G15. Closing prose is not a receipt. |
 | Is `just fast` enough to ship? | No. It is a component lane. `check release` stays 26/26 `BLOCKED`. |
-| What is the same-UID install hole? | The Rust boundary now seals Cargo/Node/Bash/npm bytes. G1 still includes the source wrapper's pre-admission Cargo launch and path-based Git; a signed prebuilt plus pinned/isolated Git closes those surfaces. |
-| Does ADR 0012 mean the kernel loads v1alpha2? | No. The Kernel snapshot loader still accepts v1alpha1 only. |
+| What is the same-UID install hole? | The Rust boundary seals Cargo/Node/Bash/npm plus setup mutation, family-lock verification, and checkout verification Git bytes, and the wrapper no longer invokes ambient Cargo. G1 still includes unsigned selection of the external prebuilt, clone transport Git/helpers, transient and between-child repository object/ref/index/config/file races, non-Git work-tree traversal, and allowed-signers path admission; signed prebuilt admission plus complete Git/helper isolation closes those surfaces. |
+| Does ADR 0012 mean the committed policy enables live providers? | No. The Kernel loader can validate v1alpha2 since `0d848f6`, but the committed v1alpha1 generation-1 policy still disables live admission and refuses before spawn. |
 | Where is `docs/INDEX.md`? | It must not exist. This family's index is [`../README.md`](../README.md). |
 
 ## Slice leftovers (V1-S0..S8)
@@ -151,11 +155,11 @@ implementer cannot “lose” a leftover by reading only the G-table.
 | V1-S0 | Local complete; release continuous | Exact-path commits and claim receipts remain an orchestrator obligation |
 | V1-S1 | LOCAL-BLOCKED | Immutable published `bullet-wire` tag; consumers still carry duplicate or legacy semantics; production JSON-RPC hello/version/frame contract |
 | V1-S2 | LOCAL-BLOCKED | Normalized full truth, signed capabilities, CAS/GC, production restore admission, fault-complete recovery |
-| V1-S3 | LOCAL-BLOCKED | Positive online authority; complete Candidate/Integration manifests; reviewed tagged `jeryu-gitd` |
+| V1-S3 | LOCAL-BLOCKED | Positive online authority/settlement; immutable shared-wire tag; complete Integration proof; reviewed tagged `jeryu-gitd` (the local Candidate manifest/identity is complete) |
 | V1-S4 | LOCAL-BLOCKED | Signed internal lease transport; runner/verifier/effect saga; credential-free `TRANSACTION_PROOF` |
-| V1-S5 | LOCAL-BLOCKED | APPLIED/VERIFIED dispatch; seven Portal surfaces without durable ledger subjects; packaged farmd-served Portal |
-| V1-S6 | LOCAL-BLOCKED | Durable cognitive objects; operator-ratified native/live conformance receipts for all four providers; routing/fusion replay from persisted inputs |
-| V1-S7 | LOCAL-BLOCKED | Schema-3 lock, prebuilt installer, five archives, SBOM/provenance, hosted Jankurai artifact, docs that wait on typed commands |
+| V1-S5 | LOCAL-BLOCKED | APPLIED/VERIFIED dispatch; six Portal surfaces without durable ledger subjects; successor/compression Context lineage; packaged farmd-served Portal |
+| V1-S6 | LOCAL-BLOCKED | Cognitive objects beyond the revision-one Context Capsule; operator-ratified native/live conformance receipts for all four providers; quota/budget/routing/fusion replay from persisted inputs |
+| V1-S7 | LOCAL-BLOCKED | Schema-3 lock, signed admission of the build-free wrapper's external executable and remaining clone Git/helper/non-Git filesystem subjects, five archives, SBOM/provenance, hosted Jankurai artifact, docs that wait on typed commands |
 | V1-S8 | EXTERNAL-BLOCKED | Operator-issued Jeryu, GitHub App, provider profiles, platform, signer receipts from tagged bytes |
 
 V1 is done only when every `V1-S0..S8` gate has a current independently
@@ -164,12 +168,9 @@ receipt.
 
 ## Operator decisions that are not code
 
-These are the only remaining non-code closers. Agents must not flip them.
-
-1. **Live admission.** Ratify [ADR 0012](../decisions/0012-policy-v1alpha2-live-admission.md): policy generation ≥2, a registered `provider-runner` authority-signing key, `live_admission_enabled=true`, `evolutionary_authority` still false. Record the act in `AGENT_CHAT.md`.
-2. **Jeryu test authority.** Authenticate to the local forge and name a scoped test repository for read-back. Do not patch the forge to paper over a missing capability.
-3. **Schema-3 lock inputs.** Authenticated Jeryu URL/slug, signer identity, and exact member subjects for a hub-only install.
-4. **GitHub App test repository.** Branch protection, separate delivery vs attestation credentials, and a repo the family may mutate.
+The authoritative list, owners, evidence required, and expiry/reversal rules live in
+[ADR 0013](../decisions/0013-operator-decision-register.md). Agents must not copy that register into status prose,
+flip live/evolutionary policy, alter the running forge, invent schema-3 subjects, or substitute local credentials.
 
 ## Centerrail C1–C12: product status
 
@@ -187,7 +188,7 @@ register. Disposition of each critique:
 | C6 | Bounded probe reservation; `unknown` is never headroom | Designed |
 | C6b | One seat-equivalent per named human | Designed; not enforced in the kernel |
 | C7 | Formal-model exactly two protocols in Phase 0 | Adopted and component-complete |
-| C8 | GA = kernel + any two certified providers | Adopted as schedule rule; live still operator-gated |
+| C8 | Historical proposal: GA = kernel + any two certified providers | Superseded for frozen V1: GA requires conformant Claude, Codex, Cursor, and Antigravity receipts |
 | C9 | Identity-exact effect adoption (fence + desired OID) | Command idempotency component; graph mint not a live path |
 | C10 | Verifier dwell is writer-admission backpressure | Designed |
 | C11 | Freeze chip shows recorded vs enforced-on-N/M runners | Portal honesty component; freeze countdown designed |

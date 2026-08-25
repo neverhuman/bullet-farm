@@ -30,9 +30,9 @@ tests, unsupported, skipped, flaky, or infrastructure error never equals
 
 | Stage | Required baseline | Additional requirement |
 | --- | --- | --- |
-| Self-hosted single host | Exact offline transaction and one separately admitted low-cost provider canary | Local Jeryu protected integration plus the Wave 5 install, recovery, security, and release gates |
-| GitHub adapter | Self-hosted production baseline | Separately certified exact-subject GitHub effect, check, integration, read-back, and reconciliation receipts |
-| Distributed team mode | Self-hosted production baseline | PostgreSQL and workload-mTLS conformance plus the Wave 10 partition, failover, freeze, and restore gates |
+| V1 single host | Exact offline transaction and separate conformant receipts for Claude, Codex, Cursor, and Antigravity | Local Jeryu protected integration plus the V1-S7 install, recovery, security, package, and release gates |
+| GitHub adapter | V1 single-host production baseline | Separately certified exact-subject GitHub effect, check, integration, read-back, and reconciliation receipts |
+| Distributed team mode | V1 single-host production baseline | Post-V1 PostgreSQL and workload-mTLS conformance plus partition, failover, freeze, and restore gates |
 
 Multi-tenant SaaS is outside this roadmap. A provider/model/adapter/profile is
 eligible only under its own exact, unexpired certification; one provider's
@@ -42,9 +42,9 @@ receipt never certifies another provider or profile.
 
 | Gate | Status | Evidence needed to clear it |
 | --- | --- | --- |
-| Hub-only installation | `BLOCKED` | The checked-in alpha.4 lock is schema 2 and intentionally rejected. Descriptor-relative private staging, no-replace publication, fsync, bounded no-follow cleanup, sealed Linux execution of admitted Cargo/Node/Bash/npm subjects, and two-run fixture setup are committed. `scripts/setup.sh` remains a source wrapper because it must launch Cargo before signed prebuilt admission. Publish a real schema-3 lock with authenticated Jeryu URL/slug and signed exact subjects, then replay the invariant using a signed prebuilt installer from tagged release bytes in a fresh home |
-| Production Kernel transaction | `BLOCKED` | Atomic lease/command/event/outbox, snapshots, authenticated ingress, exact offline reconciliation, admitted verifier gates, bounded verifier transport, PASETO launch-grant admission, Linux egress isolation, five read-only operational projections, and a policy-gated common provider path are committed. Current v1alpha1 policy refuses before provider spawn. The unauthenticated `HttpLeaseClient` must not be exposed; signed full-subject internal lease transport, durable authority epoch/budget reservation, source/Attempt reconstruction authority, production JSON-RPC/effect dispatch, normalized full truth, CAS/GC, admitted restore, and cross-plane crash receipts remain |
-| Production BulletGit transaction | `BLOCKED` | Durable CAS/journal, generation-atomic apply, preservation-bound cleanup, and honest post-delete UNKNOWN outcomes are committed; positive online authority, complete Candidate/Integration manifests, immutable shared-wire tag consumption, and reviewed tagged `jeryu-gitd` remain |
+| Hub-only installation | `BLOCKED` | The checked-in alpha.4 lock is schema 2 and intentionally rejected. Descriptor-relative private staging, no-replace publication, fsync, bounded no-follow cleanup, sealed Linux execution of admitted Cargo/Node/Bash/npm/setup-mutation/family-lock/checkout Git subjects, a build-free default-refusing wrapper, and two-run fixture setup are committed. The wrapper's operator-selected external executable is not signed package admission; clone transport Git/helpers, non-Git traversal, and transient/between-child repository stability remain open. Publish a real schema-3 lock with authenticated Jeryu URL/slug and signed exact subjects, then replay the invariant using a signed prebuilt installer from tagged release bytes in a fresh home |
+| Production Kernel transaction | `BLOCKED` | Atomic lease/command/event/outbox, snapshots, authenticated ingress, exact offline reconciliation, admitted verifier gates, bounded verifier transport, PASETO launch-grant admission, Linux egress isolation, six read-only operational projections including revision-one Context Lineage, and a policy-gated common provider path are committed. Current v1alpha1 policy refuses before provider spawn. The unauthenticated `HttpLeaseClient` must not be exposed; signed full-subject internal lease transport, durable authority epoch/budget reservation, source/Attempt reconstruction authority, production JSON-RPC/effect dispatch, remaining normalized cognitive truth, CAS/GC, admitted restore, and cross-plane crash receipts remain |
+| Production BulletGit transaction | `BLOCKED` | Durable CAS/journal, generation-atomic apply, preservation-bound cleanup, honest post-delete UNKNOWN outcomes, and a complete provenance-bound local Candidate identity are committed; positive online authority/settlement, complete Integration proof, immutable shared-wire tag consumption, and reviewed tagged `jeryu-gitd` remain |
 | Offline five-plane proof | `BLOCKED` | One signed `TRANSACTION_PROOF` covering authority, runner death/salvage, independent verification, ambiguous-effect reconciliation, protected integration, preservation, and truthful portal projection |
 | Jeryu live effect | `BLOCKED` | Operator-restored authentication and read-back/reconciliation receipt; the running forge must not be modified to work around missing capability |
 | GitHub live effect | `BLOCKED` | Configured GitHub App test repository and exact-subject integration/reconciliation receipt |
@@ -104,17 +104,19 @@ These reviewed commits are component evidence, not release or live evidence:
 | Admitted gate/verifier | Kernel `528348f` | Fixed catalog ID/argv/timeout and exact-subject E2 Evidence; only one fixture gate, with no executable digest, production framing/source admission, or multi-gate aggregation |
 | Verifier transport | Kernel `365bb5d` | Bounded strict one-shot request/output, exact frame and overflow kill/reap; no JSON-RPC, signed reconstruction source, or process-tree contract |
 | Signed launch grant + Linux egress | Hub `a2d6b2a`; Kernel `d388733` | Exact PASETO subject, policy key lifecycle, active-lease issuance, single-use nonce, and live namespace/nft/proxy isolation; live dispatch stays policy-disabled and no provider conformance receipt exists |
-| Operator-ratifiable live policy | Hub `bf5c642`; descendant consumers Kernel `b4735da`, BulletGit `236f4ef`, Portal `95108e3` | v1alpha2 structural/time validation requires generation >=2 and an active provider-runner key while preserving conservative invariants. ADR 0012 is proposed; Kernel runtime still accepts v1alpha1 only and no committed policy enables live admission |
+| Operator-ratifiable live policy | Hub `bf5c642`; Kernel loader mirror `0d848f6`; descendant consumers BulletGit `236f4ef`, Portal `95108e3` | v1alpha2 structural/time validation requires generation >=2 and an active provider-runner key while preserving conservative invariants. ADR 0012 is proposed; the committed policy remains v1alpha1 generation 1 and no committed policy enables live admission |
 | Policy-gated provider conformance | Kernel `ba485d5`, nightly real-mode wrapper `b4735da` | Common fail-closed orchestration and sealed step receipts; required 439/439 with 3 intentional live skips, egress 3/3, and four-provider neutral refusal with zero spawn. Only Claude has a deep positive fake-process proof; no provider has a live receipt |
-| Operational farmd projections | Kernel `529bad1`; Portal `95108e3` | Five new atomic watermark-bound surfaces with generated/AJV clients; Portal 100/100 unit, 10/10 mocked browser, and 2/2 real farmd. Seven designed surfaces remain explicit UNKNOWN and there is no packaged runtime |
-| Setup transaction | Hub `94b6549`, `7efe2f3` | Descriptor-relative source/component fixture plus sealed Linux Cargo/Node/Bash/npm subjects; source-wrapper pre-admission execution, active same-UID path-based Git, production Jeryu/validator replay, public schema-3 authority, and prebuilt installer remain open |
+| Operational farmd projections | Kernel `529bad1`, `7cdf850`; Portal `3033b67` | Six new atomic watermark-bound surfaces with generated/strictly validated clients, including revision-one Context Lineage; Portal 104/104 unit, 10/10 mocked browser, and 2/2 real farmd. Six designed surfaces remain explicit UNKNOWN, successor/compression lineage and the generated AJV root are absent, and there is no packaged runtime |
+| Initial Context Capsule authority | Kernel `7cdf850` | Immutable revision-one identity/package membership is normalized and atomically bound to graph materialization, lease, fence, and Attempt; cross-graph replay refuses. Successor/compression lineage, task/role/fusion, quota/budget, and routing scheduler truth remain open |
+| Setup transaction | Hub `94b6549`, `7efe2f3`, `3039878`, `e8f0180`, `34f3326`, `093a0e2` | Descriptor-relative source/component fixture plus sealed Linux Cargo/Node/Bash/npm, mutation-Git, family-lock verification-Git, and checkout verification-Git subjects and a build-free default-refusing wrapper; signed admission of its external executable, clone transport Git/helpers, transient/between-child object/ref/index/config/file stability, non-Git traversal, allowed-signers admission, production Jeryu/validator replay, public schema-3 authority, and prebuilt installer remain open |
+| MSRV receipt admission | Hub `d762f86` | One fixed root-owned policy/descriptor/evidence path can admit exact independently signed Rust 1.95 semantic evidence; no real admission exists, and this mechanism cannot clear any of the other 25 release gates |
 | Release-truth report | Hub `0cc7eec` | Deterministic 26-row operator projection with explicit mechanical/evidence/review/deployment/survival separation and decision exit 3; 0/26 receipts remain and the report itself cannot satisfy a gate |
 | Bundle verifier/extractor | Hub `352f963`, `ba09056` | Exact-byte verification and safe absent-destination materialization only; no package production, semantic admission, activation/rollback, or signing authority |
 | Signed receipt verifier | Hub `143f8b9` | Canonical receipt/policy and exact OpenSSH signer/namespace/interval verification; no external policy, trusted time/revocation/custody, semantic adjudication, registry/replay, or real receipt |
-| BulletGit subject/recovery contract | BulletGit `274fd6d`, `f551736` | Exact local freeze/recovery and strict wire-shaped subjects; no immutable shared-wire tag, provenance-complete Candidate identity, or production Jeryu service |
+| BulletGit subject/recovery contract | BulletGit `274fd6d`, `f551736`, `4c508e4` | Exact local freeze/recovery, strict wire-shaped subjects, and provenance-complete Candidate/Content identities; no immutable shared-wire tag, Kernel caller convergence, online authority/settlement, Integration proof, or production Jeryu service |
 | BulletGit cleanup/CI contract | BulletGit `2d22c28`, `5dac98e` | Synced tombstone before cleanup success and fail-closed UNKNOWN after ambiguous deletion; no positive online authority/Jeryu proof and Jankurai remains below release floor |
 | Generated/browser runtime truth | Kernel `35b6484`; Portal `181cd00`; Hub `601cb82` | Generated consumed DTO validation plus exact correlated UNKNOWN/SSE proof against Vite preview + real farmd; not Rust-embedded or package-served, and Candidate/Evidence/Effect DTOs remain open |
-| Portal bundle manifest | Portal `8272844`; root `blake3:556d91f8504299230bc75e027108d1d943fd9ff99303cea7c2a155ee69edd973` | Clean commit/tree, lock, exact Git/Node, whole npm tree, and emitted bundle identity; no signed environment, Rust embedding, archive, activation, or installer authority |
+| Portal bundle manifest | Portal `3033b67`; ignored generated root `blake3:3dd9ad08d729247b9889e6e68ee150c6aeca3e47306c7992d4cde509ab999596` | Clean commit/tree, lock, exact Git/Node, whole npm tree, and emitted bundle identity; `bundle:generate` and `bundle:check` exit 0. The manifest lives under ignored `dist/` and is not release evidence. No signed environment, Rust embedding, archive, activation, or installer authority |
 
 ## Local pre-release gates
 
@@ -157,11 +159,13 @@ The release installer starts from a hub-only clone and must:
 8. be idempotent; and
 9. leave exact clean member OIDs and zero tracked changes after two runs in a fresh home.
 
-`scripts/setup.sh` is a source-development bootstrap convenience: it must launch Cargo before the
-Rust admission boundary exists, so running it is not authenticated installer or release evidence.
-Release installation requires a signed prebuilt `bullet-family` binary whose release manifest and
-checksums have been verified. Before any mutation, that binary must bind the canonical absolute Cargo,
-Node, and npm CLI subjects it admits.
+`scripts/setup.sh` is a build-free, default-refusing bootstrap convenience. It does not resolve Cargo
+or `bullet-family` from `PATH`; it runs only the absolute external executable selected through
+`BULLET_SETUP_ADMITTED_BIN` and clears the ambient tool-selection environment. That selection alone
+does not authenticate the bytes, so running the wrapper is not installer or release evidence. Release
+installation requires a signed prebuilt `bullet-family` binary whose release manifest and checksums
+have been verified. Before any mutation, that binary must bind the canonical absolute Cargo, Node,
+npm, Git, and helper subjects it admits.
 
 The Linux verifier is available as:
 
@@ -199,14 +203,15 @@ is not package-production, installation, signer, platform, or release evidence.
 
 The Rust setup/checkout mechanism and its signed local four-repository fixture implement these
 rules, including two idempotent exact source setups. On Linux it copies admitted Cargo, Node, Bash,
-and npm subjects into sealed read-only memfds and executes them through inherited descriptors; a
+npm, setup mutation-Git, family-lock verification-Git, and checkout verification-Git subjects into sealed read-only memfds and executes them through inherited descriptors; a
 post-verification pathname swap cannot execute attacker bytes. It retains the admitted family-root descriptor,
 uses 0700 descriptor-relative staging, checks root/staging identity around path-dependent children,
 publishes members and the final outer manifest without replacement, fsyncs authority boundaries,
 and confines cleanup with no-follow depth/entry limits. Fallible dependency, generated-contract,
 and exact-family checks complete before publication; injected transaction boundaries recover to
 prior or complete next state. Setup rejects unsupported platforms before mutation. Active same-UID
-mutation during external path-based Git remains beyond this descriptor boundary; a cleanup limit may
+mutation during clone transport Git/helper use, transient or between-child repository object/ref/index/config/file
+changes, non-Git work-tree traversal, and allowed-signers path admission remains beyond this descriptor boundary; a cleanup limit may
 safely leave an orphan, and an error after publication requires exact setup/verify reconciliation. The
 checked-in alpha.4 lock remains schema 2, so the public command still fails before mutation with
 schema-3 regeneration guidance. Release evidence remains blocked until authenticated Jeryu subjects
@@ -216,10 +221,15 @@ schema-3 family lock or live provider, Jeryu, or GitHub receipt exists today.
 The positive two-run fixture uses local source transport and a test-only exact
 validator; it does not exercise production Jeryu transport or the full setup
 validator. Commit `7efe2f3` closes the final-path swap for the Rust boundary's
-Cargo, Node, Bash, and npm subjects, but it cannot authenticate the source
-wrapper that launches Cargo to build that boundary or the remaining path-based
-Git child. Public installer acceptance still requires a signed prebuilt and a
-two-run replay through production transport and validation.
+Cargo, Node, Bash, and npm subjects, `3039878` removes the ambient Cargo
+bootstrap, `e8f0180` seals setup mutation-Git, `34f3326` seals family-lock
+verification Git, and `093a0e2` seals checkout verification Git against
+descriptor-pinned per-child work-tree/`.git` subjects.
+None authenticates the wrapper-selected external executable or the remaining
+clone transport Git/helper subjects, transient/between-child repository or
+non-Git filesystem identity, or allowed-signers path. Public installer
+acceptance still requires a signed prebuilt and a two-run replay through
+production transport and validation.
 
 ## Package matrix
 

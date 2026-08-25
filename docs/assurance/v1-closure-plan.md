@@ -65,10 +65,10 @@ The committed subjects observed immediately before this plan edit were:
 
 | Repository | Commit | Tree | Checkout truth |
 | --- | --- | --- | --- |
-| Hub | `48cca4699fa8d23f763d69ead5c3eb19de7378ef` | `595d5080e334ad4a59e07e2314e2738e20161e81` | v1alpha2 live-admission validation, exact coordinator receipts, evolutionary design, sealed setup-tool subjects, deterministic release truth, and the operator live-conformance runbook are committed; this documentation edit is excluded |
-| Kernel | `b4735da7797b7565071aa14f2d6f8cc4c2c65fcc` | `2ae747639d65186cbcea86ad4b99eb4bd283a0cb` | Five atomic operational projections, policy-gated common provider orchestration, and an explicit nightly real-binary mode are committed. The current v1alpha1 policy path refuses before provider spawn; no live receipt exists |
-| BulletGit | `236f4efe2b8243b3c4dd5da13269e45119b061df` | `ac02f8d492d0767f3a3e490eff0e897e99fc08ba` | Policy bundle synchronized after durable cleanup outcome and local CI parity controls; production online authority and Jeryu remain blocked |
-| Portal | `95108e37d64364a25426cb65d320650c6bcf8b4d` | `50ee4db5f3b9729545af9b3a20c3ae88648c2a00` | Five additional read-only farmd projections are generated and runtime-validated. Seven designed surfaces remain explicit UNKNOWN and package embedding remains open |
+| Hub | `ba7c9550ea687b8acbc2707b744c0c5c9bab480a` | `817063b853ea646b3902b715b3fbb0c1263c41a1` | Exact coordination/release truth, build-free setup, sealed setup/family-lock/checkout tool subjects, runbook index, glossary, operator-decision register, and historical-spec integrity are committed; this documentation edit is excluded |
+| Kernel | `7cdf850c49695c1387604a7fc677e011a51e625c` | `73a7f314140d0950d93c496b3ad27c44c3dd5b90` | Initial immutable Context Capsules are normalized and committed atomically with graph/lease/fence/Attempt truth. Current v1alpha1 policy still refuses before provider spawn; no signed internal transaction or live receipt exists |
+| BulletGit | `4c508e4173aaee43083921ab457ff65744754176` | `d5e785e0d8934bde273d1044a02d3d33753e2a68` | Complete provenance-bound local Candidate identity and strict Hub canonical vectors are committed; immutable wire-tag consumption, online authority/settlement, Integration proof, and Jeryu remain blocked |
+| Portal | `3033b67074a1042362789b090e3226b1e0420e8e` | `9a3a386908b2ace6c623e56d4e0f3c1e70fb3530` | Revision-one Context Lineage is strictly runtime-validated, bringing the catalog to nine projected and six explicit UNKNOWN surfaces. Successor/compression lineage and package embedding remain open |
 
 There is no family transaction or release receipt: the current read-only
 `check release` inventory reports all 26 registered gates `BLOCKED` and names
@@ -77,7 +77,8 @@ the missing transaction, live, recovery, package, security, and signing evidence
 | Receipt | Status | Exact evidence | Boundary |
 | --- | --- | --- | --- |
 | Pure signed wire | `COMPLETE` | Hub `c07efb10639d500c3e82ccc282265090ff63a4aa` | DTO/canonical/signature/golden proof; no running issuer or published immutable tag |
-| Tool admission | `COMPLETE` | Hub `68d0fb92b52df8d4631ac346428f341f0bb492bc`, `7efe2f3e8227`; hostile swap 1/1, setup command 4/4, Rust 1.95 strict/required | Linux runs immutable sealed read-only descriptor subjects for Cargo, Node, Bash, and the npm companion, and reports source replacement after the child. The source wrapper's pre-admission Cargo launch, path-based Git, production Jeryu/validator, schema-3, and signed installation remain open |
+| Tool admission | `COMPLETE` | Hub `68d0fb92b52df8d4631ac346428f341f0bb492bc`, `7efe2f3e8227`, `3039878371b6`, `e8f0180d272e`, `34f3326391a5`, `093a0e2f6b8f`; hostile replacement/family-lock/checkout subject negatives green, required green | Linux runs immutable sealed read-only descriptor subjects for Cargo, Node, Bash, npm, setup mutation Git, family-lock verification Git, and checkout verification Git, and reports replacement/subject drift. The build-free wrapper refuses by default and selects no ambient Cargo or `bullet-family`; signed admission of its external executable, clone transport Git/helpers, transient/between-child repository and non-Git filesystem stability, allowed-signers admission, production Jeryu/validator, schema-3, and signed installation remain open |
+| Exact Rust 1.95 receipt admission | `COMPLETE` | Hub `d762f86b4de2`; required 211/211; live release inventory remains 26/26 BLOCKED without an admission | The only admitted gate is `release.rust-msrv-1-95`, selected through a fixed root-owned no-follow descriptor and distinct source/attestor/time Ed25519 roots over exact signed family/tool/argv/time subjects. No admission or receipt exists; the other 25 gates have no such path |
 | Deterministic release-truth projection | `COMPLETE` | Hub `0cc7eecffd4a`; 205 Hub tests, strict Clippy, required drift/negative proof, contract, deterministic regeneration | `check release --report` keeps decision exit 3, renders every catalog row, reports 0/26 receipts, and separates mechanical/evidence/review/deployment/survival truth. It is a projection, not evidence, and cannot clear a gate |
 | Bounded JSON-RPC session contract | `COMPLETE` | Hub `b0b9be55199d7d58bc795c5252b27106a5c310b3`; wire 57/57, hostile IPC 11/11 | Pure hello/frame/deadline/cancel/correlation state machines; runtime consumers still use legacy boundaries |
 | Executable exact-subject checks | `COMPLETE` | Hub `24d05af9db762a72bd4a54cddbb1807c9800ea64`; local fusion `17aa92885b2fdd1807100ad8b1ab335de8b72e5b` | Fixed bounded commands and unchanged subjects; synthetic/component results cannot promote release |
@@ -88,10 +89,12 @@ the missing transaction, live, recovery, package, security, and signing evidence
 | Admitted gates and authoritative snapshots | `COMPLETE` | Kernel `cdfd6f2a085faeb8201a52745bec13ce444047db`, `20032074526605e1708aa72789defbd87fa75b58`, `fef4aba1f687d67107e5bafffa9adba8545becc3`; required 293/293 | Provider text cannot name shell; atomic SQLite projections carry source/time/watermark; empty ready is verified `data:null` |
 | Provider process admission | `COMPLETE` | Kernel `03baa0ed7bd6746f7e7458cca6f56a60ddfda617`; focused 55/55 plus strict checks | Absolute binary/digest, 0700 HOME, 0400 OAuth copy, positive environment, canary scan, cleanup; dispatch remains blocked without signed authority and egress |
 | Signed launch-grant admission | `COMPLETE` | Hub `a2d6b2ab003c`; Kernel `d38873392bfe`; wire 72/72 and Kernel 410/410 | PASETO v4.public exact-subject verifier, active-lease issuer, policy key lifecycle, and single-use nonce ledger. Policy generation 1 keeps live admission disabled; durable authority epoch/budget reservation and authenticated Runner transport remain open |
-| Operator-ratifiable live policy schema | `COMPLETE` | Hub `bf5c64245d21`; cross-family consumers `0346fd5`, `236f4ef`, `8272844`; wire 83/83 | v1alpha2 may represent live admission only at generation >=2 with an active provider-runner PASETO key while every conservative invariant remains fixed. ADR 0012 is proposed, Kernel loader still accepts v1alpha1 only, and no committed policy enables live dispatch |
+| Operator-ratifiable live policy schema | `COMPLETE` | Hub `bf5c64245d21`; Kernel loader mirror `0d848f6`; cross-family consumers `236f4ef`, `8272844`; wire 83/83 | v1alpha2 may represent live admission only at generation >=2 with an active provider-runner PASETO key while every conservative invariant remains fixed. ADR 0012 is proposed; the committed policy remains v1alpha1 generation 1 and enables no live dispatch |
+| Exact checkpoint-bound proposals | `COMPLETE` | Hub `65a5ea77`; Kernel `ca380bc4`; BulletGit `fb715b25`; Hub required 211/211, Kernel 460/460, BulletGit 131/131 | Provider output carries admitted `gate_ids` and exact base checkpoint/preimage/scope subjects; application rejects stale proposals and portable ancestor/case collisions before mutation. Consumers still mirror the unpublished wire contract, and no production online authority or live adapter is enabled |
+| Initial Context Capsule authority | `COMPLETE` | Kernel `7cdf850c4969`; required 469/469 with 3 explicit live skips | Normalized immutable revision-one capsule identity and package membership commit atomically with graph materialization, lease, fence, and Attempt; replay rejects cross-graph/corrupt membership. Successor/compression lineage and the remaining cognitive scheduler objects do not exist |
 | Linux provider egress isolation | `COMPLETE` | Kernel `d38873392bfe`; live lane 3/3 | User/network namespace, nft default-drop, allow-listing CONNECT proxy, counter-bound receipt, and process-tree teardown block direct internet, host Jeryu, decoy, DNS, and disallowed CONNECT. This is containment-component evidence, not provider conformance |
 | Policy-gated provider conformance path | `COMPLETE` | Kernel `ba485d5b5f5`, nightly real-mode wrapper `b4735da7797`; required 439/439 with 3 intentional live skips, egress 3/3, four-provider nightly refusal | One common path orders policy, key, lease, admission, signed grant, exact executable re-observation, nonce, egress, one read-only turn, canary scan, and sealed receipt. Current v1alpha1 policy produces neutral refusal with zero spawn. Only Claude has a deep positive fake-process proof; Codex, Cursor, and Antigravity lack equivalent deep fake/live receipts, and no provider has a live receipt |
-| Atomic operational projections | `COMPLETE` | Kernel `529bad1f8a77`; Portal `95108e37d643`; Kernel required 439/439 with 3 intentional live skips; Portal 100/100 unit, 10/10 mocked browser, 2/2 real farmd | Fleet, Session Supervisor, Merge Rail, Quality Lab, and Audit are atomic watermark-bound farmd projections with generated/AJV-validated Portal consumers. Seven designed surfaces still report explicit UNKNOWN because their ledger subjects do not exist; this is component evidence only |
+| Atomic operational projections | `COMPLETE` | Kernel `529bad1f8a77`, `7cdf850c4969`; Portal `3033b67074a1`; Kernel required 469/469 with 3 intentional live skips; Portal 104/104 unit, 10/10 mocked browser, 2/2 real farmd | Fleet, Session Supervisor, Merge Rail, Quality Lab, Audit, and revision-one Context Lineage are atomic watermark-bound farmd projections with generated/strictly validated Portal consumers. Six designed surfaces still report explicit UNKNOWN; successor/compression lineage and the generated AJV root remain open |
 | Authenticated command ingress | `COMPLETE` | Kernel `19d1d47cb03956eb92dfa3f27e409c87d1ab5203`; required 307/307 | Loopback bootstrap/session/origin/CSRF and atomic PENDING command/outbox/event |
 | Operation-specific local authority | `COMPLETE` | Kernel `e697f8aa457ed6289e82cf51428f5e9de809436d`; required 311/311 | Exact typed mutation/terminal/preservation decisions; signed request capabilities, daemon receipt validation, and online cleanup settlement remain open |
 | Authenticated offline command reconciliation | `COMPLETE` | Kernel `77a0ecd0079d030e944ebf3a7b9077b7d64aabcc`; required 317/317 | Exact-ID worker settles one command/outbox/event to honest UNKNOWN/FAILED; no dispatch, APPLIED, VERIFIED, provider, verifier, or effect path |
@@ -100,6 +103,7 @@ the missing transaction, live, recovery, package, security, and signing evidence
 | BulletGit fail-closed gateway | `COMPLETE` | BulletGit `79bf1e2129fbe50ed85d424fe6e4416407bb17f4`; 82/82 required at consumer head `7df926c` | Production refuses unavailable authority; no positive checker or Jeryu backend |
 | Atomic generations and preservation | `COMPLETE` | BulletGit `61bf76dd06753df1ce37715582ab56fbf5d75cff`, `9d527b9e2d8da2fe4ca76c45787851f6d6dab8c2`; required 105/105 | Prior-or-complete-next generation plus sealed exact-state salvage before cleanup; positive online authority and Jeryu remain open |
 | Exact mutation reservation | `COMPLETE` | BulletGit `f8121142cd337e243bdc97cdeec9dacea9554b04`; required 107/107 | Durable reservation binds request/envelope/Attempt/fence/workspace generation; production checker and Kernel settlement remain unavailable |
+| Provenance-bound Candidate identity | `COMPLETE` | BulletGit `4c508e4173aa`; required 139/139, affected packages 130/130 | Separate Content/Candidate IDs bind the complete local Candidate provenance manifest to repository-derived facts and exact Hub canonical vectors, with preflight before permit consumption and a final writer check. Immutable Hub-tag consumption, Kernel caller convergence, online signed authority, Integration proof, and Jeryu remain open |
 | Projection and real-process browser truth | `COMPLETE` | Portal `cfba6f72f6fd55cc0477182b74b63ade49821d07`; unit 51/51, mocked browser 10/10, real farmd browser 1/1 | Strict snapshots, STALE recovery, server provenance, ready-null; packaging remains open |
 | Strict browser command reconciliation | `COMPLETE` | Kernel `35b64847459aefb88ef17c37427d9b7b9754ae97`; Portal `181cd00cc6f9d20b079bdcecea88eebde70c47c3`; Kernel 342/342, Portal 67/67, real farmd 1/1 | Sole exact outbox/submitted/reconciled truth; SSE ID/sequence conflicts stay STALE; authenticated worker proves correlated `PENDING→UNKNOWN`, never green. Vite preview is not packaged/embedded evidence |
 | Transaction-safe source setup | `COMPLETE` | Hub `5148a52a122da46e749be3e2169f81bd6d4b8116`; Hub required 34/34 plus integrations | Fallible validation precedes no-replace publication and final durable manifest; signed schema-3 inputs and prebuilt installer remain open |
@@ -321,8 +325,9 @@ and cleanup-before-preservation never become PASS or cause a duplicate effect.
 
 Status: `LOCAL-BLOCKED`. Atomic snapshots, strict Portal validation, exact-pair
 SSE recovery, authenticated commands, and real farmd `PENDING→UNKNOWN` are
-components. Eight of the fifteen designed Portal surfaces now have durable
-farmd projections; the other seven remain explicit UNKNOWN. There is no
+components. Nine of the fifteen designed Portal surfaces now have durable
+farmd projections; the other six remain explicit UNKNOWN. Context Lineage
+contains revision-one capsule subjects only. There is no
 APPLIED/VERIFIED dispatch or embedded/package-served Portal.
 
 Required work:
@@ -336,10 +341,11 @@ Required work:
 3. Preserve generated client/AJV validation. Correlate each displayed
    receipt to its command ID; timeout is `UNKNOWN`, and an old green receipt
    cannot satisfy a new failed command.
-4. Preserve the five new atomic Fleet, Session Supervisor, Merge Rail, Quality
-   Lab, and Audit projections. Implement durable ledger subjects and projections
-   for the seven remaining surfaces: Cognitive Router, Fusion Lab, Context
-   Lineage, Quota/Capacity, Struggle, Behavior, and Workspace Hygiene.
+4. Preserve the six new atomic Fleet, Session Supervisor, Merge Rail, Quality
+   Lab, Audit, and Context Lineage projections. Implement durable ledger subjects
+   and projections for the six remaining surfaces: Cognitive Router, Fusion Lab,
+   Quota/Capacity, Struggle, Behavior, and Workspace Hygiene. Extend Context
+   Lineage only after durable successor/compression subjects exist.
 5. Embed the built Portal in the Rust distribution and run Playwright against a
    real packaged farmd. Vite/mock lanes remain focused component tests only.
 
@@ -395,10 +401,11 @@ and cannot be rewritten into the selected Candidate.
 ## V1-S7 — installer, checks, CI, packaging, and documentation
 
 Status: `LOCAL-BLOCKED`. Coordination/checks/fusion, strict schema-3 verification,
-descriptor-relative setup, signed bundle verification, and safe extraction exist.
-Schema 2 refuses; a deterministic Portal bundle subject exists, but there is no
-embedded farmd, package builder, activation/rollback installer, authenticated
-prebuilt installer, signer, or release.
+descriptor-relative setup, a build-free default-refusing wrapper, signed bundle
+verification, and safe extraction exist. Schema 2 refuses; a deterministic Portal
+bundle subject exists, but there is no signed admission for the wrapper-selected
+external executable, embedded farmd, package builder, activation/rollback installer,
+authenticated prebuilt installer, signer, or release.
 
 Required command surface:
 
