@@ -1,0 +1,104 @@
+# Launch plan — bridging every remaining issue and feature to a shippable Bullet Farm
+
+Status: **ACTIVE planning artifact; not runtime or release authority**
+Owner: Bullet Farm maintainers (orchestrator: claude-orch)
+Last reconciled: 2026-08-25 ~09:00Z against hub `ba7c955`, kernel `0109a90`+, git `3c90cbe`+, portal `b493f29`+
+Sources of truth this plan is built from: [`release-truth.generated.md`](release-truth.generated.md) (26 gates + ungated
+blockers), [`product-gaps.md`](product-gaps.md) (G1–G15), [`v1-closure-plan.md`](v1-closure-plan.md) (V1-S0…S8),
+[`../release.md`](../release.md), [`../decisions/0013-operator-decision-register.md`](../decisions/0013-operator-decision-register.md),
+family-root `TEAM_PLAN_CLAUDE.md` §10 (WI-01…WI-35), the coordination log's named blockers, and the full read-only
+inventory archived at family-root `.l7-bundle/REMAINING-WORK-INVENTORY-2026-08-25.md` (≈120 rows). Where a number here
+disagrees with a generated page, the generated page wins.
+
+## 0. What "launch" can honestly mean, in order
+
+`bullet-family check release` reports 26 of 26 gates BLOCKED today. They open only along this chain. Each milestone
+names the strongest claim that is true at that point; nothing earlier is "shipped".
+
+| Milestone | Honest claim when reached | Gates opened (cumulative) | Who must act |
+| --- | --- | --- | --- |
+| **M0 — Clean board** | Documentation, audits and generated pages are internally consistent; every checkout is clean. | 0 | agents |
+| **M1 — Contributor-installable source family (Linux x86_64)** | A contributor clones the hub, verifies signed member tags, and sets up from source. Not "installable": no prebuilt binary, no package. | `installable-lock`; scans (`secret`, `dependency`, `license`, `workflow`) become receiptable against tagged trees | agents + **OD-D** |
+| **M2 — Five-plane `TRANSACTION_PROOF`** (credential-free, offline) | One exact change was proposed, applied only through BulletGit, independently verified, delivered with reconciliation and truthfully projected — with a signed receipt. **The product exists as a product here.** | `transaction-demo`; G2's whole predecessor chain (G4, G13, G14, G15) stops blocking | agents (uses M1's tag) |
+| **M3 — Live proof** | Four real agent CLIs ran under signed, egress-isolated, budget-bounded admission; one exact change landed on a real protected forge with read-back. | `provider.*` ×4, `forge.jeryu`, `forge.github-app` | **OD-A, OD-B, OD-C** + agents |
+| **M4 — Linux-only signed package** | A signed, SBOM- and provenance-bearing archive installs from a hub-only clone on Linux x86_64 and refuses every other platform by name. | `package-matrix`(Linux part), `checksums`, `sbom`, `provenance`, `manifest-non-circular`, `signatures`, `receipt-contracts`, `rust-msrv-1-95`, `rust-pinned-1-97-1`, `backup-restore`, `fault-suite`, `installer-twice`, `jankurai-90` (needs a pinned hosted artifact) | agents + **OD-E**, root descriptor, hosted Jankurai artifact |
+| **M5 — Five-platform release (V1)** | `check release` returns a receipted decision from exact signed tags with every receipt current. | all 26 | macOS ×2 + Windows build hosts; non-Linux containment evidence |
+
+**The one decision this plan cannot make:** `v1-closure-plan.md` freezes the release at exactly five archives, so a
+Linux-only M4 is *not* a V1 release under the current contract. Either M4 ships as an explicitly labelled
+**Linux preview outside the release gate**, or the five-archive rule is amended by a reviewed decision (ADR). This
+is recorded as **OD-F** in ADR 0013's successor edit.
+
+## 1. Agent-closable now (no operator input) — the work queue in dependency order
+
+Every row names inputs that are on the development host today. Lanes are path-disjoint, coord-claimed, and committed
+path-exactly with receipts. IDs refer to the inventory.
+
+### M0 (in flight / done)
+| Item | What | Status |
+| --- | --- | --- |
+| R-26 | Commit the runbooks / ADR 0013 / glossary / spec-mirror group | done (hub `b6ae0ca`) |
+| R-36, R-37 | This plan; paper value/risk framing (R5) | this file; R5 lane in flight |
+| R-01 | `release-truth` rows still say "seven unprojected / five projections"; the truth is six/six since Context Lineage landed | queued (rows + `just release-truth` in one commit) |
+| R-27 | All four checkouts dirty with other lanes' work | continuous: commit or hand off; no audit or paper snapshot is admissible until clean |
+| R-11 | `bullet-git` fails its own audit floor (54 < 56) | lane `claude-git-audit` in flight |
+
+### M1 (agent half)
+| Item | What | Lane |
+| --- | --- | --- |
+| R-03, R-50 | `deny.toml` (licenses, advisories, bans, sources) in all Rust repos; `zizmor` family-wide | `claude-security-lanes` in flight |
+| R-15, R-16 | Explicit MSRV-1.95 and pinned-1.97.1 lanes; resolve the toolchain contradiction; emit observation JSON in the receipt schema | `claude-toolchains` in flight |
+| R-21, WI-34, WI-30 | `NoDispatchAfterStop` checked in `EffectCheck.cfg`; STONITH `grace < TTL` as a policy invariant with a failing test; GC-under-load safety test (+ reflink where possible) | `claude-hardenings` in flight |
+| R-43…R-46, R-42 | Jankurai hygiene caps (proof-lane mapping, pre-push parity, dead markers outside contract strings, zyal sentinel, supply-chain manifest) and LOC splits — per repo | git: in flight; kernel/hub/portal: next |
+| R-10 | Publish per-repo Jankurai numbers (kernel 57 / git 54 / portal 60) in `release.md` | BLOCKED diff for the holder |
+| R-25 | Root `docs/paper.md` sanitized to the hub copy | done (family root) |
+| then | `bullet-family lock generate --tag <tag>` once OD-D exists | after OD-D |
+
+### M2 (agent-only, the pivot) — ordered
+1. **R-07 / RUNNER-FARMD-LEASE-ROUTE-AUDIT** — promote the quarantined `SignedLeaseService`: durable nonce ledger, persistent `last_acquire`, `advance_attempt_with_authority`, full-subject release check in one SQLite transaction, `/internal/v1` mount only, hardened bounded client. (cursor-grok holds the WIP today.)
+2. **V1-S2-a / KERNEL-AUTHORITY-PREDECESSOR** — normalized truth: no JSON-blob authority, no `INSERT OR REPLACE`; lease/Attempt rows carry graph revision, workspace generation, scope digest, policy/routing generation, authority epoch, freeze generation.
+3. **V1-S2-b** — short-lived PASETO mutation capabilities minted from the durable active lease.
+4. **G4 / ONLINE-AUTHORITY-AUDIT (2)–(4)** — Kernel reservation + one-use permit; BulletGit positive checker replaces `AuthorityGateway::unavailable`; settlement after I/O. Honest wire binding needs the M1 tag (blocker 1).
+5. **V1-S4-a/b** — real runner saga (acquire → read-only provider generation → proposal → BulletGit apply → admitted gates → ≤2 repairs → checkpoint → exact Candidate; heartbeat failure freezes, kills the tree, preserves, successor resumes from the exact checkpoint).
+6. **V1-S4-c / WI-13 / R-55** — independent verifier: per-gate executable digest, multi-gate aggregation, oracle-modifying-diff classification with sealed holdouts.
+7. **V1-S4-d** — effect broker intent → dispatch → lost-response `UNKNOWN` → read-back → identity-exact adoption, no second write (local forge).
+8. **V1-S5-a** — farmd signed dispatch so a public command settles past PENDING.
+9. **R-04** — replace `just demo`'s synthetic success with the signed `TRANSACTION_PROOF`; **R-08** build the tagged crash-boundary fault suite alongside step 5.
+
+### M4 (agent half)
+| Item | What | Lane |
+| --- | --- | --- |
+| R-05 / V1-S5-d | Embed the manifest-verified Portal bundle in farmd; Playwright against the packaged origin | `claude-portal-embed` in flight |
+| R-02 | `bullet-family release build` for `x86_64-unknown-linux-gnu`; checksums; SBOM (Rust + npm); provenance producer; non-circular manifest generator; release workflow (R-13) | next, after R-05 |
+| V1-S7-a…d | Signed admission of the wrapper-selected executable; clone-transport helper subjects; transaction-wide repository stability; allowed-signers admission | next |
+| R-17, WI-12 | GitHub effect adapter (none exists) and the independent attestor binary | after OD-C |
+
+### Post-V1 by contract (not gaps): G11 evolutionary runtime (WI-08, WI-18, WI-20…WI-25, WI-31), R-30 PostgreSQL, cross-repository sagas, routing learners, Stage-2 benchmark (R-41; prohibited until M2's receipt exists).
+
+## 2. Operator actions — the complete list (register: ADR 0013)
+
+| ID | Action | Unblocks | Cost |
+| --- | --- | --- | --- |
+| **OD-A** | `bullet authority keygen`, write the v1alpha2 generation-2 policy outside the repositories, ratify in the log (`docs/runbooks/live-conformance.md` §2) | `release.provider.*` ×4 (every mechanism exists on both sides: hub `bf5c642`, kernel `0d848f6`, `b4735da`) | minutes; provider spend in cents |
+| **OD-B** | `gh auth login -h 127.0.0.1:8787` + name one scoped Jeryu test repository (forge answers 200 today; stored token invalid) | `release.forge.jeryu` | minutes |
+| **OD-C** | GitHub App on one branch-protected test repo, delivery and attestation credentials separated | `release.forge.github-app` (after R-17/WI-12) | hours |
+| **OD-D** | Publish signed immutable member tags with authenticated Jeryu URL/slugs and a tag signer (a *new* tag: `v0.1.0-alpha.4` predates the signed authority contract `c07efb1`) | `installable-lock`; every "from tagged bytes" gate; honest wire binding for M2 step 4 | hours |
+| **OD-E** | Ed25519 release-signing key under protected custody; signer policy for namespace `bullet-farm-release-receipt-v1`; `release/allowed_signers`; root-owned `/etc/bullet-farm/release-msrv-1-95-admission.toml` with three roots and signed time (R-14) | `signatures`, `receipt-contracts`, `rust-msrv-1-95`, `provenance` | hours |
+| **OD-F** | Decide: Linux-only preview outside the release gate, or amend the five-archive rule | whether M4 can be called a release | a decision |
+| **OD-G** | Ratify public names/endpoints (`git.neverhuman.org`, GitHub org), Jeryu deployment identity, backup, TLS (workplan WP-08/14/17) | public mirror, permalinks, hosted CI provisioning | a decision + ops |
+
+## 3. External / platform (cannot be simulated here)
+macOS x86_64 + arm64 and Windows x64 build hosts (`package-matrix`), native containment or observed fail-closed refusals on those platforms (`platform-containment`), a checksum-pinned portable Jankurai artifact for hosted CI (`jankurai-90` hosted half, R-12), hosted family provisioning for member CI (R-49, HOSTED-PORTAL-FAMILY-CI).
+
+## 4. Contradictions to reconcile (owners named in the inventory §2)
+Surface counts six vs seven (`release-truth` rows; `v1-closure-plan.md` L71 vs L331); operator-decision lists (root README / product-gaps → ADR 0013 pointers); owner vocabularies (LOCAL-then-EXTERNAL vs "Engineering, predecessor-blocked" vs `LOCAL-BLOCKED`); Rust toolchain 1.95 vs 1.97.1 per workspace; Jankurai auditor 1.6.0 artifacts vs pinned 1.6.11; `TEAM.md`/`POTENTIAL_DRAFT.md` still state C8 "any two providers" (superseded: all four); `schema-removal.md` setup-wrapper wording vs hub `3039878` default-refuse; the archived operator kit understated how close OD-A is (fixed).
+
+## 5. Feature completeness against the vision (summary; full table in the inventory §4)
+**Exists as code (COMPONENT_PROOF):** five principals; DB-clock leases/fences; idempotent graph mint; ambiguity → durable `UNKNOWN`; private dissociated clones; prior-or-complete-next generations + sealed preservation; provenance-bound `CandidateId`; signed launch grants; Linux egress isolation; four offline provider protocol subsets; 13-step live-conformance path; policy v1alpha2 rule (hub + kernel); revision-one Context Capsule; watermark-bound projections (9/15 surfaces); authenticated command ingress; two pinned TLA+ models; signed bundle verify/extract/receipt verifier; sealed setup tool subjects; coordination ledger; release-truth report.
+**Design-only:** roles as capability profiles; hard-constraint routing; quota epistemology (reservations, probe, one-seat-per-human); vector fitness/selection; fusion with dissent; struggle ladder; behavior gateway; verifier backpressure; attestor ≠ broker; oracle-split + holdouts; typed freeze ack; wound-wait; staged race budgets; gates inside the egress sandbox; tree-disjoint evidence preservation; anchored audit batches; CAS/GC; topology library; SLO defaults; KPI loops; login-challenge inbox.
+**Post-V1 by contract:** TeamRecipe campaigns / QD archive / B0–B6 / islands / drift rollback; routing learners; PostgreSQL & remote runners; cross-repo sagas; multi-tenant; Stage-2 benchmark; public mirror topology.
+
+## 6. Exit criteria for this plan
+This plan is retired when `release-truth.generated.md` shows every gate either receipted or `EXTERNAL` with a named
+operator/platform owner, and no `AGENT-NOW` row remains in the inventory. Until then the honest status of the product
+is **pre-release, blocked**, and the honest status of the engineering is **component-proven, transaction-unproven**.
