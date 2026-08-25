@@ -38,7 +38,7 @@ policy seam; the production loader never accepts such a policy.
    ```
 
    The command prints the public key and a ready-to-paste `IssuerKeyV1` JSON with
-   `key_purpose = authority-signing`, `algorithm = paseto-v4-public`, `audiences = ["provider-runner"]`.
+   `key_purpose = authority-signing`, `algorithm = paseto-v4.public`, `audiences = ["provider-runner"]`.
 
 2. Write the ratified policy: copy `policy/v1alpha1/policy.json`, set `schema_version` to
    `v1alpha2`, `policy_generation` to `2`, append the `IssuerKeyV1` to `issuer_keys`, and set
