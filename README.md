@@ -28,10 +28,17 @@ checkouts in `repos.manifest.toml`.
 
 ```bash
 cd /path/to/bullet/bullet-farm
-cargo run --locked --quiet --bin bullet-family -- doctor --json
+cargo run --locked --quiet --bin bullet-family -- doctor --json; echo EXIT=$?
 just fast
 just demo
 ```
+
+`doctor` reports its verdict in its exit status as well as its JSON: `0` READY,
+`3` BLOCKED — the family's "diagnosed, not usable" code, the same one
+`check` and `coord` use. On a fresh clone of this tree the honest answer is
+`EXIT=3` with `"status": "BLOCKED"`, because the checked-in `family.lock` is the
+diagnostic schema-2 lock. Read the `repair` string of each blocked check; do not
+chain `doctor` with `&&`, and never read exit 0 as proof of a healthy family.
 
 Install the repository-owned pre-push proof hook once per clone:
 
