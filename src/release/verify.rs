@@ -4,35 +4,17 @@ use std::{
     fs::{self, File, OpenOptions},
     io::{Read, Seek, SeekFrom, Write},
     path::{Path, PathBuf},
-    process::Command,
-    time::Duration,
 };
 
 #[cfg(unix)]
-use std::os::{
-    fd::{AsRawFd, RawFd},
-    unix::fs::{OpenOptionsExt, PermissionsExt},
-};
+use std::os::{fd::AsRawFd, unix::fs::OpenOptionsExt};
 
-use super::{ReleaseFile, ReleaseManifest, SignedReleaseFile};
-use crate::{
-    coord::CoordError,
-    family_lock,
-    process::{InputFileOutput, Limits, run_bounded_with_input_file},
-};
+use super::{ReleaseFile, ReleaseManifest, SignedReleaseFile, signature};
+use crate::{coord::CoordError, family_lock, process::InputFileOutput};
 
 const MANIFEST: &str = "release-manifest.toml";
 const MANIFEST_SIGNATURE: &str = "release-manifest.toml.sig";
-#[cfg(unix)]
-const SSH_KEYGEN: &str = "/usr/bin/ssh-keygen";
-#[cfg(windows)]
-const SSH_KEYGEN: &str = r"C:\Windows\System32\OpenSSH\ssh-keygen.exe";
 const SIGNATURE_NAMESPACE: &str = "bullet-farm-release";
-const SIGNATURE_LIMITS: Limits = Limits {
-    timeout: Duration::from_secs(10),
-    stdout_bytes: 64 * 1024,
-    stderr_bytes: 64 * 1024,
-};
 
 pub(super) struct VerificationReceipt {
     pub(super) manifest: ReleaseManifest,
@@ -46,7 +28,7 @@ pub(super) fn verify(
     let mut allowed_signers =
         admitted_external_file(allowed_signers, "allowed signers", 64 * 1024)?;
     let allowed_signers = immutable_snapshot(&mut allowed_signers, "allowed signers", 64 * 1024)?;
-    admit_ssh_keygen()?;
+    signature::admit_verifier()?;
     let manifest_path = bundle_file(&bundle, MANIFEST)?;
     let mut manifest_input = open_bounded_file(&manifest_path, "release manifest", 1024 * 1024)?;
     let manifest_bytes = read_open_bounded(&mut manifest_input, 1024 * 1024)?;
@@ -194,47 +176,16 @@ fn verify_signature(
     allowed_signers: &File,
     payload: File,
 ) -> Result<InputFileOutput, CoordError> {
-    let pinned_signature = PinnedPath::new(signature, "detached signature")?;
-    let pinned_signers = PinnedPath::new(allowed_signers, "allowed signers")?;
     let (principal, fingerprint) = manifest.signer_parts();
-    let output = run_bounded_with_input_file(
-        Command::new(SSH_KEYGEN)
-            .args(["-Y", "verify", "-f"])
-            .arg(pinned_signers.path())
-            .args(["-I", principal, "-n", SIGNATURE_NAMESPACE, "-s"])
-            .arg(pinned_signature.path())
-            .env_clear()
-            .env("HOME", "/")
-            .env("LC_ALL", "C")
-            .env("PATH", "/usr/bin"),
-        "release signature verification",
-        SIGNATURE_LIMITS,
+    signature::verify(
+        signature,
+        allowed_signers,
         payload,
-    )?;
-    if !output.output.status.success() {
-        return Err(CoordError::new(
-            "RELEASE_SIGNATURE_INVALID",
-            "detached release signature did not verify",
-        ));
-    }
-    let mut status = output.output.stdout.clone();
-    status.extend_from_slice(&output.output.stderr);
-    let status = std::str::from_utf8(&status).map_err(|_| {
-        CoordError::new(
-            "INVALID_SIGNATURE_OUTPUT",
-            "ssh-keygen returned non-UTF-8 signature status",
-        )
-    })?;
-    let expected = format!(
-        "Good \"{SIGNATURE_NAMESPACE}\" signature for {principal} with ED25519 key {fingerprint}"
-    );
-    if status.lines().filter(|line| *line == expected).count() != 1 {
-        return Err(CoordError::new(
-            "RELEASE_SIGNER_IDENTITY_MISMATCH",
-            "signature status did not bind the manifest's exact Ed25519 signer",
-        ));
-    }
-    Ok(output)
+        principal,
+        fingerprint,
+        SIGNATURE_NAMESPACE,
+        "release signature verification",
+    )
 }
 
 fn admitted_directory(path: &Path, label: &str) -> Result<PathBuf, CoordError> {
@@ -256,7 +207,11 @@ fn admitted_directory(path: &Path, label: &str) -> Result<PathBuf, CoordError> {
     Ok(canonical)
 }
 
-fn admitted_external_file(path: &Path, label: &str, maximum: u64) -> Result<File, CoordError> {
+pub(super) fn admitted_external_file(
+    path: &Path,
+    label: &str,
+    maximum: u64,
+) -> Result<File, CoordError> {
     if !path.is_absolute() {
         return Err(invalid_bundle(format!("{label} path must be absolute")));
     }
@@ -295,20 +250,6 @@ fn bundle_file(bundle: &Path, relative: &str) -> Result<PathBuf, CoordError> {
     Ok(cursor)
 }
 
-fn admit_ssh_keygen() -> Result<(), CoordError> {
-    let metadata = fs::symlink_metadata(SSH_KEYGEN).map_err(CoordError::io)?;
-    let invalid = metadata.file_type().is_symlink() || !metadata.file_type().is_file();
-    #[cfg(unix)]
-    let invalid = invalid || metadata.permissions().mode() & 0o111 == 0;
-    if invalid {
-        return Err(CoordError::new(
-            "RELEASE_VERIFIER_UNAVAILABLE",
-            "the fixed /usr/bin/ssh-keygen verifier is unavailable",
-        ));
-    }
-    Ok(())
-}
-
 fn open_bounded_file(path: &Path, label: &str, maximum: u64) -> Result<File, CoordError> {
     #[cfg(unix)]
     let input = OpenOptions::new()
@@ -338,7 +279,7 @@ fn read_path_bounded(path: &Path, maximum: u64) -> Result<Vec<u8>, CoordError> {
     read_open_bounded(&mut input, maximum)
 }
 
-fn read_open_bounded(input: &mut File, maximum: u64) -> Result<Vec<u8>, CoordError> {
+pub(super) fn read_open_bounded(input: &mut File, maximum: u64) -> Result<Vec<u8>, CoordError> {
     let size = usize::try_from(input.metadata().map_err(CoordError::io)?.len().min(maximum))
         .map_err(|_| invalid_bundle("release input is too large for this platform"))?;
     let read_limit = maximum
@@ -374,14 +315,14 @@ fn digest_open_file(input: &mut File) -> Result<String, CoordError> {
     }
 }
 
-struct ImmutableSnapshot {
-    file: File,
-    byte_count: u64,
-    digest: blake3::Hash,
+pub(super) struct ImmutableSnapshot {
+    pub(super) file: File,
+    pub(super) byte_count: u64,
+    pub(super) digest: blake3::Hash,
 }
 
 #[cfg(target_os = "linux")]
-fn immutable_snapshot(
+pub(super) fn immutable_snapshot(
     input: &mut File,
     label: &str,
     maximum: u64,
@@ -432,7 +373,7 @@ fn immutable_snapshot(
 }
 
 #[cfg(not(target_os = "linux"))]
-fn immutable_snapshot(
+pub(super) fn immutable_snapshot(
     _input: &mut File,
     label: &str,
     _maximum: u64,
@@ -441,48 +382,6 @@ fn immutable_snapshot(
         "RELEASE_VERIFICATION_PLATFORM_UNSUPPORTED",
         format!("{label} cannot be sealed on this platform"),
     ))
-}
-
-struct PinnedPath {
-    path: PathBuf,
-    #[cfg(unix)]
-    descriptor: RawFd,
-}
-
-impl PinnedPath {
-    #[cfg(unix)]
-    fn new(file: &File, label: &str) -> Result<Self, CoordError> {
-        let descriptor = nix::unistd::dup(file.as_raw_fd()).map_err(|error| {
-            CoordError::new(
-                "RELEASE_INPUT_PIN_FAILED",
-                format!("could not pin {label}: {error}"),
-            )
-        })?;
-        #[cfg(target_os = "linux")]
-        let path = PathBuf::from(format!("/proc/self/fd/{descriptor}"));
-        #[cfg(not(target_os = "linux"))]
-        let path = PathBuf::from(format!("/dev/fd/{descriptor}"));
-        Ok(Self { path, descriptor })
-    }
-
-    #[cfg(not(unix))]
-    fn new(_file: &File, label: &str) -> Result<Self, CoordError> {
-        Err(CoordError::new(
-            "RELEASE_VERIFICATION_PLATFORM_UNSUPPORTED",
-            format!("{label} cannot be descriptor-pinned on this platform"),
-        ))
-    }
-
-    fn path(&self) -> &Path {
-        &self.path
-    }
-}
-
-impl Drop for PinnedPath {
-    fn drop(&mut self) {
-        #[cfg(unix)]
-        let _ = nix::unistd::close(self.descriptor);
-    }
 }
 
 fn invalid_bundle(reason: impl Into<String>) -> CoordError {

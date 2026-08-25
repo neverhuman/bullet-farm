@@ -151,8 +151,8 @@ fn release_gates() -> Result<Vec<GateResult>, CheckModelError> {
         (
             "release.receipt-contracts",
             GateClass::Release,
-            "frozen signed release receipt schemas and verification trust roots do not exist",
-            "freeze generated release receipt and manifest contracts with pinned verification roots before accepting evidence",
+            "the strict receipt verifier exists, but no independently provisioned allowed-signers policy or actual signed release receipt is registered",
+            "provision the external signer policy, trusted-time observation, kind-specific semantic verifier, and exact tagged receipts without treating component verification as gate evidence",
         ),
         (
             "release.rust-msrv-1-95",

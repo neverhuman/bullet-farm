@@ -223,7 +223,7 @@ fn validate_relative_path(path: &str) -> Result<(), CoordError> {
     Ok(())
 }
 
-fn validate_digest(digest: &str) -> Result<(), CoordError> {
+pub(super) fn validate_digest(digest: &str) -> Result<(), CoordError> {
     let Some(hex) = digest.strip_prefix("blake3:") else {
         return Err(invalid(
             "release file digest must be algorithm-tagged BLAKE3",
@@ -239,7 +239,7 @@ fn validate_digest(digest: &str) -> Result<(), CoordError> {
     Ok(())
 }
 
-fn validate_oid(field: &str, oid: &str) -> Result<(), CoordError> {
+pub(super) fn validate_oid(field: &str, oid: &str) -> Result<(), CoordError> {
     let valid = oid.strip_prefix("sha1:").is_some_and(|hex| hex.len() == 40)
         || oid
             .strip_prefix("sha256:")
@@ -257,7 +257,7 @@ fn validate_oid(field: &str, oid: &str) -> Result<(), CoordError> {
     Ok(())
 }
 
-fn validate_tag(tag: &str) -> Result<(), CoordError> {
+pub(super) fn validate_tag(tag: &str) -> Result<(), CoordError> {
     if tag.len() > 128
         || !tag.starts_with('v')
         || !tag.as_bytes().get(1).is_some_and(u8::is_ascii_digit)
