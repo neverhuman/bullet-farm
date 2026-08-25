@@ -1,10 +1,16 @@
 % Primary sources for the Bullet Farm IEEEtran preprint.
 % Observation date for moving repositories: 2026-08-25 UTC.
+% Verification convention: entries marked "% UNVERIFIED" were not independently
+% re-checked by the 2026-08-25 review; prefer removing them to inventing detail.
+
+%% ---------------------------------------------------------------------------
+%% Family documents (hub, kernel, BulletGit, portal, family root)
+%% ---------------------------------------------------------------------------
 
 @misc{bulletOverview,
   author = {{Bullet Farm maintainers}},
   title = {Architecture},
-  howpublished = {Hub document \texttt{docs/architecture/overview.md}},
+  howpublished = {Hub document \path{docs/architecture/overview.md}},
   year = {2026},
   note = {Last reviewed 2026-08-25; normative orientation, pre-release}
 }
@@ -12,15 +18,15 @@
 @misc{bulletEvo,
   author = {{Bullet Farm maintainers}},
   title = {Evolutionary multi-agent control},
-  howpublished = {Hub document \texttt{docs/architecture/evolutionary-control.md}},
+  howpublished = {Hub document \path{docs/architecture/evolutionary-control.md}},
   year = {2026},
-  note = {Last reviewed 2026-08-25; V1 runtime coverage incomplete}
+  note = {Last reviewed 2026-08-25; normative V1 design; runtime coverage incomplete}
 }
 
 @misc{bulletClosure,
   author = {{Bullet Farm maintainers}},
   title = {Safety-Complete {V1} closure plan},
-  howpublished = {Hub document \texttt{docs/assurance/v1-closure-plan.md}},
+  howpublished = {Hub document \path{docs/assurance/v1-closure-plan.md}},
   year = {2026},
   note = {Last reconciled 2026-08-25; not runtime authority}
 }
@@ -28,61 +34,139 @@
 @misc{bulletRelease,
   author = {{Bullet Farm maintainers}},
   title = {Bullet {Farm} release contract},
-  howpublished = {Hub document \texttt{docs/release.md}},
+  howpublished = {Hub document \path{docs/release.md}},
   year = {2026},
-  note = {Status BLOCKED; last reviewed 2026-08-25}
+  note = {Status BLOCKED; defines the evidence classes COMPONENT/SYNTHETIC/TRANSACTION/LIVE/RELEASE; last reviewed 2026-08-25}
+}
+
+@misc{bulletTesting,
+  author = {{Bullet Farm maintainers}},
+  title = {Test and evidence strategy},
+  howpublished = {Hub document \path{docs/testing.md}},
+  year = {2026},
+  note = {Normative; no skip-green rule; last reviewed 2026-08-25}
 }
 
 @misc{bulletSnapshot,
   author = {{Bullet Farm maintainers}},
   title = {Competitor comparison snapshot ({Gas} {Town}, {Gas} {City}, {DeepSeek} {Harness}, {Omnigent})},
-  howpublished = {Hub document \texttt{docs/assurance/competitor-snapshot.md}},
+  howpublished = {Hub document \path{docs/assurance/competitor-snapshot.md}},
   year = {2026},
   note = {Observed 2026-08-25 UTC; research input, not a benchmark}
+}
+
+@misc{bulletRegistry,
+  author = {{Bullet Farm maintainers}},
+  title = {Invariant registry contract and generated crosswalk},
+  howpublished = {Hub documents \path{docs/assurance/invariant-registry.md} and \path{docs/assurance/invariant-crosswalk.generated.md}; machine source \path{policy/v1alpha1/invariant-registry.json}},
+  year = {2026},
+  note = {Three entries enforced at Gate~0 (BF-CTL-0C1, BF-CTL-0C7, BF-G0-CANONICAL/REGISTRY); all other C/EV rows planned}
+}
+
+@misc{bulletFormal,
+  author = {{Bullet Farm maintainers}},
+  title = {Gate~0 formal assurance},
+  howpublished = {Hub directory \path{formal/} (\texttt{LeaseFence.tla}, \texttt{EffectCheck.tla}, \texttt{model-lock.json}, \texttt{toolchain.lock.json}, \texttt{model-check.sh}, \path{traces/})},
+  year = {2026},
+  note = {Exactly two bounded models; TLC 1.7.4 pinned by SHA-256; single-worker state counts pinned}
+}
+
+@misc{bulletPolicy,
+  author = {{Bullet Farm maintainers}},
+  title = {Committed Gate~0 policy snapshot},
+  howpublished = {Hub file \path{policy/v1alpha1/policy.json}},
+  year = {2026},
+  note = {v1alpha1, generation 1, \texttt{live\_admission\_enabled=false}, \texttt{evolutionary\_authority=false}, lease TTL $\le 15$\,s}
 }
 
 @misc{adr0001,
   author = {{Bullet Farm maintainers}},
   title = {{0001} --- Provider execution mode: providers propose, {BulletGit} writes},
-  howpublished = {Architecture decision record},
+  howpublished = {Architecture decision record \path{docs/decisions/0001-provider-execution-mode.md}},
   year = {2026},
-  note = {Accepted; live execution remains quarantined}
+  note = {Accepted; live execution remains quarantined; 2026-08-25 sanitized runtime delta}
 }
 
-@misc{adr0004,
+@misc{adr0002,
   author = {{Bullet Farm maintainers}},
-  title = {{0004} --- Scope amendment tracks},
-  howpublished = {Architecture decision record},
+  title = {{0002} --- {Jeryu} as the effect target: requirements and do-not-disturb rules},
+  howpublished = {Architecture decision record \path{docs/decisions/0002-jeryu-forge-requirements.md}},
   year = {2026},
-  note = {Accepted; Track A/B not a live Attempt path}
+  note = {Accepted target; credentialed access quarantined}
 }
 
 @misc{adr0003,
   author = {{Bullet Farm maintainers}},
   title = {{0003} --- Five trust planes and principal separation},
-  howpublished = {Architecture decision record},
+  howpublished = {Architecture decision record \path{docs/decisions/0003-five-trust-planes.md}},
+  year = {2026}
+}
+
+@misc{adr0004,
+  author = {{Bullet Farm maintainers}},
+  title = {{0004} --- Scope amendment tracks},
+  howpublished = {Architecture decision record \path{docs/decisions/0004-scope-amendment-tracks.md}},
+  year = {2026},
+  note = {Accepted; Track A/B not a live Attempt path}
+}
+
+@misc{adr0005,
+  author = {{Bullet Farm maintainers}},
+  title = {{0005} --- Signed authority and key lifecycle},
+  howpublished = {Architecture decision record \path{docs/decisions/0005-signed-authority-key-lifecycle.md}},
+  year = {2026},
+  note = {Accepted; PASETO v4.public, $\le 15$\,s authority, one-second mutation permits}
+}
+
+@misc{adr0006,
+  author = {{Bullet Farm maintainers}},
+  title = {{0006} --- Trusted time, restore epoch, and replay},
+  howpublished = {Architecture decision record \path{docs/decisions/0006-trusted-time-restore-replay.md}},
   year = {2026}
 }
 
 @misc{adr0007,
   author = {{Bullet Farm maintainers}},
   title = {{0007} --- Sandbox, secrets, and tainted tool data},
-  howpublished = {Architecture decision record},
+  howpublished = {Architecture decision record \path{docs/decisions/0007-sandbox-secret-taint.md}},
+  year = {2026},
+  note = {S1 rootless OCI and S2 separate-kernel backends are designed, not shipped}
+}
+
+@misc{adr0008,
+  author = {{Bullet Farm maintainers}},
+  title = {{0008} --- Local {Jeryu} and {GitHub} are separate gates},
+  howpublished = {Architecture decision record \path{docs/decisions/0008-forge-gates.md}},
+  year = {2026}
+}
+
+@misc{adr0009,
+  author = {{Bullet Farm maintainers}},
+  title = {{0009} --- Data classification, retention, and audit anchoring},
+  howpublished = {Architecture decision record \path{docs/decisions/0009-data-retention-audit-anchor.md}},
+  year = {2026},
+  note = {Accepted; CAS, holdout custody, and audit anchoring are designed, not shipped}
+}
+
+@misc{adr0010,
+  author = {{Bullet Farm maintainers}},
+  title = {{0010} --- Supply-chain and release policy},
+  howpublished = {Architecture decision record \path{docs/decisions/0010-supply-chain-policy.md}},
   year = {2026}
 }
 
 @misc{adr0011,
   author = {{Bullet Farm maintainers}},
   title = {{0011} --- Signed launch grants and provider egress isolation},
-  howpublished = {Architecture decision record},
+  howpublished = {Architecture decision record \path{docs/decisions/0011-signed-launch-grant-and-egress-isolation.md}},
   year = {2026},
-  note = {Accepted; live admission remains policy-refused}
+  note = {Accepted; live admission remains policy-refused; evidence hub \texttt{a2d6b2a}, kernel \texttt{d388733}}
 }
 
 @misc{adr0012,
   author = {{Bullet Farm maintainers}},
   title = {{0012} --- Policy v1alpha2: operator-ratified live provider admission},
-  howpublished = {Architecture decision record},
+  howpublished = {Architecture decision record \path{docs/decisions/0012-policy-v1alpha2-live-admission.md}},
   year = {2026},
   note = {Proposed; no committed policy enables live admission}
 }
@@ -90,30 +174,30 @@
 @misc{centerrailRedteam,
   author = {{Bullet Farm maintainers}},
   title = {Centerrail, red-teamed --- and the final model},
-  howpublished = {Family document \texttt{TEAM.md}},
+  howpublished = {Family-root document \texttt{TEAM.md}},
   year = {2026},
-  note = {Historical provenance; C1--C12 disposition. Not runtime authority}
+  note = {Historical provenance; C1--C12; implementation maturity stated as about 0.5/10; not runtime authority}
 }
 
 @misc{bulletGaps,
   author = {{Bullet Farm maintainers}},
   title = {Product gap register},
-  howpublished = {Hub document \texttt{docs/assurance/product-gaps.md}},
+  howpublished = {Hub document \path{docs/assurance/product-gaps.md}},
   year = {2026},
-  note = {Operator index; not runtime authority}
+  note = {Operator index G1--G15; not runtime authority}
 }
 
 @misc{kernelArch,
   author = {{Bullet Farm maintainers}},
   title = {Kernel architecture},
-  howpublished = {Document \texttt{bullet-kernel/docs/architecture.md}},
+  howpublished = {Document \path{bullet-kernel/docs/architecture.md}},
   year = {2026}
 }
 
 @misc{gitArch,
   author = {{Bullet Farm maintainers}},
-  title = {BulletGit architecture},
-  howpublished = {Document \texttt{bullet-git/docs/architecture.md}},
+  title = {{BulletGit} architecture},
+  howpublished = {Document \path{bullet-git/docs/architecture.md}},
   year = {2026},
   note = {Last reviewed 2026-08-24; component primitives, no production transaction}
 }
@@ -121,14 +205,14 @@
 @misc{portalArch,
   author = {{Bullet Farm maintainers}},
   title = {Portal architecture},
-  howpublished = {Document \texttt{bullet-portal/docs/architecture.md}},
+  howpublished = {Document \path{bullet-portal/docs/architecture.md}},
   year = {2026}
 }
 
 @misc{gitRole,
   author = {{Bullet Farm maintainers}},
   title = {Git role and three sovereign truths},
-  howpublished = {Historical design note \texttt{docs/spec/git\_role.md}},
+  howpublished = {Historical design note \path{docs/spec/git_role.md}},
   year = {2026},
   note = {Provenance only; not runtime authority}
 }
@@ -136,7 +220,7 @@
 @misc{gastownAudit,
   author = {{Bullet Farm maintainers}},
   title = {Gas {Town} open-issue risk audit},
-  howpublished = {Historical design note \texttt{docs/spec/GASTOWN\_OPEN\_ISSUES\_RISK\_AUDIT\_FOR\_CENTERRAIL.md}},
+  howpublished = {Historical design note \path{docs/spec/GASTOWN_OPEN_ISSUES_RISK_AUDIT_FOR_CENTERRAIL.md}},
   year = {2026},
   note = {Snapshot 2026-08-24; 333 open issues reviewed}
 }
@@ -144,25 +228,45 @@
 @misc{potentialDraft,
   author = {{Bullet Farm maintainers}},
   title = {{BULLETFARM} --- The definitive multi-agent coding engine},
-  howpublished = {Family-root historical adjudication \texttt{/docs/POTENTIAL\_DRAFT.md}},
+  howpublished = {Family-root historical adjudication \path{docs/POTENTIAL_DRAFT.md}},
   year = {2026},
-  note = {Design provenance; adjudicated hardenings A1--A7}
+  note = {Design provenance; adjudicated hardenings A1--A7; scores the paper architecture 96.4/100 and implementation maturity about 0.5/10}
 }
+
+@misc{specPaper,
+  author = {{Bullet Farm maintainers}},
+  title = {Bullet {Farm} --- {IEEE} white-paper record},
+  howpublished = {Hub document \path{docs/spec/paper.md}},
+  year = {2026},
+  note = {Historical summary of an earlier, separately produced draft; artifacts not distributed}
+}
+
+@misc{liveReceipt,
+  author = {{Bullet Farm maintainers}},
+  title = {Archived live demonstration receipt {L7b}},
+  howpublished = {Family evidence bundle \path{.l7-bundle/demo-live-receipt-live-L7b-140403.json}},
+  year = {2026},
+  note = {2026-08-24 14:04Z; classification \texttt{LIVE\_DEMONSTRATION}; \texttt{transaction\_gate\_eligible=false}; not reproducible at the inventory HEADs}
+}
+
+%% ---------------------------------------------------------------------------
+%% Compared systems (pinned; see competitor-snapshot.md and Appendix A)
+%% ---------------------------------------------------------------------------
 
 @misc{gastownReadme,
   author = {{Gas Town contributors}},
   title = {Gas {Town}},
-  howpublished = {GitHub repository \texttt{gastownhall/gastown}},
+  howpublished = {GitHub repository \path{gastownhall/gastown}},
   year = {2026},
-  note = {Release v1.2.1, peeled commit 319d33a91b2deca59bba6dd26be6b9daf8eaacf6; observed 2026-08-25}
+  note = {Release v1.2.1, peeled commit 319d33a91b2deca59bba6dd26be6b9daf8eaacf6; README fetched 2026-08-25: tmux 3.0+ required for \texttt{gt up}; Beads (\texttt{bd}) 0.57.0+, Dolt, ICU4C dev headers as prerequisites; Problems view row ``Zombie: Dead tmux session''}
 }
 
 @misc{gastownV121,
   author = {{Gas Town contributors}},
   title = {Gas {Town} v1.2.1},
-  howpublished = {GitHub release},
+  howpublished = {GitHub release, 2026-06-06},
   year = {2026},
-  note = {Peeled commit 319d33a91b2deca59bba6dd26be6b9daf8eaacf6; observed 2026-08-25; \url{https://github.com/gastownhall/gastown/releases/tag/v1.2.1}}
+  note = {Peeled commit 319d33a91b2deca59bba6dd26be6b9daf8eaacf6; verified 2026-08-25; \url{https://github.com/gastownhall/gastown/releases/tag/v1.2.1}}
 }
 
 @misc{gascityV141,
@@ -170,87 +274,104 @@
   title = {Gas {City} v1.4.1},
   howpublished = {GitHub release},
   year = {2026},
-  note = {Tag object 610666314a884cd2db7386c1df3b6ef7c521706e, peeled commit 58ef17e3bd685fd5cf7f21286277b208d3324590; \url{https://github.com/gastownhall/gascity/releases/tag/v1.4.1}}
+  note = {Tag object 610666314a884cd2db7386c1df3b6ef7c521706e, peeled commit 58ef17e3bd685fd5cf7f21286277b208d3324590 (commit verified 2026-08-25; release-note artifact list taken from the competitor snapshot); \url{https://github.com/gastownhall/gascity/releases/tag/v1.4.1}}
 }
 
 @misc{gascityMain,
   author = {{Gas City contributors}},
   title = {Gas {City} development branch},
-  howpublished = {GitHub repository \texttt{gastownhall/gascity}},
+  howpublished = {GitHub repository \path{gastownhall/gascity}},
   year = {2026},
-  note = {main commit 2cd07e018bf3680d24b037b509e6a4bad5e623ba observed 2026-08-25}
+  note = {main commit 2cd07e018bf3680d24b037b509e6a4bad5e623ba as pinned by the competitor snapshot on 2026-08-25}
 }
 
 @misc{gascity1181,
   author = {{Gas City reporters}},
   title = {Implicit pool agents share one working tree --- parallel dispatch can clobber uncommitted edits},
-  howpublished = {GitHub issue 1181},
+  howpublished = {GitHub issue 1181, opened 2026-04-24, priority/p1, open at 2026-08-25},
   year = {2026},
   note = {\url{https://github.com/gastownhall/gascity/issues/1181}}
 }
 
 @misc{gascity5511,
   author = {{Gas City reporters}},
-  title = {Timeout after server-side commit duplicates live workflows},
-  howpublished = {GitHub issue 5511},
+  title = {Transient retry in {Instantiate} creates duplicate workflows from timed-out graph-apply attempts},
+  howpublished = {GitHub issue 5511, opened 2026-08-22, open at 2026-08-25},
   year = {2026},
-  note = {\url{https://github.com/gastownhall/gascity/issues/5511}}
+  note = {Up to three complete workflows from one \texttt{gc sling}; \url{https://github.com/gastownhall/gascity/issues/5511}}
 }
 
 @misc{gastown4094,
   author = {{Gas Town reporters}},
-  title = {\texttt{gt sling}/daemon/compact checkout in town-root \texttt{.git} destroys operational files},
-  howpublished = {GitHub issue 4094},
+  title = {\texttt{gt sling}/daemon/compact: background polecat operations checkout in town root \texttt{.git}, destroying \path{mayor/rigs.json} and uncommitted files},
+  howpublished = {GitHub issue 4094, opened 2026-05-21 against v1.1.0, open at 2026-08-25},
   year = {2026},
   note = {\url{https://github.com/gastownhall/gastown/issues/4094}}
 }
 
-@misc{gastown742,
+@misc{gastown3584,
   author = {{Gas Town reporters}},
-  title = {Dead tmux session treated as live ownership, driving respawn storms},
-  howpublished = {GitHub issue 742},
+  title = {Dead polecats go undetected --- no notification when polecat session dies mid-work},
+  howpublished = {GitHub issue 3584, opened 2026-04-10, closed},
   year = {2026},
-  note = {\url{https://github.com/gastownhall/gastown/issues/742}}
+  note = {Work stays hooked after a silent session death; \url{https://github.com/gastownhall/gastown/issues/3584}}
+}
+
+@misc{gastown4737,
+  author = {{Gas Town reporters}},
+  title = {\texttt{mol-deacon-patrol} test-pollution-cleanup: dog-liveness check can never succeed, guarded only by an accident of worktree layout},
+  howpublished = {GitHub issue 4737, opened 2026-08-19 against v1.1.0, open at 2026-08-25},
+  year = {2026},
+  note = {Every dog classified dead before \texttt{git worktree remove --force}; \url{https://github.com/gastownhall/gastown/issues/4737}}
+}
+
+@misc{gastown4091,
+  author = {{Gas Town reporters}},
+  title = {Daemon's refinery aliveness check trusts stale pid files: dead refineries never respawned},
+  howpublished = {GitHub issue 4091, opened 2026-05-21, open at 2026-08-25},
+  year = {2026},
+  note = {\url{https://github.com/gastownhall/gastown/issues/4091}}
 }
 
 @misc{dshReadme,
   author = {{DeepSeek AI}},
-  title = {DeepSeek {Harness}: Everything is a plugin},
-  howpublished = {GitHub repository \texttt{deepseek-ai/deepseek-harness}},
+  title = {{DeepSeek} {Harness}: Everything is a plugin},
+  howpublished = {GitHub repository \path{deepseek-ai/DeepSeek-Harness}},
   year = {2026},
-  note = {Developer preview; tag dsh-v0.1.1-rc.2 / commit b150a551b8d465e31e418e1b2eaf5e79bbb7d28e observed 2026-08-25}
+  note = {Developer preview; tag dsh-v0.1.1-rc.2 (2026-08-21) at commit b150a551b8d465e31e418e1b2eaf5e79bbb7d28e; verified 2026-08-25}
 }
 
 @misc{dshArch,
   author = {{DeepSeek AI}},
-  title = {DeepSeek {Harness} architecture},
-  howpublished = {Repository document \texttt{docs/architecture.md}},
+  title = {{DeepSeek} {Harness} architecture},
+  howpublished = {Repository document \path{docs/architecture.md} at commit b150a551b8d465e31e418e1b2eaf5e79bbb7d28e},
   year = {2026},
-  note = {Commit b150a551b8d465e31e418e1b2eaf5e79bbb7d28e; Cordis plugin tree, session log as model-context source}
+  note = {Cordis plugin tree; ``model-visible means logged''; turn/step lifecycle; \path{tools/pre-execute}/\texttt{execute}/\texttt{post-execute}; verified 2026-08-25}
 }
 
+% UNVERIFIED-URL: product page not fetched by the 2026-08-25 review
 @misc{dshSite,
   author = {{DeepSeek AI}},
-  title = {DeepSeek {Harness} developer preview},
+  title = {{DeepSeek} {Harness} developer preview},
   howpublished = {Product page},
   year = {2026},
-  note = {\url{https://deepseek.com/harness/en/}}
+  note = {\url{https://deepseek.com/harness/en/}; product page not re-fetched by the 2026-08-25 review}
 }
 
 @misc{cordis,
   author = {{Cordiverse}},
   title = {Cordis: a programming paradigm for spatiotemporal composability},
-  howpublished = {GitHub repository \texttt{cordiverse/cordis}},
+  howpublished = {GitHub repository \path{cordiverse/cordis}},
   year = {2026},
-  note = {\url{https://github.com/cordiverse/cordis}}
+  note = {Named as the plugin framework in the DeepSeek Harness README; \url{https://github.com/cordiverse/cordis}}
 }
 
 @misc{omnigentReadme,
   author = {{Omnigent contributors}},
   title = {Omnigent: the open-source meta-harness for {AI} agents},
-  howpublished = {GitHub repository \texttt{omnigent-ai/omnigent}},
+  howpublished = {GitHub repository \path{omnigent-ai/omnigent}},
   year = {2026},
-  note = {Release v0.10.0 commit 40755dd8dddb07e1eb6e4055d1d9936e184ceb9b; development main 00bbed5d92d628f975053e82dbfd1ecd542d9b20 observed 2026-08-25}
+  note = {Release v0.10.0 commit 40755dd8dddb07e1eb6e4055d1d9936e184ceb9b (verified 2026-08-25); development main 00bbed5d92d628f975053e82dbfd1ecd542d9b20 as pinned by the competitor snapshot; README names bubblewrap, seatbelt, an L7 egress proxy, tmux wrappers, and contextual policies}
 }
 
 @misc{omnigentV010,
@@ -258,29 +379,30 @@
   title = {Omnigent v0.10.0},
   howpublished = {GitHub release},
   year = {2026},
-  note = {\url{https://github.com/omnigent-ai/omnigent/releases/tag/v0.10.0}}
+  note = {Commit 40755dd8dddb07e1eb6e4055d1d9936e184ceb9b; \url{https://github.com/omnigent-ai/omnigent/releases/tag/v0.10.0}}
 }
 
 @misc{omnigentBlog,
   author = {Databricks},
   title = {Introducing {Omnigent}: a meta-harness to combine, control and share your agents},
-  howpublished = {Databricks Blog},
+  howpublished = {Databricks Blog, 2026-06-13},
   year = {2026},
   note = {\url{https://www.databricks.com/blog/introducing-omnigent-meta-harness-combine-control-and-share-your-agents}}
 }
 
+% UNVERIFIED-URL: not fetched by the 2026-08-25 review
 @misc{omnigentPolicies,
   author = {Databricks},
   title = {Contextual policies in {Omnigent}},
   howpublished = {Databricks Blog},
   year = {2026},
-  note = {\url{https://www.databricks.com/blog/contextual-policies-omnigent-using-session-state-to-better-govern-ai-agents}}
+  note = {\url{https://www.databricks.com/blog/contextual-policies-omnigent-using-session-state-to-better-govern-ai-agents}; not re-fetched by the 2026-08-25 review}
 }
 
 @misc{claudeCode,
   author = {{Anthropic}},
   title = {Claude {Code} {CLI} and {Agent} {SDK}},
-  howpublished = {Product documentation},
+  howpublished = {Product documentation, \url{https://docs.anthropic.com/en/docs/claude-code}},
   year = {2026},
   note = {Local observation: Claude Code 2.1.243 stream-JSON / plan / schema surface; not a conformance receipt}
 }
@@ -288,190 +410,176 @@
 @misc{codexCli,
   author = {{OpenAI}},
   title = {Codex {CLI} and {App} {Server}},
-  howpublished = {OpenAI developer documentation},
+  howpublished = {OpenAI developer documentation, \url{https://developers.openai.com/codex/cli}},
   year = {2026},
-  note = {\url{https://developers.openai.com/codex/cli}; local observation: Codex CLI 0.149.1 \texttt{app-server} over stdio JSONL}
+  note = {Local observation: Codex CLI 0.149.1 \texttt{app-server} over stdio JSONL}
 }
 
 @misc{cursorAcp,
   author = {{Anysphere}},
   title = {Cursor {Agent} and {Agent} {Client} {Protocol}},
-  howpublished = {Product documentation},
+  howpublished = {Product documentation, \url{https://cursor.com/docs}},
   year = {2026},
   note = {Local observation: Cursor Agent 2026.08.11-e8db854; ACP required, print JSON not substituted}
 }
 
+% UNVERIFIED-URL: product page not fetched by the 2026-08-25 review
 @misc{antigravity,
   author = {{Google}},
   title = {Antigravity / \texttt{agy} headless structured mode},
   howpublished = {Product documentation},
   year = {2026},
-  note = {Local observation: \texttt{agy} 1.1.19; flags before final \texttt{-p=}}
+  note = {Local observation: \texttt{agy} 1.1.19; flags before final \texttt{-p=}; product page not re-fetched by the 2026-08-25 review}
 }
 
 @misc{acpSpec,
-  author = {{Agent Client Protocol contributors}},
+  author = {{Zed Industries and Agent Client Protocol contributors}},
   title = {Agent {Client} {Protocol}},
-  howpublished = {Protocol specification},
+  howpublished = {Protocol specification, \url{https://agentclientprotocol.com}},
   year = {2026},
-  note = {\url{https://agentclientprotocol.com}}
+  note = {Site fetched 2026-08-25}
 }
 
 @misc{mcpSpec,
   author = {{Anthropic} and {MCP contributors}},
   title = {Model {Context} {Protocol}},
-  howpublished = {Protocol specification},
-  year = {2025},
-  note = {\url{https://modelcontextprotocol.io}}
+  howpublished = {Protocol specification, \url{https://modelcontextprotocol.io}},
+  year = {2025}
 }
 
 @misc{openhands,
   author = {{OpenHands contributors}},
   title = {OpenHands},
-  howpublished = {GitHub repository \texttt{All-Hands-AI/OpenHands}},
+  howpublished = {GitHub repository \path{All-Hands-AI/OpenHands}, \url{https://github.com/All-Hands-AI/OpenHands}},
   year = {2026}
-}
-
-@misc{sweagent,
-  author = {Yang, John and {SWE-agent contributors}},
-  title = {{SWE}-agent: agent-computer interfaces enable automated software engineering},
-  howpublished = {GitHub repository \texttt{SWE-agent/SWE-agent}},
-  year = {2024}
-}
-
-@article{yang2024sweagent,
-  author = {Yang, John and Jimenez, Carlos E. and Wettig, Alexander and Lieret, Kilian and Yao, Shunyu and Narasimhan, Chandrasekhar and Press, Ofir},
-  title = {{SWE}-agent: agent-computer interfaces enable automated software engineering},
-  journal = {Advances in Neural Information Processing Systems},
-  year = {2024}
-}
-
-@misc{agentless,
-  author = {Xia, Chunqiu Steven and Deng, Yinlin and Dunn, Soren and Zhang, Lingming},
-  title = {Agentless: demystifying {LLM}-based software engineering agents},
-  howpublished = {arXiv preprint},
-  year = {2024},
-  note = {arXiv:2407.01489}
-}
-
-@misc{autocoderover,
-  author = {Zhang, Yuntong and Ruan, Haifeng and Fan, Zhiyu and Roychoudhury, Abhik},
-  title = {{AutoCodeRover}: autonomous program improvement},
-  howpublished = {ACM ISSTA},
-  year = {2024}
 }
 
 @misc{aider,
   author = {Gauthier, Paul},
   title = {Aider},
-  howpublished = {GitHub repository \texttt{Aider-AI/aider}},
+  howpublished = {GitHub repository \path{Aider-AI/aider}, \url{https://github.com/Aider-AI/aider}},
   year = {2026}
 }
 
 @misc{cline,
   author = {{Cline contributors}},
   title = {Cline},
-  howpublished = {GitHub repository \texttt{cline/cline}},
+  howpublished = {GitHub repository \path{cline/cline}, \url{https://github.com/cline/cline}},
   year = {2026}
 }
 
 @misc{continue,
   author = {{Continue contributors}},
   title = {Continue},
-  howpublished = {GitHub repository \texttt{continuedev/continue}},
+  howpublished = {GitHub repository \path{continuedev/continue}, \url{https://github.com/continuedev/continue}},
   year = {2026}
 }
 
 @misc{goose,
   author = {{Block}},
   title = {Goose},
-  howpublished = {GitHub repository \texttt{block/goose}},
+  howpublished = {GitHub repository \path{block/goose}, \url{https://github.com/block/goose}},
   year = {2026}
 }
 
 @misc{roo,
   author = {{Roo Code contributors}},
   title = {Roo {Code}},
-  howpublished = {GitHub repository \texttt{RooCodeInc/Roo-Code}},
+  howpublished = {GitHub repository \path{RooCodeInc/Roo-Code}, \url{https://github.com/RooCodeInc/Roo-Code}},
   year = {2026}
 }
 
 @misc{copilotAgent,
   author = {{GitHub}},
   title = {GitHub {Copilot} coding agent},
-  howpublished = {GitHub Docs},
+  howpublished = {GitHub Docs, \url{https://docs.github.com/copilot}},
   year = {2026}
 }
 
 @misc{jules,
   author = {{Google}},
   title = {Jules},
-  howpublished = {Product documentation},
+  howpublished = {Product documentation, \url{https://jules.google}},
   year = {2026}
 }
 
 @misc{devin,
   author = {{Cognition}},
   title = {Devin},
-  howpublished = {Product documentation},
+  howpublished = {Product documentation, \url{https://devin.ai}},
   year = {2026}
 }
 
 @misc{kiro,
   author = {{Amazon Web Services}},
   title = {Kiro},
-  howpublished = {Product documentation},
+  howpublished = {Product documentation, \url{https://kiro.dev}},
   year = {2026}
 }
 
+%% ---------------------------------------------------------------------------
+%% Git, version control, merge queues, supply chain
+%% ---------------------------------------------------------------------------
+
 @misc{gitdocs,
   author = {{Git project}},
-  title = {Git documentation: \texttt{git-worktree}, \texttt{git-clone}, and \texttt{git-gc}},
-  howpublished = {Official documentation},
-  year = {2026},
-  note = {\url{https://git-scm.com/docs}}
+  title = {Git documentation: \texttt{git-worktree}, \texttt{git-clone}, \texttt{git-config}, and \texttt{git-gc}},
+  howpublished = {Official documentation, \url{https://git-scm.com/docs}},
+  year = {2026}
 }
 
 @misc{jjvcs,
-  author = {{Jujutsu contributors}},
-  title = {Jujutsu ({JJ}) version control},
-  howpublished = {Project documentation},
+  author = {von Zweigbergk, Martin and {Jujutsu contributors}},
+  title = {Jujutsu ({jj}): a Git-compatible version control system},
+  howpublished = {GitHub repository \path{jj-vcs/jj}, \url{https://github.com/jj-vcs/jj}},
   year = {2026},
   note = {Change IDs are not preserved by every Git operation}
 }
 
-@misc{bors,
-  author = {{Bors contributors}},
-  title = {Bors merge queue},
-  howpublished = {Project documentation},
+@misc{hoare2014notrocket,
+  author = {Hoare, Graydon},
+  title = {The not rocket science rule of software engineering},
+  howpublished = {Blog post, \url{https://graydon2.dreamwidth.org/1597.html}},
+  year = {2014},
+  note = {Origin of the Bors merge-queue rule: test the exact merge result before it becomes the branch}
+}
+
+@misc{borsng,
+  author = {{bors-ng contributors}},
+  title = {bors-ng: a merge bot for {GitHub} pull requests},
+  howpublished = {GitHub repository \path{bors-ng/bors-ng}, \url{https://github.com/bors-ng/bors-ng}},
   year = {2024}
 }
 
-@misc{rfc8785,
-  author = {Rundgren, A. and Jordan, B. and Erdtman, S.},
-  title = {{JSON} {Canonicalization} {Scheme} ({JCS})},
-  howpublished = {RFC 8785},
-  year = {2020}
+@misc{githubMergeQueue,
+  author = {{GitHub}},
+  title = {Managing a merge queue},
+  howpublished = {GitHub Docs, \url{https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue}},
+  year = {2025}
 }
 
-@misc{paseto,
-  author = {Arcieri, Tony and Bennett, Scott},
-  title = {{PASETO}: platform-agnostic security tokens},
-  howpublished = {Specification},
-  year = {2022}
+@misc{intoto,
+  author = {{in-toto contributors}},
+  title = {in-toto: A framework to secure the integrity of software supply chains},
+  howpublished = {\url{https://in-toto.io}},
+  year = {2019}
 }
 
-@misc{lamport2002tla,
-  author = {Lamport, Leslie},
-  title = {Specifying {Systems}: {The} {TLA}+ {Language} and {Tools} for {Hardware} and {Software} {Engineers}},
-  publisher = {Addison-Wesley},
-  year = {2002}
+@misc{slsa,
+  author = {{SLSA contributors}},
+  title = {Supply-chain Levels for Software Artifacts ({SLSA})},
+  howpublished = {\url{https://slsa.dev}},
+  year = {2023}
 }
+
+%% ---------------------------------------------------------------------------
+%% Transactions, fencing, idempotency, formal methods
+%% ---------------------------------------------------------------------------
 
 @inproceedings{gray1981tp,
   author = {Gray, Jim},
   title = {The transaction concept: virtues and limitations},
-  booktitle = {Proc. 7th Int. Conf. Very Large Data Bases},
+  booktitle = {Proc. 7th Int. Conf. Very Large Data Bases (VLDB)},
   year = {1981},
   pages = {144--154}
 }
@@ -493,9 +601,20 @@
   year = {1987}
 }
 
+@article{rosenkrantz1978,
+  author = {Rosenkrantz, Daniel J. and Stearns, Richard E. and Lewis, Philip M.},
+  title = {System level concurrency control for distributed database systems},
+  journal = {ACM Transactions on Database Systems},
+  volume = {3},
+  number = {2},
+  pages = {178--198},
+  year = {1978},
+  note = {Wound-wait and wait-die}
+}
+
 @article{hardy1988deputy,
   author = {Hardy, Norm},
-  title = {The Confused Deputy: (or why capabilities might have been invented)},
+  title = {The confused deputy (or why capabilities might have been invented)},
   journal = {ACM SIGOPS Operating Systems Review},
   volume = {22},
   number = {4},
@@ -503,62 +622,242 @@
   year = {1988}
 }
 
+@misc{kleppmann2016locking,
+  author = {Kleppmann, Martin},
+  title = {How to do distributed locking},
+  howpublished = {Blog post, 2016-02-08, \url{https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html}},
+  year = {2016},
+  note = {Fencing tokens: a monotonically increasing token that the storage service must check; fetched 2026-08-25}
+}
+
+@book{kleppmann2017ddia,
+  author = {Kleppmann, Martin},
+  title = {Designing Data-Intensive Applications},
+  publisher = {O'Reilly Media},
+  year = {2017}
+}
+
+@article{helland2012idempotence,
+  author = {Helland, Pat},
+  title = {Idempotence is not a medical condition},
+  journal = {ACM Queue},
+  volume = {10},
+  number = {4},
+  year = {2012}
+}
+
+@misc{idempotencyKey,
+  author = {Jena, Jayadeba and Dalal, Sanjay},
+  title = {The {Idempotency-Key} {HTTP} header field},
+  howpublished = {Internet-Draft draft-ietf-httpapi-idempotency-key-header-07 (expired), IETF HTTPAPI Working Group},
+  year = {2025},
+  note = {\url{https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/}; fetched 2026-08-25}
+}
+
+@misc{rfc8785,
+  author = {Rundgren, Anders and Jordan, Bret and Erdtman, Samuel},
+  title = {{JSON} {Canonicalization} {Scheme} ({JCS})},
+  howpublished = {RFC 8785, IETF},
+  year = {2020}
+}
+
+@misc{paseto,
+  author = {Terjesen, Robyn and Haussmann, Steven and Arciszewski, Scott},
+  title = {{PASETO} ({Platform-Agnostic} {SEcurity} {TOkens})},
+  howpublished = {Internet-Draft draft-paragon-paseto-rfc-01 (expired); specification maintained at \url{https://github.com/paseto-standard/paseto-spec}},
+  year = {2022},
+  note = {Draft metadata fetched 2026-08-25}
+}
+
+@book{lamport2002tla,
+  author = {Lamport, Leslie},
+  title = {Specifying Systems: The {TLA}+ Language and Tools for Hardware and Software Engineers},
+  publisher = {Addison-Wesley},
+  year = {2002}
+}
+
+@inproceedings{yu1999tlc,
+  author = {Yu, Yuan and Manolios, Panagiotis and Lamport, Leslie},
+  title = {Model checking {TLA}+ specifications},
+  booktitle = {Correct Hardware Design and Verification Methods (CHARME)},
+  series = {LNCS},
+  volume = {1703},
+  pages = {54--66},
+  year = {1999}
+}
+
+%% ---------------------------------------------------------------------------
+%% Sandboxing
+%% ---------------------------------------------------------------------------
+
+@misc{landlock,
+  author = {Sala{\"u}n, Micka{\"e}l},
+  title = {Landlock: unprivileged access control},
+  howpublished = {Linux kernel documentation, \url{https://docs.kernel.org/userspace-api/landlock.html}},
+  year = {2025},
+  note = {Fetched 2026-08-25}
+}
+
+@misc{seccomp,
+  author = {{Linux kernel contributors}},
+  title = {Seccomp {BPF} ({SECure} {COMPuting} with filters)},
+  howpublished = {Linux kernel documentation, \url{https://docs.kernel.org/userspace-api/seccomp_filter.html}},
+  year = {2025}
+}
+
+@misc{namespaces7,
+  author = {{Linux man-pages project}},
+  title = {namespaces(7) --- overview of {Linux} namespaces},
+  howpublished = {\url{https://man7.org/linux/man-pages/man7/namespaces.7.html}},
+  year = {2025}
+}
+
+@misc{bubblewrap,
+  author = {{containers contributors}},
+  title = {bubblewrap: unprivileged sandboxing tool},
+  howpublished = {GitHub repository \path{containers/bubblewrap}, \url{https://github.com/containers/bubblewrap}},
+  year = {2025}
+}
+
+%% ---------------------------------------------------------------------------
+%% Search, selection, bandits
+%% ---------------------------------------------------------------------------
+
+@misc{mouret2015mapelites,
+  author = {Mouret, Jean-Baptiste and Clune, Jeff},
+  title = {Illuminating search spaces by mapping elites},
+  howpublished = {arXiv:1504.04909},
+  year = {2015}
+}
+
+@article{pugh2016qd,
+  author = {Pugh, Justin K. and Soros, Lisa B. and Stanley, Kenneth O.},
+  title = {Quality diversity: A new frontier for evolutionary computation},
+  journal = {Frontiers in Robotics and AI},
+  volume = {3},
+  pages = {40},
+  year = {2016}
+}
+
+@inproceedings{jamieson2016sh,
+  author = {Jamieson, Kevin and Talwalkar, Ameet},
+  title = {Non-stochastic best arm identification and hyperparameter optimization},
+  booktitle = {Proc. 19th Int. Conf. Artificial Intelligence and Statistics (AISTATS)},
+  year = {2016}
+}
+
+@article{li2018hyperband,
+  author = {Li, Lisha and Jamieson, Kevin and DeSalvo, Giulia and Rostamizadeh, Afshin and Talwalkar, Ameet},
+  title = {Hyperband: A novel bandit-based approach to hyperparameter optimization},
+  journal = {Journal of Machine Learning Research},
+  volume = {18},
+  number = {185},
+  pages = {1--52},
+  year = {2018}
+}
+
+@inproceedings{li2020asha,
+  author = {Li, Liam and Jamieson, Kevin and Rostamizadeh, Afshin and Gonina, Ekaterina and Ben-Tzur, Jonathan and Hardt, Moritz and Recht, Benjamin and Talwalkar, Ameet},
+  title = {A system for massively parallel hyperparameter tuning},
+  booktitle = {Proc. Machine Learning and Systems (MLSys)},
+  year = {2020},
+  note = {Asynchronous successive halving (ASHA)}
+}
+
+@article{alba2002islands,
+  author = {Alba, Enrique and Tomassini, Marco},
+  title = {Parallelism and evolutionary algorithms},
+  journal = {IEEE Transactions on Evolutionary Computation},
+  volume = {6},
+  number = {5},
+  pages = {443--462},
+  year = {2002}
+}
+
+@inproceedings{li2010contextual,
+  author = {Li, Lihong and Chu, Wei and Langford, John and Schapire, Robert E.},
+  title = {A contextual-bandit approach to personalized news article recommendation},
+  booktitle = {Proc. 19th Int. Conf. World Wide Web (WWW)},
+  year = {2010}
+}
+
+@inproceedings{li2011offline,
+  author = {Li, Lihong and Chu, Wei and Langford, John and Wang, Xuanhui},
+  title = {Unbiased offline evaluation of contextual-bandit-based news article recommendation algorithms},
+  booktitle = {Proc. 4th ACM Int. Conf. Web Search and Data Mining (WSDM)},
+  year = {2011}
+}
+
+%% ---------------------------------------------------------------------------
+%% Coding agents and multi-agent LLM systems
+%% ---------------------------------------------------------------------------
+
 @inproceedings{jimenez2024swebench,
-  author = {Jimenez, Carlos E. and Yang, John and Wettig, Alexander and Yao, Shunyu and Pei, Kexin and Press, Ofir and Narasimhan, Karthik},
-  title = {{SWE}-bench: Can Language Models Resolve Real-World {GitHub} Issues?},
-  booktitle = {Proc. ICLR},
+  author = {Jimenez, Carlos E. and Yang, John and Wettig, Alexander and Yao, Shunyu and Pei, Kexin and Press, Ofir and Narasimhan, Karthik R.},
+  title = {{SWE}-bench: Can language models resolve real-world {GitHub} issues?},
+  booktitle = {Proc. Int. Conf. Learning Representations (ICLR)},
+  year = {2024},
+  note = {arXiv:2310.06770}
+}
+
+@inproceedings{yang2024sweagent,
+  author = {Yang, John and Jimenez, Carlos E. and Wettig, Alexander and Lieret, Kilian and Yao, Shunyu and Narasimhan, Karthik R. and Press, Ofir},
+  title = {{SWE}-agent: Agent-computer interfaces enable automated software engineering},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year = {2024},
+  note = {arXiv:2405.15793}
+}
+
+@misc{agentless,
+  author = {Xia, Chunqiu Steven and Deng, Yinlin and Dunn, Soren and Zhang, Lingming},
+  title = {Agentless: Demystifying {LLM}-based software engineering agents},
+  howpublished = {arXiv:2407.01489},
   year = {2024}
 }
 
-@inproceedings{wang2024openhands,
-  author = {Wang, Xingyao and others},
-  title = {OpenHands: An Open Platform for {AI} Software Developers as Generalist Agents},
-  booktitle = {Proc. ICLR},
-  year = {2025},
-  note = {Complete author list and pages before arXiv upload}
+@inproceedings{autocoderover,
+  author = {Zhang, Yuntong and Ruan, Haifeng and Fan, Zhiyu and Roychoudhury, Abhik},
+  title = {{AutoCodeRover}: Autonomous program improvement},
+  booktitle = {Proc. 33rd ACM SIGSOFT Int. Symp. Software Testing and Analysis (ISSTA)},
+  year = {2024},
+  note = {arXiv:2404.05427}
+}
+
+@misc{wang2024openhands,
+  author = {Wang, Xingyao and Li, Boxuan and Song, Yufan and Xu, Frank F. and Tang, Xiangru and others},
+  title = {{OpenHands}: An open platform for {AI} software developers as generalist agents},
+  howpublished = {arXiv:2407.16741; also Proc. ICLR 2025},
+  year = {2024}
 }
 
 @inproceedings{greshake2023injection,
   author = {Greshake, Kai and Abdelnabi, Sahar and Mishra, Shailesh and Endres, Christoph and Holz, Thorsten and Fritz, Mario},
-  title = {Not What You've Signed Up For: Compromising Real-World {LLM}-Integrated Applications with Indirect Prompt Injection},
-  booktitle = {Proc. AISec Workshop at CCS},
-  year = {2023}
-}
-
-@misc{intoto,
-  author = {{in-toto contributors}},
-  title = {in-toto: A framework to secure the integrity of software supply chains},
-  howpublished = {\url{https://in-toto.io}},
-  year = {2019}
-}
-
-@misc{slsa,
-  author = {{SLSA contributors}},
-  title = {Supply-chain Levels for Software Artifacts ({SLSA})},
-  howpublished = {\url{https://slsa.dev}},
-  year = {2023}
+  title = {Not what you've signed up for: Compromising real-world {LLM}-integrated applications with indirect prompt injection},
+  booktitle = {Proc. 16th ACM Workshop on Artificial Intelligence and Security (AISec)},
+  year = {2023},
+  note = {arXiv:2302.12173}
 }
 
 @inproceedings{qian2024chatdev,
-  author = {Qian, Chen and others},
-  title = {ChatDev: Communicative Agents for Software Development},
-  booktitle = {Proc. ACL},
+  author = {Qian, Chen and Liu, Wei and Liu, Hongzhang and Chen, Nuo and Dang, Yufan and others},
+  title = {{ChatDev}: Communicative agents for software development},
+  booktitle = {Proc. 62nd Annual Meeting of the Association for Computational Linguistics (ACL)},
   year = {2024},
-  note = {Complete author list and pages before arXiv upload}
+  note = {arXiv:2307.07924}
 }
 
 @inproceedings{hong2024metagpt,
-  author = {Hong, Sirui and others},
-  title = {{MetaGPT}: Meta Programming for A Multi-Agent Collaborative Framework},
-  booktitle = {Proc. ICLR},
+  author = {Hong, Sirui and Zhuge, Mingchen and Chen, Jonathan and Zheng, Xiawu and Cheng, Yuheng and others},
+  title = {{MetaGPT}: Meta programming for a multi-agent collaborative framework},
+  booktitle = {Proc. Int. Conf. Learning Representations (ICLR)},
   year = {2024},
-  note = {Complete author list and pages before arXiv upload}
+  note = {arXiv:2308.00352}
 }
 
 @inproceedings{wu2023autogen,
-  author = {Wu, Qingyun and others},
-  title = {{AutoGen}: Enabling Next-Gen {LLM} Applications via Multi-Agent Conversation},
-  booktitle = {COLM},
+  author = {Wu, Qingyun and Bansal, Gagan and Zhang, Jieyu and Wu, Yiran and Li, Beibin and others},
+  title = {{AutoGen}: Enabling next-gen {LLM} applications via multi-agent conversation},
+  booktitle = {Proc. Conf. Language Modeling (COLM)},
   year = {2024},
-  note = {Complete author list and pages before arXiv upload}
+  note = {arXiv:2308.08155}
 }

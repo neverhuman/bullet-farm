@@ -1,7 +1,7 @@
 # Bullet Farm IEEE / arXiv preprint
 
 Status: **preprint source; not release evidence**  
-Last reviewed: 2026-08-25 (R2: inventory pinned to later closure subjects `bf5c642` / `0346fd5` / `236f4ef` / `8272844`; C1–C12; G1–G15; compile is not a release)
+Last reviewed: 2026-08-25 (R3: Hub implementation `6eb002b`, code/report subject `0cc7eec`; sibling inventory `0346fd5` / `236f4ef` / `8272844`; Jankurai 58/raw58, 10 caps, 44 findings = 29 high/hard + 15 medium/soft; F1–F11 red-team corrections; 26/26 release gates blocked; compile is not a release)
 
 This directory holds the citable IEEEtran source for:
 
