@@ -78,7 +78,13 @@ pub(super) fn verify(
     lock.validate_required_members(&required_members)?;
 
     for package in &manifest.package {
-        for signed in [&package.archive, &package.sbom, &package.provenance] {
+        for signed in [
+            &package.archive,
+            &package.checksums,
+            &package.cyclonedx_sbom,
+            &package.spdx_sbom,
+            &package.provenance,
+        ] {
             verify_signed_file(&bundle, &manifest, signed, &allowed_signers.file)?;
         }
     }

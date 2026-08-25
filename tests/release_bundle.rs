@@ -85,13 +85,28 @@ impl Fixture {
                 "tar.zst"
             };
             let archive = format!("packages/bullet-farm-{target}.{archive_extension}");
-            let sbom = format!("packages/bullet-farm-{target}.cdx.json");
+            let checksums = format!("packages/bullet-farm-{target}.checksums.json");
+            let cyclonedx_sbom = format!("packages/bullet-farm-{target}.cdx.json");
+            let spdx_sbom = format!("packages/bullet-farm-{target}.spdx.json");
             let provenance = format!("packages/bullet-farm-{target}.intoto.jsonl");
             for (path, bytes) in [
                 (archive.clone(), archive_bytes(target)),
                 (
-                    sbom.clone(),
+                    checksums.clone(),
+                    format!(
+                        "{{\"install_file\":[{{\"digest\":\"blake3:{}\",\"path\":\"bin/bullet-family\",\"size\":1}}],\"target\":\"{target}\"}}\n",
+                        "0".repeat(64)
+                    )
+                    .into_bytes(),
+                ),
+                (
+                    cyclonedx_sbom.clone(),
                     format!("{{\"bomFormat\":\"CycloneDX\",\"target\":\"{target}\"}}\n")
+                        .into_bytes(),
+                ),
+                (
+                    spdx_sbom.clone(),
+                    format!("{{\"spdxVersion\":\"SPDX-2.3\",\"target\":\"{target}\"}}\n")
                         .into_bytes(),
                 ),
                 (
@@ -108,7 +123,14 @@ impl Fixture {
             writeln!(manifest, "[[package]]").unwrap();
             writeln!(manifest, "target = {target:?}").unwrap();
             append_signed_table(&mut manifest, "package.archive", &bundle, &archive);
-            append_signed_table(&mut manifest, "package.sbom", &bundle, &sbom);
+            append_signed_table(&mut manifest, "package.checksums", &bundle, &checksums);
+            append_signed_table(
+                &mut manifest,
+                "package.cyclonedx_sbom",
+                &bundle,
+                &cyclonedx_sbom,
+            );
+            append_signed_table(&mut manifest, "package.spdx_sbom", &bundle, &spdx_sbom);
             append_signed_table(&mut manifest, "package.provenance", &bundle, &provenance);
         }
         let manifest_path = bundle.join("release-manifest.toml");
@@ -390,6 +412,21 @@ fn payload_and_symlink_substitution_fail_closed() {
         "INVALID_RELEASE_BUNDLE"
     );
 
+    for relative in [
+        "packages/bullet-farm-aarch64-apple-darwin.checksums.json",
+        "packages/bullet-farm-aarch64-apple-darwin.cdx.json",
+        "packages/bullet-farm-aarch64-apple-darwin.spdx.json",
+        "packages/bullet-farm-aarch64-apple-darwin.intoto.jsonl",
+    ] {
+        let fixture = Fixture::new();
+        fs::write(fixture.bundle.join(relative), "mutated\n").expect("mutate signed subject");
+        assert_eq!(
+            fixture.verify().unwrap_err().code(),
+            "INVALID_RELEASE_BUNDLE",
+            "{relative} substitution must fail"
+        );
+    }
+
     #[cfg(unix)]
     {
         use std::os::unix::fs::symlink;
@@ -401,6 +438,19 @@ fn payload_and_symlink_substitution_fail_closed() {
             "INVALID_RELEASE_BUNDLE"
         );
     }
+
+    let fixture = Fixture::new();
+    fs::write(
+        fixture
+            .bundle
+            .join("packages/bullet-farm-aarch64-apple-darwin.spdx.json.sig"),
+        "mutated signature\n",
+    )
+    .expect("mutate detached signature");
+    assert_eq!(
+        fixture.verify().unwrap_err().code(),
+        "INVALID_RELEASE_BUNDLE"
+    );
 }
 
 #[test]
@@ -408,6 +458,20 @@ fn schema_refuses_unknown_fields_missing_targets_and_wrong_lock_version() {
     let fixture = Fixture::new();
     let bytes = fs::read(fixture.bundle.join("release-manifest.toml")).expect("manifest");
     let text = String::from_utf8(bytes).expect("UTF-8 manifest");
+    let legacy = text
+        .replacen(
+            &format!("release_manifest_schema_version = \"{RELEASE_MANIFEST_SCHEMA_VERSION}\""),
+            "release_manifest_schema_version = \"1\"",
+            1,
+        )
+        .replace("package.cyclonedx_sbom", "package.sbom");
+    assert_eq!(
+        ReleaseManifest::parse(legacy.as_bytes())
+            .unwrap_err()
+            .code(),
+        "UNSUPPORTED_RELEASE_MANIFEST_SCHEMA"
+    );
+
     let unknown = text.replacen(
         "family = \"bullet-farm\"",
         "family = \"bullet-farm\"\nunexpected = true",
@@ -420,9 +484,38 @@ fn schema_refuses_unknown_fields_missing_targets_and_wrong_lock_version() {
         "INVALID_RELEASE_MANIFEST"
     );
 
-    let mut parsed = ReleaseManifest::parse(text.as_bytes()).expect("valid manifest");
-    parsed.package.pop();
-    let missing = toml::to_string(&parsed).expect("encode missing target");
+    let parsed = ReleaseManifest::parse(text.as_bytes()).expect("valid manifest");
+
+    let mut collision = parsed.clone();
+    collision.package[0].spdx_sbom = collision.package[0].cyclonedx_sbom.clone();
+    assert_eq!(
+        ReleaseManifest::parse(
+            toml::to_string(&collision)
+                .expect("encode colliding manifest")
+                .as_bytes()
+        )
+        .unwrap_err()
+        .code(),
+        "INVALID_RELEASE_MANIFEST"
+    );
+
+    let mut wrong_suffix = parsed.clone();
+    wrong_suffix.package[0].checksums.file.path = "packages/wrong.checksums".to_owned();
+    wrong_suffix.package[0].checksums.signature.path = "packages/wrong.checksums.sig".to_owned();
+    assert_eq!(
+        ReleaseManifest::parse(
+            toml::to_string(&wrong_suffix)
+                .expect("encode wrong-suffix manifest")
+                .as_bytes()
+        )
+        .unwrap_err()
+        .code(),
+        "INVALID_RELEASE_MANIFEST"
+    );
+
+    let mut missing_target = parsed;
+    missing_target.package.pop();
+    let missing = toml::to_string(&missing_target).expect("encode missing target");
     assert_eq!(
         ReleaseManifest::parse(missing.as_bytes())
             .unwrap_err()

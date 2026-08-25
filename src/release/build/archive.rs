@@ -192,7 +192,12 @@ fn readback_manifest(plan: &BuildPlan, archive: &ArchiveOutput) -> ReleaseManife
                     digest: String::new(),
                 },
             },
-            sbom: absent(&format!("{SUPPORTED_TARGET}/{}.cdx.json", plan.stem())),
+            checksums: absent(&format!(
+                "{SUPPORTED_TARGET}/{}.checksums.json",
+                plan.stem()
+            )),
+            cyclonedx_sbom: absent(&format!("{SUPPORTED_TARGET}/{}.cdx.json", plan.stem())),
+            spdx_sbom: absent(&format!("{SUPPORTED_TARGET}/{}.spdx.json", plan.stem())),
             provenance: absent(&format!("{SUPPORTED_TARGET}/{}.intoto.jsonl", plan.stem())),
         }],
     }

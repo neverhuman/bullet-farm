@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::coord::CoordError;
 
-pub const RELEASE_MANIFEST_SCHEMA_VERSION: &str = "1";
+pub const RELEASE_MANIFEST_SCHEMA_VERSION: &str = "2";
 const FAMILY_LOCK_SCHEMA_VERSION: &str = "3";
 const MAX_RELEASE_FILE_BYTES: u64 = 4 * 1024 * 1024 * 1024;
 pub(super) const REQUIRED_TARGETS: [&str; 5] = [
@@ -31,12 +31,19 @@ pub struct ReleaseManifest {
     pub package: Vec<ReleasePackage>,
 }
 
+#[derive(Deserialize)]
+struct ReleaseManifestVersion {
+    release_manifest_schema_version: String,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct ReleasePackage {
     pub target: String,
     pub archive: SignedReleaseFile,
-    pub sbom: SignedReleaseFile,
+    pub checksums: SignedReleaseFile,
+    pub cyclonedx_sbom: SignedReleaseFile,
+    pub spdx_sbom: SignedReleaseFile,
     pub provenance: SignedReleaseFile,
 }
 
@@ -68,6 +75,17 @@ impl ReleaseManifest {
         {
             return Err(invalid(
                 "release manifest contains a forbidden control byte",
+            ));
+        }
+        let version: ReleaseManifestVersion = toml::from_str(text)
+            .map_err(|error| invalid(format!("invalid release manifest TOML: {error}")))?;
+        if version.release_manifest_schema_version != RELEASE_MANIFEST_SCHEMA_VERSION {
+            return Err(CoordError::new(
+                "UNSUPPORTED_RELEASE_MANIFEST_SCHEMA",
+                format!(
+                    "release manifest schema {} is unsupported",
+                    version.release_manifest_schema_version
+                ),
             ));
         }
         let manifest: Self = toml::from_str(text)
@@ -139,7 +157,13 @@ fn validate_package(
     package: &ReleasePackage,
     paths: &mut BTreeSet<String>,
 ) -> Result<(), CoordError> {
-    for signed in [&package.archive, &package.sbom, &package.provenance] {
+    for signed in [
+        &package.archive,
+        &package.checksums,
+        &package.cyclonedx_sbom,
+        &package.spdx_sbom,
+        &package.provenance,
+    ] {
         validate_signed_file(signed, paths)?;
     }
     let archive_suffix = if package.target == "x86_64-pc-windows-msvc" {
@@ -153,9 +177,21 @@ fn validate_package(
             package.target
         )));
     }
-    if !package.sbom.file.path.ends_with(".cdx.json") {
+    if !package.checksums.file.path.ends_with(".checksums.json") {
         return Err(invalid(format!(
-            "{} SBOM must be CycloneDX JSON",
+            "{} checksum manifest must end with .checksums.json",
+            package.target
+        )));
+    }
+    if !package.cyclonedx_sbom.file.path.ends_with(".cdx.json") {
+        return Err(invalid(format!(
+            "{} CycloneDX SBOM must end with .cdx.json",
+            package.target
+        )));
+    }
+    if !package.spdx_sbom.file.path.ends_with(".spdx.json") {
+        return Err(invalid(format!(
+            "{} SPDX SBOM must end with .spdx.json",
             package.target
         )));
     }

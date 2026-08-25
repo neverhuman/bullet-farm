@@ -118,7 +118,9 @@ fn a_produced_archive_is_admitted_by_the_committed_extractor() {
                     digest: String::new(),
                 },
             },
-            sbom: absent("sbom.cdx.json"),
+            checksums: absent("checksums.checksums.json"),
+            cyclonedx_sbom: absent("cyclonedx.cdx.json"),
+            spdx_sbom: absent("spdx.spdx.json"),
             provenance: absent("provenance.intoto.jsonl"),
         }],
     };
