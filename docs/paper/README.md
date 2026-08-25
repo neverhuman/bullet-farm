@@ -5,7 +5,7 @@ Last reviewed: 2026-08-25 (R2: inventory pinned to later closure subjects `bf5c6
 
 This directory holds the citable IEEEtran source for:
 
-> Bullet Farm: A Transaction Processor for Verified Multi-Agent Software Engineering
+> Bullet Farm: Architecture and Pre-Release Inventory of a Software-Change Transaction Processor
 
 Authors are a placeholder (`Bullet Farm Maintainers`) until named authors are
 supplied for an arXiv upload. A green compile does not authorize a command,
