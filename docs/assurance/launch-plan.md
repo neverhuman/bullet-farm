@@ -64,7 +64,7 @@ path-exactly with receipts. IDs refer to the inventory.
 | L-04 | A crashed runner blocked its Variant forever: `expire_leases` had no production caller | **done** — kernel `4effc37d` (reclaim inside the acquisition transaction, `LeaseService::expire_due`, `bullet farm reap`) + `107c5cd5` (farmd reaper tick, ≤500 ms, never disableable, contention-tested against the acquisition path); both mutation-proved |
 | L-01 | `doctor` exited 0 while reporting BLOCKED | **done** — hub `f00171ff`: exits 3 on BLOCKED; required lane asserts exit/JSON agreement |
 | L-03 | OD-B told the operator to run `gh auth login` (Jeryu: do-not-run) | **done** — hub `f00171ff` (ADR 0013 OD-B: `jeryu gh-setup --token-file`); corrected in every out-of-repo copy |
-| Jankurai | hub 58 / kernel 57 / portal 60 vs ≥ 90 | `claude-audit-caps` in flight; hosted half EXTERNAL |
+| Jankurai | hub 58 / kernel 57 / portal 60 vs ≥ 90 | **raised** — hub 65 / kernel 64 / portal 68 (git 65): hub `0cc0a681`, kernel `1dcbaa21`, portal `5e4b474f`; floors for kernel/portal `ops/ci/audit.sh` await the CI lanes; hosted half EXTERNAL (portable pinned auditor) |
 
 ### M2 (agent-only, the pivot) — ordered
 1. **R-07 / RUNNER-FARMD-LEASE-ROUTE-AUDIT** — promote the quarantined `SignedLeaseService`: durable nonce ledger, persistent `last_acquire`, `advance_attempt_with_authority`, full-subject release check in one SQLite transaction, `/internal/v1` mount only, hardened bounded client. (cursor-grok holds the WIP today.)
