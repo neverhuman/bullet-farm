@@ -1,4 +1,4 @@
-//! `bullet-family check release --report`: deterministic, portable, never green.
+//! Explicit legacy release report: deterministic, portable, never green.
 
 use std::{
     fs,
@@ -87,6 +87,24 @@ impl Fixture {
             .current_dir(env!("CARGO_MANIFEST_DIR"))
             .output()
             .expect("run bullet-family")
+    }
+
+    fn release_report(&self, portable: bool) -> Output {
+        let registry = self.root.join("release-receipts");
+        fs::create_dir_all(&registry).expect("receipt registry");
+        let mut args = vec![
+            "check",
+            "release",
+            "--profile",
+            "legacy-v1-26",
+            "--receipts",
+            registry.to_str().expect("UTF-8 registry"),
+            "--report",
+        ];
+        if portable {
+            args.push("--portable");
+        }
+        self.run(&args)
     }
 }
 
@@ -198,8 +216,8 @@ fn assert_never_closed(page: &str) {
 #[test]
 fn portable_report_matches_the_golden_page_from_a_hub_only_checkout() {
     let fixture = Fixture::hub_only();
-    let first = fixture.run(&["check", "release", "--report", "--portable"]);
-    let second = fixture.run(&["check", "release", "--report", "--portable"]);
+    let first = fixture.release_report(true);
+    let second = fixture.release_report(true);
     assert_eq!(first.status.code(), Some(3), "{first:?}");
     assert!(first.stderr.is_empty());
     assert_eq!(first.stdout, second.stdout);
@@ -249,7 +267,7 @@ fn register_crosswalk_drift_is_visible_and_absent_register_is_unknown() {
             "| `release.fault-suite` | G3 |",
         ),
     );
-    let output = fixture.run(&["check", "release", "--report", "--portable"]);
+    let output = fixture.release_report(true);
     assert_eq!(output.status.code(), Some(3));
     let page = String::from_utf8(output.stdout).unwrap();
     assert!(page.contains(
@@ -257,7 +275,7 @@ fn register_crosswalk_drift_is_visible_and_absent_register_is_unknown() {
     ));
     assert!(page.contains("   - Product gap: G2, G3\n"));
     fs::remove_file(fixture.hub().join("docs/assurance/product-gaps.md")).unwrap();
-    let output = fixture.run(&["check", "release", "--report", "--portable"]);
+    let output = fixture.release_report(true);
     assert_eq!(output.status.code(), Some(3));
     let page = String::from_utf8(output.stdout).unwrap();
     assert!(page.contains(
@@ -270,8 +288,8 @@ fn register_crosswalk_drift_is_visible_and_absent_register_is_unknown() {
 #[test]
 fn live_report_binds_subjects_and_check_report_freshness() {
     let fixture = Fixture::family();
-    let first = fixture.run(&["check", "release", "--report"]);
-    let second = fixture.run(&["check", "release", "--report"]);
+    let first = fixture.release_report(false);
+    let second = fixture.release_report(false);
     assert_eq!(first.status.code(), Some(3), "{first:?}");
     assert_eq!(first.stdout, second.stdout);
     let page = String::from_utf8(first.stdout).unwrap();
@@ -307,7 +325,7 @@ fn live_report_binds_subjects_and_check_report_freshness() {
         &fresh.replace("FAST", "REQUIRED"),
     );
     write(&fixture.hub().join("UNTRACKED"), "dirty\n");
-    let output = fixture.run(&["check", "release", "--report"]);
+    let output = fixture.release_report(false);
     assert_eq!(output.status.code(), Some(3));
     let page = String::from_utf8(output.stdout).unwrap();
     assert!(page.contains("| Mechanical gates (fast) | STALE — PASS over 1 gates recorded against other subjects (bullet-farm recorded sha1:0000"));

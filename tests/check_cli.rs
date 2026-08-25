@@ -269,16 +269,33 @@ fn linked_git_metadata_is_blocked_before_execution() {
 }
 
 #[test]
-fn release_inventory_is_stable_sorted_and_blocked() {
-    let first = command(&["check", "release", "--json"]);
-    let second = command(&["check", "release", "--json"]);
+fn legacy_release_inventory_is_stable_sorted_and_blocked() {
+    let registry =
+        std::env::temp_dir().join(format!("bullet-legacy-registry-{}", std::process::id()));
+    if registry.exists() {
+        fs::remove_dir_all(&registry).unwrap();
+    }
+    fs::create_dir(&registry).unwrap();
+    let registry = registry.to_str().unwrap();
+    let args = [
+        "check",
+        "release",
+        "--profile",
+        "legacy-v1-26",
+        "--receipts",
+        registry,
+        "--json",
+    ];
+    let first = command(&args);
+    let second = command(&args);
     assert_eq!(first.status.code(), Some(3));
     assert_eq!(first.stdout, second.stdout);
     assert!(first.stderr.is_empty());
     let report: serde_json::Value = serde_json::from_slice(&first.stdout).unwrap();
-    assert_eq!(report["schema_version"], 2);
+    assert_eq!(report["schema_version"], 3);
     assert_eq!(report["command"], "check");
     assert_eq!(report["tier"], "RELEASE");
+    assert_eq!(report["profile"], "legacy-v1-26");
     assert_eq!(report["status"], "BLOCKED");
     let gates = report["gates"].as_array().unwrap();
     assert_eq!(gates.len(), 26);
@@ -315,7 +332,7 @@ fn release_inventory_is_stable_sorted_and_blocked() {
     assert!(msrv["detail"].as_str().unwrap().contains("receipt"));
 
     let ignored_environment = Command::new(env!("CARGO_BIN_EXE_bullet-family"))
-        .args(["check", "release", "--json"])
+        .args(args)
         .env(
             "BULLET_RELEASE_EVIDENCE_ADMISSION",
             "/tmp/self-selected-policy",
@@ -325,6 +342,7 @@ fn release_inventory_is_stable_sorted_and_blocked() {
         .unwrap();
     assert_eq!(ignored_environment.status.code(), Some(3));
     assert_eq!(ignored_environment.stdout, first.stdout);
+    fs::remove_dir_all(registry).unwrap();
 }
 
 #[test]
@@ -398,8 +416,13 @@ fn release_profiles_are_named_independent_and_fail_closed() {
         let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
         assert_eq!(report["profile"], profile);
         let gates = report["gates"].as_array().unwrap();
-        assert_eq!(gates.len(), 2);
+        assert_eq!(gates.len(), 3);
         assert!(gates.iter().any(|item| item["id"] == gate));
+        assert!(
+            gates
+                .iter()
+                .any(|item| item["id"] == format!("release.profile.{profile}"))
+        );
         assert!(
             gates
                 .iter()
@@ -408,11 +431,20 @@ fn release_profiles_are_named_independent_and_fail_closed() {
     }
 
     for profile in [
+        "self-hosted-v1",
+        "evolution-v1",
+        "provider-claude",
+        "jeryu-forge-v1",
+        "gitlab-adapter-v1",
+        "gitlab-self-managed-v1",
+        "platform-linux-x86_64",
         "platform-linux-aarch64",
         "platform-macos-x86_64",
         "platform-macos-aarch64",
         "platform-windows-x86_64",
+        "universal-v1",
         "team-v1",
+        "saga-v1",
     ] {
         let output = command(&[
             "check",
@@ -457,14 +489,6 @@ fn profiled_release_rejects_ambiguous_or_relative_registry_arguments() {
             "linux-preview",
             "--profile",
             "provider-codex",
-            "--receipts",
-            "/tmp/receipts",
-        ],
-        vec![
-            "check",
-            "release",
-            "--profile",
-            "self-hosted-v1",
             "--receipts",
             "/tmp/receipts",
         ],

@@ -14,7 +14,7 @@ use crate::coord::CoordError;
 use model::{CheckReport, CheckTier};
 use std::path::{Path, PathBuf};
 
-const USAGE: &str = "usage: bullet-family [--root PATH] check <fast|required> [--json] | check release [--json] | check release --report [--portable] | check release --profile PROFILE --receipts ABSOLUTE_PATH [--json]";
+const USAGE: &str = "usage: bullet-family [--root PATH] check <fast|required> [--json] | check release --profile PROFILE --receipts ABSOLUTE_PATH [--json | --report [--portable]]";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum OutputMode {
@@ -55,6 +55,15 @@ impl CheckExecution {
 
 pub fn run(hub: &Path, args: &[String]) -> Result<CheckExecution, CoordError> {
     let parsed = parse(args)?;
+    if parsed.tier == CheckTier::Release && parsed.profile.is_none() {
+        return Err(CoordError::new(
+            "PROFILE_REQUIRED",
+            format!(
+                "release admission requires --profile; choose one of {} (legacy-v1-26 is diagnostic only)",
+                profiles::ReleaseProfile::NAMES.join(", ")
+            ),
+        ));
+    }
     let report = match (parsed.profile, parsed.receipts.as_deref()) {
         (Some(profile), Some(receipts)) => executor::report_profile(profile, receipts)?,
         (None, None) => executor::report(hub, parsed.tier)?,
@@ -115,6 +124,8 @@ fn parse_profile(args: &[String]) -> Result<Parsed, CoordError> {
     let mut profile = None;
     let mut receipts = None;
     let mut json = false;
+    let mut report = false;
+    let mut portable = false;
     let mut index = 0;
     while index < args.len() {
         match args[index].as_str() {
@@ -143,15 +154,29 @@ fn parse_profile(args: &[String]) -> Result<Parsed, CoordError> {
                 json = true;
                 index += 1;
             }
+            "--report" if !report => {
+                report = true;
+                index += 1;
+            }
+            "--portable" if !portable => {
+                portable = true;
+                index += 1;
+            }
             _ => return Err(CoordError::new("USAGE", USAGE)),
         }
     }
-    if profile.is_none() || receipts.is_none() {
+    if profile.is_none() || receipts.is_none() || (json && report) || (portable && !report) {
         return Err(CoordError::new("USAGE", USAGE));
     }
     Ok(Parsed {
         tier: CheckTier::Release,
-        mode: if json {
+        mode: if report {
+            OutputMode::Report(if portable {
+                truth::Variant::Portable
+            } else {
+                truth::Variant::Live
+            })
+        } else if json {
             OutputMode::Json
         } else {
             OutputMode::Human
@@ -212,6 +237,20 @@ mod tests {
         .unwrap();
         assert_eq!(profiled.profile.unwrap().as_str(), "linux-preview");
         assert_eq!(profiled.mode, OutputMode::Json);
+        let profiled_report = parse(&[
+            "release".into(),
+            "--profile".into(),
+            "legacy-v1-26".into(),
+            "--receipts".into(),
+            "/tmp/receipts".into(),
+            "--report".into(),
+            "--portable".into(),
+        ])
+        .unwrap();
+        assert_eq!(
+            profiled_report.mode,
+            OutputMode::Report(truth::Variant::Portable)
+        );
         assert_eq!(
             parse(&[
                 "release".into(),

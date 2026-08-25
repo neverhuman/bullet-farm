@@ -9,10 +9,14 @@ HUB="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODE="${1:-write}"
 TARGET="$HUB/docs/assurance/release-truth.generated.md"
 STAGING=""
+REGISTRY=""
 
 finish() {
   if [[ -n "$STAGING" ]]; then
     rm -f -- "$STAGING"
+  fi
+  if [[ -n "$REGISTRY" ]]; then
+    rmdir -- "$REGISTRY"
   fi
 }
 trap finish EXIT
@@ -24,8 +28,10 @@ fi
 
 mkdir -p -- "$(dirname "$TARGET")"
 STAGING="$(mktemp "${TARGET}.XXXXXX")"
+REGISTRY="$(mktemp -d /tmp/bullet-release-truth-registry.XXXXXX)"
 status=0
-(cd "$HUB" && cargo run --locked --quiet --bin bullet-family -- check release --report --portable) \
+(cd "$HUB" && cargo run --locked --quiet --bin bullet-family -- check release \
+  --profile legacy-v1-26 --receipts "$REGISTRY" --report --portable) \
   >"$STAGING" || status=$?
 case "$status" in
   0|1|3) ;;
