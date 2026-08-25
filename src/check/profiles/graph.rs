@@ -228,6 +228,31 @@ impl ReleaseProfile {
         !matches!(self, Self::LegacyV1_26 | Self::LinuxPreview)
     }
 
+    pub(super) const fn condition_gate_id(self) -> &'static str {
+        match self {
+            Self::SelfHostedV1 => "release.profile.self-hosted-v1",
+            Self::EvolutionV1 => "release.profile.evolution-v1",
+            Self::ProviderClaude => "release.profile.provider-claude",
+            Self::ProviderCodex => "release.profile.provider-codex",
+            Self::ProviderCursor => "release.profile.provider-cursor",
+            Self::ProviderAntigravity => "release.profile.provider-antigravity",
+            Self::JeryuForgeV1 => "release.profile.jeryu-forge-v1",
+            Self::GithubAdapterV1 => "release.profile.github-adapter-v1",
+            Self::GitlabAdapterV1 => "release.profile.gitlab-adapter-v1",
+            Self::GitlabSelfManagedV1 => "release.profile.gitlab-self-managed-v1",
+            Self::PlatformLinuxX86_64 => "release.profile.platform-linux-x86_64",
+            Self::PlatformLinuxAarch64 => "release.profile.platform-linux-aarch64",
+            Self::PlatformMacosX86_64 => "release.profile.platform-macos-x86_64",
+            Self::PlatformMacosAarch64 => "release.profile.platform-macos-aarch64",
+            Self::PlatformWindowsX86_64 => "release.profile.platform-windows-x86_64",
+            Self::UniversalV1 => "release.profile.universal-v1",
+            Self::TeamV1 => "release.profile.team-v1",
+            Self::SagaV1 => "release.profile.saga-v1",
+            Self::LegacyV1_26 => "release.profile.legacy-v1-26",
+            Self::LinuxPreview => "release.profile.linux-preview",
+        }
+    }
+
     pub(super) const fn required_closure(self) -> &'static str {
         match self {
             Self::SelfHostedV1 => {

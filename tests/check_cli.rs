@@ -5,6 +5,9 @@ use std::{
     sync::atomic::{AtomicU64, Ordering},
 };
 
+#[path = "check_cli/semantic_registry.rs"]
+mod semantic_registry;
+
 static FIXTURE_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 fn command(args: &[&str]) -> Output {
@@ -342,124 +345,6 @@ fn legacy_release_inventory_is_stable_sorted_and_blocked() {
         .unwrap();
     assert_eq!(ignored_environment.status.code(), Some(3));
     assert_eq!(ignored_environment.stdout, first.stdout);
-    fs::remove_dir_all(registry).unwrap();
-}
-
-#[test]
-fn release_profiles_are_named_independent_and_fail_closed() {
-    let registry =
-        std::env::temp_dir().join(format!("bullet-profile-registry-{}", std::process::id()));
-    if registry.exists() {
-        fs::remove_dir_all(&registry).unwrap();
-    }
-    fs::create_dir(&registry).unwrap();
-    let registry = registry.to_str().unwrap();
-
-    let linux_preview = command(&[
-        "check",
-        "release",
-        "--profile",
-        "linux-preview",
-        "--receipts",
-        registry,
-        "--json",
-    ]);
-    assert_eq!(linux_preview.status.code(), Some(3));
-    assert!(linux_preview.stderr.is_empty());
-    let report: serde_json::Value = serde_json::from_slice(&linux_preview.stdout).unwrap();
-    assert_eq!(report["schema_version"], 3);
-    assert_eq!(report["profile"], "linux-preview");
-    assert_eq!(report["status"], "BLOCKED");
-    let ids = report["gates"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|gate| gate["id"].as_str().unwrap())
-        .collect::<Vec<_>>();
-    assert_eq!(ids.len(), 25);
-    for excluded in [
-        "release.forge.github-app",
-        "release.provider.codex",
-        "release.provider.cursor",
-        "release.provider.antigravity",
-        "release.package-matrix",
-    ] {
-        assert!(!ids.contains(&excluded));
-    }
-    for required in [
-        "release.forge.jeryu",
-        "release.provider.claude",
-        "release.package-linux-x86_64",
-        "release.systemd-v1",
-        "release.operations-v1",
-        "release.evolution-v1",
-    ] {
-        assert!(ids.contains(&required));
-    }
-
-    for (profile, gate) in [
-        ("provider-codex", "release.provider.codex"),
-        ("provider-cursor", "release.provider.cursor"),
-        ("provider-antigravity", "release.provider.antigravity"),
-        ("github-adapter-v1", "release.forge.github-app"),
-    ] {
-        let output = command(&[
-            "check",
-            "release",
-            "--profile",
-            profile,
-            "--receipts",
-            registry,
-            "--json",
-        ]);
-        assert_eq!(output.status.code(), Some(3), "profile={profile}");
-        let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
-        assert_eq!(report["profile"], profile);
-        let gates = report["gates"].as_array().unwrap();
-        assert_eq!(gates.len(), 3);
-        assert!(gates.iter().any(|item| item["id"] == gate));
-        assert!(
-            gates
-                .iter()
-                .any(|item| item["id"] == format!("release.profile.{profile}"))
-        );
-        assert!(
-            gates
-                .iter()
-                .any(|item| item["id"] == "release.receipt-contracts")
-        );
-    }
-
-    for profile in [
-        "self-hosted-v1",
-        "evolution-v1",
-        "provider-claude",
-        "jeryu-forge-v1",
-        "gitlab-adapter-v1",
-        "gitlab-self-managed-v1",
-        "platform-linux-x86_64",
-        "platform-linux-aarch64",
-        "platform-macos-x86_64",
-        "platform-macos-aarch64",
-        "platform-windows-x86_64",
-        "universal-v1",
-        "team-v1",
-        "saga-v1",
-    ] {
-        let output = command(&[
-            "check",
-            "release",
-            "--profile",
-            profile,
-            "--receipts",
-            registry,
-            "--json",
-        ]);
-        assert_eq!(output.status.code(), Some(3), "profile={profile}");
-        let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
-        assert_eq!(report["profile"], profile);
-        assert_eq!(report["status"], "BLOCKED");
-    }
     fs::remove_dir_all(registry).unwrap();
 }
 

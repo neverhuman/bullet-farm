@@ -3,9 +3,12 @@
 #[path = "profiles/graph.rs"]
 mod graph;
 
-use std::{collections::BTreeSet, fs, path::Path};
+use std::{collections::BTreeSet, path::Path};
 
-use super::model::{CheckModelError, GateClass, GateResult};
+use super::{
+    model::{CheckModelError, GateClass, GateResult},
+    semantic_registry::{self, Evaluation, RequestedProfile},
+};
 
 pub(super) use graph::ReleaseProfile;
 
@@ -44,7 +47,28 @@ pub(super) fn select(
     }
 
     if profile != ReleaseProfile::LegacyV1_26 {
-        replace_receipt_registry_gate(&mut selected, registry)?;
+        let requested_profiles = closure
+            .iter()
+            .map(|item| {
+                RequestedProfile::new(
+                    item.as_str(),
+                    item.dependencies()
+                        .iter()
+                        .map(|dependency| dependency.as_str())
+                        .collect(),
+                    item.catalog_gate_ids()
+                        .iter()
+                        .copied()
+                        .filter(|gate| *gate != "release.receipt-contracts")
+                        .chain(std::iter::once(item.condition_gate_id()))
+                        .collect(),
+                )
+            })
+            .collect::<Vec<_>>();
+        replace_receipt_registry_gate(
+            &mut selected,
+            semantic_registry::evaluate(registry, profile.as_str(), &requested_profiles),
+        )?;
     }
     for item in closure {
         if item.has_condition_gate() {
@@ -80,7 +104,7 @@ fn dependency_closure(profile: ReleaseProfile) -> Vec<ReleaseProfile> {
 
 fn profile_condition_gate(profile: ReleaseProfile) -> Result<GateResult, CheckModelError> {
     blocked(
-        &format!("release.profile.{}", profile.as_str()),
+        profile.condition_gate_id(),
         GateClass::Release,
         &format!(
             "{} has no current kind-specific semantic receipt proving {}",
@@ -93,7 +117,7 @@ fn profile_condition_gate(profile: ReleaseProfile) -> Result<GateResult, CheckMo
 
 fn replace_receipt_registry_gate(
     gates: &mut [GateResult],
-    registry: &Path,
+    evaluation: Evaluation,
 ) -> Result<(), CheckModelError> {
     let index = gates
         .iter()
@@ -104,32 +128,26 @@ fn replace_receipt_registry_gate(
                 "release profile closure omits the receipt-contracts gate",
             )
         })?;
-    gates[index] = match fs::symlink_metadata(registry) {
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => blocked(
+    gates[index] = match evaluation {
+        Evaluation::Absent => blocked(
             "release.receipt-contracts",
             GateClass::Release,
             "the selected receipt registry is absent; zero profile gates were cleared from it",
             "provision an absolute, non-symlink registry only after its kind-specific semantic verifiers and external trust policy exist",
         )?,
-        Err(error) => GateResult::fail(
+        Evaluation::Rejected(detail) => GateResult::fail(
             "release.receipt-contracts",
             GateClass::Release,
-            format!("the selected receipt registry could not be inspected: {error}"),
-            "preserve the registry and repair its operating-system admission before retrying",
+            format!("the selected receipt registry was structurally rejected: {detail}"),
+            "preserve the registry bytes, repair descriptor admission, canonical wire records, digests, profile closure, and exact structural bindings, then retry without weakening the checks",
         )?,
-        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
-            GateResult::fail(
-                "release.receipt-contracts",
-                GateClass::Release,
-                "the selected receipt registry is not a real non-symlink directory",
-                "supply an absolute non-symlink directory; never redirect release evidence through a link or regular file",
-            )?
-        }
-        Ok(_) => blocked(
+        Evaluation::StructurallyValidButUntrusted { selected_bindings } => blocked(
             "release.receipt-contracts",
             GateClass::Release,
-            "the selected registry is present, but no generic receipt can clear a gate without a kind-specific semantic verifier and admitted trust/time roots",
-            "add the gate-specific semantic verifier and externally admitted signer/trusted-time policy, then register exact current-family evidence",
+            &format!(
+                "the selected registry has {selected_bindings} structurally bound gate/profile bindings, but self-selected signer policy and detached signatures are untrusted and external trust-root, trusted-time, replay/high-water, exact-family, and kind-specific semantic verification are absent"
+            ),
+            "admit signer policy from the schema-3 family lock, verify role-separated signatures and trusted time, enforce replay/high-water state and exact-family binding, then run each gate's kind-specific semantic verifier; structural JSON alone never clears a gate",
         )?,
     };
     Ok(())
