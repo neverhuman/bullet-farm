@@ -5,6 +5,7 @@ mod executor;
 mod prerequisites;
 mod profiles;
 mod release_evidence;
+mod semantic_registry;
 mod subject;
 mod truth;
 
