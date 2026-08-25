@@ -1,9 +1,8 @@
-//! Fail-closed acceptance for the single-target release builder.
+//! Fail-closed acceptance for the quarantined public release builder.
 //!
-//! These cases prove the refusals that keep an unbuildable or unverifiable
-//! archive from ever being produced. Producing a real archive needs a clean
-//! four-repository family and a full locked release compile, which is the
-//! operator lane documented in `docs/runbooks/release-build.md`.
+//! Internal archive-building components remain available for isolated tests,
+//! but this public surface cannot safely run them until exact source and tool
+//! reconstruction executes under a different identity.
 
 #![cfg(target_os = "linux")]
 
@@ -44,6 +43,20 @@ fn git(repository: &Path, args: &[&str]) {
     assert!(status.success(), "git {args:?}");
 }
 
+fn git_stdout(repository: &Path, args: &[&str]) -> Vec<u8> {
+    let output = Command::new("/usr/bin/git")
+        .arg("-C")
+        .arg(repository)
+        .args(args)
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env("GIT_TERMINAL_PROMPT", "0")
+        .output()
+        .expect("git runs");
+    assert!(output.status.success(), "git {args:?}");
+    output.stdout
+}
+
 /// A single-member family whose only repository is a real ordinary checkout.
 fn family(root: &Path) {
     fs::write(
@@ -69,9 +82,10 @@ const FIXTURE_LOCK: &str = concat!(
 );
 
 #[test]
-fn every_other_release_target_is_refused_by_name() {
+fn every_public_release_target_is_refused_before_target_admission() {
     let out = tempfile::tempdir().expect("out");
     for target in [
+        TARGET,
         "aarch64-unknown-linux-gnu",
         "x86_64-apple-darwin",
         "aarch64-apple-darwin",
@@ -85,34 +99,30 @@ fn every_other_release_target_is_refused_by_name() {
             "--out",
             out.path().join("bundle").to_str().expect("path"),
         ]);
-        assert_eq!(error.code(), "UNSUPPORTED_RELEASE_TARGET", "{target}");
+        assert_eq!(
+            error.code(),
+            "RELEASE_BUILD_CONTAINMENT_UNAVAILABLE",
+            "{target}"
+        );
         assert!(
-            error.to_string().contains("five-archive contract")
-                || error.to_string().contains("five"),
+            error
+                .to_string()
+                .contains("private exact-OID reconstruction")
+                && error.to_string().contains("sealed toolchain")
+                && error.to_string().contains("different-identity"),
             "{target}: {error}"
         );
     }
 }
 
 #[test]
-fn the_output_path_must_be_absolute_and_absent() {
+fn containment_refusal_precedes_output_path_admission() {
     let out = tempfile::tempdir().expect("out");
     let existing = out.path().join("already-here");
     fs::create_dir(&existing).expect("existing");
-    let root = tempfile::tempdir().expect("family");
-    let root = root.path().canonicalize().expect("canonical family");
-    family(&root);
     assert_eq!(
-        build(&[
-            "--target",
-            TARGET,
-            "--out",
-            "relative/bundle",
-            "--family-root",
-            root.to_str().expect("path"),
-        ])
-        .code(),
-        "INVALID_RELEASE_BUILD_INPUT"
+        build(&["--target", TARGET, "--out", "relative/bundle",]).code(),
+        "RELEASE_BUILD_CONTAINMENT_UNAVAILABLE"
     );
     assert_eq!(
         build(&[
@@ -120,20 +130,24 @@ fn the_output_path_must_be_absolute_and_absent() {
             TARGET,
             "--out",
             existing.to_str().expect("path"),
-            "--family-root",
-            root.to_str().expect("path"),
         ])
         .code(),
-        "RELEASE_OUTPUT_EXISTS"
+        "RELEASE_BUILD_CONTAINMENT_UNAVAILABLE"
     );
 }
 
 #[test]
-fn a_dirty_member_refuses_before_any_output_is_created() {
+fn public_build_refuses_without_output_or_source_mutation() {
     let root = tempfile::tempdir().expect("family");
     let root = root.path().canonicalize().expect("canonical family");
     family(&root);
-    fs::write(root.join("bullet-farm").join("scratch.txt"), "dirty").expect("dirty file");
+    let member = root.join("bullet-farm");
+    let before_head = git_stdout(&member, &["rev-parse", "HEAD"]);
+    let before_status = git_stdout(
+        &member,
+        &["status", "--porcelain=v1", "--untracked-files=all"],
+    );
+    assert!(before_status.is_empty(), "fixture begins clean");
     let out = tempfile::tempdir().expect("out");
     let bundle = out.path().join("bundle");
     let error = build(&[
@@ -144,22 +158,35 @@ fn a_dirty_member_refuses_before_any_output_is_created() {
         "--family-root",
         root.to_str().expect("path"),
     ]);
-    assert_eq!(error.code(), "DIRTY_SOURCE");
+    assert_eq!(error.code(), "RELEASE_BUILD_CONTAINMENT_UNAVAILABLE");
     assert!(
         !bundle.exists(),
         "a refused build must not create its output directory"
     );
+    assert_eq!(git_stdout(&member, &["rev-parse", "HEAD"]), before_head);
+    assert_eq!(
+        git_stdout(
+            &member,
+            &["status", "--porcelain=v1", "--untracked-files=all"],
+        ),
+        before_status,
+        "a refused build must not mutate tracked or untracked source state"
+    );
 }
 
 #[test]
-fn incomplete_arguments_are_refused_with_the_exact_usage() {
+fn containment_refusal_precedes_argument_validation() {
     for args in [
         vec![],
         vec!["--target", TARGET],
         vec!["--out", "/absolute/bundle"],
         vec!["--target", TARGET, "--out"],
     ] {
-        assert_eq!(build(&args).code(), "USAGE", "{args:?}");
+        assert_eq!(
+            build(&args).code(),
+            "RELEASE_BUILD_CONTAINMENT_UNAVAILABLE",
+            "{args:?}"
+        );
     }
     assert_eq!(
         build(&[
@@ -171,7 +198,7 @@ fn incomplete_arguments_are_refused_with_the_exact_usage() {
             "--offline",
         ])
         .code(),
-        "DUPLICATE_OPTION"
+        "RELEASE_BUILD_CONTAINMENT_UNAVAILABLE"
     );
     assert_eq!(
         build(&[
@@ -183,6 +210,6 @@ fn incomplete_arguments_are_refused_with_the_exact_usage() {
             "x",
         ])
         .code(),
-        "USAGE"
+        "RELEASE_BUILD_CONTAINMENT_UNAVAILABLE"
     );
 }

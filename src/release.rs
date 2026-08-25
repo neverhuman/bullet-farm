@@ -28,8 +28,16 @@ pub use schema::{
 };
 
 pub fn run(args: &[String]) -> Result<String, CoordError> {
+    if args.first().is_some_and(|action| action == "build") {
+        return Err(release_build_containment_unavailable());
+    }
     match parse_args(args)? {
-        Command::Build(options) => build::run(&options),
+        Command::Build(options) => {
+            let _preserved_builder: fn(&build::BuildArgs) -> Result<String, CoordError> =
+                build::run;
+            let _ = options;
+            Err(release_build_containment_unavailable())
+        }
         Command::Verify(options) => {
             let receipt = verify::verify(&options.bundle, &options.allowed_signers)?;
             Ok(format!(
@@ -61,6 +69,14 @@ pub fn run(args: &[String]) -> Result<String, CoordError> {
             ))
         }
     }
+}
+
+fn release_build_containment_unavailable() -> CoordError {
+    CoordError::new(
+        "RELEASE_BUILD_CONTAINMENT_UNAVAILABLE",
+        "release builds require private exact-OID reconstruction, a sealed toolchain, and a \
+         different-identity build broker; the public command refuses before validation or mutation",
+    )
 }
 
 #[derive(Debug)]
