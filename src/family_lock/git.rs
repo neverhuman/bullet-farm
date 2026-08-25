@@ -1,16 +1,14 @@
 //! Signed-tag verification and tagged-object hashing for family locks.
 
-use std::{collections::BTreeSet, path::Path, process::Command, time::Duration};
+mod command;
+
+use std::{collections::BTreeSet, path::Path, time::Duration};
 
 use serde::Deserialize;
 
 use super::schema::{LockedFile, LockedMember, validate_repository_path};
-use crate::{
-    coord::CoordError,
-    process::{Limits, run_bounded},
-};
+use crate::{coord::CoordError, process::Limits};
 
-const GIT_BIN: &str = "/usr/bin/git";
 const GENERATED_ZONES: &str = "agent/generated-zones.toml";
 const GIT_LIMITS: Limits = Limits {
     timeout: Duration::from_secs(120),
@@ -103,7 +101,7 @@ pub(super) fn verify_tag(
     let allowed = allowed_signers.to_str().ok_or_else(|| {
         CoordError::new("INVALID_SIGNER_PATH", "allowed-signers path is not UTF-8")
     })?;
-    let output = git_output(
+    let output = git_output_with_helper(
         repo,
         &[
             "-c",
@@ -393,34 +391,19 @@ fn git_bytes(repo: &Path, args: &[&str]) -> Result<Vec<u8>, CoordError> {
 }
 
 fn git_output(repo: &Path, args: &[&str]) -> Result<std::process::Output, CoordError> {
-    let repo_metadata = std::fs::symlink_metadata(repo).map_err(CoordError::io)?;
-    let git_metadata = std::fs::symlink_metadata(repo.join(".git")).map_err(CoordError::io)?;
-    if !repo_metadata.file_type().is_dir()
-        || repo_metadata.file_type().is_symlink()
-        || !git_metadata.file_type().is_dir()
-        || git_metadata.file_type().is_symlink()
-    {
-        return Err(CoordError::new(
-            "FORBIDDEN_GIT_LAYOUT",
-            format!("{} is not an ordinary non-symlink checkout", repo.display()),
-        ));
-    }
-    let output = run_bounded(
-        Command::new(GIT_BIN)
-            .arg("-C")
-            .arg(repo)
-            .args(args)
-            .env_clear()
-            .env("LC_ALL", "C")
-            .env("GIT_CONFIG_NOSYSTEM", "1")
-            .env("GIT_CONFIG_GLOBAL", "/dev/null")
-            .env("GIT_NO_REPLACE_OBJECTS", "1")
-            .env("GIT_OPTIONAL_LOCKS", "0")
-            .env("GIT_TERMINAL_PROMPT", "0")
-            .env("GIT_NO_LAZY_FETCH", "1"),
-        "Git family-lock verification",
-        GIT_LIMITS,
-    )?;
+    checked_output(repo, args, false)
+}
+
+fn git_output_with_helper(repo: &Path, args: &[&str]) -> Result<std::process::Output, CoordError> {
+    checked_output(repo, args, true)
+}
+
+fn checked_output(
+    repo: &Path,
+    args: &[&str],
+    needs_signature_helper: bool,
+) -> Result<std::process::Output, CoordError> {
+    let output = command::run(repo, args, needs_signature_helper, GIT_LIMITS)?;
     if !output.status.success() {
         return Err(CoordError::new(
             "GIT_VERIFICATION_FAILED",

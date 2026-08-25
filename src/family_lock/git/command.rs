@@ -1,0 +1,189 @@
+//! Descriptor-pinned Git execution for family-lock verification.
+
+mod subject;
+
+#[cfg(test)]
+mod tests;
+
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process::{Command, Output},
+    sync::OnceLock,
+};
+
+use self::subject::{PinnedExecutable, PinnedRepository};
+use crate::{
+    coord::CoordError,
+    process::{Limits, run_bounded},
+};
+
+const GIT_BIN: &str = "/usr/bin/git";
+const SSH_KEYGEN_BIN: &str = "/usr/bin/ssh-keygen";
+
+static GIT: OnceLock<GitProgram> = OnceLock::new();
+static SSH_KEYGEN: OnceLock<PinnedExecutable> = OnceLock::new();
+
+pub(super) fn run(
+    repo: &Path,
+    args: &[&str],
+    needs_signature_helper: bool,
+    limits: Limits,
+) -> Result<Output, CoordError> {
+    let helper = if needs_signature_helper {
+        Some(admitted_ssh_keygen()?)
+    } else {
+        None
+    };
+    admitted_git()?.run(repo, args, helper, limits)
+}
+
+#[derive(Debug)]
+struct GitProgram {
+    executable: PinnedExecutable,
+}
+
+impl GitProgram {
+    fn admit(path: &Path) -> Result<Self, CoordError> {
+        let executable = PinnedExecutable::admit("Git family-lock verification", path)?;
+        let program = Self { executable };
+        program.probe_identity()?;
+        Ok(program)
+    }
+
+    fn probe_identity(&self) -> Result<(), CoordError> {
+        self.executable.verify()?;
+        let output = run_bounded(
+            Command::new(self.executable.execution_path())
+                .arg("--version")
+                .env_clear()
+                .env("LC_ALL", "C")
+                .env("GIT_CONFIG_NOSYSTEM", "1")
+                .env("GIT_CONFIG_GLOBAL", "/dev/null")
+                .env("GIT_TERMINAL_PROMPT", "0"),
+            "Git family-lock identity probe",
+            super::GIT_LIMITS,
+        );
+        self.executable.verify()?;
+        let output = output?;
+        let version = std::str::from_utf8(&output.stdout)
+            .ok()
+            .and_then(|text| text.lines().next())
+            .unwrap_or_default();
+        if !output.status.success() || !valid_git_version(version) {
+            return Err(CoordError::new(
+                "GIT_IDENTITY_MISMATCH",
+                "bounded --version probe did not identify Git",
+            ));
+        }
+        Ok(())
+    }
+
+    fn run(
+        &self,
+        repo: &Path,
+        args: &[&str],
+        helper: Option<&PinnedExecutable>,
+        limits: Limits,
+    ) -> Result<Output, CoordError> {
+        self.run_after_verify(repo, args, helper, limits, || Ok(()))
+    }
+
+    fn run_after_verify(
+        &self,
+        repo: &Path,
+        args: &[&str],
+        helper: Option<&PinnedExecutable>,
+        limits: Limits,
+        after_verify: impl FnOnce() -> Result<(), CoordError>,
+    ) -> Result<Output, CoordError> {
+        let repository = PinnedRepository::admit(repo)?;
+        self.executable.verify()?;
+        repository.verify()?;
+        if let Some(helper) = helper {
+            helper.verify()?;
+        }
+        after_verify()?;
+
+        let mut command = Command::new(self.executable.execution_path());
+        command
+            .arg(format!("--git-dir={}", repository.git_dir_path().display()))
+            .arg(format!(
+                "--work-tree={}",
+                repository.work_tree_path().display()
+            ));
+        if let Some(helper) = helper {
+            command.arg("-c").arg(format!(
+                "gpg.ssh.program={}",
+                helper.execution_path().display()
+            ));
+        }
+        let output = run_bounded(
+            command
+                .args(args)
+                .env_clear()
+                .env("LC_ALL", "C")
+                .env("GIT_CONFIG_NOSYSTEM", "1")
+                .env("GIT_CONFIG_GLOBAL", "/dev/null")
+                .env("GIT_NO_REPLACE_OBJECTS", "1")
+                .env("GIT_OPTIONAL_LOCKS", "0")
+                .env("GIT_TERMINAL_PROMPT", "0")
+                .env("GIT_NO_LAZY_FETCH", "1"),
+            "Git family-lock verification",
+            limits,
+        );
+
+        repository.verify()?;
+        self.executable.verify()?;
+        if let Some(helper) = helper {
+            helper.verify()?;
+        }
+        output
+    }
+}
+
+fn admitted_git() -> Result<&'static GitProgram, CoordError> {
+    if let Some(git) = GIT.get() {
+        return Ok(git);
+    }
+    let canonical = canonical_tool(GIT_BIN, "Git family-lock verification")?;
+    let candidate = GitProgram::admit(&canonical)?;
+    let _ = GIT.set(candidate);
+    Ok(GIT
+        .get()
+        .expect("Git is initialized after successful admission"))
+}
+
+fn admitted_ssh_keygen() -> Result<&'static PinnedExecutable, CoordError> {
+    if let Some(helper) = SSH_KEYGEN.get() {
+        return Ok(helper);
+    }
+    let canonical = canonical_tool(SSH_KEYGEN_BIN, "SSH signature verifier")?;
+    let candidate = PinnedExecutable::admit("SSH signature verifier", &canonical)?;
+    let _ = SSH_KEYGEN.set(candidate);
+    Ok(SSH_KEYGEN
+        .get()
+        .expect("SSH helper is initialized after successful admission"))
+}
+
+fn canonical_tool(path: &str, label: &str) -> Result<PathBuf, CoordError> {
+    fs::canonicalize(path).map_err(|error| {
+        CoordError::new(
+            "GIT_TOOL_UNAVAILABLE",
+            format!("{label}: {path} cannot be resolved: {error}"),
+        )
+    })
+}
+
+fn valid_git_version(value: &str) -> bool {
+    value.strip_prefix("git version ").is_some_and(|version| {
+        !version.is_empty()
+            && version.bytes().all(|byte| {
+                byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'-' | b'+' | b'_')
+            })
+            && version
+                .split('.')
+                .take(2)
+                .all(|part| !part.is_empty() && part.bytes().all(|byte| byte.is_ascii_digit()))
+    })
+}
