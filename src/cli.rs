@@ -6,7 +6,7 @@ use crate::coord::{
     ReceiptCorrectionInput, discover_family_root, unix_millis,
 };
 
-const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release <verify|extract|receipt-verify> [options]|checkout verify|hub check|deps check|lock <generate|verify> --tag VERSION|fuse --source <local|lock>|check <fast|required|release> [options]|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|correct-receipt-group|status> [options]>";
+const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release <build|verify|extract|receipt-verify> [options]|checkout verify|hub check|deps check|lock <generate|verify> --tag VERSION|fuse --source <local|lock>|check <fast|required|release> [options]|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|correct-receipt-group|status> [options]>";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CliOutcome {
@@ -108,7 +108,7 @@ pub fn run(
         if explicit_root.is_some() {
             return Err(CoordError::new(
                 "USAGE",
-                "release verification and extraction do not accept --root",
+                "release build, verification, and extraction take explicit absolute paths, never --root",
             ));
         }
         return crate::release::run(&args[1..]);

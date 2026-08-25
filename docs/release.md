@@ -249,6 +249,38 @@ Every certified archive is bound to the same hub tag and family lock and
 carries both SBOM formats, checksums, signatures, and provenance. The final
 manifest binds the hub tag without embedding its own digest.
 
+### Single-target component builder
+
+`bullet-family release build --target x86_64-unknown-linux-gnu --out ABSOLUTE_ABSENT_PATH`
+produces one unsigned Linux x86_64 bundle from a clean four-repository committed
+subject: a `bullet-farm/`-rooted deterministic `tar.zst` carrying seven locked
+release binaries, with `bullet-farmd` built `--features embedded-portal` from a
+scratch clone of the committed Portal subject and its own bundle manifest; a
+CycloneDX 1.6 SBOM in which every component carries a name, version, package URL,
+and a license admitted from the committed `deny.toml` allow-lists; an unsigned
+in-toto provenance statement recording builder identity, every input subject, and
+every exact build argv; a BLAKE3 checksum manifest over every archive entry and
+bundle file that is re-opened, re-parsed, and re-hashed before the build reports
+success; and a canonical-JSON build manifest that binds the four repository
+subjects, the family lock, the toolchain, and every artifact digest without ever
+binding its own. It refuses any other target with `UNSUPPORTED_RELEASE_TARGET`,
+any member with tracked, untracked, or index changes with `DIRTY_SOURCE`, an
+absent toolchain with `RELEASE_TOOLCHAIN_MISSING`, and a Portal bundle manifest
+that disagrees with its own files with `RELEASE_PORTAL_BUNDLE_INVALID`.
+
+This builder is not the five-archive contract and clears no gate. It signs
+nothing; signing remains OD-E and the build only prints the exact `ssh-keygen -Y
+sign` commands. It writes no `release-manifest.toml`, because that frozen schema
+requires all five byte-sorted targets and a schema-3 `family.lock` while this
+host can honestly build one target against the checked-in schema-2 lock. It
+emits CycloneDX only, because the frozen schema binds exactly one `.cdx.json`
+SBOM per package and a second unbindable document would not be evidence. It
+emits BLAKE3 only, because no SHA-256 implementation is pinned in `Cargo.lock`.
+`bullet-family release verify` therefore refuses the bundle it produces, and
+`release.package-matrix`, `release.checksums`, `release.sbom`,
+`release.manifest-non-circular`, and `release.provenance` all remain `BLOCKED`.
+The producer runbook is [`runbooks/release-build.md`](runbooks/release-build.md).
+
 ## Tagging rule
 
 Do not create or advertise a V1 release tag while any required row above is

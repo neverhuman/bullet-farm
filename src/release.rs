@@ -1,6 +1,7 @@
 //! Verification and safe extraction components for signed release bundles.
 
 mod archive;
+mod build;
 mod receipt;
 mod schema;
 mod signature;
@@ -10,6 +11,7 @@ use std::path::PathBuf;
 
 use crate::coord::CoordError;
 
+const BUILD_USAGE: &str = build::BUILD_USAGE;
 const VERIFY_USAGE: &str =
     "usage: bullet-family release verify --bundle ABSOLUTE_PATH --allowed-signers ABSOLUTE_PATH";
 const EXTRACT_USAGE: &str = "usage: bullet-family release extract --bundle ABSOLUTE_PATH --allowed-signers ABSOLUTE_PATH --target TARGET --destination ABSOLUTE_PATH";
@@ -27,6 +29,7 @@ pub use schema::{
 
 pub fn run(args: &[String]) -> Result<String, CoordError> {
     match parse_args(args)? {
+        Command::Build(options) => build::run(&options),
         Command::Verify(options) => {
             let receipt = verify::verify(&options.bundle, &options.allowed_signers)?;
             Ok(format!(
@@ -65,6 +68,7 @@ pub fn run(args: &[String]) -> Result<String, CoordError> {
 
 #[derive(Debug)]
 enum Command {
+    Build(build::BuildArgs),
     Verify(CommonArgs),
     Extract(ExtractArgs),
     VerifyReceipt(ReceiptArgs),
@@ -95,6 +99,9 @@ fn parse_args(args: &[String]) -> Result<Command, CoordError> {
     let action = args
         .first()
         .ok_or_else(|| CoordError::new("USAGE", VERIFY_USAGE))?;
+    if action == "build" {
+        return parse_build(&args[1..]).map(Command::Build);
+    }
     let usage = match action.as_str() {
         "verify" => VERIFY_USAGE,
         "extract" => EXTRACT_USAGE,
@@ -156,6 +163,46 @@ fn parse_args(args: &[String]) -> Result<Command, CoordError> {
     }
 }
 
+fn parse_build(args: &[String]) -> Result<build::BuildArgs, CoordError> {
+    let mut target = None;
+    let mut out = None;
+    let mut family_root = None;
+    let mut cache_dir = None;
+    let mut offline = false;
+    let mut index = 0;
+    while index < args.len() {
+        if args[index] == "--offline" {
+            if offline {
+                return Err(CoordError::new("DUPLICATE_OPTION", BUILD_USAGE));
+            }
+            offline = true;
+            index += 1;
+            continue;
+        }
+        let value = args
+            .get(index + 1)
+            .ok_or_else(|| CoordError::new("USAGE", BUILD_USAGE))?;
+        let duplicate = match args[index].as_str() {
+            "--target" => target.replace(value.clone()).is_some(),
+            "--out" => out.replace(PathBuf::from(value)).is_some(),
+            "--family-root" => family_root.replace(PathBuf::from(value)).is_some(),
+            "--cache-dir" => cache_dir.replace(PathBuf::from(value)).is_some(),
+            _ => return Err(CoordError::new("USAGE", BUILD_USAGE)),
+        };
+        if duplicate {
+            return Err(CoordError::new("DUPLICATE_OPTION", BUILD_USAGE));
+        }
+        index += 2;
+    }
+    Ok(build::BuildArgs {
+        target: target.ok_or_else(|| CoordError::new("USAGE", BUILD_USAGE))?,
+        out: out.ok_or_else(|| CoordError::new("USAGE", BUILD_USAGE))?,
+        family_root,
+        cache_dir,
+        offline,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -169,6 +216,17 @@ mod tests {
             vec!["verify".into(), "--unknown".into(), "x".into()],
             vec!["extract".into(), "--bundle".into(), "x".into()],
             vec!["receipt-verify".into()],
+            vec!["build".into()],
+            vec!["build".into(), "--target".into(), "x".into()],
+            vec![
+                "build".into(),
+                "--target".into(),
+                "x".into(),
+                "--out".into(),
+                "/out".into(),
+                "--unknown".into(),
+                "y".into(),
+            ],
             vec![
                 "receipt-verify".into(),
                 "--receipt".into(),
@@ -179,6 +237,32 @@ mod tests {
         ] {
             assert_eq!(parse_args(&args).unwrap_err().code(), "USAGE");
         }
+        assert!(matches!(
+            parse_args(&[
+                "build".into(),
+                "--target".into(),
+                "x86_64-unknown-linux-gnu".into(),
+                "--out".into(),
+                "/absolute/out".into(),
+                "--offline".into(),
+            ])
+            .expect("exact build command"),
+            Command::Build(_)
+        ));
+        assert_eq!(
+            parse_args(&[
+                "build".into(),
+                "--target".into(),
+                "x".into(),
+                "--out".into(),
+                "/o".into(),
+                "--offline".into(),
+                "--offline".into(),
+            ])
+            .unwrap_err()
+            .code(),
+            "DUPLICATE_OPTION"
+        );
         assert!(matches!(
             parse_args(&[
                 "receipt-verify".into(),
