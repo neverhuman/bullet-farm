@@ -152,10 +152,9 @@ fn validate_operations(operations: &[PatchOperation]) -> Result<(), WireError> {
             ));
         }
     }
-    let values = paths.values().copied().collect::<Vec<_>>();
-    for (index, left) in values.iter().enumerate() {
-        for right in &values[index + 1..] {
-            if contains_path(left, right) || contains_path(right, left) {
+    for (index, (left_key, left)) in paths.iter().enumerate() {
+        for (right_key, right) in paths.iter().skip(index + 1) {
+            if contains_path(left_key, right_key) || contains_path(right_key, left_key) {
                 return Err(WireError::new(
                     "PATH_CONFLICT",
                     format!("{left} conflicts with {right}"),

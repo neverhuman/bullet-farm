@@ -76,8 +76,40 @@ fn repository_paths_reject_escape_and_platform_collisions() {
 fn proposal_rejects_duplicate_case_paths_and_parent_conflicts() {
     let duplicate = proposal(vec![write("src/Main.rs"), write("src/main.rs")]);
     assert_eq!(duplicate.validate().unwrap_err().code(), "PATH_COLLISION");
-    let parent = proposal(vec![write("src"), write("src/main.rs")]);
-    assert_eq!(parent.validate().unwrap_err().code(), "PATH_CONFLICT");
+    for (parent, child) in [
+        ("src", "src/main.rs"),
+        ("Src", "src/main.rs"),
+        ("Étage", "étage/file.rs"),
+    ] {
+        let proposal = proposal(vec![write(parent), write(child)]);
+        assert_eq!(
+            proposal.validate().unwrap_err().code(),
+            "PATH_CONFLICT",
+            "accepted portable ancestor conflict {parent:?} and {child:?}"
+        );
+    }
+}
+
+#[test]
+fn patch_proposal_matches_exact_schema_one_golden_shape() {
+    let expected = serde_json::json!({
+        "schema_version": 1,
+        "proposal_id": format!("cnt_{}", "1".repeat(64)),
+        "producing_attempt_id": format!("atm_{}", "2".repeat(64)),
+        "base_checkpoint_id": format!("ckp_{}", "3".repeat(64)),
+        "base_checkpoint_digest": "04".repeat(32),
+        "operations": [{
+            "path": "PONG.txt",
+            "preimage": { "kind": "absent" },
+            "mutation": { "kind": "write", "content_utf8": "PONG\n" }
+        }],
+        "gate_ids": [format!("gat_{}", "5".repeat(64))]
+    });
+    assert_eq!(expected.as_object().unwrap().len(), 7);
+
+    let proposal: PatchProposal = serde_json::from_value(expected.clone()).unwrap();
+    proposal.validate().unwrap();
+    assert_eq!(serde_json::to_value(proposal).unwrap(), expected);
 }
 
 #[test]
