@@ -1,20 +1,17 @@
 //! Read-only Git metadata and exact working-tree verification.
 
+#[cfg(test)]
+mod tests;
+
 use std::{
     collections::BTreeSet,
     fs,
     path::{Path, PathBuf},
-    process::Command,
     time::Duration,
 };
 
-use crate::{
-    checkout::ensure_regular_file,
-    coord::CoordError,
-    process::{Limits, run_bounded},
-};
+use crate::{checkout::ensure_regular_file, coord::CoordError, process::Limits};
 
-const GIT_BIN: &str = "/usr/bin/git";
 const MAX_GIT_CONFIG_BYTES: u64 = 64 * 1024;
 const GIT_LIMITS: Limits = Limits {
     timeout: Duration::from_secs(120),
@@ -306,11 +303,7 @@ fn run_text(repo: &Path, args: &[&str]) -> Result<String, CoordError> {
 }
 
 fn run(repo: &Path, args: &[&str]) -> Result<Vec<u8>, CoordError> {
-    let output = run_bounded(
-        git_command(repo).args(args),
-        "Git checkout verification",
-        GIT_LIMITS,
-    )?;
+    let output = run_after_verify(repo, args, || Ok(()))?;
     if !output.status.success() {
         return Err(CoordError::new(
             "GIT_VERIFICATION_FAILED",
@@ -320,38 +313,38 @@ fn run(repo: &Path, args: &[&str]) -> Result<Vec<u8>, CoordError> {
     Ok(output.stdout)
 }
 
-fn git_command(repo: &Path) -> Command {
-    let mut command = Command::new(GIT_BIN);
-    command
-        .arg("-C")
-        .arg(repo)
-        .args([
-            "-c",
-            "core.fsmonitor=false",
-            "-c",
-            "core.attributesFile=/dev/null",
-            "-c",
-            "core.excludesFile=/dev/null",
-            "-c",
-            "core.filemode=true",
-            "-c",
-            "core.symlinks=true",
-            "-c",
-            "core.ignorecase=false",
-            "-c",
-            "core.autocrlf=false",
-            "-c",
-            "core.untrackedCache=false",
-        ])
-        .env_clear()
-        .env("LC_ALL", "C")
-        .env("GIT_CONFIG_NOSYSTEM", "1")
-        .env("GIT_CONFIG_GLOBAL", "/dev/null")
-        .env("GIT_OPTIONAL_LOCKS", "0")
-        .env("GIT_NO_REPLACE_OBJECTS", "1")
-        .env("GIT_NO_LAZY_FETCH", "1")
-        .env("GIT_TERMINAL_PROMPT", "0");
-    command
+fn run_after_verify(
+    repo: &Path,
+    args: &[&str],
+    after_verify: impl FnOnce() -> Result<(), CoordError>,
+) -> Result<std::process::Output, CoordError> {
+    let mut admitted_args = Vec::with_capacity(18 + args.len());
+    admitted_args.extend_from_slice(&[
+        "-c",
+        "core.fsmonitor=false",
+        "-c",
+        "core.attributesFile=/dev/null",
+        "-c",
+        "core.excludesFile=/dev/null",
+        "-c",
+        "core.filemode=true",
+        "-c",
+        "core.symlinks=true",
+        "-c",
+        "core.ignorecase=false",
+        "-c",
+        "core.autocrlf=false",
+        "-c",
+        "core.untrackedCache=false",
+    ]);
+    admitted_args.extend_from_slice(args);
+    crate::family_lock::run_admitted_git_after_verify(
+        repo,
+        &admitted_args,
+        GIT_LIMITS,
+        "Git checkout verification",
+        after_verify,
+    )
 }
 
 fn unsafe_git(reason: impl Into<String>) -> CoordError {

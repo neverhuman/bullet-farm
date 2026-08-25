@@ -18,6 +18,16 @@ const GIT_LIMITS: Limits = Limits {
 const MAX_HASHED_FILE_BYTES: u64 = 16 * 1024 * 1024;
 const MAX_GENERATED_ARTIFACTS: usize = 4096;
 
+pub(super) fn run_admitted_git_after_verify(
+    repo: &Path,
+    args: &[&str],
+    limits: Limits,
+    label: &str,
+    after_verify: impl FnOnce() -> Result<(), CoordError>,
+) -> Result<std::process::Output, CoordError> {
+    command::run_labeled_after_verify(repo, args, limits, label, after_verify)
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct GeneratedZones {

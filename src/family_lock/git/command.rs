@@ -38,6 +38,16 @@ pub(super) fn run(
     admitted_git()?.run(repo, args, helper, limits)
 }
 
+pub(super) fn run_labeled_after_verify(
+    repo: &Path,
+    args: &[&str],
+    limits: Limits,
+    label: &str,
+    after_verify: impl FnOnce() -> Result<(), CoordError>,
+) -> Result<Output, CoordError> {
+    admitted_git()?.run_labeled_after_verify(repo, args, None, limits, label, after_verify)
+}
+
 #[derive(Debug)]
 struct GitProgram {
     executable: PinnedExecutable,
@@ -97,6 +107,25 @@ impl GitProgram {
         limits: Limits,
         after_verify: impl FnOnce() -> Result<(), CoordError>,
     ) -> Result<Output, CoordError> {
+        self.run_labeled_after_verify(
+            repo,
+            args,
+            helper,
+            limits,
+            "Git family-lock verification",
+            after_verify,
+        )
+    }
+
+    fn run_labeled_after_verify(
+        &self,
+        repo: &Path,
+        args: &[&str],
+        helper: Option<&PinnedExecutable>,
+        limits: Limits,
+        label: &str,
+        after_verify: impl FnOnce() -> Result<(), CoordError>,
+    ) -> Result<Output, CoordError> {
         let repository = PinnedRepository::admit(repo)?;
         self.executable.verify()?;
         repository.verify()?;
@@ -105,13 +134,12 @@ impl GitProgram {
         }
         after_verify()?;
 
+        let work_tree_path = repository.work_tree_path();
         let mut command = Command::new(self.executable.execution_path());
         command
+            .current_dir(&work_tree_path)
             .arg(format!("--git-dir={}", repository.git_dir_path().display()))
-            .arg(format!(
-                "--work-tree={}",
-                repository.work_tree_path().display()
-            ));
+            .arg(format!("--work-tree={}", work_tree_path.display()));
         if let Some(helper) = helper {
             command.arg("-c").arg(format!(
                 "gpg.ssh.program={}",
@@ -129,7 +157,7 @@ impl GitProgram {
                 .env("GIT_OPTIONAL_LOCKS", "0")
                 .env("GIT_TERMINAL_PROMPT", "0")
                 .env("GIT_NO_LAZY_FETCH", "1"),
-            "Git family-lock verification",
+            label,
             limits,
         );
 

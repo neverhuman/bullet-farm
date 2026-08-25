@@ -20,6 +20,16 @@ use self::{
 };
 use crate::coord::CoordError;
 
+pub(crate) fn run_admitted_git_after_verify(
+    repo: &Path,
+    args: &[&str],
+    limits: crate::process::Limits,
+    label: &str,
+    after_verify: impl FnOnce() -> Result<(), CoordError>,
+) -> Result<std::process::Output, CoordError> {
+    git::run_admitted_git_after_verify(repo, args, limits, label, after_verify)
+}
+
 const LOCK_FILE: &str = "family.lock";
 const ALLOWED_SIGNERS: &str = "release/allowed_signers";
 const SCHEMA_PREFIX: &str = "crates/bullet-wire";
