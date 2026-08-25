@@ -1,7 +1,13 @@
 # Bullet Farm — IEEE white-paper record
 
 Status: **historical summary; non-authoritative**  
-Artifact availability: **the PDF, TeX, bibliography, and ZIP are not distributed by this repository**
+Artifact availability: **the PDF, TeX, bibliography, and ZIP named below are not distributed by this repository**
+
+The current IEEEtran preprint source lives at [`../paper/`](../paper/).
+That source is not verified by the historically recorded hashes on this page
+and is not release evidence.
+
+---
 
 This page records a separately produced **11-page IEEE two-column paper** with
 **55 references** and approximately **7,250 words**:

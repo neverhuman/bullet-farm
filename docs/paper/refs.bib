@@ -1,0 +1,437 @@
+% Primary sources for the Bullet Farm IEEEtran preprint.
+% Observation date for moving repositories: 2026-08-25 UTC.
+
+@misc{bulletOverview,
+  author = {{Bullet Farm maintainers}},
+  title = {Architecture},
+  howpublished = {Hub document \texttt{docs/architecture/overview.md}},
+  year = {2026},
+  note = {Last reviewed 2026-08-25; normative orientation, pre-release}
+}
+
+@misc{bulletEvo,
+  author = {{Bullet Farm maintainers}},
+  title = {Evolutionary multi-agent control},
+  howpublished = {Hub document \texttt{docs/architecture/evolutionary-control.md}},
+  year = {2026},
+  note = {Last reviewed 2026-08-25; V1 runtime coverage incomplete}
+}
+
+@misc{bulletClosure,
+  author = {{Bullet Farm maintainers}},
+  title = {Safety-Complete {V1} closure plan},
+  howpublished = {Hub document \texttt{docs/assurance/v1-closure-plan.md}},
+  year = {2026},
+  note = {Last reconciled 2026-08-25; not runtime authority}
+}
+
+@misc{bulletRelease,
+  author = {{Bullet Farm maintainers}},
+  title = {Bullet {Farm} release contract},
+  howpublished = {Hub document \texttt{docs/release.md}},
+  year = {2026},
+  note = {Status BLOCKED; last reviewed 2026-08-25}
+}
+
+@misc{bulletSnapshot,
+  author = {{Bullet Farm maintainers}},
+  title = {Gas {Town} and {Gas} {City} comparison snapshot},
+  howpublished = {Hub document \texttt{docs/assurance/competitor-snapshot.md}},
+  year = {2026},
+  note = {Observed 2026-08-25 UTC; research input, not a benchmark}
+}
+
+@misc{adr0001,
+  author = {{Bullet Farm maintainers}},
+  title = {{0001} --- Provider execution mode: providers propose, {BulletGit} writes},
+  howpublished = {Architecture decision record},
+  year = {2026},
+  note = {Accepted; live execution remains quarantined}
+}
+
+@misc{adr0003,
+  author = {{Bullet Farm maintainers}},
+  title = {{0003} --- Five trust planes and principal separation},
+  howpublished = {Architecture decision record},
+  year = {2026}
+}
+
+@misc{adr0007,
+  author = {{Bullet Farm maintainers}},
+  title = {{0007} --- Sandbox, secrets, and tainted tool data},
+  howpublished = {Architecture decision record},
+  year = {2026}
+}
+
+@misc{kernelArch,
+  author = {{Bullet Farm maintainers}},
+  title = {Kernel architecture},
+  howpublished = {Document \texttt{bullet-kernel/docs/architecture.md}},
+  year = {2026}
+}
+
+@misc{gitArch,
+  author = {{Bullet Farm maintainers}},
+  title = {BulletGit architecture},
+  howpublished = {Document \texttt{bullet-git/docs/architecture.md}},
+  year = {2026},
+  note = {Last reviewed 2026-08-24; component primitives, no production transaction}
+}
+
+@misc{portalArch,
+  author = {{Bullet Farm maintainers}},
+  title = {Portal architecture},
+  howpublished = {Document \texttt{bullet-portal/docs/architecture.md}},
+  year = {2026}
+}
+
+@misc{gitRole,
+  author = {{Bullet Farm maintainers}},
+  title = {Git role and three sovereign truths},
+  howpublished = {Historical design note \texttt{docs/git\_role.md}},
+  year = {2026},
+  note = {Provenance only; not runtime authority}
+}
+
+@misc{gastownAudit,
+  author = {{Bullet Farm maintainers}},
+  title = {Gas {Town} open-issue risk audit},
+  howpublished = {Historical design note \texttt{docs/GASTOWN\_OPEN\_ISSUES\_RISK\_AUDIT\_FOR\_CENTERRAIL.md}},
+  year = {2026},
+  note = {Snapshot 2026-08-24; 333 open issues reviewed}
+}
+
+@misc{potentialDraft,
+  author = {{Bullet Farm maintainers}},
+  title = {{BULLETFARM} --- The definitive multi-agent coding engine},
+  howpublished = {Historical adjudication \texttt{docs/POTENTIAL\_DRAFT.md}},
+  year = {2026},
+  note = {Design provenance; adjudicated hardenings A1--A7}
+}
+
+@misc{gastownReadme,
+  author = {{Gas Town contributors}},
+  title = {Gas {Town}},
+  howpublished = {GitHub repository \texttt{gastownhall/gastown}},
+  year = {2026},
+  note = {Release v1.2.1, peeled commit 319d33a91b2deca59bba6dd26be6b9daf8eaacf6; observed 2026-08-25}
+}
+
+@misc{gastownV121,
+  author = {{Gas Town contributors}},
+  title = {Gas {Town} v1.2.1},
+  howpublished = {GitHub release},
+  year = {2026},
+  note = {\url{https://github.com/gastownhall/gastown/releases/tag/v1.2.1}}
+}
+
+@misc{gascityV141,
+  author = {{Gas City contributors}},
+  title = {Gas {City} v1.4.1},
+  howpublished = {GitHub release},
+  year = {2026},
+  note = {Tag object 610666314a884cd2db7386c1df3b6ef7c521706e, peeled commit 58ef17e3bd685fd5cf7f21286277b208d3324590; \url{https://github.com/gastownhall/gascity/releases/tag/v1.4.1}}
+}
+
+@misc{gascityMain,
+  author = {{Gas City contributors}},
+  title = {Gas {City} development branch},
+  howpublished = {GitHub repository \texttt{gastownhall/gascity}},
+  year = {2026},
+  note = {main commit 2cd07e018bf3680d24b037b509e6a4bad5e623ba observed 2026-08-25}
+}
+
+@misc{gascity1181,
+  author = {{Gas City reporters}},
+  title = {Implicit pool agents share one working tree --- parallel dispatch can clobber uncommitted edits},
+  howpublished = {GitHub issue 1181},
+  year = {2026},
+  note = {\url{https://github.com/gastownhall/gascity/issues/1181}}
+}
+
+@misc{gascity5511,
+  author = {{Gas City reporters}},
+  title = {Timeout after server-side commit duplicates live workflows},
+  howpublished = {GitHub issue 5511},
+  year = {2026},
+  note = {\url{https://github.com/gastownhall/gascity/issues/5511}}
+}
+
+@misc{gastown4094,
+  author = {{Gas Town reporters}},
+  title = {\texttt{gt sling}/daemon/compact checkout in town-root \texttt{.git} destroys operational files},
+  howpublished = {GitHub issue 4094},
+  year = {2026},
+  note = {\url{https://github.com/gastownhall/gastown/issues/4094}}
+}
+
+@misc{gastown742,
+  author = {{Gas Town reporters}},
+  title = {Dead tmux session treated as live ownership, driving respawn storms},
+  howpublished = {GitHub issue 742},
+  year = {2026},
+  note = {\url{https://github.com/gastownhall/gastown/issues/742}}
+}
+
+@misc{dshReadme,
+  author = {{DeepSeek AI}},
+  title = {DeepSeek {Harness}: Everything is a plugin},
+  howpublished = {GitHub repository \texttt{deepseek-ai/deepseek-harness}},
+  year = {2026},
+  note = {Developer preview; tag dsh-v0.1.1-rc.2 / commit b150a551b8d465e31e418e1b2eaf5e79bbb7d28e observed 2026-08-25}
+}
+
+@misc{dshArch,
+  author = {{DeepSeek AI}},
+  title = {DeepSeek {Harness} architecture},
+  howpublished = {Repository document \texttt{docs/architecture.md}},
+  year = {2026},
+  note = {Commit b150a551b8d465e31e418e1b2eaf5e79bbb7d28e; Cordis plugin tree, session log as model-context source}
+}
+
+@misc{dshSite,
+  author = {{DeepSeek AI}},
+  title = {DeepSeek {Harness} developer preview},
+  howpublished = {Product page},
+  year = {2026},
+  note = {\url{https://deepseek.com/harness/en/}}
+}
+
+@misc{cordis,
+  author = {{Cordiverse}},
+  title = {Cordis: a programming paradigm for spatiotemporal composability},
+  howpublished = {GitHub repository \texttt{cordiverse/cordis}},
+  year = {2026},
+  note = {\url{https://github.com/cordiverse/cordis}}
+}
+
+@misc{omnigentReadme,
+  author = {{Omnigent contributors}},
+  title = {Omnigent: the open-source meta-harness for {AI} agents},
+  howpublished = {GitHub repository \texttt{omnigent-ai/omnigent}},
+  year = {2026},
+  note = {Release v0.10.0 commit 40755dd8dddb07e1eb6e4055d1d9936e184ceb9b; development main 00bbed5d92d628f975053e82dbfd1ecd542d9b20 observed 2026-08-25}
+}
+
+@misc{omnigentV010,
+  author = {{Omnigent contributors}},
+  title = {Omnigent v0.10.0},
+  howpublished = {GitHub release},
+  year = {2026},
+  note = {\url{https://github.com/omnigent-ai/omnigent/releases/tag/v0.10.0}}
+}
+
+@misc{omnigentBlog,
+  author = {Databricks},
+  title = {Introducing {Omnigent}: a meta-harness to combine, control and share your agents},
+  howpublished = {Databricks Blog},
+  year = {2026},
+  note = {\url{https://www.databricks.com/blog/introducing-omnigent-meta-harness-combine-control-and-share-your-agents}}
+}
+
+@misc{omnigentPolicies,
+  author = {Databricks},
+  title = {Contextual policies in {Omnigent}},
+  howpublished = {Databricks Blog},
+  year = {2026},
+  note = {\url{https://www.databricks.com/blog/contextual-policies-omnigent-using-session-state-to-better-govern-ai-agents}}
+}
+
+@misc{claudeCode,
+  author = {{Anthropic}},
+  title = {Claude {Code} {CLI} and {Agent} {SDK}},
+  howpublished = {Product documentation},
+  year = {2026},
+  note = {Local observation: Claude Code 2.1.243 stream-JSON / plan / schema surface; not a conformance receipt}
+}
+
+@misc{codexCli,
+  author = {{OpenAI}},
+  title = {Codex {CLI} and {App} {Server}},
+  howpublished = {OpenAI developer documentation},
+  year = {2026},
+  note = {\url{https://developers.openai.com/codex/cli}; local observation: Codex CLI 0.149.1 \texttt{app-server} over stdio JSONL}
+}
+
+@misc{cursorAcp,
+  author = {{Anysphere}},
+  title = {Cursor {Agent} and {Agent} {Client} {Protocol}},
+  howpublished = {Product documentation},
+  year = {2026},
+  note = {Local observation: Cursor Agent 2026.08.11-e8db854; ACP required, print JSON not substituted}
+}
+
+@misc{antigravity,
+  author = {{Google}},
+  title = {Antigravity / \texttt{agy} headless structured mode},
+  howpublished = {Product documentation},
+  year = {2026},
+  note = {Local observation: \texttt{agy} 1.1.19; flags before final \texttt{-p=}}
+}
+
+@misc{acpSpec,
+  author = {{Agent Client Protocol contributors}},
+  title = {Agent {Client} {Protocol}},
+  howpublished = {Protocol specification},
+  year = {2026},
+  note = {\url{https://agentclientprotocol.com}}
+}
+
+@misc{mcpSpec,
+  author = {{Anthropic} and {MCP contributors}},
+  title = {Model {Context} {Protocol}},
+  howpublished = {Protocol specification},
+  year = {2025},
+  note = {\url{https://modelcontextprotocol.io}}
+}
+
+@misc{openhands,
+  author = {{OpenHands contributors}},
+  title = {OpenHands},
+  howpublished = {GitHub repository \texttt{All-Hands-AI/OpenHands}},
+  year = {2026}
+}
+
+@misc{sweagent,
+  author = {Yang, John and {SWE-agent contributors}},
+  title = {{SWE}-agent: agent-computer interfaces enable automated software engineering},
+  howpublished = {GitHub repository \texttt{SWE-agent/SWE-agent}},
+  year = {2024}
+}
+
+@article{yang2024sweagent,
+  author = {Yang, John and Jimenez, Carlos E. and Wettig, Alexander and Lieret, Kilian and Yao, Shunyu and Narasimhan, Chandrasekhar and Press, Ofir},
+  title = {{SWE}-agent: agent-computer interfaces enable automated software engineering},
+  journal = {Advances in Neural Information Processing Systems},
+  year = {2024}
+}
+
+@misc{agentless,
+  author = {Xia, Chunqiu Steven and Deng, Yinlin and Dunn, Soren and Zhang, Lingming},
+  title = {Agentless: demystifying {LLM}-based software engineering agents},
+  howpublished = {arXiv preprint},
+  year = {2024},
+  note = {arXiv:2407.01489}
+}
+
+@misc{autocoderover,
+  author = {Zhang, Yuntong and Ruan, Haifeng and Fan, Zhiyu and Roychoudhury, Abhik},
+  title = {{AutoCodeRover}: autonomous program improvement},
+  howpublished = {ACM ISSTA},
+  year = {2024}
+}
+
+@misc{aider,
+  author = {Gauthier, Paul},
+  title = {Aider},
+  howpublished = {GitHub repository \texttt{Aider-AI/aider}},
+  year = {2026}
+}
+
+@misc{cline,
+  author = {{Cline contributors}},
+  title = {Cline},
+  howpublished = {GitHub repository \texttt{cline/cline}},
+  year = {2026}
+}
+
+@misc{continue,
+  author = {{Continue contributors}},
+  title = {Continue},
+  howpublished = {GitHub repository \texttt{continuedev/continue}},
+  year = {2026}
+}
+
+@misc{goose,
+  author = {{Block}},
+  title = {Goose},
+  howpublished = {GitHub repository \texttt{block/goose}},
+  year = {2026}
+}
+
+@misc{roo,
+  author = {{Roo Code contributors}},
+  title = {Roo {Code}},
+  howpublished = {GitHub repository \texttt{RooCodeInc/Roo-Code}},
+  year = {2026}
+}
+
+@misc{copilotAgent,
+  author = {{GitHub}},
+  title = {GitHub {Copilot} coding agent},
+  howpublished = {GitHub Docs},
+  year = {2026}
+}
+
+@misc{jules,
+  author = {{Google}},
+  title = {Jules},
+  howpublished = {Product documentation},
+  year = {2026}
+}
+
+@misc{devin,
+  author = {{Cognition}},
+  title = {Devin},
+  howpublished = {Product documentation},
+  year = {2026}
+}
+
+@misc{kiro,
+  author = {{Amazon Web Services}},
+  title = {Kiro},
+  howpublished = {Product documentation},
+  year = {2026}
+}
+
+@misc{gitdocs,
+  author = {{Git project}},
+  title = {Git documentation: \texttt{git-worktree}, \texttt{git-clone}, and \texttt{git-gc}},
+  howpublished = {Official documentation},
+  year = {2026},
+  note = {\url{https://git-scm.com/docs}}
+}
+
+@misc{jjvcs,
+  author = {{Jujutsu contributors}},
+  title = {Jujutsu ({JJ}) version control},
+  howpublished = {Project documentation},
+  year = {2026},
+  note = {Change IDs are not preserved by every Git operation}
+}
+
+@misc{bors,
+  author = {{Bors contributors}},
+  title = {Bors merge queue},
+  howpublished = {Project documentation},
+  year = {2024}
+}
+
+@misc{rfc8785,
+  author = {Rundgren, A. and Jordan, B. and Erdtman, S.},
+  title = {{JSON} {Canonicalization} {Scheme} ({JCS})},
+  howpublished = {RFC 8785},
+  year = {2020}
+}
+
+@misc{paseto,
+  author = {Arcieri, Tony and Bennett, Scott},
+  title = {{PASETO}: platform-agnostic security tokens},
+  howpublished = {Specification},
+  year = {2022}
+}
+
+@misc{lamport2002tla,
+  author = {Lamport, Leslie},
+  title = {Specifying {Systems}: {The} {TLA}+ {Language} and {Tools} for {Hardware} and {Software} {Engineers}},
+  publisher = {Addison-Wesley},
+  year = {2002}
+}
+
+@inproceedings{gray1981tp,
+  author = {Gray, Jim},
+  title = {The transaction concept: virtues and limitations},
+  booktitle = {Proc. 7th Int. Conf. Very Large Data Bases},
+  year = {1981},
+  pages = {144--154}
+}

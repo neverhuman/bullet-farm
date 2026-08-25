@@ -1,4 +1,4 @@
-# Gas Town and Gas City comparison snapshot
+# Competitor comparison snapshot
 
 Status: **RESEARCH INPUT — not release evidence**
 Observed: 2026-08-25 UTC
@@ -15,11 +15,17 @@ test. It is not a benchmark result and makes no superiority claim.
 | Gas Town | release `v1.2.1`, peeled commit `319d33a91b2deca59bba6dd26be6b9daf8eaacf6` | [release](https://github.com/gastownhall/gastown/releases/tag/v1.2.1), [commit](https://github.com/gastownhall/gastown/commit/319d33a91b2deca59bba6dd26be6b9daf8eaacf6) |
 | Gas City release | release `v1.4.1` (2026-08-15), tag object `610666314a884cd2db7386c1df3b6ef7c521706e`, peeled commit `58ef17e3bd685fd5cf7f21286277b208d3324590` | [release](https://github.com/gastownhall/gascity/releases/tag/v1.4.1), [commit](https://github.com/gastownhall/gascity/commit/58ef17e3bd685fd5cf7f21286277b208d3324590) |
 | Gas City development | `main` commit `2cd07e018bf3680d24b037b509e6a4bad5e623ba` observed 2026-08-25 | [repository](https://github.com/gastownhall/gascity), [commit](https://github.com/gastownhall/gascity/commit/2cd07e018bf3680d24b037b509e6a4bad5e623ba) |
+| DeepSeek Harness | developer-preview tag `dsh-v0.1.1-rc.2`, commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e` (2026-08-21) | [tag](https://github.com/deepseek-ai/DeepSeek-Harness/releases/tag/dsh-v0.1.1-rc.2), [commit](https://github.com/deepseek-ai/DeepSeek-Harness/commit/b150a551b8d465e31e418e1b2eaf5e79bbb7d28e), [architecture](https://github.com/deepseek-ai/DeepSeek-Harness/blob/b150a551b8d465e31e418e1b2eaf5e79bbb7d28e/docs/architecture.md) |
+| Omnigent release | release `v0.10.0` (2026-08-19), commit `40755dd8dddb07e1eb6e4055d1d9936e184ceb9b` | [release](https://github.com/omnigent-ai/omnigent/releases/tag/v0.10.0), [commit](https://github.com/omnigent-ai/omnigent/commit/40755dd8dddb07e1eb6e4055d1d9936e184ceb9b) |
+| Omnigent development | `main` commit `00bbed5d92d628f975053e82dbfd1ecd542d9b20` observed 2026-08-25 | [repository](https://github.com/omnigent-ai/omnigent), [commit](https://github.com/omnigent-ai/omnigent/commit/00bbed5d92d628f975053e82dbfd1ecd542d9b20) |
 
 Gas Town's tag remains its released product baseline. Gas City's released tag
 is the product baseline; its separate branch row is a dated source observation
-only. Every later comparison must record a new tag or commit and date instead
-of silently moving either subject.
+only. DeepSeek Harness is a developer preview: the rc.2 tag is the compared
+subject, not a stability promise. Omnigent's v0.10.0 tag is the product
+baseline; its `main` row is a dated source observation only. Every later
+comparison must record a new tag or commit and date instead of silently moving
+any subject.
 
 ## Mechanisms worth preserving
 
@@ -37,6 +43,22 @@ controls, explicit degraded storage outcomes, release-candidate gates using
 real inference, fenced dead-session cleanup, and platform artifacts with
 checksums, SBOMs, and attestations. These are observed mechanisms to test, not
 evidence that either system is safer or faster.
+
+DeepSeek Harness (`dsh`) demonstrates a Cordis plugin kernel in which models,
+tools, sandboxes, sessions, storage, loops, scheduling, and the UI are all
+replaceable; an append-only session log is the source of model-visible context;
+and Standard/Code/Minimal/Creator modes recompose the same seams. That is a
+composition and cognition kernel, not a write-authority kernel: filesystem and
+subprocess providers share one execution world, and the model still writes
+files.
+
+Omnigent demonstrates a meta-harness: a runner wraps Claude Code, Codex,
+Cursor, and other CLIs behind one session API; a server stores contextual
+policies and sharing; Linux bubblewrap or macOS seatbelt plus an L7 credential
+proxy keep real tokens out of the sandbox. Native terminal wrappers still use
+tmux. The wrapped harness still performs Git. Policy can deny or transform a
+tool call; it cannot mint a Candidate or invalidate evidence when a branch
+moves.
 
 Bullet Farm should preserve the product leverage while measuring these exact
 properties:
@@ -95,8 +117,9 @@ subjects, configuration, receipts, exclusions, and exact upstream commits.
 
 ## Refresh procedure
 
-1. Resolve the released Gas Town and Gas City tags (including annotated tag
-   objects and peeled commits) plus any explicitly compared development branch.
+1. Resolve the released Gas Town, Gas City, DeepSeek Harness, and Omnigent
+   tags (including annotated tag objects and peeled commits) plus any
+   explicitly compared development branch.
 2. Record observation date, URLs, configurations, and benchmark corpus digest.
 3. Review upstream architecture and release notes for changed primitives.
 4. Add a new dated snapshot or append a clearly delimited revision; do not

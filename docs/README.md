@@ -25,6 +25,10 @@ green through documentation.
 
 ## Explanatory documents
 
+- [`paper/`](paper/) is the IEEEtran arXiv preprint source. A compile is not
+  a release, installer, or benchmark receipt.
+- [`brand/mascots/`](brand/mascots/) is sticker-first image-generator briefs.
+  Generated art is not a receipt.
 - [`architecture/overview.md`](architecture/overview.md) is the concise system
   orientation.
 - [`architecture/evolutionary-control.md`](architecture/evolutionary-control.md)
