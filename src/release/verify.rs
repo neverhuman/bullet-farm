@@ -35,9 +35,7 @@ const SIGNATURE_LIMITS: Limits = Limits {
 };
 
 pub(super) struct VerificationReceipt {
-    pub(super) tag: String,
-    pub(super) signer: String,
-    pub(super) package_count: usize,
+    pub(super) manifest: ReleaseManifest,
 }
 
 pub(super) fn verify(
@@ -93,11 +91,7 @@ pub(super) fn verify(
             verify_signed_file(&bundle, &manifest, signed, &allowed_signers.file)?;
         }
     }
-    Ok(VerificationReceipt {
-        tag: manifest.tag,
-        signer: manifest.release_signing_identity,
-        package_count: manifest.package.len(),
-    })
+    Ok(VerificationReceipt { manifest })
 }
 
 fn verify_signed_file(

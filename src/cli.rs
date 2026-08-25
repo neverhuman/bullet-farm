@@ -6,7 +6,7 @@ use crate::coord::{
     discover_family_root, unix_millis,
 };
 
-const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release verify --bundle ABSOLUTE_PATH --allowed-signers ABSOLUTE_PATH|checkout verify|hub check|deps check|lock <generate|check> --tag VERSION|fuse --source <local|lock>|check <fast|required|release> [--json]|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]>";
+const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release <verify|extract> [options]|checkout verify|hub check|deps check|lock <generate|check> --tag VERSION|fuse --source <local|lock>|check <fast|required|release> [--json]|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]>";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CliOutcome {
@@ -92,7 +92,7 @@ pub fn run(
         if explicit_root.is_some() {
             return Err(CoordError::new(
                 "USAGE",
-                "release verification does not accept --root",
+                "release verification and extraction do not accept --root",
             ));
         }
         return crate::release::run(&args[1..]);

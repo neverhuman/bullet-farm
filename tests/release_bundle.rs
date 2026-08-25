@@ -1,6 +1,7 @@
 use std::{
     fmt::Write as _,
     fs,
+    io::{Cursor, Write as _},
     path::{Path, PathBuf},
     process::Command,
     sync::atomic::{AtomicU64, Ordering},
@@ -23,6 +24,7 @@ struct Fixture {
     root: PathBuf,
     bundle: PathBuf,
     allowed_signers: PathBuf,
+    key: PathBuf,
 }
 
 impl Fixture {
@@ -81,20 +83,22 @@ impl Fixture {
             let sbom = format!("packages/bullet-farm-{target}.cdx.json");
             let provenance = format!("packages/bullet-farm-{target}.intoto.jsonl");
             for (path, bytes) in [
-                (&archive, format!("archive:{target}\n")),
+                (archive.clone(), archive_bytes(target)),
                 (
-                    &sbom,
-                    format!("{{\"bomFormat\":\"CycloneDX\",\"target\":\"{target}\"}}\n"),
+                    sbom.clone(),
+                    format!("{{\"bomFormat\":\"CycloneDX\",\"target\":\"{target}\"}}\n")
+                        .into_bytes(),
                 ),
                 (
-                    &provenance,
+                    provenance.clone(),
                     format!(
                         "{{\"_type\":\"https://in-toto.io/Statement/v1\",\"target\":\"{target}\"}}\n"
-                    ),
+                    )
+                    .into_bytes(),
                 ),
             ] {
-                fs::write(bundle.join(path), bytes).expect("release payload");
-                sign(&root, &key, &bundle.join(path));
+                fs::write(bundle.join(&path), bytes).expect("release payload");
+                sign(&root, &key, &bundle.join(&path));
             }
             writeln!(manifest, "[[package]]").unwrap();
             writeln!(manifest, "target = {target:?}").unwrap();
@@ -109,6 +113,7 @@ impl Fixture {
             root,
             bundle,
             allowed_signers,
+            key,
         }
     }
 
@@ -125,6 +130,36 @@ impl Fixture {
             ],
             Ok(self.bundle.clone()),
         )
+    }
+
+    fn extract(
+        &self,
+        target: &str,
+        destination: &Path,
+    ) -> Result<String, bullet_family::coord::CoordError> {
+        bullet_family::cli::run(
+            [
+                "bullet-family".into(),
+                "release".into(),
+                "extract".into(),
+                "--bundle".into(),
+                self.bundle.to_str().expect("UTF-8 path").into(),
+                "--allowed-signers".into(),
+                self.allowed_signers.to_str().expect("UTF-8 path").into(),
+                "--target".into(),
+                target.into(),
+                "--destination".into(),
+                destination.to_str().expect("UTF-8 path").into(),
+            ],
+            Ok(self.bundle.clone()),
+        )
+    }
+
+    fn resign_manifest(&self) {
+        let manifest = self.bundle.join("release-manifest.toml");
+        fs::remove_file(self.bundle.join("release-manifest.toml.sig"))
+            .expect("remove old signature");
+        sign(&self.root, &self.key, &manifest);
     }
 }
 
@@ -143,6 +178,75 @@ fn signed_five_platform_bundle_verifies_twice_without_mutation() {
     assert_eq!(first, second);
     assert!(first.contains("5 packages"));
     assert_eq!(snapshot(&fixture.root), before);
+}
+
+#[test]
+#[cfg(all(target_os = "linux", target_env = "gnu"))]
+fn signed_archive_extracts_once_without_overwrite_or_execution() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let fixture = Fixture::new();
+    let destination = fixture.root.join("installed");
+    let output = fixture
+        .extract("x86_64-unknown-linux-gnu", &destination)
+        .expect("verified extraction");
+    assert!(output.contains("component only; no install or release authority"));
+    let executable = destination.join("bin/bullet-family");
+    assert_eq!(
+        fs::read(&executable).expect("extracted binary"),
+        b"fixture:x86_64-unknown-linux-gnu\n"
+    );
+    assert_eq!(
+        fs::metadata(&executable).unwrap().permissions().mode() & 0o777,
+        0o755
+    );
+    let before = snapshot(&destination);
+    assert_eq!(
+        fixture
+            .extract("x86_64-unknown-linux-gnu", &destination)
+            .unwrap_err()
+            .code(),
+        "RELEASE_DESTINATION_EXISTS"
+    );
+    assert_eq!(snapshot(&destination), before);
+}
+
+#[test]
+#[cfg(all(target_os = "linux", target_env = "gnu"))]
+fn extract_refuses_missing_signature_and_schema_two_before_mutation() {
+    let fixture = Fixture::new();
+    let destination = fixture.root.join("unsigned-install");
+    fs::remove_file(fixture.bundle.join("release-manifest.toml.sig"))
+        .expect("remove manifest signature");
+    assert!(
+        fixture
+            .extract("x86_64-unknown-linux-gnu", &destination)
+            .is_err()
+    );
+    assert!(!destination.exists());
+
+    let fixture = Fixture::new();
+    let destination = fixture.root.join("schema-two-install");
+    let manifest = fixture.bundle.join("release-manifest.toml");
+    let text = fs::read_to_string(&manifest).expect("manifest text");
+    fs::write(
+        &manifest,
+        text.replacen(
+            "family_lock_schema_version = \"3\"",
+            "family_lock_schema_version = \"2\"",
+            1,
+        ),
+    )
+    .expect("schema-two manifest");
+    fixture.resign_manifest();
+    assert_eq!(
+        fixture
+            .extract("x86_64-unknown-linux-gnu", &destination)
+            .unwrap_err()
+            .code(),
+        "UNSUPPORTED_SCHEMA"
+    );
+    assert!(!destination.exists());
 }
 
 #[test]
@@ -282,6 +386,56 @@ fn fingerprint(cwd: &Path, public_key: &Path) -> String {
 
 fn digest(bytes: &[u8]) -> String {
     format!("blake3:{}", blake3::hash(bytes).to_hex())
+}
+
+fn archive_bytes(target: &str) -> Vec<u8> {
+    let executable = format!(
+        "bullet-farm/bin/bullet-family{}",
+        if target == "x86_64-pc-windows-msvc" {
+            ".exe"
+        } else {
+            ""
+        }
+    );
+    let payload = format!("fixture:{target}\n");
+    if target == "x86_64-pc-windows-msvc" {
+        let mut writer = ::zip::ZipWriter::new(Cursor::new(Vec::new()));
+        let directory = ::zip::write::SimpleFileOptions::default()
+            .compression_method(::zip::CompressionMethod::Stored)
+            .unix_permissions(0o755);
+        writer.add_directory("bullet-farm/", directory).unwrap();
+        writer.add_directory("bullet-farm/bin/", directory).unwrap();
+        writer.start_file(executable, directory).unwrap();
+        writer.write_all(payload.as_bytes()).unwrap();
+        writer.finish().unwrap().into_inner()
+    } else {
+        let encoder = zstd::stream::write::Encoder::new(Vec::new(), 3).unwrap();
+        let mut builder = tar::Builder::new(encoder);
+        append_tar(&mut builder, "bullet-farm", &[], true);
+        append_tar(&mut builder, "bullet-farm/bin", &[], true);
+        append_tar(&mut builder, &executable, payload.as_bytes(), false);
+        builder.finish().unwrap();
+        builder.into_inner().unwrap().finish().unwrap()
+    }
+}
+
+fn append_tar(
+    builder: &mut tar::Builder<zstd::Encoder<'static, Vec<u8>>>,
+    path: &str,
+    bytes: &[u8],
+    directory: bool,
+) {
+    let mut header = tar::Header::new_ustar();
+    header.set_entry_type(if directory {
+        tar::EntryType::Directory
+    } else {
+        tar::EntryType::Regular
+    });
+    header.set_path(path).unwrap();
+    header.set_size(bytes.len() as u64);
+    header.set_mode(0o755);
+    header.set_cksum();
+    builder.append(&header, bytes).unwrap();
 }
 
 fn command(cwd: &Path, program: &str, args: &[&str]) {

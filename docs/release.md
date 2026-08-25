@@ -50,7 +50,7 @@ receipt never certifies another provider or profile.
 | GitHub live effect | `BLOCKED` | Configured GitHub App test repository and exact-subject integration/reconciliation receipt |
 | Provider conformance | `BLOCKED` | Bounded fail-closed offline protocol subsets are committed for Claude stream JSON, Codex App Server JSONL, Cursor ACP, and Antigravity structured output. Recursive duplicate-key and trailing-data refusal now covers every raw provider input, including Codex's inner proposal text. The adapters do not spawn an admitted binary, use provider credentials, prove native typed extensions or event schemas, or produce live conformance. RFC 8785/byte/numeric-lexeme canonicalization, signed executable/profile admission, isolated credentials and egress, supervision/deadlines, and live receipts for all four providers remain |
 | Security quality | `BLOCKED` | The latest Hub Jankurai report is 60 (raw 61), with 7 caps and 34 findings, including 23 `high`. No finding has tool severity `hard` (some checks carry a `hard` tag), but the caps, high findings, and score still block release; release needs at least 90, zero caps/hard findings, and all required scans |
-| Release supply chain | `BLOCKED` | A read-only Linux verifier checks an exact non-circular signed five-target manifest and every declared byte subject. It is not a package builder, archive extractor, or prebuilt installer. Reproducible archives, semantic SBOM/provenance validation, package signatures from protected release keys, installer smoke, and tagged release receipts remain |
+| Release supply chain | `BLOCKED` | A Linux component verifies an exact non-circular signed five-target manifest and every declared byte subject, then can safely materialize one exact signed archive at an absent destination. It is not a package builder, installer, activation/rollback mechanism, or release authority. Reproducible package production, semantic binary/SBOM/provenance validation, package signatures from protected release keys, installer smoke, and tagged release receipts remain |
 | Platform containment | `BLOCKED` | Linux production containment plus fail-closed proof on every other packaged platform until an equivalent native backend passes |
 
 Missing credentials produce a neutral, unregistered live lane only when that
@@ -71,7 +71,7 @@ These reviewed commits are component evidence, not release or live evidence:
 | Antigravity offline protocol | Kernel `5badc85` | Bounded structured-output subset; native stream schema and live conformance remain unproved |
 | Strict provider JSON | Kernel `1bb32bd` | Recursive duplicate-key and trailing-data refusal on all four raw paths, including Codex proposal text; no canonicalization or live authority |
 | Setup transaction | Hub `5148a52` | Source/component fixture proof; no authenticated public schema-3 lock or prebuilt installer |
-| Bundle verifier | Hub `352f963` | Read-only exact-byte verification; no package production, extraction, installation, or signing authority |
+| Bundle verifier | Hub `352f963` | Read-only exact-byte verification base; no package production, installation, or signing authority |
 
 ## Local pre-release gates
 
@@ -118,7 +118,7 @@ Release installation requires a signed prebuilt `bullet-family` binary whose rel
 checksums have been verified. Before any mutation, that binary must bind the canonical absolute Cargo,
 Node, and npm CLI subjects it admits.
 
-The read-only Linux verifier is available as:
+The Linux verifier is available as:
 
 ```bash
 bullet-family release verify \
@@ -127,13 +127,30 @@ bullet-family release verify \
 ```
 
 It binds the manifest, schema-3 lock, five byte-sorted target entries, archive/SBOM/provenance bytes,
-detached signatures, and exact Ed25519 signer status. It does not produce packages, interpret SBOM or
-provenance semantics, extract archives, run an installer, provision signing trust, or claim safety from
-concurrent replacement of intermediate bundle directories.
+detached signatures, and exact Ed25519 signer status. After that complete verification, the separate
+component extractor can materialize one signed target into an absent canonical destination:
 
-No package builder or archive extractor is implemented, and no signed prebuilt `bullet-family` installer
-has been published. Passing the verifier against a preassembled test fixture is not package-production or
-installer evidence.
+```bash
+bullet-family release extract \
+  --bundle /absolute/path/to/bundle \
+  --allowed-signers /absolute/path/to/allowed_signers \
+  --target x86_64-unknown-linux-gnu \
+  --destination /absolute/absent/path
+```
+
+Extraction is currently Linux GNU only. It re-hashes the selected signed archive into an immutable descriptor,
+admits a bounded regular-file/directory-only `tar.zst` or canonical stored ZIP layout, stages and fsyncs the complete
+tree beside the destination, and publishes with descriptor-relative no-replace rename. It rejects non-ASCII names
+(therefore every Unicode normalization ambiguity), case collisions, traversal, platform-special names, links and
+special files, ZIP64/multi-disk/data-descriptor ambiguity, oversize/ratio abuse, and any existing destination. A
+post-rename parent-fsync failure returns `RELEASE_PUBLICATION_UNKNOWN`; the destination is the complete next tree.
+Intermediate bundle-directory replacement remains outside the verifier's path-pinning guarantee, but substituted
+archive bytes cannot reach a parser unless their exact size and signed BLAKE3 digest match.
+
+This command does not interpret binary, SBOM, or provenance semantics; run an installer; activate or roll back an
+installation; provision signing trust; or emit release evidence. No package builder or signed prebuilt
+`bullet-family` installer has been published. Passing verification or extraction against a preassembled test fixture
+is not package-production, installation, signer, platform, or release evidence.
 
 The Rust setup/checkout mechanism and its signed local four-repository fixture implement these
 rules, including two idempotent exact installs. Fallible dependency, generated-contract, and exact-

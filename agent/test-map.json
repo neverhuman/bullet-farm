@@ -85,6 +85,10 @@
       "command": "cargo test --locked",
       "purpose": "verify the family coordination and onboarding CLI"
     },
+    "src/release/archive/": {
+      "command": "cargo test --locked release::archive",
+      "purpose": "prove strict archive admission, bounded materialization, and no-replace publication"
+    },
     "tests/": {
       "command": "cargo test --locked",
       "purpose": "verify coordination races and fail-closed behavior"
@@ -95,7 +99,7 @@
     },
     "tests/release_bundle.rs": {
       "command": "cargo test --locked --test release_bundle",
-      "purpose": "prove the five-platform release manifest, bytes, and detached signatures fail closed"
+      "purpose": "prove signed five-platform verification and exact-target extraction fail closed before mutation"
     },
     "Cargo.toml": {
       "command": "cargo test --locked",
