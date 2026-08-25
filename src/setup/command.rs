@@ -11,6 +11,7 @@ use std::{
     fs,
     path::{Path, PathBuf},
     process::Command,
+    sync::OnceLock,
     time::Duration,
 };
 
@@ -39,6 +40,8 @@ const TOOL_LIMITS: Limits = Limits {
     stderr_bytes: 16 * 1024 * 1024,
 };
 const MAX_TOOL_BYTES: u64 = 512 * 1024 * 1024;
+
+static ADMITTED_GIT: OnceLock<CommandSpec> = OnceLock::new();
 
 #[derive(Debug)]
 pub(super) struct Toolchain {
@@ -231,6 +234,45 @@ impl CommandSpec {
         }
     }
 
+    fn run_git(&self, repo: Option<&Path>, args: &[&OsStr]) -> Result<(), CoordError> {
+        self.run_git_after_verify(repo, args, || Ok(()))
+    }
+
+    fn run_git_after_verify(
+        &self,
+        repo: Option<&Path>,
+        args: &[&OsStr],
+        after_verify: impl FnOnce() -> Result<(), CoordError>,
+    ) -> Result<(), CoordError> {
+        self.verify_sources()?;
+        after_verify()?;
+        let mut command = Command::new(self.program.execution_path());
+        if let Some(repo) = repo {
+            command.arg("-C").arg(repo);
+        }
+        let output = run_bounded(
+            command
+                .args(args)
+                .env_clear()
+                .env("LC_ALL", "C")
+                .env("GIT_CONFIG_NOSYSTEM", "1")
+                .env("GIT_CONFIG_GLOBAL", "/dev/null")
+                .env("GIT_TERMINAL_PROMPT", "0"),
+            self.identity.label(),
+            GIT_LIMITS,
+        );
+        self.verify_sources()?;
+        let output = output?;
+        if output.status.success() {
+            Ok(())
+        } else {
+            Err(CoordError::new(
+                "GIT_SETUP_FAILED",
+                format!("Git setup operation failed with {}", output.status),
+            ))
+        }
+    }
+
     fn verify_sources(&self) -> Result<(), CoordError> {
         self.program.verify()?;
         for companion in &self.companions {
@@ -246,6 +288,7 @@ enum ToolIdentity {
     Node,
     Npm,
     Bash,
+    Git,
 }
 
 impl ToolIdentity {
@@ -255,6 +298,7 @@ impl ToolIdentity {
             Self::Node => "Node setup runtime",
             Self::Npm => "npm setup operation",
             Self::Bash => "Bash setup operation",
+            Self::Git => "Git setup operation",
         }
     }
 
@@ -267,6 +311,7 @@ impl ToolIdentity {
             Self::Node => version.strip_prefix('v').is_some_and(is_version),
             Self::Npm => is_version(version),
             Self::Bash => version.starts_with("GNU bash, version "),
+            Self::Git => version.strip_prefix("git version ").is_some_and(is_version),
         }
     }
 }
@@ -333,27 +378,23 @@ fn trusted_path<'a>(
 }
 
 pub(super) fn run_git(repo: Option<&Path>, args: &[&OsStr]) -> Result<(), CoordError> {
-    let mut command = Command::new(GIT_BIN);
-    if let Some(repo) = repo {
-        command.arg("-C").arg(repo);
+    admitted_git()?.run_git(repo, args)
+}
+
+fn admitted_git() -> Result<&'static CommandSpec, CoordError> {
+    if let Some(git) = ADMITTED_GIT.get() {
+        return Ok(git);
     }
-    let output = run_bounded(
-        command
-            .args(args)
-            .env_clear()
-            .env("LC_ALL", "C")
-            .env("GIT_CONFIG_NOSYSTEM", "1")
-            .env("GIT_CONFIG_GLOBAL", "/dev/null")
-            .env("GIT_TERMINAL_PROMPT", "0"),
-        "Git setup operation",
-        GIT_LIMITS,
-    )?;
-    if output.status.success() {
-        Ok(())
-    } else {
-        Err(CoordError::new(
-            "GIT_SETUP_FAILED",
-            format!("Git setup operation failed with {}", output.status),
-        ))
-    }
+    let canonical = fs::canonicalize(GIT_BIN).map_err(|error| {
+        tool_error(
+            "SETUP_TOOL_UNAVAILABLE",
+            "Git setup operation",
+            format!("{GIT_BIN} cannot be resolved: {error}"),
+        )
+    })?;
+    let candidate = CommandSpec::admit(ToolIdentity::Git, &canonical, Vec::new(), Vec::new())?;
+    let _ = ADMITTED_GIT.set(candidate);
+    Ok(ADMITTED_GIT
+        .get()
+        .expect("Git command is initialized after successful admission"))
 }

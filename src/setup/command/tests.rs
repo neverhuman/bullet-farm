@@ -1,11 +1,12 @@
 use std::{
+    ffi::OsStr,
     fs::{self, OpenOptions},
     io::Write,
     path::{Path, PathBuf},
     process::Command,
 };
 
-use super::{SetupEnvironment, Toolchain};
+use super::{CommandSpec, SetupEnvironment, ToolIdentity, Toolchain};
 use crate::setup::transaction::AdmittedRoot;
 
 #[cfg(unix)]
@@ -181,6 +182,20 @@ fn sealed_subjects_defeat_post_verification_path_swaps() {
     .expect("npm CLI fixture");
     let toolchain = Toolchain::admit(Some(&cargo), Some(&node), Some(&npm_cli))
         .expect("admit exact fixture tools");
+    let git = executable(
+        &fixture,
+        "git-real",
+        &format!(
+            concat!(
+                "#!/bin/sh\n",
+                "if [ \"${{1-}}\" = --version ]; then printf 'git version 2.43.0\\n'; exit 0; fi\n",
+                "printf admitted > '{}'\n",
+            ),
+            fixture.join("git-admitted").display()
+        ),
+    );
+    let git_command = CommandSpec::admit(ToolIdentity::Git, &git, Vec::new(), Vec::new())
+        .expect("admit exact fixture Git");
     let root = AdmittedRoot::open(&fixture).expect("admit command fixture root");
     let environment = SetupEnvironment::create(&root, &toolchain).expect("isolated setup HOME");
 
@@ -220,6 +235,28 @@ fn sealed_subjects_defeat_post_verification_path_swaps() {
         "admitted"
     );
     assert!(!fixture.join("npm-attacker").exists());
+
+    let original_git = fixture.join("git-original");
+    let error = git_command
+        .run_git_after_verify(Some(&fixture), &[OsStr::new("status")], || {
+            fs::rename(&git, &original_git).expect("move verified Git path");
+            executable(
+                &fixture,
+                "git-real",
+                &format!(
+                    "#!/bin/sh\nprintf attacker > '{}'\n",
+                    fixture.join("git-attacker").display()
+                ),
+            );
+            Ok(())
+        })
+        .expect_err("post-verification Git swap must be reported after the child succeeds");
+    assert_eq!(error.code(), "SETUP_TOOL_CHANGED");
+    assert_eq!(
+        fs::read_to_string(fixture.join("git-admitted")).unwrap(),
+        "admitted"
+    );
+    assert!(!fixture.join("git-attacker").exists());
 
     environment.finish().expect("remove ephemeral setup HOME");
     fs::remove_dir_all(fixture).expect("remove path-swap fixture");
