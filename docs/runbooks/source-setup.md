@@ -18,11 +18,16 @@ The family root contains four ordinary independent clones named by
 `repos.manifest.toml`. Never create Git worktrees. Before running family proof:
 
 ```bash
-cargo run --locked --quiet --bin bullet-family -- doctor --json
+cargo run --locked --quiet --bin bullet-family -- doctor --json; echo EXIT=$?
 just fast
 ```
 
-Run these from the Hub checkout. `doctor` is a diagnostic; it does not repair
+Run these from the Hub checkout. `doctor` reports its verdict in its exit status
+as well as its JSON: `0` READY, `3` BLOCKED — the family's "diagnosed, not
+usable" code, the same one `check` and `coord` use. Under the checked-in
+schema-2 lock the honest answer today is `EXIT=3`, so do not chain `doctor` with
+`&&` and do not read exit 0 as proof of a healthy family. `doctor` is a
+diagnostic; it does not repair
 dirty/missing subjects or grant install authority. The checked-in lock is schema
 2, so `checkout verify` currently returns `UNSUPPORTED_SCHEMA` by design. Run it
 only after an authenticated schema-3 lock exists, or use that refusal as a

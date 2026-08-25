@@ -39,7 +39,9 @@ Run from the hub checkout. Every command is read-only.
    cargo run --locked --quiet --bin bullet-family -- doctor --json; echo EXIT=$?
    ```
 
-   Observed on this host (2026-08-25, hub `d762f86`): `EXIT=0`, `"status": "BLOCKED"`. The check ids are
+   Observed on this host (2026-08-25): `EXIT=3`, `"status": "BLOCKED"`. `doctor` reports its verdict in
+   its exit status — 0 READY, 3 BLOCKED, the family's "diagnosed, not usable" code — so a script must treat
+   3 as a diagnosis to read, not as a crash. Every other exit code is a typed `CoordError`. The check ids are
    `hub_checkout`, `toolchain`, `source_metadata`, `family_layout`, `member_oids`, `clean_checkouts`,
    `exact_family_authority`. Here `hub_checkout`, `toolchain`, and `family_layout` were `PASS`;
    `source_metadata` and `exact_family_authority` were `BLOCKED` ("family.lock schema 2 is diagnostic-only";

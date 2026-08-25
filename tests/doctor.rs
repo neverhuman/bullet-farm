@@ -162,3 +162,67 @@ fn doctor_rejects_unknown_legacy_lock_fields() {
     assert_eq!(error.code(), "INVALID_FAMILY_LOCK");
     fs::remove_dir_all(root).expect("remove fixture");
 }
+
+/// The first command a newcomer runs must not signal success while it reports
+/// blockers. `doctor` exits 3 — the family's "diagnosed, not usable" code,
+/// shared with `check`'s blocked gates and the coordinator's claim refusals —
+/// and the `--json` body stays machine-parsable on that path. The READY half of
+/// the mapping (exit 0) is proved in `src/doctor/model.rs`; a READY fixture
+/// would need a signed schema-3 lock and real clones at exact OIDs, which is
+/// operator input this repository does not have.
+#[test]
+fn doctor_exit_status_agrees_with_its_reported_status() {
+    let root = fixture_root("exit-status");
+    let hub = root.join("bullet-farm");
+    for argv in [
+        vec![
+            OsString::from("bullet-family"),
+            OsString::from("doctor"),
+            OsString::from("--json"),
+        ],
+        vec![
+            OsString::from("bullet-family"),
+            OsString::from("--root"),
+            hub.clone().into_os_string(),
+            OsString::from("doctor"),
+            OsString::from("--json"),
+        ],
+    ] {
+        let outcome = bullet_family::cli::execute(argv, Ok(hub.clone())).expect("doctor report");
+        let report: serde_json::Value =
+            serde_json::from_str(outcome.output()).expect("JSON on the blocked path");
+        assert_eq!(report["status"], "BLOCKED");
+        assert_eq!(report["schema_version"], 1);
+        assert_eq!(
+            outcome.exit_code(),
+            3,
+            "a hub reporting BLOCKED must never exit 0"
+        );
+    }
+
+    // A typed refusal keeps its own exit code; 3 means "diagnosed, not usable",
+    // never "the arguments were wrong".
+    let usage = bullet_family::cli::execute(
+        [OsString::from("bullet-family"), OsString::from("doctor")],
+        Ok(hub.clone()),
+    )
+    .expect_err("--json is required");
+    assert_eq!(usage.code(), "USAGE");
+    assert_eq!(usage.exit_code(), 2);
+
+    let missing = bullet_family::cli::execute(
+        [
+            OsString::from("bullet-family"),
+            OsString::from("--root"),
+            root.join("missing").into_os_string(),
+            OsString::from("doctor"),
+            OsString::from("--json"),
+        ],
+        Ok(hub),
+    )
+    .expect_err("invalid explicit root");
+    assert_eq!(missing.code(), "COORD_IO_FAILED");
+    assert_eq!(missing.exit_code(), 2);
+
+    fs::remove_dir_all(root).expect("remove fixture");
+}

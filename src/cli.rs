@@ -30,8 +30,13 @@ pub fn execute(
     current_dir: Result<PathBuf, std::io::Error>,
 ) -> Result<CliOutcome, CoordError> {
     let args = args.into_iter().collect::<Vec<_>>();
-    if is_check_command(&args) {
+    if is_command(&args, "check") {
         return execute_check(args, current_dir);
+    }
+    // `doctor` reports its own verdict in its exit status, so a stranger
+    // scripting on exit code can never read a BLOCKED hub as success.
+    if is_command(&args, "doctor") {
+        return execute_doctor(args, current_dir);
     }
     run(args, current_dir).map(|output| CliOutcome {
         output,
@@ -39,16 +44,14 @@ pub fn execute(
     })
 }
 
-fn is_check_command(args: &[OsString]) -> bool {
-    args.get(1).is_some_and(|arg| arg == "check")
+fn is_command(args: &[OsString], name: &str) -> bool {
+    args.get(1).is_some_and(|arg| arg == name)
         || (args.get(1).is_some_and(|arg| arg == "--root")
-            && args.get(3).is_some_and(|arg| arg == "check"))
+            && args.get(3).is_some_and(|arg| arg == name))
 }
 
-fn execute_check(
-    args: Vec<OsString>,
-    current_dir: Result<PathBuf, std::io::Error>,
-) -> Result<CliOutcome, CoordError> {
+/// Argv without the program name, as UTF-8.
+fn command_args(args: Vec<OsString>) -> Result<Vec<String>, CoordError> {
     let mut args = args
         .into_iter()
         .map(|arg| {
@@ -59,6 +62,14 @@ fn execute_check(
     if !args.is_empty() {
         args.remove(0);
     }
+    Ok(args)
+}
+
+fn execute_check(
+    args: Vec<OsString>,
+    current_dir: Result<PathBuf, std::io::Error>,
+) -> Result<CliOutcome, CoordError> {
+    let mut args = command_args(args)?;
     let explicit_root = remove_root(&mut args)?;
     let current_dir = current_dir.map_err(CoordError::io)?;
     let hub = crate::doctor::discover_hub(&current_dir, explicit_root.as_deref())?;
@@ -69,20 +80,25 @@ fn execute_check(
     })
 }
 
+fn execute_doctor(
+    args: Vec<OsString>,
+    current_dir: Result<PathBuf, std::io::Error>,
+) -> Result<CliOutcome, CoordError> {
+    let mut args = command_args(args)?;
+    let explicit_root = remove_root(&mut args)?;
+    let current_dir = current_dir.map_err(CoordError::io)?;
+    let execution = crate::doctor::execute(&current_dir, explicit_root.as_deref(), &args[1..])?;
+    Ok(CliOutcome {
+        output: execution.output().to_string(),
+        exit_code: execution.exit_code(),
+    })
+}
+
 pub fn run(
     args: impl IntoIterator<Item = OsString>,
     current_dir: Result<PathBuf, std::io::Error>,
 ) -> Result<String, CoordError> {
-    let mut args = args
-        .into_iter()
-        .map(|arg| {
-            arg.into_string()
-                .map_err(|_| CoordError::new("INVALID_ARGUMENT", "arguments must be valid UTF-8"))
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-    if !args.is_empty() {
-        args.remove(0);
-    }
+    let mut args = command_args(args.into_iter().collect())?;
     let explicit_root = remove_root(&mut args)?;
     let current_dir = current_dir.map_err(CoordError::io)?;
     if args.first().is_some_and(|arg| arg == "setup") {

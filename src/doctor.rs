@@ -12,15 +12,46 @@ use checks::{
     check_tools,
 };
 use discovery::{discover_hub as resolve_hub, read_lock};
-use model::{CheckStatus, DoctorReport};
+use model::{CheckStatus, DoctorReport, DoctorStatus};
 
 const USAGE: &str = "usage: bullet-family [--root PATH] doctor --json";
 
-pub fn run(
+/// One doctor run: the machine-parsable report and the exit code that reports
+/// the same verdict to a shell. `--json` output is identical on both paths.
+pub struct DoctorExecution {
+    output: String,
+    exit_code: u8,
+}
+
+impl DoctorExecution {
+    #[must_use]
+    pub fn output(&self) -> &str {
+        &self.output
+    }
+
+    #[must_use]
+    pub const fn exit_code(&self) -> u8 {
+        self.exit_code
+    }
+
+    #[must_use]
+    pub fn into_output(self) -> String {
+        self.output
+    }
+}
+
+/// Diagnose the hub and report the verdict in both the JSON body and the exit
+/// code. A blocked hub exits 3; it never signals success.
+///
+/// # Errors
+///
+/// Typed `CoordError` for usage, discovery, and lock-decoding failures. Those
+/// keep their own exit codes; 3 means "diagnosed, and not usable".
+pub fn execute(
     current_dir: &Path,
     explicit_root: Option<&str>,
     args: &[String],
-) -> Result<String, CoordError> {
+) -> Result<DoctorExecution, CoordError> {
     if args != ["--json"] {
         return Err(CoordError::new("USAGE", USAGE));
     }
@@ -46,19 +77,36 @@ pub fn run(
         .iter()
         .any(|check| check.status == CheckStatus::Blocked)
     {
-        "BLOCKED"
+        DoctorStatus::Blocked
     } else {
-        "READY"
+        DoctorStatus::Ready
     };
-    serde_json::to_string_pretty(&DoctorReport {
+    let output = serde_json::to_string_pretty(&DoctorReport {
         schema_version: 1,
         command: "doctor",
-        status,
+        status: status.as_str(),
         hub_root: display_path(&hub_root),
         family_root: family_root.as_deref().map(display_path),
         checks,
     })
-    .map_err(CoordError::json)
+    .map_err(CoordError::json)?;
+    Ok(DoctorExecution {
+        output,
+        exit_code: status.exit_code(),
+    })
+}
+
+/// The report body alone, for callers that already treat a refusal as failure.
+///
+/// # Errors
+///
+/// The same typed `CoordError`s as [`execute`].
+pub fn run(
+    current_dir: &Path,
+    explicit_root: Option<&str>,
+    args: &[String],
+) -> Result<String, CoordError> {
+    execute(current_dir, explicit_root, args).map(DoctorExecution::into_output)
 }
 
 pub(crate) fn discover_hub(

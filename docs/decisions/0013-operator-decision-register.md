@@ -54,18 +54,47 @@ Ratification lines use the family log's heading form, with `operator` as the act
 
 ### OD-B — Jeryu test authority: authentication and a scoped test repository
 
-- Decision: authenticate to the local forge with `gh auth login -h 127.0.0.1:8787` under an operator
-  principal, name one scoped test repository the family may push candidate refs to and read back from, and
-  ratify both. The running forge must not be modified to work around a missing capability.
+- Decision: configure the local forge host entry with `jeryu gh-setup --host http://127.0.0.1:8787
+  --token-file ~/.jeryu/secrets/merge-token`, name one scoped test repository the family may push candidate
+  refs to and read back from, and ratify both. The running forge must not be modified to work around a
+  missing capability.
+- **Do not run `gh auth login`, `gh auth refresh`, or any credential-store token hunting against a Jeryu
+  host.** All three are on Jeryu's own do-not-run list, published by the running instance at
+  `GET http://127.0.0.1:8787/.jeryu/capabilities` under `gh_auth_policy.do_not_run`, and repeated in
+  `jeryu-deploy/docs/errors.md`: "GitHub.com auth and local Jeryu host auth are separate; do not run
+  gh auth login for Jeryu hosts." A login flow against a Jeryu host returns a guided refusal, not a device
+  flow, so the older instruction to use `gh auth login -h 127.0.0.1:8787` could never have succeeded.
+  If `gh` later reports a stale or invalid token for the host, the repair is to rerun the same `gh-setup`
+  command — never a login or refresh flow.
 - Why not code: credentials and repository custody. Every Jeryu integration path today refuses without
   positive online authority (BulletGit fail-closed gateway; effect broker read-back).
 - Unblocks: `release.forge.jeryu` (LIVE_PROOF: protected integration plus UNKNOWN/read-back reconciliation
   receipt); it is also the first input to OD-D and to the live half of
   [`../runbooks/effect-reconciliation.md`](../runbooks/effect-reconciliation.md).
 - Procedure: closure plan V1-S8 step 1 (read-only probes before protected integration, then
-  read-back/reconciliation). No runbook yet; it is written after the first receipt.
+  read-back/reconciliation). No runbook yet; it is written after the first receipt. The one procedural step
+  that is fixed today is producing the token file **without the token ever entering argv, an environment
+  variable, or a log**:
+
+  ```bash
+  install -d -m 700 "$HOME/.jeryu" "$HOME/.jeryu/secrets"
+  ( umask 077
+    IFS= read -r -s -p 'Jeryu host token: ' token </dev/tty
+    printf '%s\n' "$token" > "$HOME/.jeryu/secrets/merge-token" )
+  jeryu gh-setup --host http://127.0.0.1:8787 --token-file "$HOME/.jeryu/secrets/merge-token"
+  ```
+
+  `read -s` does not echo; `printf` is a shell builtin, so no process is ever spawned with the token in its
+  `argv`; nothing is exported, so it never reaches a child's environment; `umask 077` makes the file `0600`
+  before the first byte is written; the subshell drops the variable on exit; and shell history records the
+  command text, never what `read` consumed. Only the *path* is passed to `gh-setup`. Two consequences the
+  operator must accept, both read off `jeryu-cli/src/commands/gh_setup.rs`: `gh-setup` writes the token in
+  cleartext into the GitHub CLI's `hosts.yml`, so that file becomes secret material with the same custody as
+  the token file; and `--print` renders the same entry — token included — to stdout, so it must never be used
+  in a logged or shared session. `--token <value>` is available and must not be used: it puts the secret in
+  `argv`.
 - Ratification line:
-  `## <UTC> — operator — JERYU-TEST-AUTHORITY — RATIFIED: 127.0.0.1:8787 authenticated via gh auth login as <principal>; scoped test repository <owner/slug>; read-back only until the integration receipt is registered; forge unmodified.`
+  `## <UTC> — operator — JERYU-TEST-AUTHORITY — RATIFIED: 127.0.0.1:8787 host entry configured via jeryu gh-setup --token-file as <principal>; scoped test repository <owner/slug>; read-back only until the integration receipt is registered; forge unmodified.`
 - Status: `OPEN`.
 
 ### OD-C — GitHub App test repository

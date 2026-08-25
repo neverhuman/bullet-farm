@@ -9,8 +9,25 @@ container_manifest="$REPO_ROOT/../repos.manifest.toml"
 require_file "repos.manifest.toml"
 require_file "family.lock"
 # Doctor strictly decodes the active lock schema and proves its member set is
-# exactly the signed hub manifest even when readiness remains BLOCKED.
-cargo run --locked --quiet --bin bullet-family -- doctor --json >/dev/null
+# exactly the signed hub manifest even when readiness remains BLOCKED. It now
+# reports that verdict in its exit status too: 0 READY, 3 BLOCKED (the family's
+# "diagnosed, not usable" code, the same one `check` and `coord` use). Both are
+# valid here, so this lane asserts the stronger property: the exit status and
+# the JSON body must agree, and any other exit status fails the lane.
+doctor_report="$(mktemp)"
+doctor_exit=0
+cargo run --locked --quiet --bin bullet-family -- doctor --json >"$doctor_report" || doctor_exit=$?
+doctor_status="$(grep -o '"status": "[A-Z]*"' "$doctor_report" | head -n 1 | cut -d'"' -f4)"
+case "$doctor_exit:$doctor_status" in
+  0:READY|3:BLOCKED) log "doctor $doctor_status (exit $doctor_exit)" ;;
+  *)
+    echo "doctor exit $doctor_exit does not match reported status ${doctor_status:-<none>}" >&2
+    cat "$doctor_report" >&2
+    rm -f "$doctor_report"
+    exit 1
+    ;;
+esac
+rm -f "$doctor_report"
 # The committed release-truth page is a generated zone rendered from the static
 # gate inventory and hub-only inputs; a stale copy fails here, never silently.
 log "release truth drift"

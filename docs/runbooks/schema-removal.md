@@ -15,7 +15,7 @@ disposable.** An unknown or legacy database, lock, manifest, or log fails closed
 | Subject | Site | Accepted | Refusal text / behaviour | Exit / status |
 | --- | --- | --- | --- | --- |
 | `family.lock` (install authority) | `src/family_lock/schema.rs` `load`/`validate` | schema `3` | "family.lock schema N is not installable; remove it or regenerate schema 3 from authenticated signed tags" | exit 4 (`src/coord/mod.rs`) |
-| `family.lock` (diagnostic read) | `src/doctor/discovery.rs` | schema `3` read as current; `2` read as legacy diagnostic | any other version: "family.lock schema N is not supported" | `doctor` exit 0 with `source_metadata` `BLOCKED` for schema 2 |
+| `family.lock` (diagnostic read) | `src/doctor/discovery.rs` | schema `3` read as current; `2` read as legacy diagnostic | any other version: "family.lock schema N is not supported" | `doctor` exit 3 with `source_metadata` `BLOCKED` for schema 2 |
 | Hub `repos.manifest.toml` | `src/checkout.rs` | `schema_version = "1.2.0"`, family/umbrella `bullet-farm` | "hub manifest is not the supported Bullet Farm 1.2.0 schema" | exit 4 |
 | Release manifest | `src/release/schema.rs` | `release_manifest_schema_version = "1"` binding `family_lock_schema_version = "3"` | own version: `UNSUPPORTED_RELEASE_MANIFEST_SCHEMA`; lock version: "release manifest must bind family.lock schema 3" | exit 2 / 4 |
 | Coordination ledger `.bullet-family/coord/events.jsonl` | `src/coord/store.rs` | record `schema_version` == current | "line N uses an unsupported schema" | exit 4 |
@@ -26,7 +26,7 @@ disposable.** An unknown or legacy database, lock, manifest, or log fails closed
 ## 2. Observed on this host (2026-08-25, hub `d762f86`)
 
 ```text
-bullet-family doctor --json      -> status BLOCKED, exit 0
+bullet-family doctor --json      -> status BLOCKED, exit 3
    source_metadata: "family.lock schema 2 is diagnostic-only and lacks the complete install authority"
    repair: "restore authenticated Jeryu sources, publish signed member tags, and generate schema 3 with
             exact trees, lockfiles, and artifact checksums"
