@@ -54,6 +54,7 @@ pub(super) struct DoctorReport {
 #[derive(Debug)]
 pub(super) struct DoctorFamilyLock {
     pub(super) schema_version: String,
+    pub(super) tag: String,
     pub(super) installable_schema: bool,
     pub(super) current: Option<FamilyLock>,
     pub(super) member: Vec<DoctorLockedMember>,

@@ -116,6 +116,7 @@ fn read_current(bytes: &[u8]) -> Result<DoctorFamilyLock, CoordError> {
         .collect();
     Ok(DoctorFamilyLock {
         schema_version: lock.schema_version.clone(),
+        tag: lock.tag.clone(),
         installable_schema: true,
         current: Some(lock),
         member: members,
@@ -169,6 +170,7 @@ fn read_legacy(text: &str) -> Result<DoctorFamilyLock, CoordError> {
     }
     Ok(DoctorFamilyLock {
         schema_version: lock.schema_version,
+        tag: lock.tag,
         installable_schema: false,
         current: None,
         member: members,

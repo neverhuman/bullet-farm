@@ -38,6 +38,9 @@ model-check:
 security:
     bash scripts/ci-local.sh security
 
+release-truth:
+    bash scripts/release-truth.sh write
+
 audit:
     bash scripts/ci-local.sh audit
 

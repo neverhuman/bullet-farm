@@ -417,7 +417,7 @@ fn capture_subject(name: &str, repository: &Path) -> Result<RepositorySubject, C
     .map_err(model_error)
 }
 
-fn git(repository: &Path, arguments: &[&str]) -> Result<String, CoordError> {
+pub(super) fn git(repository: &Path, arguments: &[&str]) -> Result<String, CoordError> {
     let bytes = git_bytes(repository, arguments)?;
     let text = String::from_utf8(bytes).map_err(|_| {
         CoordError::new("CHECK_GIT_FAILED", "Git emitted non-UTF-8 identity output")
@@ -425,7 +425,7 @@ fn git(repository: &Path, arguments: &[&str]) -> Result<String, CoordError> {
     Ok(text.trim().to_owned())
 }
 
-fn git_bytes(repository: &Path, arguments: &[&str]) -> Result<Vec<u8>, CoordError> {
+pub(super) fn git_bytes(repository: &Path, arguments: &[&str]) -> Result<Vec<u8>, CoordError> {
     let output = run_bounded(
         Command::new(GIT_BIN)
             .arg("-C")

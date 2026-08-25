@@ -49,6 +49,10 @@
       "command": "just audit",
       "purpose": "verify the public release contract remains evidence-backed and fail-closed"
     },
+    "docs/assurance/release-truth.generated.md": {
+      "command": "bash scripts/release-truth.sh check",
+      "purpose": "reject a committed release-truth page that drifted from the gate inventory and hub inputs"
+    },
     "contracts/": {
       "command": "just contract-check",
       "purpose": "reject canonical schema-bundle and generated binding drift"

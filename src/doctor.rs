@@ -68,6 +68,31 @@ pub(crate) fn discover_hub(
     resolve_hub(current_dir, explicit_root)
 }
 
+/// Read-only summary of the checked-in family lock for in-process projections.
+/// It carries no installation authority; installers use the strict schema-3 path.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct LockSummary {
+    pub(crate) schema_version: String,
+    pub(crate) tag: String,
+    pub(crate) installable: bool,
+    /// `(member name, algorithm-free commit OID)` in lock order.
+    pub(crate) members: Vec<(String, String)>,
+}
+
+pub(crate) fn lock_summary(hub_root: &Path) -> Result<LockSummary, CoordError> {
+    let lock = read_lock(hub_root)?;
+    Ok(LockSummary {
+        schema_version: lock.schema_version,
+        tag: lock.tag,
+        installable: lock.installable_schema,
+        members: lock
+            .member
+            .into_iter()
+            .map(|member| (member.name, member.commit_oid))
+            .collect(),
+    })
+}
+
 fn display_path(path: &Path) -> String {
     path.to_string_lossy().into_owned()
 }

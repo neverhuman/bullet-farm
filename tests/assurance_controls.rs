@@ -108,6 +108,7 @@ fn every_generated_zone_has_source_and_executable_regeneration_route() {
         "fixtures/canonical/canonical-golden.json",
         "fixtures/canonical/authority-golden.json",
         "docs/assurance/invariant-crosswalk.generated.md",
+        "docs/assurance/release-truth.generated.md",
         "formal/traces/",
     ] {
         assert!(
