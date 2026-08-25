@@ -4,6 +4,7 @@ use std::path::Path;
 
 use super::{
     model::{CheckModelError, CheckReport, CheckTier, GateClass, GateResult},
+    profiles::{self, ReleaseProfile},
     release_evidence::{self, Evaluation},
 };
 
@@ -13,6 +14,20 @@ pub(super) fn report_release() -> Result<CheckReport, CheckModelError> {
 }
 
 pub(super) fn report_release_with_evidence(hub: &Path) -> Result<CheckReport, CheckModelError> {
+    CheckReport::new(CheckTier::Release, evaluated_release_gates(hub)?)
+}
+
+pub(super) fn report_release_profile(
+    profile: ReleaseProfile,
+    receipts: &Path,
+) -> Result<CheckReport, CheckModelError> {
+    // Profiled reports admit evidence only from the selected registry. The
+    // legacy fixed MSRV descriptor is deliberately not consulted here.
+    let gates = profiles::select(profile, release_gates()?, receipts)?;
+    CheckReport::for_profile(profile.as_str(), gates)
+}
+
+fn evaluated_release_gates(hub: &Path) -> Result<Vec<GateResult>, CheckModelError> {
     let mut gates = release_gates()?;
     let index = gates
         .iter()
@@ -36,7 +51,7 @@ pub(super) fn report_release_with_evidence(hub: &Path) -> Result<CheckReport, Ch
                 .with_subjects(subjects)?
         }
     };
-    CheckReport::new(CheckTier::Release, gates)
+    Ok(gates)
 }
 
 pub(super) fn required_blockers() -> Result<Vec<GateResult>, CheckModelError> {

@@ -314,6 +314,145 @@ fn release_inventory_is_stable_sorted_and_blocked() {
 }
 
 #[test]
+fn release_profiles_are_named_independent_and_fail_closed() {
+    let registry =
+        std::env::temp_dir().join(format!("bullet-profile-registry-{}", std::process::id()));
+    if registry.exists() {
+        fs::remove_dir_all(&registry).unwrap();
+    }
+    fs::create_dir(&registry).unwrap();
+    let registry = registry.to_str().unwrap();
+
+    let self_hosted = command(&[
+        "check",
+        "release",
+        "--profile",
+        "self-hosted-v1",
+        "--receipts",
+        registry,
+        "--json",
+    ]);
+    assert_eq!(self_hosted.status.code(), Some(3));
+    assert!(self_hosted.stderr.is_empty());
+    let report: serde_json::Value = serde_json::from_slice(&self_hosted.stdout).unwrap();
+    assert_eq!(report["schema_version"], 3);
+    assert_eq!(report["profile"], "self-hosted-v1");
+    assert_eq!(report["status"], "BLOCKED");
+    let ids = report["gates"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|gate| gate["id"].as_str().unwrap())
+        .collect::<Vec<_>>();
+    for excluded in [
+        "release.forge.github-app",
+        "release.provider.codex",
+        "release.provider.cursor",
+        "release.provider.antigravity",
+        "release.package-matrix",
+    ] {
+        assert!(!ids.contains(&excluded));
+    }
+    for required in [
+        "release.forge.jeryu",
+        "release.provider.claude",
+        "release.package-linux-x86_64",
+        "release.systemd-v1",
+        "release.operations-v1",
+        "release.evolution-v1",
+    ] {
+        assert!(ids.contains(&required));
+    }
+
+    for (profile, gate) in [
+        ("provider-codex", "release.provider.codex"),
+        ("provider-cursor", "release.provider.cursor"),
+        ("provider-antigravity", "release.provider.antigravity"),
+        ("github-adapter-v1", "release.forge.github-app"),
+    ] {
+        let output = command(&[
+            "check",
+            "release",
+            "--profile",
+            profile,
+            "--receipts",
+            registry,
+            "--json",
+        ]);
+        assert_eq!(output.status.code(), Some(3), "profile={profile}");
+        let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(report["profile"], profile);
+        let gates = report["gates"].as_array().unwrap();
+        assert_eq!(gates.len(), 2);
+        assert!(gates.iter().any(|item| item["id"] == gate));
+        assert!(
+            gates
+                .iter()
+                .any(|item| item["id"] == "release.receipt-contracts")
+        );
+    }
+
+    for profile in [
+        "platform-linux-aarch64",
+        "platform-macos-x86_64",
+        "platform-macos-aarch64",
+        "platform-windows-x86_64",
+        "team-v1",
+    ] {
+        let output = command(&[
+            "check",
+            "release",
+            "--profile",
+            profile,
+            "--receipts",
+            registry,
+            "--json",
+        ]);
+        assert_eq!(output.status.code(), Some(3), "profile={profile}");
+        let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(report["profile"], profile);
+        assert_eq!(report["status"], "BLOCKED");
+    }
+    fs::remove_dir_all(registry).unwrap();
+}
+
+#[test]
+fn profiled_release_rejects_ambiguous_or_relative_registry_arguments() {
+    for args in [
+        vec![
+            "check",
+            "release",
+            "--profile",
+            "self-hosted-v1",
+            "--receipts",
+            "relative",
+        ],
+        vec![
+            "check",
+            "release",
+            "--profile",
+            "unknown-profile",
+            "--receipts",
+            "/tmp/receipts",
+        ],
+        vec![
+            "check",
+            "release",
+            "--profile",
+            "self-hosted-v1",
+            "--profile",
+            "provider-codex",
+            "--receipts",
+            "/tmp/receipts",
+        ],
+    ] {
+        let output = command(&args);
+        assert_eq!(output.status.code(), Some(2), "args={args:?}");
+        assert!(output.stdout.is_empty());
+    }
+}
+
+#[test]
 fn arguments_are_strict() {
     for args in [
         vec!["check"],

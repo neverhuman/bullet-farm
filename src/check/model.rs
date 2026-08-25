@@ -7,6 +7,7 @@ use serde::Serialize;
 use super::subject::RepositorySubject;
 
 pub const CHECK_REPORT_SCHEMA_VERSION: u32 = 2;
+pub const PROFILED_CHECK_REPORT_SCHEMA_VERSION: u32 = 3;
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -238,6 +239,8 @@ pub struct CheckReport {
     schema_version: u32,
     command: &'static str,
     tier: CheckTier,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    profile: Option<&'static str>,
     status: GateStatus,
     gates: Vec<GateResult>,
 }
@@ -265,9 +268,26 @@ impl CheckReport {
             schema_version: CHECK_REPORT_SCHEMA_VERSION,
             command: "check",
             tier,
+            profile: None,
             status,
             gates,
         })
+    }
+
+    pub fn for_profile(
+        profile: &'static str,
+        gates: Vec<GateResult>,
+    ) -> Result<Self, CheckModelError> {
+        if profile.is_empty() {
+            return Err(CheckModelError::new(
+                "MISSING_RELEASE_PROFILE",
+                "profiled release report needs a profile name",
+            ));
+        }
+        let mut report = Self::new(CheckTier::Release, gates)?;
+        report.schema_version = PROFILED_CHECK_REPORT_SCHEMA_VERSION;
+        report.profile = Some(profile);
+        Ok(report)
     }
 
     pub const fn exit_code(&self) -> u8 {
@@ -285,6 +305,10 @@ impl CheckReport {
         self.tier
     }
 
+    pub const fn profile(&self) -> Option<&'static str> {
+        self.profile
+    }
+
     pub const fn status(&self) -> GateStatus {
         self.status
     }
@@ -299,7 +323,11 @@ impl CheckReport {
     }
 
     pub fn human(&self) -> String {
-        let mut output = format!("check {}: {}", self.tier.as_str(), self.status.as_str());
+        let mut output = format!("check {}", self.tier.as_str());
+        if let Some(profile) = self.profile {
+            output.push_str(&format!(" profile {profile}"));
+        }
+        output.push_str(&format!(": {}", self.status.as_str()));
         for gate in &self.gates {
             output.push_str(&format!(
                 "\n- [{}] {} {}: {}",

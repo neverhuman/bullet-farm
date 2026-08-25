@@ -6,7 +6,7 @@ use crate::coord::{
     discover_family_root, unix_millis,
 };
 
-const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release <verify|extract|receipt-verify> [options]|checkout verify|hub check|deps check|lock <generate|verify> --tag VERSION|fuse --source <local|lock>|check <fast|required|release> [--json]|check release --report [--portable]|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]>";
+const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release <verify|extract|receipt-verify> [options]|checkout verify|hub check|deps check|lock <generate|verify> --tag VERSION|fuse --source <local|lock>|check <fast|required|release> [options]|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|status> [options]>";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CliOutcome {

@@ -321,11 +321,11 @@ Product gaps with no `release.*` id. Each row says which gate it blocks through;
    - Why it matters: Any evolutionary product claim would today rest on prose, and flipping the policy bit before G2 would create authority without a transaction to govern it.
    - Acceptance: After G2, implement recipes, archive, and promotion behind the evolutionary-control contract and register their exact receipts; the policy bit changes last, by operator ratification.
    - Evidence class: COMPONENT_PROOF
-   - Current evidence: design only — `docs/architecture/evolutionary-control.md` (post-V1 section) and policy `route_policy.evolutionary_authority=false`; no recipe, archive, or promotion code path
-   - Owner: LOCAL (closable offline) — post-V1 engineering after G2; never by flipping the policy bit first
-   - Next command: NONE — no typed command exists yet; do not start a campaign; `docs/phase-9-10.md` is post-V1
-   - Release-blocking: no for V1 — post-V1 by the frozen contract; it blocks only an evolutionary product claim, not `release.transaction-demo`
-3. **Seven of fifteen Portal spec surfaces (Cognitive Router, Fusion Lab, Context Lineage, Quota/Capacity, Struggle, Behavior, Workspace Hygiene) have no durable ledger subject and render explicit UNKNOWN, and the Portal is not packaged or embedded.** — G13 Portal product surfaces
+   - Current evidence: design only — `docs/architecture/evolutionary-control.md` and policy `route_policy.evolutionary_authority=false`; no recipe, archive, study, canary, or promotion code path
+   - Owner: LOCAL (closable offline) — Wave 9 engineering after G2; never by flipping the policy bit first
+   - Next command: NONE — no typed command exists yet; do not start a campaign before G2; the typed durable study and canary surfaces do not exist
+   - Release-blocking: yes for `self-hosted-v1` — through profile gate `release.evolution-v1`; it does not alter the legacy `release.transaction-demo` gate
+3. **Six of fifteen Portal spec surfaces (Cognitive Router, Fusion Lab, Quota/Capacity, Struggle, Behavior, Workspace Hygiene) have no durable ledger subject and render explicit UNKNOWN, and the Portal is not packaged or embedded.** — G13 Portal product surfaces
    - Why it matters: A projection without a ledger subject cannot be truthful, and a Portal served from a Vite preview is not the released product surface.
    - Acceptance: After G2/G3, add the missing ledger subjects, project all fifteen surfaces with watermark-bound truth, and embed the built Portal in the Rust distribution.
    - Evidence class: TRANSACTION_PROOF
@@ -333,7 +333,7 @@ Product gaps with no `release.*` id. Each row says which gate it blocks through;
    - Owner: LOCAL (closable offline) — Portal + farmd owners after G2/G3 (V1-S5)
    - Next command: NONE — no typed command exists yet; Portal `npm test` lanes are component evidence; no packaged Portal command exists
    - Release-blocking: yes — through G2 (truthful projection plane of `release.transaction-demo`) and G9 (embedded Portal in `release.package-matrix`)
-4. **farmd's public surface is the authenticated command/snapshot/SSE subset plus five read-only projections, not the designed control plane; no signed dispatch settles a public command beyond PENDING, UNKNOWN, or FAILED.** — G14 farmd production API
+4. **farmd's public surface is the authenticated command/snapshot/SSE subset plus six read-only projections (including revision-one Context Lineage), not the designed control plane; no signed dispatch settles a public command beyond PENDING, UNKNOWN, or FAILED.** — G14 farmd production API
    - Why it matters: Until signed dispatch and the missing ledger subjects exist, every public command can only settle PENDING to UNKNOWN or FAILED, so a transaction cannot finish through the API.
    - Acceptance: After signed internal lease transport and the missing ledger subjects, serve the control-plane routes with authenticated 202 commands that reconcile past PENDING to their applied and independently checked states and read back exactly.
    - Evidence class: TRANSACTION_PROOF

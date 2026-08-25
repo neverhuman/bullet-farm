@@ -152,8 +152,8 @@ const OWNER_LABELS: [&str; 3] = ["LOCAL (", "LOCAL-then-EXTERNAL (", "EXTERNAL (
 
 fn assert_fields_are_closed_vocabulary(page: &str) {
     assert_eq!(page.matches("   - Product gap: G").count(), 26);
-    assert_eq!(page.matches("   - Release-blocking: yes").count(), 26 + 4);
-    assert_eq!(page.matches("   - Release-blocking: no for V1").count(), 1);
+    assert_eq!(page.matches("   - Release-blocking: yes").count(), 26 + 5);
+    assert_eq!(page.matches("   - Release-blocking: no for V1").count(), 0);
     let mut owners = 0;
     for line in page.lines().filter(|line| line.starts_with("   - Owner: ")) {
         let owner = line.trim_start_matches("   - Owner: ");

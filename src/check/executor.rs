@@ -14,6 +14,7 @@ use super::{
     catalog::{self, CommandGate, SubjectScope},
     model::{CheckReport, CheckTier, GateClass, GateResult},
     prerequisites,
+    profiles::ReleaseProfile,
     subject::RepositorySubject,
 };
 use crate::{
@@ -126,6 +127,13 @@ pub(super) fn report(hub: &Path, tier: CheckTier) -> Result<CheckReport, CoordEr
         gates.extend(prerequisites::required_blockers().map_err(model_error)?);
     }
     CheckReport::new(tier, gates).map_err(model_error)
+}
+
+pub(super) fn report_profile(
+    profile: ReleaseProfile,
+    receipts: &Path,
+) -> Result<CheckReport, CoordError> {
+    prerequisites::report_release_profile(profile, receipts).map_err(model_error)
 }
 
 fn execute(

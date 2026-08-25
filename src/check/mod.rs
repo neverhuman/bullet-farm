@@ -3,6 +3,7 @@
 mod catalog;
 mod executor;
 mod prerequisites;
+mod profiles;
 mod release_evidence;
 mod subject;
 mod truth;
@@ -11,9 +12,9 @@ pub mod model;
 
 use crate::coord::CoordError;
 use model::{CheckReport, CheckTier};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-const USAGE: &str = "usage: bullet-family [--root PATH] check <fast|required|release> [--json] | check release --report [--portable]";
+const USAGE: &str = "usage: bullet-family [--root PATH] check <fast|required> [--json] | check release [--json] | check release --report [--portable] | check release --profile PROFILE --receipts ABSOLUTE_PATH [--json]";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum OutputMode {
@@ -53,16 +54,32 @@ impl CheckExecution {
 }
 
 pub fn run(hub: &Path, args: &[String]) -> Result<CheckExecution, CoordError> {
-    let (tier, mode) = parse(args)?;
-    let report = executor::report(hub, tier)?;
-    let page = match mode {
+    let parsed = parse(args)?;
+    let report = match (parsed.profile, parsed.receipts.as_deref()) {
+        (Some(profile), Some(receipts)) => executor::report_profile(profile, receipts)?,
+        (None, None) => executor::report(hub, parsed.tier)?,
+        _ => return Err(CoordError::new("USAGE", USAGE)),
+    };
+    let page = match parsed.mode {
         OutputMode::Report(variant) => Some(truth::render(hub, &report, variant)?),
         OutputMode::Human | OutputMode::Json => None,
     };
-    Ok(CheckExecution { report, mode, page })
+    Ok(CheckExecution {
+        report,
+        mode: parsed.mode,
+        page,
+    })
 }
 
-fn parse(args: &[String]) -> Result<(CheckTier, OutputMode), CoordError> {
+#[derive(Debug)]
+struct Parsed {
+    tier: CheckTier,
+    mode: OutputMode,
+    profile: Option<profiles::ReleaseProfile>,
+    receipts: Option<PathBuf>,
+}
+
+fn parse(args: &[String]) -> Result<Parsed, CoordError> {
     let (tier, rest) = args
         .split_first()
         .ok_or_else(|| CoordError::new("USAGE", USAGE))?;
@@ -83,9 +100,65 @@ fn parse(args: &[String]) -> Result<(CheckTier, OutputMode), CoordError> {
         {
             OutputMode::Report(truth::Variant::Portable)
         }
+        _ if tier == CheckTier::Release => return parse_profile(rest),
         _ => return Err(CoordError::new("USAGE", USAGE)),
     };
-    Ok((tier, mode))
+    Ok(Parsed {
+        tier,
+        mode,
+        profile: None,
+        receipts: None,
+    })
+}
+
+fn parse_profile(args: &[String]) -> Result<Parsed, CoordError> {
+    let mut profile = None;
+    let mut receipts = None;
+    let mut json = false;
+    let mut index = 0;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--profile" if profile.is_none() => {
+                let value = args
+                    .get(index + 1)
+                    .ok_or_else(|| CoordError::new("USAGE", USAGE))?;
+                profile = Some(profiles::ReleaseProfile::parse(value)?);
+                index += 2;
+            }
+            "--receipts" if receipts.is_none() => {
+                let value = args
+                    .get(index + 1)
+                    .ok_or_else(|| CoordError::new("USAGE", USAGE))?;
+                let path = PathBuf::from(value);
+                if !path.is_absolute() {
+                    return Err(CoordError::new(
+                        "INVALID_RECEIPT_REGISTRY",
+                        "--receipts must be an absolute path",
+                    ));
+                }
+                receipts = Some(path);
+                index += 2;
+            }
+            "--json" if !json => {
+                json = true;
+                index += 1;
+            }
+            _ => return Err(CoordError::new("USAGE", USAGE)),
+        }
+    }
+    if profile.is_none() || receipts.is_none() {
+        return Err(CoordError::new("USAGE", USAGE));
+    }
+    Ok(Parsed {
+        tier: CheckTier::Release,
+        mode: if json {
+            OutputMode::Json
+        } else {
+            OutputMode::Human
+        },
+        profile,
+        receipts,
+    })
 }
 
 #[cfg(test)]
@@ -99,13 +172,13 @@ mod tests {
             assert!(parse(&[tier.into(), "--json".into()]).is_ok());
         }
         assert_eq!(
-            parse(&["release".into(), "--report".into()]).unwrap().1,
+            parse(&["release".into(), "--report".into()]).unwrap().mode,
             OutputMode::Report(truth::Variant::Live)
         );
         assert_eq!(
             parse(&["release".into(), "--report".into(), "--portable".into()])
                 .unwrap()
-                .1,
+                .mode,
             OutputMode::Report(truth::Variant::Portable)
         );
         for invalid in [
@@ -119,8 +192,41 @@ mod tests {
             vec!["release".into(), "--portable".into()],
             vec!["release".into(), "--portable".into(), "--report".into()],
             vec!["release".into(), "--json".into(), "--report".into()],
+            vec![
+                "release".into(),
+                "--profile".into(),
+                "self-hosted-v1".into(),
+            ],
+            vec![
+                "release".into(),
+                "--receipts".into(),
+                "/tmp/receipts".into(),
+            ],
         ] {
             assert_eq!(parse(&invalid).unwrap_err().code(), "USAGE");
         }
+        let profiled = parse(&[
+            "release".into(),
+            "--profile".into(),
+            "self-hosted-v1".into(),
+            "--receipts".into(),
+            "/tmp/receipts".into(),
+            "--json".into(),
+        ])
+        .unwrap();
+        assert_eq!(profiled.profile.unwrap().as_str(), "self-hosted-v1");
+        assert_eq!(profiled.mode, OutputMode::Json);
+        assert_eq!(
+            parse(&[
+                "release".into(),
+                "--profile".into(),
+                "self-hosted-v1".into(),
+                "--receipts".into(),
+                "relative".into(),
+            ])
+            .unwrap_err()
+            .code(),
+            "INVALID_RECEIPT_REGISTRY"
+        );
     }
 }
