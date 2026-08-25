@@ -1,4 +1,22 @@
+#[cfg(unix)]
+use std::{
+    fs,
+    os::unix::fs::{PermissionsExt, symlink},
+    path::Path,
+    process::Command,
+};
+
 const DEMO_LAUNCHER: &str = include_str!("../scripts/demo.sh");
+
+#[cfg(unix)]
+fn rejected_data_directory(path: &Path) -> std::process::Output {
+    Command::new("bash")
+        .arg("scripts/demo.sh")
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .env("BULLET_DATA_DIR", path)
+        .output()
+        .expect("launcher must execute")
+}
 
 #[test]
 fn demo_launcher_uses_a_fresh_default_and_preserves_explicit_data() {
@@ -9,6 +27,14 @@ fn demo_launcher_uses_a_fresh_default_and_preserves_explicit_data() {
     assert!(
         DEMO_LAUNCHER.contains("DATA=\"$BULLET_DATA_DIR\""),
         "the explicit demo data directory must be used exactly"
+    );
+    assert!(
+        DEMO_LAUNCHER.contains("realpath -e -- \"$DATA\""),
+        "the explicit directory must reject symlinked ancestors"
+    );
+    assert!(
+        !DEMO_LAUNCHER.contains("chmod") && !DEMO_LAUNCHER.contains("mkdir -p \"$DATA\""),
+        "the launcher must not mutate an unadmitted explicit path"
     );
     assert!(
         DEMO_LAUNCHER.contains("DATA=\"$(mktemp -d /tmp/bullet-txn.XXXXXX)\""),
@@ -22,6 +48,27 @@ fn demo_launcher_uses_a_fresh_default_and_preserves_explicit_data() {
         !DEMO_LAUNCHER.contains("rm -"),
         "the launcher must preserve prior demo runs instead of deleting them"
     );
+
+    #[cfg(unix)]
+    {
+        let root = tempfile::tempdir().unwrap();
+        let target = root.path().join("target");
+        fs::create_dir(&target).unwrap();
+        fs::set_permissions(&target, fs::Permissions::from_mode(0o755)).unwrap();
+        let bad_mode = rejected_data_directory(&target);
+        assert!(!bad_mode.status.success());
+        assert_eq!(fs::metadata(&target).unwrap().permissions().mode() & 0o777, 0o755);
+
+        fs::set_permissions(&target, fs::Permissions::from_mode(0o700)).unwrap();
+        let alias = root.path().join("alias");
+        symlink(&target, &alias).unwrap();
+        let linked = rejected_data_directory(&alias);
+        assert!(!linked.status.success());
+        assert_eq!(fs::metadata(&target).unwrap().permissions().mode() & 0o777, 0o700);
+
+        let relative = rejected_data_directory(Path::new("relative-demo-data"));
+        assert!(!relative.status.success());
+    }
 }
 
 #[test]
@@ -36,10 +83,20 @@ fn demo_launcher_labels_component_evidence_before_running_the_fixture() {
         .find("echo \"transaction_proof: absent\"")
         .expect("demo must print that transaction proof remains absent");
     let kernel_run = DEMO_LAUNCHER
-        .find("cargo run -q -p bullet --bin transaction_demo")
+        .find("cargo run --locked -q -p bullet --bin transaction_demo")
         .expect("demo must run the offline fixture saga");
 
     assert!(evidence_label < kernel_run);
     assert!(release_label < kernel_run);
     assert!(transaction_label < kernel_run);
+
+    for exact_binding in [
+        "export BULLET_GITD_BIN=\"$GIT/target/debug/bullet-gitd\"",
+        "export BULLET_GITD_FIXTURE_BIN=\"$GIT/target/debug/bullet-gitd-fixture\"",
+        "export BULLET_FARMD_BIN=\"$KERNEL/target/debug/bullet-farmd\"",
+        "export BULLET_VERIFIER_BIN=\"$KERNEL/target/debug/bullet-verifier\"",
+    ] {
+        assert!(DEMO_LAUNCHER.contains(exact_binding));
+    }
+    assert!(!DEMO_LAUNCHER.contains("${BULLET_GITD_BIN:-"));
 }

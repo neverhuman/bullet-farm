@@ -8,11 +8,21 @@ GIT="$FAMILY/bullet-git"
 PORTAL="$FAMILY/bullet-portal"
 if [[ -n "${BULLET_DATA_DIR:-}" ]]; then
   DATA="$BULLET_DATA_DIR"
-  mkdir -p "$DATA"
-  chmod 700 "$DATA"
+  if [[ "$DATA" != /* || "$DATA" == "/" || ! -d "$DATA" || -L "$DATA" ]]; then
+    echo "BULLET_DATA_DIR must name an existing absolute real directory" >&2
+    exit 1
+  fi
+  CANONICAL_DATA="$(realpath -e -- "$DATA")"
+  if [[ "$CANONICAL_DATA" != "$DATA" ]]; then
+    echo "BULLET_DATA_DIR must be normalized and contain no symlinked ancestor" >&2
+    exit 1
+  fi
+  if [[ "$(stat -c '%u:%a' -- "$DATA")" != "$(id -u):700" ]]; then
+    echo "BULLET_DATA_DIR must be caller-owned with exact mode 0700" >&2
+    exit 1
+  fi
 else
   DATA="$(mktemp -d /tmp/bullet-txn.XXXXXX)"
-  chmod 700 "$DATA"
 fi
 
 echo "== Bullet Farm demo =="
@@ -31,16 +41,16 @@ if [[ ! -f "$GIT/Cargo.toml" ]]; then
   exit 1
 fi
 
-(cd "$GIT" && cargo build -q -p bullet-gitd --bin bullet-gitd)
-(cd "$GIT" && cargo build -q -p bullet-gitd --features fixture-authority --bin bullet-gitd-fixture)
-(cd "$KERNEL" && cargo build -q -p bullet-farmd -p bullet-verifier -p bullet --bin transaction_demo)
+(cd "$GIT" && cargo build --locked -q -p bullet-gitd --bin bullet-gitd)
+(cd "$GIT" && cargo build --locked -q -p bullet-gitd --features fixture-authority --bin bullet-gitd-fixture)
+(cd "$KERNEL" && cargo build --locked -q -p bullet-farmd -p bullet-verifier -p bullet --bin transaction_demo)
 
-export BULLET_GITD_BIN="${BULLET_GITD_BIN:-$GIT/target/debug/bullet-gitd}"
-export BULLET_GITD_FIXTURE_BIN="${BULLET_GITD_FIXTURE_BIN:-$GIT/target/debug/bullet-gitd-fixture}"
-export BULLET_FARMD_BIN="${BULLET_FARMD_BIN:-$KERNEL/target/debug/bullet-farmd}"
-export BULLET_VERIFIER_BIN="${BULLET_VERIFIER_BIN:-$KERNEL/target/debug/bullet-verifier}"
+export BULLET_GITD_BIN="$GIT/target/debug/bullet-gitd"
+export BULLET_GITD_FIXTURE_BIN="$GIT/target/debug/bullet-gitd-fixture"
+export BULLET_FARMD_BIN="$KERNEL/target/debug/bullet-farmd"
+export BULLET_VERIFIER_BIN="$KERNEL/target/debug/bullet-verifier"
 
-(cd "$KERNEL" && BULLET_DATA_DIR="$DATA" cargo run -q -p bullet --bin transaction_demo)
+(cd "$KERNEL" && BULLET_DATA_DIR="$DATA" cargo run --locked -q -p bullet --bin transaction_demo)
 
 if [[ "${BULLET_DEMO_PORTAL:-0}" == "1" ]]; then
   echo "== portal smoke =="
