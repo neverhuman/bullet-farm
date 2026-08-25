@@ -50,6 +50,7 @@ name = "bullet-family"
 version = "0.1.0"
 dependencies = [
  "blake3",
+ "bullet-wire",
  "fs2",
  "nix",
  "rustix",

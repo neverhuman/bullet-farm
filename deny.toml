@@ -38,6 +38,9 @@ allow = [
   # exception is a reviewed policy decision rather than an accident of which
   # branch cargo-deny happens to evaluate first.
   "Apache-2.0 WITH LLVM-exception",
+  # Load-bearing: subtle 2.6.1, used by the Ed25519 release-wire verifier,
+  # declares BSD-3-Clause only.
+  "BSD-3-Clause",
   # Load-bearing: unicode-ident 1.0.24 is "(MIT OR Apache-2.0) AND Unicode-3.0",
   # so Unicode-3.0 is a required conjunct, not an alternative. Dropping it
   # rejects unicode-ident.
