@@ -120,3 +120,21 @@ Ratification lines use the family log's heading form, with `operator` as the act
   reviewed change that adds the consuming procedure. Removing one means its ratification line exists and the
   entry is marked `RATIFIED <UTC>` with the log reference; entries are not deleted.
 - No agent writes a `— operator —` line. The orchestrator quotes it; the operator writes it.
+
+### OD-F — Release scope: Linux-only preview or amend the five-archive rule
+
+Status: OPEN (added 2026-08-25 by the launch plan). `docs/assurance/v1-closure-plan.md` freezes the V1 release at exactly
+five archives (Linux x86_64/aarch64, macOS x86_64/arm64, Windows x64). Everything agents can build on this host produces
+a Linux x86_64 archive only (`release.package-matrix` and `release.platform-containment` stay BLOCKED without the other
+hosts). Decide one of: (a) ship milestone M4 as an explicitly labelled **Linux preview outside the release gate** (no
+release tag, no "V1" wording; the release-truth page keeps both gates BLOCKED), or (b) amend the five-archive rule by a
+reviewed ADR so a Linux-only release can be a V1 release. Unblocks: how `docs/assurance/launch-plan.md` M4 may be
+described; nothing else. Ratification line: `## <UTC> — operator — OD-F — RATIFIED: (a) Linux preview outside the gate | (b) amend five-archive rule`.
+
+### OD-G — Public names, endpoints, and deployment identity
+
+Status: OPEN (added 2026-08-25). `git.neverhuman.org`, `github.com/neverhuman/*`, Jeryu endpoint/DNS/TLS/backup, and the
+deployment identity are unratified (`docs/workplan.md` WP-08/WP-14/WP-17). No lock, credential, publication, or receipt
+may use them before ratification. Unblocks: public mirror topology, immutable paper/source permalinks, hosted family CI
+provisioning (R-49). Ratification line: `## <UTC> — operator — OD-G — RATIFIED: <names/endpoints>`.
+

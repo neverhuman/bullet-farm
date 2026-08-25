@@ -27,7 +27,7 @@ names the strongest claim that is true at that point; nothing earlier is "shippe
 **The one decision this plan cannot make:** `v1-closure-plan.md` freezes the release at exactly five archives, so a
 Linux-only M4 is *not* a V1 release under the current contract. Either M4 ships as an explicitly labelled
 **Linux preview outside the release gate**, or the five-archive rule is amended by a reviewed decision (ADR). This
-is recorded as **OD-F** in ADR 0013's successor edit.
+is recorded as **OD-F** in ADR 0013 (with **OD-G**, public names and deployment identity).
 
 ## 1. Agent-closable now (no operator input) — the work queue in dependency order
 
@@ -39,7 +39,7 @@ path-exactly with receipts. IDs refer to the inventory.
 | --- | --- | --- |
 | R-26 | Commit the runbooks / ADR 0013 / glossary / spec-mirror group | done (hub `b6ae0ca`) |
 | R-36, R-37 | This plan; paper value/risk framing (R5) | this file; R5 lane in flight |
-| R-01 | `release-truth` rows still say "seven unprojected / five projections"; the truth is six/six since Context Lineage landed | queued (rows + `just release-truth` in one commit) |
+| R-01 | `release-truth` rows still say "seven unprojected / five projections"; the truth is six/six since Context Lineage landed | diff request posted to the holder (codex-root, HUB-RELEASE-PROFILES-R1-UNGATED) — rows, golden and page must change in one commit |
 | R-27 | All four checkouts dirty with other lanes' work | continuous: commit or hand off; no audit or paper snapshot is admissible until clean |
 | R-11 | `bullet-git` fails its own audit floor (54 < 56) | lane `claude-git-audit` in flight |
 
