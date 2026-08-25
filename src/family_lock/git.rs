@@ -108,20 +108,10 @@ pub(super) fn verify_tag(
             "allowed-signers must be a regular non-symlink file no larger than 64 KiB",
         ));
     }
-    let allowed = allowed_signers.to_str().ok_or_else(|| {
-        CoordError::new("INVALID_SIGNER_PATH", "allowed-signers path is not UTF-8")
-    })?;
     let output = git_output_with_helper(
         repo,
-        &[
-            "-c",
-            "gpg.format=ssh",
-            "-c",
-            &format!("gpg.ssh.allowedSignersFile={allowed}"),
-            "verify-tag",
-            "--raw",
-            tag,
-        ],
+        &["-c", "gpg.format=ssh", "verify-tag", "--raw", tag],
+        allowed_signers,
     )?;
     let status = String::from_utf8(output.stderr).map_err(|_| {
         CoordError::new(
@@ -401,19 +391,23 @@ fn git_bytes(repo: &Path, args: &[&str]) -> Result<Vec<u8>, CoordError> {
 }
 
 fn git_output(repo: &Path, args: &[&str]) -> Result<std::process::Output, CoordError> {
-    checked_output(repo, args, false)
+    checked_output(repo, args, None)
 }
 
-fn git_output_with_helper(repo: &Path, args: &[&str]) -> Result<std::process::Output, CoordError> {
-    checked_output(repo, args, true)
+fn git_output_with_helper(
+    repo: &Path,
+    args: &[&str],
+    allowed_signers: &Path,
+) -> Result<std::process::Output, CoordError> {
+    checked_output(repo, args, Some(allowed_signers))
 }
 
 fn checked_output(
     repo: &Path,
     args: &[&str],
-    needs_signature_helper: bool,
+    allowed_signers: Option<&Path>,
 ) -> Result<std::process::Output, CoordError> {
-    let output = command::run(repo, args, needs_signature_helper, GIT_LIMITS)?;
+    let output = command::run(repo, args, allowed_signers, GIT_LIMITS)?;
     if !output.status.success() {
         return Err(CoordError::new(
             "GIT_VERIFICATION_FAILED",

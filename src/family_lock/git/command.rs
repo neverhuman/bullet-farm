@@ -12,7 +12,7 @@ use std::{
     sync::OnceLock,
 };
 
-use self::subject::{PinnedExecutable, PinnedRepository};
+use self::subject::{PinnedAllowedSigners, PinnedExecutable, PinnedRepository};
 use crate::{
     coord::CoordError,
     process::{Limits, run_bounded},
@@ -27,15 +27,17 @@ static SSH_KEYGEN: OnceLock<PinnedExecutable> = OnceLock::new();
 pub(super) fn run(
     repo: &Path,
     args: &[&str],
-    needs_signature_helper: bool,
+    allowed_signers: Option<&Path>,
     limits: Limits,
 ) -> Result<Output, CoordError> {
-    let helper = if needs_signature_helper {
-        Some(admitted_ssh_keygen()?)
-    } else {
-        None
+    let signature = match allowed_signers {
+        Some(allowed_signers) => Some(SignatureInputs {
+            helper: admitted_ssh_keygen()?,
+            allowed_signers,
+        }),
+        None => None,
     };
-    admitted_git()?.run(repo, args, helper, limits)
+    admitted_git()?.run(repo, args, signature, limits)
 }
 
 pub(super) fn run_labeled_after_verify(
@@ -51,6 +53,12 @@ pub(super) fn run_labeled_after_verify(
 #[derive(Debug)]
 struct GitProgram {
     executable: PinnedExecutable,
+}
+
+#[derive(Clone, Copy)]
+struct SignatureInputs<'a> {
+    helper: &'a PinnedExecutable,
+    allowed_signers: &'a Path,
 }
 
 impl GitProgram {
@@ -93,24 +101,24 @@ impl GitProgram {
         &self,
         repo: &Path,
         args: &[&str],
-        helper: Option<&PinnedExecutable>,
+        signature: Option<SignatureInputs<'_>>,
         limits: Limits,
     ) -> Result<Output, CoordError> {
-        self.run_after_verify(repo, args, helper, limits, || Ok(()))
+        self.run_after_verify(repo, args, signature, limits, || Ok(()))
     }
 
     fn run_after_verify(
         &self,
         repo: &Path,
         args: &[&str],
-        helper: Option<&PinnedExecutable>,
+        signature: Option<SignatureInputs<'_>>,
         limits: Limits,
         after_verify: impl FnOnce() -> Result<(), CoordError>,
     ) -> Result<Output, CoordError> {
         self.run_labeled_after_verify(
             repo,
             args,
-            helper,
+            signature,
             limits,
             "Git family-lock verification",
             after_verify,
@@ -121,16 +129,23 @@ impl GitProgram {
         &self,
         repo: &Path,
         args: &[&str],
-        helper: Option<&PinnedExecutable>,
+        signature: Option<SignatureInputs<'_>>,
         limits: Limits,
         label: &str,
         after_verify: impl FnOnce() -> Result<(), CoordError>,
     ) -> Result<Output, CoordError> {
         let repository = PinnedRepository::admit(repo)?;
+        let allowed_signers = signature
+            .map(|signature| signature.allowed_signers)
+            .map(PinnedAllowedSigners::admit)
+            .transpose()?;
         self.executable.verify()?;
         repository.verify()?;
-        if let Some(helper) = helper {
-            helper.verify()?;
+        if let Some(signature) = signature {
+            signature.helper.verify()?;
+        }
+        if let Some(allowed_signers) = &allowed_signers {
+            allowed_signers.verify()?;
         }
         after_verify()?;
 
@@ -140,10 +155,16 @@ impl GitProgram {
             .current_dir(&work_tree_path)
             .arg(format!("--git-dir={}", repository.git_dir_path().display()))
             .arg(format!("--work-tree={}", work_tree_path.display()));
-        if let Some(helper) = helper {
+        if let Some(signature) = signature {
             command.arg("-c").arg(format!(
                 "gpg.ssh.program={}",
-                helper.execution_path().display()
+                signature.helper.execution_path().display()
+            ));
+        }
+        if let Some(allowed_signers) = &allowed_signers {
+            command.arg("-c").arg(format!(
+                "gpg.ssh.allowedSignersFile={}",
+                allowed_signers.subject_path().display()
             ));
         }
         let output = run_bounded(
@@ -163,8 +184,11 @@ impl GitProgram {
 
         repository.verify()?;
         self.executable.verify()?;
-        if let Some(helper) = helper {
-            helper.verify()?;
+        if let Some(signature) = signature {
+            signature.helper.verify()?;
+        }
+        if let Some(allowed_signers) = &allowed_signers {
+            allowed_signers.verify()?;
         }
         output
     }

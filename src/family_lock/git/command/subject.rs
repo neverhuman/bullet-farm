@@ -1,5 +1,7 @@
 //! Immutable executable and ordinary-repository subjects for Git verification.
 
+mod allowed_signers;
+
 use std::{
     fs::{self, File},
     path::{Path, PathBuf},
@@ -21,6 +23,8 @@ use rustix::{
 };
 
 use crate::coord::CoordError;
+
+pub(super) use self::allowed_signers::PinnedAllowedSigners;
 
 const MAX_EXECUTABLE_BYTES: u64 = 512 * 1024 * 1024;
 const MAX_LOCAL_CONFIG_BYTES: u64 = 64 * 1024;
@@ -192,6 +196,28 @@ impl PinnedRepository {
 
 #[cfg(target_os = "linux")]
 fn snapshot_executable(label: &'static str, path: &Path) -> Result<(File, [u8; 32]), CoordError> {
+    let (subject, fingerprint, _) = snapshot_subject(label, path, MAX_EXECUTABLE_BYTES, true)?;
+    Ok((subject, fingerprint))
+}
+
+#[cfg(target_os = "linux")]
+fn snapshot_subject(
+    label: &'static str,
+    path: &Path,
+    maximum: u64,
+    executable: bool,
+) -> Result<(File, [u8; 32], Identity), CoordError> {
+    let source = open_regular(path, label, maximum, executable)?;
+    snapshot_open_subject(label, source, maximum, executable)
+}
+
+#[cfg(target_os = "linux")]
+fn snapshot_open_subject(
+    label: &'static str,
+    mut source: File,
+    maximum: u64,
+    executable: bool,
+) -> Result<(File, [u8; 32], Identity), CoordError> {
     use nix::{
         fcntl::{FcntlArg, FdFlag, SealFlag, fcntl},
         sys::{
@@ -200,24 +226,23 @@ fn snapshot_executable(label: &'static str, path: &Path) -> Result<(File, [u8; 3
         },
     };
 
-    let mut source = open_regular(path, label, MAX_EXECUTABLE_BYTES, true)?;
+    let source_identity = identity(&source)?;
     let descriptor = memfd_create(
         c"bullet-family-lock-tool",
         MemFdCreateFlag::MFD_ALLOW_SEALING,
     )
     .map_err(|error| tool_error(label, error.to_string()))?;
     let mut writable = File::from(descriptor);
-    let fingerprint = copy_fingerprint(
-        label,
-        &mut source,
-        Some(&mut writable),
-        MAX_EXECUTABLE_BYTES,
-    )?;
+    let fingerprint = copy_fingerprint(label, &mut source, Some(&mut writable), maximum)?;
     writable
         .flush()
         .map_err(|error| tool_error(label, error.to_string()))?;
-    fchmod(writable.as_raw_fd(), NixMode::S_IRUSR | NixMode::S_IXUSR)
-        .map_err(|error| tool_error(label, error.to_string()))?;
+    let mode = if executable {
+        NixMode::S_IRUSR | NixMode::S_IXUSR
+    } else {
+        NixMode::S_IRUSR
+    };
+    fchmod(writable.as_raw_fd(), mode).map_err(|error| tool_error(label, error.to_string()))?;
     fcntl(
         writable.as_raw_fd(),
         FcntlArg::F_ADD_SEALS(
@@ -232,11 +257,21 @@ fn snapshot_executable(label: &'static str, path: &Path) -> Result<(File, [u8; 3
         .map_err(|error| tool_error(label, error.to_string()))?;
     fcntl(subject.as_raw_fd(), FcntlArg::F_SETFD(FdFlag::empty()))
         .map_err(|error| tool_error(label, error.to_string()))?;
-    Ok((subject, fingerprint))
+    Ok((subject, fingerprint, source_identity))
 }
 
 #[cfg(not(target_os = "linux"))]
 fn snapshot_executable(_label: &'static str, _path: &Path) -> Result<(File, [u8; 32]), CoordError> {
+    Err(unsupported())
+}
+
+#[cfg(not(target_os = "linux"))]
+fn snapshot_subject(
+    _label: &'static str,
+    _path: &Path,
+    _maximum: u64,
+    _executable: bool,
+) -> Result<(File, [u8; 32], Identity), CoordError> {
     Err(unsupported())
 }
 

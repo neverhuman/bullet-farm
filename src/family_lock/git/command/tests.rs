@@ -7,7 +7,10 @@ use std::{
     time::Duration,
 };
 
-use super::{GitProgram, subject::PinnedExecutable};
+use super::{
+    GitProgram, SignatureInputs,
+    subject::{PinnedAllowedSigners, PinnedExecutable},
+};
 use crate::process::Limits;
 
 const TEST_LIMITS: Limits = Limits {
@@ -138,28 +141,28 @@ fn pinned_signature_helper_overrides_changed_local_config_and_path() {
     let helper =
         PinnedExecutable::admit("fixture SSH verifier", &helper).expect("admit fixture helper");
     let allowed = fixture.join("allowed_signers");
-    let allowed_config = format!("gpg.ssh.allowedSignersFile={}", allowed.display());
-    let arguments = [
-        "-c",
-        "gpg.format=ssh",
-        "-c",
-        allowed_config.as_str(),
-        "verify-tag",
-        "--raw",
-        "v1.0.0",
-    ];
+    let arguments = ["-c", "gpg.format=ssh", "verify-tag", "--raw", "v1.0.0"];
 
     let error = program
-        .run_after_verify(&repository, &arguments, Some(&helper), TEST_LIMITS, || {
-            let config = repository.join(".git/config");
-            let mut config = OpenOptions::new()
-                .append(true)
-                .open(config)
-                .expect("open local config");
-            writeln!(config, "[gpg \"ssh\"]\n\tprogram = {}", attacker.display())
-                .expect("publish hostile helper config");
-            Ok(())
-        })
+        .run_after_verify(
+            &repository,
+            &arguments,
+            Some(SignatureInputs {
+                helper: &helper,
+                allowed_signers: &allowed,
+            }),
+            TEST_LIMITS,
+            || {
+                let config = repository.join(".git/config");
+                let mut config = OpenOptions::new()
+                    .append(true)
+                    .open(config)
+                    .expect("open local config");
+                writeln!(config, "[gpg \"ssh\"]\n\tprogram = {}", attacker.display())
+                    .expect("publish hostile helper config");
+                Ok(())
+            },
+        )
         .expect_err("local config mutation must fail after verification");
     assert_eq!(error.code(), "GIT_REPOSITORY_CHANGED");
     assert_eq!(
@@ -187,31 +190,31 @@ fn replaced_signature_helper_path_never_executes_replacement_bytes() {
     let helper = PinnedExecutable::admit("fixture SSH verifier", &helper_path)
         .expect("admit fixture helper");
     let allowed = fixture.join("allowed_signers");
-    let allowed_config = format!("gpg.ssh.allowedSignersFile={}", allowed.display());
-    let arguments = [
-        "-c",
-        "gpg.format=ssh",
-        "-c",
-        allowed_config.as_str(),
-        "verify-tag",
-        "--raw",
-        "v1.0.0",
-    ];
+    let arguments = ["-c", "gpg.format=ssh", "verify-tag", "--raw", "v1.0.0"];
 
     let error = program
-        .run_after_verify(&repository, &arguments, Some(&helper), TEST_LIMITS, || {
-            fs::rename(&helper_path, fixture.join("ssh-keygen-admitted"))
-                .expect("move admitted helper source");
-            executable(
-                &fixture,
-                "ssh-keygen-real",
-                &format!(
-                    "#!/bin/sh\nprintf attacker > '{}'\nexit 99\n",
-                    fixture.join("helper-attacker").display()
-                ),
-            );
-            Ok(())
-        })
+        .run_after_verify(
+            &repository,
+            &arguments,
+            Some(SignatureInputs {
+                helper: &helper,
+                allowed_signers: &allowed,
+            }),
+            TEST_LIMITS,
+            || {
+                fs::rename(&helper_path, fixture.join("ssh-keygen-admitted"))
+                    .expect("move admitted helper source");
+                executable(
+                    &fixture,
+                    "ssh-keygen-real",
+                    &format!(
+                        "#!/bin/sh\nprintf attacker > '{}'\nexit 99\n",
+                        fixture.join("helper-attacker").display()
+                    ),
+                );
+                Ok(())
+            },
+        )
         .expect_err("helper source replacement must be reported after verification");
     assert_eq!(error.code(), "GIT_TOOL_CHANGED");
     assert_eq!(
@@ -220,6 +223,127 @@ fn replaced_signature_helper_path_never_executes_replacement_bytes() {
     );
     assert!(!fixture.join("helper-attacker").exists());
     fs::remove_dir_all(fixture).expect("remove helper fixture");
+}
+
+#[test]
+fn replaced_allowed_signers_path_cannot_change_signature_subject() {
+    let fixture = fixture("allowed-signers-path");
+    let repository = signed_repository(&fixture);
+    let git = copied_executable(Path::new("/usr/bin/git"), &fixture, "git-real");
+    let program = GitProgram::admit(&git).expect("admit real Git copy");
+    let helper_path = recording_helper(&fixture);
+    let helper = PinnedExecutable::admit("fixture SSH verifier", &helper_path)
+        .expect("admit fixture helper");
+    let allowed = fixture.join("allowed_signers");
+    let admitted = fixture.join("allowed_signers-admitted");
+    let arguments = ["-c", "gpg.format=ssh", "verify-tag", "--raw", "v1.0.0"];
+
+    let error = program
+        .run_after_verify(
+            &repository,
+            &arguments,
+            Some(SignatureInputs {
+                helper: &helper,
+                allowed_signers: &allowed,
+            }),
+            TEST_LIMITS,
+            || {
+                fs::rename(&allowed, &admitted).expect("move admitted allowed-signers");
+                fs::write(&allowed, "attacker ssh-ed25519 invalid\n")
+                    .expect("publish replacement allowed-signers");
+                Ok(())
+            },
+        )
+        .expect_err("allowed-signers replacement must be reported after verification");
+    assert_eq!(error.code(), "ALLOWED_SIGNERS_CHANGED");
+    assert_sealed_signer_subject(&fixture, &allowed);
+    fs::remove_dir_all(fixture).expect("remove signer-path fixture");
+}
+
+#[test]
+fn mutated_allowed_signers_inode_cannot_change_signature_subject() {
+    let fixture = fixture("allowed-signers-in-place");
+    let repository = signed_repository(&fixture);
+    let git = copied_executable(Path::new("/usr/bin/git"), &fixture, "git-real");
+    let program = GitProgram::admit(&git).expect("admit real Git copy");
+    let helper_path = recording_helper(&fixture);
+    let helper = PinnedExecutable::admit("fixture SSH verifier", &helper_path)
+        .expect("admit fixture helper");
+    let allowed = fixture.join("allowed_signers");
+    let arguments = ["-c", "gpg.format=ssh", "verify-tag", "--raw", "v1.0.0"];
+
+    let error = program
+        .run_after_verify(
+            &repository,
+            &arguments,
+            Some(SignatureInputs {
+                helper: &helper,
+                allowed_signers: &allowed,
+            }),
+            TEST_LIMITS,
+            || {
+                fs::write(&allowed, "attacker ssh-ed25519 invalid\n")
+                    .expect("mutate admitted allowed-signers inode");
+                Ok(())
+            },
+        )
+        .expect_err("allowed-signers mutation must be reported after verification");
+    assert_eq!(error.code(), "ALLOWED_SIGNERS_CHANGED");
+    assert_sealed_signer_subject(&fixture, &allowed);
+    fs::remove_dir_all(fixture).expect("remove signer-mutation fixture");
+}
+
+#[test]
+fn allowed_signers_symlink_is_never_an_admitted_subject() {
+    use std::os::unix::fs::symlink;
+
+    let fixture = fixture("allowed-signers-symlink");
+    let target = fixture.join("allowed_signers-target");
+    let link = fixture.join("allowed_signers-link");
+    fs::write(&target, "release@bullet.farm ssh-ed25519 fixture\n")
+        .expect("allowed-signers target");
+    symlink(&target, &link).expect("allowed-signers symlink");
+
+    let error = PinnedAllowedSigners::admit(&link)
+        .expect_err("allowed-signers symlink must fail before signature verification");
+    assert_eq!(error.code(), "INVALID_ALLOWED_SIGNERS");
+    fs::remove_dir_all(fixture).expect("remove signer-symlink fixture");
+}
+
+fn recording_helper(fixture: &Path) -> PathBuf {
+    executable(
+        fixture,
+        "ssh-keygen-recording",
+        &format!(
+            concat!(
+                "#!/bin/sh\n",
+                "printf '%s\\n' \"$@\" >> '{}'\n",
+                "/usr/bin/ssh-keygen \"$@\"\n",
+                "status=$?\n",
+                "printf '%s\\n' \"$status\" > '{}'\n",
+                "exit \"$status\"\n",
+            ),
+            fixture.join("helper-arguments").display(),
+            fixture.join("helper-status").display(),
+        ),
+    )
+}
+
+fn assert_sealed_signer_subject(fixture: &Path, original_path: &Path) {
+    assert_eq!(
+        fs::read_to_string(fixture.join("helper-status"))
+            .expect("recorded ssh-keygen status")
+            .trim(),
+        "0",
+        "ssh-keygen did not accept the sealed original signer subject"
+    );
+    let arguments =
+        fs::read_to_string(fixture.join("helper-arguments")).expect("recorded ssh-keygen args");
+    assert!(arguments.contains("/proc/self/fd/"), "{arguments}");
+    assert!(
+        !arguments.contains(&original_path.to_string_lossy().into_owned()),
+        "ssh-keygen reopened the allowed-signers pathname: {arguments}"
+    );
 }
 
 fn signed_repository(fixture: &Path) -> PathBuf {
