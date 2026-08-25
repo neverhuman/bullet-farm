@@ -165,7 +165,7 @@ fn parse_profile(args: &[String]) -> Result<Parsed, CoordError> {
             _ => return Err(CoordError::new("USAGE", USAGE)),
         }
     }
-    if profile.is_none() || receipts.is_none() || (json && report) || (portable && !report) {
+    if receipts.is_none() || (json && report) || (portable && !report) {
         return Err(CoordError::new("USAGE", USAGE));
     }
     Ok(Parsed {
@@ -218,14 +218,18 @@ mod tests {
             vec!["release".into(), "--portable".into(), "--report".into()],
             vec!["release".into(), "--json".into(), "--report".into()],
             vec!["release".into(), "--profile".into(), "linux-preview".into()],
-            vec![
-                "release".into(),
-                "--receipts".into(),
-                "/tmp/receipts".into(),
-            ],
         ] {
             assert_eq!(parse(&invalid).unwrap_err().code(), "USAGE");
         }
+        let unprofiled = parse(&[
+            "release".into(),
+            "--receipts".into(),
+            "/tmp/receipts".into(),
+            "--json".into(),
+        ])
+        .unwrap();
+        assert_eq!(unprofiled.profile, None);
+        assert_eq!(unprofiled.mode, OutputMode::Json);
         let profiled = parse(&[
             "release".into(),
             "--profile".into(),

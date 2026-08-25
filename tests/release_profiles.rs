@@ -122,6 +122,22 @@ fn ordinary_release_requires_an_explicit_profile() {
         );
     }
 
+    let unprofiled_registry = Registry::new();
+    let output = command(&[
+        "check",
+        "release",
+        "--receipts",
+        unprofiled_registry.path().to_str().unwrap(),
+        "--json",
+    ]);
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stdout.is_empty());
+    assert!(
+        String::from_utf8(output.stderr)
+            .unwrap()
+            .contains("PROFILE_REQUIRED")
+    );
+
     let registry = Registry::new();
     let output = command(&[
         "check",
