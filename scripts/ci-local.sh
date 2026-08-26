@@ -4,58 +4,50 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 REPO_ROOT="$PWD"
 # shellcheck source=ops/ci/artifact-path.sh
 source "$REPO_ROOT/ops/ci/artifact-path.sh"
+# shellcheck source=ops/ci/family-custody.sh
+source "$REPO_ROOT/ops/ci/family-custody.sh"
 
-CI_PROOF_LOCK_DIR="$REPO_ROOT/.git/bullet-ci.lock.d"
-CI_PROOF_LOCK_OWNER="$CI_PROOF_LOCK_DIR/owner"
 CI_PROOF_LOCK_RECORD=""
+CI_PROOF_LOCK_SCOPE=""
+CI_PROOF_LOCK_LANE=""
+CI_PROOF_LOCK_OWNS=false
 
-proof_lock_refusal() {
-  printf '%s\n' \
-    "ci-local: CI_PROOF_LOCKED_OR_STALE: $CI_PROOF_LOCK_DIR is occupied or cannot be trusted" \
-    "ci-local: verify that no scripts/ci-local.sh process is using this exact checkout; then inspect and explicitly reconcile only $CI_PROOF_LOCK_DIR" >&2
-  return 75
-}
+if [[ ${BULLET_CI_PROOF_CUSTODY+x} ]]; then
+  unset BULLET_CI_PROOF_CUSTODY
+  ci_proof_refusal "$REPO_ROOT"
+  exit 75
+fi
 
 verify_proof_lock() {
-  [[ -d "$CI_PROOF_LOCK_DIR" && ! -L "$CI_PROOF_LOCK_DIR" \
-    && -f "$CI_PROOF_LOCK_OWNER" && ! -L "$CI_PROOF_LOCK_OWNER" \
-    && "$(<"$CI_PROOF_LOCK_OWNER")" == "$CI_PROOF_LOCK_RECORD" ]] || {
-    proof_lock_refusal
+  ci_proof_verify "$REPO_ROOT" bullet-farm "$CI_PROOF_LOCK_RECORD" \
+    "$CI_PROOF_LOCK_SCOPE" || return $?
+  [[ "$CI_PROOF_LOCK_OWNS" == true \
+    && "$CI_PROOF_RECORD_PID" == "$$" \
+    && "$CI_PROOF_RECORD_LANE" == "$CI_PROOF_LOCK_LANE" ]] || {
+    ci_proof_refusal "$REPO_ROOT"
     return 75
   }
 }
 
 acquire_proof_lock() {
   local lane="$1"
-  [[ -d "$REPO_ROOT/.git" && ! -L "$REPO_ROOT/.git" ]] || {
-    proof_lock_refusal
-    return 75
-  }
-  if ! (umask 077; mkdir -- "$CI_PROOF_LOCK_DIR") 2>/dev/null; then
-    proof_lock_refusal
-    return 75
+  CI_PROOF_LOCK_LANE="$lane"
+  if [[ "$lane" == family || "$lane" == family-contract ]]; then
+    CI_PROOF_LOCK_SCOPE=family
+  else
+    CI_PROOF_LOCK_SCOPE=standalone
   fi
-  [[ -d "$CI_PROOF_LOCK_DIR" && ! -L "$CI_PROOF_LOCK_DIR" ]] || {
-    proof_lock_refusal
-    return 75
-  }
-  CI_PROOF_LOCK_RECORD="schema=1 pid=$$ lane=$lane nonce=$$-${BASHPID:-$$}-$RANDOM-$RANDOM"
-  if ! (umask 077; set -o noclobber; printf '%s\n' "$CI_PROOF_LOCK_RECORD" \
-      >"$CI_PROOF_LOCK_OWNER") 2>/dev/null; then
-    proof_lock_refusal
-    return 75
-  fi
-  verify_proof_lock
+  CI_PROOF_LOCK_OWNS=true
+  ci_proof_acquire "$REPO_ROOT" bullet-farm "$CI_PROOF_LOCK_SCOPE" "$lane" \
+    CI_PROOF_LOCK_RECORD || return $?
+  verify_proof_lock || return $?
 }
 
 release_proof_lock() {
   verify_proof_lock || return $?
-  rm -- "$CI_PROOF_LOCK_OWNER" || {
-    proof_lock_refusal
-    return 75
-  }
-  rmdir -- "$CI_PROOF_LOCK_DIR" || {
-    proof_lock_refusal
+  ci_proof_release "$REPO_ROOT" bullet-farm "$CI_PROOF_LOCK_RECORD" \
+    "$CI_PROOF_LOCK_SCOPE" || {
+    ci_proof_refusal "$REPO_ROOT"
     return 75
   }
 }
@@ -95,7 +87,11 @@ run_observed_locked() {
   status=$?
   if [[ "$status" -eq 0 ]]; then
     commands+=("bash $script")
-    bash "$script"
+    if [[ "$lane" == family || "$lane" == family-contract ]]; then
+      BULLET_CI_PROOF_CUSTODY="$CI_PROOF_LOCK_RECORD" bash "$script"
+    else
+      bash "$script"
+    fi
     status=$?
   fi
   set -e

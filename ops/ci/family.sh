@@ -6,6 +6,8 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 # shellcheck source=ops/ci/toolchain-pins.sh
 source "$(dirname "${BASH_SOURCE[0]}")/toolchain-pins.sh"
+# shellcheck source=ops/ci/family-custody.sh
+source "$(dirname "${BASH_SOURCE[0]}")/family-custody.sh"
 cd "$REPO_ROOT"
 [[ "$(uname -s)" == Linux ]] \
   || { refuse FAMILY_MUTATION_LINUX_ONLY "family process tests require Linux containment"; exit 1; }
@@ -29,6 +31,56 @@ FAMILY_ROOT="$(cd "$REPO_ROOT/.." && pwd)"
 GIT_ROOT="$FAMILY_ROOT/bullet-git"
 KERNEL_ROOT="$FAMILY_ROOT/bullet-kernel"
 PORTAL_ROOT="$FAMILY_ROOT/bullet-portal"
+[[ ${BULLET_CI_PROOF_CUSTODY+x} ]] || { ci_proof_refusal "$REPO_ROOT"; exit 75; }
+hub_custody="$BULLET_CI_PROOF_CUSTODY"
+unset BULLET_CI_PROOF_CUSTODY
+ci_proof_verify "$REPO_ROOT" bullet-farm "$hub_custody" family || exit $?
+[[ "$CI_PROOF_RECORD_PID" == "$PPID" \
+  && ("$CI_PROOF_RECORD_LANE" == family || "$CI_PROOF_RECORD_LANE" == family-contract) ]] \
+  || { ci_proof_refusal "$REPO_ROOT"; exit 75; }
+family_parent_lane="$CI_PROOF_RECORD_LANE"
+family_custody_initialize "$FAMILY_ROOT" "$family_parent_lane" || exit $?
+family_custody_verify_hub "$REPO_ROOT" "$hub_custody" "$family_parent_lane" || exit $?
+
+family_tmp=""
+family_custody_uncertain=0
+
+release_family_custody() {
+  local original_status=$? release_status=0
+  trap - EXIT HUP INT TERM
+  if [[ "$family_custody_uncertain" -eq 1 ]]; then
+    printf '%s\n' \
+      '[ci] CI_PROOF_LOCKED_OR_STALE: interrupted family custody remains reserved for explicit reconciliation' >&2
+    exit "$original_status"
+  fi
+  set +e
+  [[ "$FAMILY_CUSTODY_ACTIVE" -eq 0 ]] || family_custody_release_all || release_status=75
+  [[ -z "$family_tmp" ]] || rm -rf -- "$family_tmp" || release_status=75
+  if [[ "$release_status" -ne 0 ]]; then
+    exit "$release_status"
+  fi
+  exit "$original_status"
+}
+trap release_family_custody EXIT
+trap 'family_custody_uncertain=1; exit 129' HUP
+trap 'family_custody_uncertain=1; exit 130' INT
+trap 'family_custody_uncertain=1; exit 143' TERM
+
+run_member_ci() {
+  local member="$1" lane="$2" status root record
+  root="${FAMILY_CUSTODY_ROOTS[$member]}"
+  record="$(family_custody_record "$member")" || return $?
+  family_custody_verify_member "$member" || return $?
+  set +e
+  (
+    cd "$root"
+    exec env BULLET_CI_PROOF_CUSTODY="$record" bash scripts/ci-local.sh "$lane"
+  )
+  status=$?
+  set -e
+  family_custody_verify_member "$member" || return $?
+  return "$status"
+}
 
 read_inventory_constant() {
   local file="$1" name="$2" value
@@ -87,6 +139,9 @@ for member in "${members[@]}"; do
     || { refuse FAMILY_SUBJECT_CHANGED_DURING_CAPTURE "$member"; exit 1; }
 done
 
+family_custody_acquire_all || exit $?
+family_custody_verify_all || exit $?
+
 # A passing stage must produce every report during this invocation; ignored
 # leftovers from an earlier run cannot satisfy the family observation.
 for spec in "${report_specs[@]}"; do
@@ -98,8 +153,6 @@ for spec in "${report_specs[@]}"; do
 done
 
 family_tmp="$(mktemp -d)"
-cleanup() { rm -rf -- "$family_tmp"; }
-trap cleanup EXIT
 
 assert_family_subjects() {
   local phase="$1" member root current_commit current_tree
@@ -122,7 +175,7 @@ assert_family_subjects() {
 
 assert_family_subjects before-stage-1
 log "1/7 BulletGit standalone required"
-(cd "$GIT_ROOT" && bash scripts/ci-local.sh required)
+run_member_ci bullet-git required
 assert_family_subjects after-stage-1
 assert_family_subjects before-stage-2
 log "2/7 build the sole-writer daemon from the admitted BulletGit subject"
@@ -144,25 +197,36 @@ assert_family_subjects after-stage-2
 
 assert_family_subjects before-stage-3
 log "3/7 Kernel standalone required"
-(cd "$KERNEL_ROOT" && bash scripts/ci-local.sh required)
+run_member_ci bullet-kernel required
 assert_family_subjects after-stage-3
 assert_family_subjects before-stage-4
 log "4/7 Kernel family inventory with exact absolute bullet-gitd"
 [[ "$(sha256_file "$gitd_bin")" == "$gitd_sha256" ]] \
   || { refuse BULLET_GITD_BIN_CHANGED before-kernel-family; exit 1; }
-(cd "$KERNEL_ROOT" && BULLET_GITD_BIN="$gitd_bin" BULLET_GITD_SHA256="$gitd_sha256" \
-  bash scripts/ci-local.sh family)
+family_custody_verify_member bullet-kernel || exit $?
+kernel_custody="$(family_custody_record bullet-kernel)" || exit $?
+set +e
+(
+  cd "$KERNEL_ROOT"
+  exec env BULLET_CI_PROOF_CUSTODY="$kernel_custody" \
+    BULLET_GITD_BIN="$gitd_bin" BULLET_GITD_SHA256="$gitd_sha256" \
+    bash scripts/ci-local.sh family
+)
+kernel_family_status=$?
+set -e
+family_custody_verify_member bullet-kernel || exit $?
+[[ "$kernel_family_status" -eq 0 ]] || exit "$kernel_family_status"
 [[ "$(sha256_file "$gitd_bin")" == "$gitd_sha256" ]] \
   || { refuse BULLET_GITD_BIN_CHANGED after-kernel-family; exit 1; }
 assert_family_subjects after-stage-4
 
 assert_family_subjects before-stage-5
 log "5/7 Portal standalone required"
-(cd "$PORTAL_ROOT" && bash scripts/ci-local.sh required)
+run_member_ci bullet-portal required
 assert_family_subjects after-stage-5
 assert_family_subjects before-stage-6
 log "6/7 Portal real-farmd browser proof"
-(cd "$PORTAL_ROOT" && bash scripts/ci-local.sh family)
+run_member_ci bullet-portal family
 assert_family_subjects after-stage-6
 
 assert_family_subjects before-stage-7
@@ -266,4 +330,6 @@ done < <(jq -r '.[] | [.path,.sha256] | @tsv' <<<"$raw_report_hashes")
 [[ "$(sha256_file "$gitd_bin")" == "$gitd_sha256" ]] \
   || { refuse BULLET_GITD_BIN_CHANGED after-observation; exit 1; }
 assert_family_subjects after-observation-publication
+family_custody_verify_hub "$REPO_ROOT" "$hub_custody" "$family_parent_lane" || exit $?
+family_custody_verify_all || exit $?
 log "family lane passed (unsigned clean component observation only)"

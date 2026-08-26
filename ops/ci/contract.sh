@@ -71,4 +71,6 @@ if [[ "$formal_complete" != true ]]; then
   exit 1
 fi
 bash formal/model-check-concurrency-test.sh
+log "contract lane: ordered family proof custody"
+bash ops/ci/family-custody-test.sh
 log "contract lane passed"

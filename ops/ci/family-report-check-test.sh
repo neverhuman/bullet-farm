@@ -143,7 +143,15 @@ for lane in security required family; do
     || { refuse PROOF_LANE_NETWORK_TRANSITIVITY_INVALID "$lane"; exit 1; }
 done
 grep -Fq 'bash ops/ci/security.sh' ops/ci/required.sh
-grep -Fq 'scripts/ci-local.sh required' ops/ci/family.sh
+for dispatch in \
+  'run_member_ci bullet-git required' \
+  'run_member_ci bullet-kernel required' \
+  'run_member_ci bullet-portal required' \
+  'run_member_ci bullet-portal family'; do
+  grep -Fq "$dispatch" ops/ci/family.sh
+done
+grep -Fq 'family_custody_verify_member bullet-kernel || exit $?' ops/ci/family.sh
+grep -Fq "BULLET_CI_PROOF_CUSTODY=\"\$kernel_custody\"" ops/ci/family.sh
 printf '{"success":true,"numTotalTests":3,"numPassedTests":3,"numFailedTests":0,"numPendingTests":0,"numTodoTests":0}\n' >"$fixtures/vitest.json"
 mv "$fixtures/vitest.json" "$fixtures/target.json"
 ln -s "$fixtures/target.json" "$fixtures/vitest.json"

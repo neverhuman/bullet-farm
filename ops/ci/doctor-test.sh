@@ -10,40 +10,45 @@ lane_tools() {
   case "$lane" in
     all)
       printf '%s\n' \
-        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr \
+        awk bash dirname env find git head id jq mkdir mv realpath rm sed sort tr wc \
         actionlint b3sum cargo cargo-clippy cargo-deny cargo-llvm-cov cargo-nextest cat chmod \
-        cmp comm cp curl date docker file find gitleaks grep id jankurai java ln lychee mktemp node \
-        jsonschema npm rmdir rg rustc rustfmt rustup sha1sum shellcheck stat tee uname wc xargs zizmor
+        cmp comm cp curl date docker file gitleaks grep jankurai java ln lychee mktemp node \
+        jsonschema npm rmdir rg rustc rustfmt rustup sha1sum shellcheck stat tee uname xargs zizmor
+      ;;
+    fast)
+      printf '%s\n' \
+        awk bash dirname env find git head id jq mkdir mv realpath rm sed sort tr wc \
+        cargo cargo-nextest chmod grep mktemp rmdir rustc
       ;;
     lint)
       printf '%s\n' \
-        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr actionlint b3sum cargo cargo-clippy \
-        cargo-deny cargo-nextest cmp comm cp find jsonschema ln rg rustc rustfmt shellcheck wc
+        awk bash dirname env find git head id jq mkdir mv realpath rm sed sort tr wc actionlint b3sum cargo cargo-clippy \
+        cargo-deny cargo-nextest cmp comm cp jsonschema ln rg rustc rustfmt shellcheck
       ;;
     required)
       printf '%s\n' \
-        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr actionlint b3sum cargo cargo-clippy \
-        cargo-deny cargo-nextest chmod cmp comm cp curl date docker file find gitleaks grep id java \
-        jsonschema ln mktemp rg rmdir rustc rustfmt sha1sum shellcheck stat tee wc zizmor
+        awk bash dirname env find git head id jq mkdir mv realpath rm sed sort tr wc actionlint b3sum cargo cargo-clippy \
+        cargo-deny cargo-nextest chmod cmp comm cp curl date docker file gitleaks grep java \
+        jsonschema ln mktemp rg rmdir rustc rustfmt sha1sum shellcheck stat tee zizmor
       ;;
     coverage)
       printf '%s\n' \
-        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr cargo cargo-llvm-cov \
-        cargo-nextest cmp comm grep ln mktemp rustc wc
+        awk bash dirname env find git head id jq mkdir mv realpath rm sed sort tr wc cargo cargo-llvm-cov \
+        cargo-nextest cmp comm grep ln mktemp rustc
       ;;
     platform)
       printf '%s\n' \
-        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr cargo cargo-clippy grep rustc uname
+        awk bash dirname env find git head id jq mkdir mv realpath rm sed sort tr wc cargo cargo-clippy grep rustc uname
       ;;
     toolchain-pinned)
       printf '%s\n' \
-        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr b3sum cargo date grep rustc rustup tee wc
+        awk bash dirname env find git head id jq mkdir mv realpath rm sed sort tr wc b3sum cargo date grep rustc rustup tee
       ;;
     family|family-contract)
       printf '%s\n' \
-        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr actionlint b3sum cargo cargo-clippy cargo-deny \
-        cargo-nextest chmod cmp comm cp curl date docker file find gitleaks grep id java ln mktemp \
-        jsonschema node npm rg rmdir rustc rustfmt rustup sha1sum shellcheck stat tee uname wc zizmor
+        awk bash dirname env find git head id jq mkdir mv realpath rm sed sort tr wc actionlint b3sum cargo cargo-clippy cargo-deny \
+        cargo-nextest chmod cmp comm cp curl date docker file gitleaks grep java ln mktemp \
+        jsonschema node npm rg rmdir rustc rustfmt rustup sha1sum shellcheck stat tee uname zizmor
       ;;
     *)
       return 1
@@ -83,7 +88,7 @@ probe_with_missing_tools() {
       printf '[ci] DOCTOR_TEST_FIXTURE_MISSING_TOOL: %s\n' "$tool" >&2
       return 1
     fi
-    ln -s "$src" "$fixture/$tool"
+    [[ -e "$fixture/$tool" ]] || ln -s "$src" "$fixture/$tool"
   done
 
   # ci-doctor loads toolchain-pins early and requires these helpers.
@@ -119,7 +124,7 @@ probe_with_missing_tools() {
   MISSING_TOOLS["status"]="$status"
 }
 
-for tool in b3sum curl env node npm realpath rustup jsonschema lychee cargo-llvm-cov; do
+for tool in b3sum curl env node npm realpath rustup jsonschema lychee cargo-llvm-cov wc; do
   probe_with_missing_tools all "$tool" 0
   output="${MISSING_TOOLS["output"]}"
   status="${MISSING_TOOLS["status"]}"
@@ -143,6 +148,15 @@ for lane_tool in \
     && "$output" == *"missing realpath for $lane"* ]] || {
     printf '[ci] DOCTOR_LANE_INVENTORY_MISSING: %s/%s status=%s\n' \
       "$lane" "$tool" "$status" >&2
+    exit 1
+  }
+done
+for tool in find id wc; do
+  probe_with_missing_tools fast "$tool" 0
+  output="${MISSING_TOOLS["output"]}"
+  status="${MISSING_TOOLS["status"]}"
+  [[ "$status" -ne 0 && "$output" == *"missing $tool for fast"* ]] || {
+    printf '[ci] DOCTOR_GLOBAL_CUSTODY_TOOL_MISSING: %s status=%s\n' "$tool" "$status" >&2
     exit 1
   }
 done
@@ -172,15 +186,41 @@ cleanup_lock_fixture() {
 }
 trap cleanup_lock_fixture EXIT
 mkdir -p "$lock_fixture/.git" "$lock_fixture/scripts" "$lock_fixture/ops/ci"
+printf '%s\n' 'ref: refs/heads/main' >"$lock_fixture/.git/HEAD"
 cp "$REPO_ROOT/scripts/ci-local.sh" "$lock_fixture/scripts/ci-local.sh"
 cp "$REPO_ROOT/ops/ci/artifact-path.sh" "$lock_fixture/ops/ci/artifact-path.sh"
-printf '%s\n' '#!/usr/bin/env bash' 'printf "doctor:%s\n" "$$" >> children' \
+cp "$REPO_ROOT/ops/ci/family-custody.sh" "$lock_fixture/ops/ci/family-custody.sh"
+cp "$REPO_ROOT/ops/ci/family-contract.sh" "$lock_fixture/ops/ci/family-contract.sh"
+cp "$REPO_ROOT/ops/ci/lib.sh" "$lock_fixture/ops/ci/lib.sh"
+cp "$REPO_ROOT/ops/ci/rust-toolchain-boundary.sh" \
+  "$lock_fixture/ops/ci/rust-toolchain-boundary.sh"
+# These are literal fixture program lines.
+# shellcheck disable=SC2016
+printf '%s\n' '#!/usr/bin/env bash' '[[ ! ${BULLET_CI_PROOF_CUSTODY+x} ]]' \
+  'printf "doctor:%s\n" "$$" >> children' \
   >"$lock_fixture/scripts/ci-doctor.sh"
+# shellcheck disable=SC2016
 printf '%s\n' '#!/usr/bin/env bash' 'set -eu' \
+  '[[ ! ${BULLET_CI_PROOF_CUSTODY+x} ]]' \
   'mkdir -p .ci-artifacts/observations' \
   'printf "observation:%s\n" "$$" >> observation-calls' \
   "printf observed > \".ci-artifacts/observations/${dollar}1.json\"" \
   >"$lock_fixture/scripts/ci-observation.sh"
+cat >"$lock_fixture/ops/ci/family.sh" <<'FIXTURE'
+#!/usr/bin/env bash
+set -euo pipefail
+[[ ${BULLET_CI_PROOF_CUSTODY+x} ]]
+record="$BULLET_CI_PROOF_CUSTODY"
+unset BULLET_CI_PROOF_CUSTODY
+source ops/ci/family-custody.sh
+ci_proof_verify "$PWD" bullet-farm "$record" family
+[[ "$CI_PROOF_RECORD_PID" == "$PPID" \
+  && ("$CI_PROOF_RECORD_LANE" == family || "$CI_PROOF_RECORD_LANE" == family-contract) \
+  && "$(<.git/bullet-ci.lock.d/owner)" == "$record" ]]
+printf '%s\n' "$record" >"family-child-$CI_PROOF_RECORD_LANE"
+mkdir -p .ci-artifacts/family
+printf observed >.ci-artifacts/family/subjects.json
+FIXTURE
 cat >"$lock_fixture/ops/ci/fast.sh" <<'FIXTURE'
 #!/usr/bin/env bash
 set -eu
@@ -195,7 +235,7 @@ fi
 while [[ "${CI_FIXTURE_HOLD:-0}" == 1 && ! -e release-child ]]; do sleep 0.05; done
 exit "${CI_FIXTURE_STATUS:-0}"
 FIXTURE
-chmod +x "$lock_fixture/scripts/"*.sh "$lock_fixture/ops/ci/fast.sh"
+chmod +x "$lock_fixture/scripts/"*.sh "$lock_fixture/ops/ci/"*.sh
 
 wait_for_lock_fixture() {
   local path="$1"
@@ -219,6 +259,28 @@ start_lock_owner() {
   lock_owner_pid=$!
   wait_for_lock_fixture "$lock_fixture/child-started"
 }
+
+for supplied_custody in '' hostile; do
+  rm -f -- "$lock_fixture/children" "$lock_fixture/observation-calls"
+  set +e
+  lock_output="$(cd "$lock_fixture" \
+    && env BULLET_CI_PROOF_CUSTODY="$supplied_custody" bash scripts/ci-local.sh fast 2>&1)"
+  lock_status=$?
+  set -e
+  [[ "$lock_status" -eq 75 && "$lock_output" == *CI_PROOF_LOCKED_OR_STALE* \
+    && ! -e "$lock_fixture/children" && ! -e "$lock_fixture/observation-calls" \
+    && ! -e "$lock_fixture/.git/bullet-ci.lock.d" ]] \
+    || { echo '[ci] CI_PROOF_CALLER_CUSTODY_REFUSAL_INVALID' >&2; exit 1; }
+done
+
+for family_lane in family family-contract; do
+  rm -f -- "$lock_fixture/family-child-family" \
+    "$lock_fixture/family-child-family-contract"
+  (cd "$lock_fixture" && bash scripts/ci-local.sh "$family_lane" >/dev/null)
+  family_record="$(<"$lock_fixture/family-child-$family_lane")"
+  [[ "$family_record" =~ ^schema=2\ repository=bullet-farm\ scope=family\ pid=[1-9][0-9]*\ lane=$family_lane\ nonce=[0-9]+-[0-9]+-[0-9]+-[0-9]+$ \
+    && ! -e "$lock_fixture/.git/bullet-ci.lock.d" ]]
+done
 
 start_lock_owner 000
 [[ "$(find "$lock_fixture/.git/bullet-ci.lock.d" -maxdepth 0 -type d -perm 0700 -print)" \
@@ -306,6 +368,7 @@ rm -- "$lock_fixture/.git/bullet-ci.lock.d/owner"
 rmdir -- "$lock_fixture/.git/bullet-ci.lock.d"
 
 printf preserve >"$lock_outside/sentinel"
+rm -- "$lock_fixture/.git/HEAD"
 rmdir "$lock_fixture/.git"
 ln -s "$lock_outside" "$lock_fixture/.git"
 set +e
@@ -317,6 +380,7 @@ set -e
   || { echo '[ci] CI_PROOF_GIT_SYMLINK_REFUSAL_INVALID' >&2; exit 1; }
 rm "$lock_fixture/.git"
 mkdir "$lock_fixture/.git"
+printf '%s\n' 'ref: refs/heads/main' >"$lock_fixture/.git/HEAD"
 ln -s "$lock_outside" "$lock_fixture/.git/bullet-ci.lock.d"
 set +e
 (cd "$lock_fixture" && bash scripts/ci-local.sh fast >/dev/null 2>&1)

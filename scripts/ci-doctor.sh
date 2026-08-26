@@ -1,26 +1,34 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# shellcheck source=ops/ci/toolchain-pins.sh
-source "$(dirname "${BASH_SOURCE[0]}")/../ops/ci/toolchain-pins.sh"
 lane="${1:-all}"
-baseline=(awk bash dirname env git head jq mkdir mv realpath rm sed sort tr)
+bootstrap_missing=0
+for tool in tr wc; do
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    printf 'ci-doctor: missing %s for %s\n' "$tool" "$lane" >&2
+    bootstrap_missing=1
+  fi
+done
+[[ "$bootstrap_missing" -eq 0 ]] || exit 1
+# shellcheck source=ops/ci/toolchain-pins.sh
+source "${BASH_SOURCE[0]%/*}/../ops/ci/toolchain-pins.sh"
+baseline=(awk bash dirname env find git head id jq mkdir mv realpath rm sed sort tr wc)
 case "$lane" in
   source-scan) tools=("${baseline[@]}" cat gitleaks xargs) ;;
   fast) tools=("${baseline[@]}" cargo cargo-nextest chmod grep mktemp rmdir rustc) ;;
-  lint) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-nextest cmp comm cp find jsonschema ln rg rustc rustfmt shellcheck wc) ;;
+  lint) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-nextest cmp comm cp jsonschema ln rg rustc rustfmt shellcheck) ;;
   contract) tools=("${baseline[@]}" cargo cargo-nextest curl find grep java mktemp rustc sha1sum tee) ;;
   security) tools=("${baseline[@]}" cargo cargo-deny date gitleaks mktemp rustc zizmor) ;;
   docs) tools=("${baseline[@]}" cargo cmp cp docker file find grep id mktemp realpath rg rustc stat) ;;
-  required) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-deny cargo-nextest chmod cmp comm cp curl date docker file find gitleaks grep id java jsonschema ln mktemp realpath rg rmdir rustc rustfmt sha1sum shellcheck stat tee wc zizmor) ;;
-  family|family-contract) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-deny cargo-nextest chmod cmp comm cp curl date docker file find gitleaks grep id java jsonschema ln mktemp node npm rg rmdir rustc rustfmt rustup sha1sum shellcheck stat tee uname wc zizmor) ;;
+  required) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-deny cargo-nextest chmod cmp comm cp curl date docker file gitleaks grep java jsonschema ln mktemp rg rmdir rustc rustfmt sha1sum shellcheck stat tee zizmor) ;;
+  family|family-contract) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-deny cargo-nextest chmod cmp comm cp curl date docker file gitleaks grep java jsonschema ln mktemp node npm rg rmdir rustc rustfmt rustup sha1sum shellcheck stat tee uname zizmor) ;;
   history) tools=("${baseline[@]}" cat gitleaks xargs) ;;
   links) tools=("${baseline[@]}" lychee rg) ;;
   advisory) tools=("${baseline[@]}" cargo cargo-deny date rustc) ;;
-  coverage) tools=("${baseline[@]}" cargo cargo-llvm-cov cargo-nextest cmp comm grep ln mktemp rustc wc) ;;
+  coverage) tools=("${baseline[@]}" cargo cargo-llvm-cov cargo-nextest cmp comm grep ln mktemp rustc) ;;
   platform) tools=("${baseline[@]}" cargo cargo-clippy grep rustc uname) ;;
   audit) tools=("${baseline[@]}" jankurai) ;;
-  toolchain-pinned) tools=("${baseline[@]}" b3sum cargo date grep rustc rustup tee wc) ;;
-  all) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-deny cargo-llvm-cov cargo-nextest cat chmod cmp comm cp curl date docker file find gitleaks grep id jankurai java jsonschema ln lychee mktemp node npm realpath rg rmdir rustc rustfmt rustup sha1sum shellcheck stat tee uname wc xargs zizmor) ;;
+  toolchain-pinned) tools=("${baseline[@]}" b3sum cargo date grep rustc rustup tee) ;;
+  all) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-deny cargo-llvm-cov cargo-nextest cat chmod cmp comm cp curl date docker file gitleaks grep jankurai java jsonschema ln lychee mktemp node npm rg rmdir rustc rustfmt rustup sha1sum shellcheck stat tee uname xargs zizmor) ;;
   *)
     echo "ci-doctor: expected source-scan|fast|lint|contract|security|docs|required|family|family-contract|history|links|advisory|coverage|platform|audit|toolchain-pinned|all" >&2
     exit 2
