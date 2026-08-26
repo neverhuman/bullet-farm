@@ -67,6 +67,17 @@ Maintained alongside the policy; ids are quoted exactly so the instrument can ch
 | `potential.s4.8.build-plan` | SUPERSEDED | `0014-corpus-dispositions.md` | Replaced by closure-roadmap Waves 0-11 and explicit-profile release check. |
 | `paper.hashes.historical` | SUPERSEDED | `0014-corpus-dispositions.md` | Hashes are historical metadata; HISTORICAL_ARTIFACTS.sha256 binds Markdown only. |
 
+## Independent audit — 2026-08-26
+
+Method: every `IMPLEMENTED` row (163 at hub `8590f0c`) was audited read-only by a Codex-family model
+(codex-cli 0.149.1, `exec --sandbox read-only`, judging from code and tests only, planning documents withheld;
+seed sample 40 rows with `random.seed(20260826)`, then the remaining 123 in three batches). Verdicts:
+AGREE 33, PARTIAL 125, DISAGREE 5, UNVERIFIABLE 0.
+Rule applied: the lower disposition stands — every PARTIAL/DISAGREE/UNVERIFIABLE row became `PLANNED`, its test
+retained as the `partial` anchor, its wave taken from the nearest PLANNED rows of the same section, and the
+auditor's reason recorded in the row's `note`. 130 rows moved; 33 remain `IMPLEMENTED`.
+Nobody re-scored their own rows: the seed authors were Claude-family agents, the auditor was not.
+
 ## Consequences
 
 - "100 % of `docs/*.md` addressed" becomes `bullet-family` output, not prose.

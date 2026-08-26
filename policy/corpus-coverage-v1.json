@@ -97,13 +97,18 @@
    "doc": "spec",
    "ref": "§1",
    "unit": "Exactly one incarnation-fenced Attempt may write within each Variant; every external mutation is brokered",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W5"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/application/tests/properties.rs",
     "symbol": "fences_are_unique_and_single_writer_holds"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Checks unique fences and one live in-memory lease, but not that all external mutations are brokered. bullet-kernel/crates/applicatio"
   },
   {
    "id": "spec.s1.software-change-transaction",
@@ -1079,13 +1084,18 @@
    "doc": "spec",
    "ref": "§17",
    "unit": "Default bad-behavior catalog: 84 rule ids with category, behavior, detector, default action",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W3"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/behavior/src/lib.rs",
     "symbol": "catalog_has_every_spec_id_and_correct_titles"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Asserts 84 unique IDs and four titles; it does not validate every row's category, behavior, detector, or action. bullet-kernel/crate"
   },
   {
    "id": "spec.s17.catalog-enforcement",
@@ -1192,27 +1202,36 @@
    "doc": "spec",
    "ref": "§18.2",
    "unit": "Session state machine: 16 main states plus 10 exception states with legal edges",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W8"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): The anchor asserts only the 16/10 counts, not the complete legal-edge relation. bullet-kernel/crates/harness-core/src/session.rs:200",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/harness-core/src/session.rs",
     "symbol": "state_counts_match_spec"
-   },
-   "note": "Blocked-state metadata (typed reason, deadline) is not yet enforced; see S4"
+   }
   },
   {
    "id": "spec.s18.3.event-envelope",
    "doc": "spec",
    "ref": "§18.3",
    "unit": "Structured AgentEvent envelope with 26 dotted event kinds and monotonic sequence",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W8"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/harness-core/tests/normalizer.rs",
     "symbol": "kinds_are_26_and_unique"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Only the event-kind set cardinality is asserted; envelope structure, dotted spelling, and monotonic sequencing are absent. bullet-ke"
   },
   {
    "id": "spec.s18.4.pty-mirror",
@@ -1426,26 +1445,36 @@
    "doc": "spec",
    "ref": "§20.2",
    "unit": "Ten-step private clone: mirror under lock, verify base, dissociate, isolated config, detached base, manifest+nonce",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/mirror_clone.rs",
     "symbol": "clone_goes_through_a_dissociated_mirror"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Proves mirror use, dissociation, no remote, and recorded base; not ten-step ordering, isolated config, detached HEAD, or nonce. bull"
   },
   {
    "id": "spec.s20.3.hostile-git-controls",
    "doc": "spec",
    "ref": "§20.3",
    "unit": "Isolated HOME/XDG, GIT_CONFIG_NOSYSTEM, no prompt/askpass, controlled SSH; hooks, helpers, filters, includes disabled",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/src/safe_git.rs",
     "symbol": "command_environment_is_isolated"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Checks HOME, prompts, helpers, hooks, includes, and system/global config, but not XDG isolation, controlled SSH, or filters. bullet-"
   },
   {
    "id": "spec.s20.4.diff-intelligence",
@@ -1504,26 +1533,36 @@
    "doc": "spec",
    "ref": "§20.7",
    "unit": "Twelve-step Candidate preparation ending in exact base/head/tree/patch hashes and PREPARED",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/real_repository.rs",
     "symbol": "full_lifecycle_produces_exact_candidate"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Checks base and hash formats, not exact expected head/tree/patch hashes, twelve-step sequencing, or explicit PREPARED state. bullet-"
   },
   {
    "id": "spec.s20.8.cleanup",
    "doc": "spec",
    "ref": "§20.8",
    "unit": "Deletion needs terminal Attempt, verified preservation, nonce match, receipt; path reuse waits for tombstone",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/preservation_authority.rs",
     "symbol": "post_delete_tombstone_failure_is_unknown_and_preservation_survives"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Covers an indeterminate post-delete tombstone failure and surviving salvage, not terminal-state, nonce, receipt rejection, or path r"
   },
   {
    "id": "spec.s21.1.tool-request",
@@ -1596,13 +1635,18 @@
    "doc": "spec",
    "ref": "§22.1",
    "unit": "Evidence tiers E0 assertion, E1 writer, E2 clean verifier, E3 protected, E4 human",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W5"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/src/gates.rs",
     "symbol": "tiers_round_trip_and_order"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It pins E0-E4 parsing and limited ordering only, not the claimed assertion/writer/verifier/protected/human semantics; bullet-kernel/"
   },
   {
    "id": "spec.s22.2.verifier-isolation",
@@ -1721,13 +1765,18 @@
    "doc": "spec",
    "ref": "§23.2",
    "unit": "Post-dispatch timeout becomes OUTCOME_UNKNOWN; adopt, retry only on proven non-execution, else quarantine",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W10"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/effects/tests/reconcile.rs",
     "symbol": "proven_non_execution_permits_exactly_one_retry"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It proves UNKNOWN followed by one retry after proven pre-push nonexecution; adoption and quarantine are not asserted here; bullet-ke"
   },
   {
    "id": "spec.s23.3.github-v1",
@@ -1770,13 +1819,18 @@
    "doc": "spec",
    "ref": "§24.2",
    "unit": "Attempt states CREATED..SUCCEEDED with SUPERSEDED/FAILED/CRASHED/CANCELLED/QUARANTINED",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/tests/invariants.rs",
     "symbol": "attempt_follows_spec_main_path"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Exercises only one main path through SUCCEEDED and one terminal refusal; it does not test the listed exception states. bullet-kernel"
   },
   {
    "id": "spec.s24.3.cognitive-task-state-machine",
@@ -1948,13 +2002,18 @@
    "doc": "spec",
    "ref": "§25.16",
    "unit": "A portal click creates a durable command shown as requested; confirmed/failed only from the ledger",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W6"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-portal",
     "path": "src/pages/ControlTower.test.tsx",
     "symbol": "shows APPLIED as non-green until the exact command becomes VERIFIED"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Shows mocked APPLIED as pending until mocked VERIFIED for one ID, but does not prove backend durability or ledger-only confirmation/"
   },
   {
    "id": "spec.s25.2.mission-graph",
@@ -2111,13 +2170,18 @@
    "doc": "spec",
    "ref": "§25",
    "unit": "Every view shows as_of_sequence, lag, exact SHAs, source and confidence; status PENDING..CONTRADICTORY",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W6"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-portal",
     "path": "src/components/ProjectionCard.test.tsx",
     "symbol": "renders a published value with as_of, source, observed_at, and freshness"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Checks as_of, source, observed_at, and freshness for one card; lag, SHAs, confidence, every view, and the full status vocabulary are"
   },
   {
    "id": "spec.s26.1.canonical-tables",
@@ -2160,52 +2224,72 @@
    "doc": "spec",
    "ref": "§26.3",
    "unit": "Serializable acquire: idempotent command, READY check, no active lease, fence increment, Attempt, lease, outbox",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W2"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/lease_command_atomicity.rs",
     "symbol": "every_lease_command_boundary_reopens_old_or_complete_and_replays_once"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Proves atomic recovery, fence/attempt/lease/outbox creation, and replay, but not concurrent serialization, non-READY refusal, or act"
   },
   {
    "id": "spec.s26.4.heartbeat",
    "doc": "spec",
    "ref": "§26.4",
    "unit": "Heartbeat UPDATE keyed on variant/attempt/fence/runner/epoch/nonce; zero rows means stale, runner freezes",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W2"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/lease_clock.rs",
     "symbol": "concurrent_heartbeat_cannot_revive_an_expiring_lease"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Proves an expired heartbeat loses an expiry race; it does not perturb every authority key field or prove runner freezing. bullet-ker"
   },
   {
    "id": "spec.s26.5.ready-queue",
    "doc": "spec",
    "ref": "§26.5",
    "unit": "Ready rows push-maintained in the same transaction; no timer rescan as primary scheduler",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W2"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/application/src/queue.rs",
     "symbol": "ready_then_claim_is_idempotent"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It checks ready-row appearance, removal, and idempotent claim, not same-transaction push maintenance or absence of timer rescans; bu"
   },
   {
    "id": "spec.s26.6.outbox-inbox",
    "doc": "spec",
    "ref": "§26.6",
    "unit": "Transactional outbox with at-least-once delivery and receiver idempotency; inbound events deduplicated by id/sequence",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W2"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/command_reconciliation_atomicity.rs",
     "symbol": "reconciliation_commits_command_outbox_and_event_or_nothing"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Checks atomic command/outbox/event reconciliation and replay, not at-least-once delivery or inbound id/sequence deduplication. bulle"
   },
   {
    "id": "spec.s27.1.mission-graph-api",
@@ -2356,14 +2440,18 @@
    "doc": "spec",
    "ref": "§27.9",
    "unit": "Typed problem details with stable code, correlation_id, retryable flag; no undocumented query parameters",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W6"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Validates Problem Details fields and codes for selected 400/404/500 cases, but not the absence of undocumented query parameters. bul",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "apps/bullet-farmd/tests/api.rs",
     "symbol": "problem_details_cover_400_404_and_500"
-   },
-   "note": "Portal side: api.test.ts 'preserves typed Problem Details and repair guidance'"
+   }
   },
   {
    "id": "spec.s28.1.runner-registration",
@@ -2388,28 +2476,36 @@
    "doc": "spec",
    "ref": "§28.2",
    "unit": "Runner self-kill deadline shorter than server expiry; stale fence blocks effects even if self-kill fails",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W2"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Proves the local deadline precedes expiry for admitted TTLs; stale-fence effect blocking when self-kill fails is not exercised. bull",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/runner/tests/stonith.rs",
     "symbol": "runner_deadline_precedes_server_expiry_for_every_admitted_ttl"
-   },
-   "note": "heartbeat.rs self_kill_fires_on_the_mocked_clock_even_when_beats_succeed; broker superseded_fence_cannot_authorize"
+   }
   },
   {
    "id": "spec.s28.3.event-sequencing",
    "doc": "spec",
    "ref": "§28.3",
    "unit": "Every event carries id, stream, sequence, causation/correlation/trace ids; gaps are visible and replayed",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W2"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Checks exclusive cursor resume and cursor validation only; it does not assert stream/causation/correlation/trace IDs or visible gap ",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "apps/bullet-farmd/tests/api.rs",
     "symbol": "event_cursors_are_exclusive_and_last_event_id_resumes_after_the_cursor"
-   },
-   "note": "Provider side: harness-core normalizer sequences_are_monotonic; portal flags gaps and rebases from snapshot"
+   }
   },
   {
    "id": "spec.s29.workflow-ir",
@@ -2428,13 +2524,18 @@
    "doc": "spec",
    "ref": "§3.1",
    "unit": "Deterministic mechanisms (schemas, policy, Git, tests, argv gates) before model judgment",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/runner/src/gate.rs",
     "symbol": "repository_shell_text_is_never_a_gate_program"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It proves a fixed argv gate ignores repository shell text, but asserts no ordering relative to model judgment; bullet-kernel/crates/"
   },
   {
    "id": "spec.s3.2.economy-by-default",
@@ -2488,39 +2589,54 @@
    "doc": "spec",
    "ref": "§3.5",
    "unit": "Every consequential effect is read back from an authoritative surface and recorded in an immutable receipt",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/effects/tests/broker.rs",
     "symbol": "full_flow_commits_with_read_back_receipt_and_settled_outbox"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): A real push is read back and recorded in one receipt, but the test does not establish receipt immutability or cover every consequent"
   },
   {
    "id": "spec.s3.6.safety-at-action-boundary",
    "doc": "spec",
    "ref": "§3.6",
    "unit": "Destructive actions, cleanup, completion, delivery enforce preconditions in Rust at the choke point",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/chaos.rs",
     "symbol": "exact_preservation_decision_is_consumed_before_cleanup"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It tests construction of cleanup authority only, not destructive actions generally or completion/delivery choke points; bullet-kerne"
   },
   {
    "id": "spec.s3.7.explicit-uncertainty",
    "doc": "spec",
    "ref": "§3.7",
    "unit": "Observations carry UNKNOWN/STALE/CONTRADICTORY; unknown is never capacity, empty, or dead",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/tests/invariants.rs",
     "symbol": "observation_kinds_do_not_grant_generic_destruction_authority"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It checks UNKNOWN is unverified and visibly rendered, but not STALE/CONTRADICTORY or capacity, empty, and dead interpretations; bull"
   },
   {
    "id": "spec.s3.8.repository-sovereignty",
@@ -2651,14 +2767,18 @@
    "doc": "spec",
    "ref": "§31",
    "unit": "Five binaries: daemon, runner, verifier, effects, CLI",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W1"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): The test only equates builder and extractor name arrays; it asserts neither a count of five nor the five required names. bullet-farm",
+   "partial": {
     "kind": "test",
     "repo": "bullet-farm",
     "path": "src/release/build/tests.rs",
     "symbol": "builder_and_extractor_bind_the_same_exact_binary_names"
-   },
-   "note": "bullet-farmd, bullet-runner, bullet-verifier, bullet-effects, bullet; plus attestor and mcpd"
+   }
   },
   {
    "id": "spec.s31.kernel-crates",
@@ -2841,14 +2961,18 @@
    "doc": "spec",
    "ref": "§33.1",
    "unit": "Workspace cleanup never precedes preservation",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It refuses cleanup authority for live/unknown state and admits a preserved terminal subject, but does not execute cleanup or cover a",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/chaos.rs",
     "symbol": "exact_preservation_decision_is_consumed_before_cleanup"
-   },
-   "note": "bullet-git sealed_receipt_preserves_salvage_state_before_exact_cleanup"
+   }
   },
   {
    "id": "spec.s33.1.fence-never-reused",
@@ -2881,27 +3005,36 @@
    "doc": "spec",
    "ref": "§33.1",
    "unit": "Executable state-machine model whose traces generate Rust property tests",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Replays one JSON trace against SQLite/domain behavior, but does not prove model-to-trace generation or generated Rust property tests",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/formal_traces.rs",
     "symbol": "lease_fence_trace_replays_against_sqlite_and_domain_guard"
-   },
-   "note": "formal/LeaseFence.tla and EffectCheck.tla; hub replays the same traces"
+   }
   },
   {
    "id": "spec.s33.1.plan-delta-atomic",
    "doc": "spec",
    "ref": "§33.1",
    "unit": "Plan/delta materialization is atomic at every failure boundary",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/graph_delta_atomicity.rs",
     "symbol": "sqlite_failure_boundaries_recover_to_exactly_old_or_new"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Exhaustively tests Graph Delta failure boundaries and replay, but not Plan materialization boundaries. bullet-kernel/crates/adapters"
   },
   {
    "id": "spec.s33.1.scope-transfer",
@@ -2933,26 +3066,36 @@
    "doc": "spec",
    "ref": "§33.1",
    "unit": "Stale token never mutates",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/tests/invariants.rs",
     "symbol": "stale_token_cannot_authorize"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It rejects stale attempt and fence values during token verification, but invokes no mutation entrypoint or unchanged-state assertion"
   },
   {
    "id": "spec.s33.1.unknown-liveness",
    "doc": "spec",
    "ref": "§33.1",
    "unit": "Unknown liveness never destroys",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/tests/invariants.rs",
     "symbol": "observation_kinds_do_not_grant_generic_destruction_authority"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Only establishes that Unknown is not verified; it never requests or rejects a destructive operation. bullet-kernel/crates/domain/tes"
   },
   {
    "id": "spec.s33.10.fault-injection",
@@ -3031,14 +3174,18 @@
    "doc": "spec",
    "ref": "§33.2",
    "unit": "Deterministic provider simulator covering 18 named conditions; every adapter passes one contract suite",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Asserts 18 conditions are selectable, but not their behavior coverage or that every adapter passes one shared contract suite. bullet",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/harness-sim/tests/sim_suite.rs",
     "symbol": "all_18_conditions_are_named_and_selectable"
-   },
-   "note": "Each harness-* offline suite runs the shared conformance checks"
+   }
   },
   {
    "id": "spec.s33.3.routing-benchmark",
@@ -3325,27 +3472,36 @@
    "doc": "spec",
    "ref": "E01",
    "unit": "IDs, canonical encoding, digests",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): The named test asserts RFC 8785 object-key ordering only; typed IDs and digest behavior are not asserted; bullet-farm/crates/bullet-",
+   "partial": {
     "kind": "test",
     "repo": "bullet-farm",
     "path": "crates/bullet-wire/tests/golden.rs",
     "symbol": "rfc8785_orders_object_keys"
-   },
-   "note": "Full-width typed ids: domain ids.rs every_authored_id_uses_its_frozen_full_width_prefix"
+   }
   },
   {
    "id": "spec.s35.e02",
    "doc": "spec",
    "ref": "E02",
    "unit": "Domain entities and transition types",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/tests/invariants.rs",
     "symbol": "attempt_follows_spec_main_path"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Exercises one Attempt transition path only; it does not substantiate the broader set of domain entities and transition types. bullet"
   },
   {
    "id": "spec.s35.e03",
@@ -3388,27 +3544,36 @@
    "doc": "spec",
    "ref": "E05",
    "unit": "Plan/Graph Delta materializer",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/materialization_atomicity.rs",
     "symbol": "sqlite_failure_boundaries_reopen_to_exactly_old_or_complete_next"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Proves atomic, replayable Plan materialization into a graph, but does not exercise Graph Delta application. bullet-kernel/crates/ada"
   },
   {
    "id": "spec.s35.e06",
    "doc": "spec",
    "ref": "E06",
    "unit": "Leases, fences, ready queue",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): The property checks lease single-writer behavior and increasing fences; it contains no assertion about ready-queue behavior. bullet-",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/application/tests/properties.rs",
     "symbol": "fences_are_unique_and_single_writer_holds"
-   },
-   "note": "queue.rs ready_then_claim_is_idempotent"
+   }
   },
   {
    "id": "spec.s35.e07",
@@ -3433,13 +3598,18 @@
    "doc": "spec",
    "ref": "E08",
    "unit": "Private clone and safe Git",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/clone_safety.rs",
     "symbol": "clone_has_no_remote_and_manifest_lives_outside_the_tree"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Checks private-clone remotes, base, branch, manifest, and nonce, but does not test SafeGit's hostile-environment controls. bullet-gi"
   },
   {
    "id": "spec.s35.e09",
@@ -3821,14 +3991,18 @@
    "doc": "spec",
    "ref": "§37",
    "unit": "Twenty explicit product refusals (worktrees, shared checkout, terminal liveness, self-review as proof, ...)",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Tests denial of worktree and tmux tokens only, not the claimed twenty distinct product refusals. bullet-kernel/crates/harness-core/s",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/harness-core/src/argv.rs",
     "symbol": "worktree_and_tmux_tokens_are_denied"
-   },
-   "note": "Also shared_workspace_is_refused, author_overlap_is_refused_before_any_work, dispatch_on_unknown_is_refused"
+   }
   },
   {
    "id": "spec.s38.implementation-complete",
@@ -3884,13 +4058,18 @@
    "doc": "spec",
    "ref": "A10",
    "unit": "Runtime observations are projections of the ledger, never co-equal authority",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "apps/bullet-farmd/tests/leases.rs",
     "symbol": "ready_is_a_read_only_watermarked_projection"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Shows /ready is a watermarked GET labeled as SQLite-ledger sourced, but does not prove observations can never become co-equal author"
   },
   {
    "id": "spec.s4.a2",
@@ -3928,39 +4107,54 @@
    "doc": "spec",
    "ref": "A4",
    "unit": "A stale Attempt cannot heartbeat, expand scope, attach Evidence, create Effects, finalize, push, or cancel a successor",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/tests/invariants.rs",
     "symbol": "attempt_operation_permissions_are_exhaustive"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Enumerates state permissions for heartbeat, cleanup, patching, and release, but not scope expansion, evidence, effects, finalize, pu"
   },
   {
    "id": "spec.s4.a5",
    "doc": "spec",
    "ref": "A5",
    "unit": "Plan Revision and Graph Delta materialization is atomic, content-addressed, and idempotent",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/materialization_atomicity.rs",
     "symbol": "sqlite_failure_boundaries_reopen_to_exactly_old_or_complete_next"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Proves atomic and idempotent Plan materialization, but not Graph Delta atomicity or content addressing. bullet-kernel/crates/adapter"
   },
   {
    "id": "spec.s4.a6",
    "doc": "spec",
    "ref": "A6",
    "unit": "Every acknowledged state-changing command is durably recorded and idempotent",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/command_ingress_atomicity.rs",
     "symbol": "public_command_and_dispatch_commit_or_rollback_together"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Proves durable atomic submission and idempotent replay for one public command path, not every state-changing command family. bullet-"
   },
   {
    "id": "spec.s4.a7",
@@ -3980,26 +4174,36 @@
    "doc": "spec",
    "ref": "A8",
    "unit": "Unknown or contradictory liveness cannot authorize destructive cleanup or reassignment",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/tests/invariants.rs",
     "symbol": "only_exact_preserved_value_constructs_cleanup_decision"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Unknown and contradictory preservation observations cannot authorize cleanup, but reassignment authority is not tested. bullet-kerne"
   },
   {
    "id": "spec.s4.a9",
    "doc": "spec",
    "ref": "A9",
    "unit": "Database time is authoritative for lease expiry; runner monotonic time self-fences earlier",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/runner/tests/stonith.rs",
     "symbol": "runner_deadline_precedes_server_expiry_for_every_admitted_ttl"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It proves the runner's monotonic deadline precedes a MemoryLedger lease window, not that database time is authoritative; bullet-kern"
   },
   {
    "id": "spec.s4.c1",
@@ -4075,14 +4279,18 @@
    "doc": "spec",
    "ref": "C4",
    "unit": "A model may request escalation but cannot lower its own risk, quality floor, evidence requirement, or permissions",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Refuses a command-shaped model gate and a tampered receipt, but does not test escalation or attempts to lower risk, quality, evidenc",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/harness-core/tests/provider_admission.rs",
     "symbol": "receipt_tampering_and_command_shaped_model_gates_are_refused"
-   },
-   "note": "Provider output is a typed proposal only (ADR 0001); gate ids and policy are never model-supplied"
+   }
   },
   {
    "id": "spec.s4.c5",
@@ -4188,13 +4396,18 @@
    "doc": "spec",
    "ref": "E2",
    "unit": "Evidence is exact-subject and exact-environment bound",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/verifier/tests/clean_room.rs",
     "symbol": "pass_produces_e2_evidence_with_exact_subject"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Asserts exact base/head/tree, but only checks that environment contains a git key—not exact environment values or identity. clean_ro"
   },
   {
    "id": "spec.s4.e3",
@@ -4214,65 +4427,90 @@
    "doc": "spec",
    "ref": "E4",
    "unit": "Only policy-approved typed PASS satisfies a blocking gate",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/src/gates.rs",
     "symbol": "typed_evidence_round_trips_and_pass_only_satisfies"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Checks typed PASS satisfies and NOT_RUN does not; it exercises neither policy approval nor a blocking gate. gates.rs:398"
   },
   {
    "id": "spec.s4.e5",
    "doc": "spec",
    "ref": "E5",
    "unit": "Evidence invalidates when its subject or conservative input closure changes",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/verifier/src/evidence.rs",
     "symbol": "subject_change_invalidates_prior_pass"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It invalidates a prior pass when the Candidate subject changes, but does not test conservative input-closure changes; bullet-kernel/"
   },
   {
    "id": "spec.s4.e6",
    "doc": "spec",
    "ref": "E6",
    "unit": "Every privileged external mutation has a prior durable Effect Intent",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/effects.rs",
     "symbol": "effect_rows_survive_reopen_with_state_and_retries"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Persists an intent and receipt through reopen, but performs no external mutation and asserts no intent-before-mutation ordering. eff"
   },
   {
    "id": "spec.s4.e7",
    "doc": "spec",
    "ref": "E7",
    "unit": "Every dispatched Effect is reconciled into a verified Receipt or explicit uncertainty state",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/effects/tests/reconcile.rs",
     "symbol": "lost_response_after_push_is_unknown_then_adopted"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Covers one lost-response push reconciled to an adopted receipt, not every dispatched effect or uncertainty outcome. reconcile.rs:33"
   },
   {
    "id": "spec.s4.e8",
    "doc": "spec",
    "ref": "E8",
    "unit": "OUTCOME_UNKNOWN is resolved before replay unless non-execution or safe idempotence is proven",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/effects/tests/reconcile.rs",
     "symbol": "dispatch_on_unknown_is_refused_as_retry_without_reconcile"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Refuses a second dispatch while UNKNOWN, but does not prove replay exceptions require non-execution or safe idempotence. reconcile.r"
   },
   {
    "id": "spec.s4.e9",
@@ -4425,14 +4663,18 @@
    "doc": "spec",
    "ref": "S1",
    "unit": "Structured events are authoritative when available; PTY text is compatibility evidence only",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Admits one structured transcript and proposal; never compares structured events with PTY text or establishes authority precedence. o",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/harness-codex/tests/offline.rs",
     "symbol": "stable_correlated_lifecycle_yields_only_exact_admitted_proposal"
-   },
-   "note": "PTY plane itself is superseded by ADR 0001; only structured transcripts exist"
+   }
   },
   {
    "id": "spec.s4.s10",
@@ -4501,13 +4743,18 @@
    "doc": "spec",
    "ref": "S5",
    "unit": "Every process tree is owned by one runner session and terminable as a unit",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/harness-core/src/spawnrun.rs",
     "symbol": "provider_crash_is_nonzero_and_descendants_are_killed"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Kills one shell descendant after provider exit; no runner-session ownership binding or general process-tree lifecycle is asserted. s"
   },
   {
    "id": "spec.s4.s6",
@@ -4543,13 +4790,18 @@
    "doc": "spec",
    "ref": "S8",
    "unit": "Destructive behavior rules fail closed when state observation is unknown",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/tests/invariants.rs",
     "symbol": "preservation_decision_rejects_every_stale_subject_and_state"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): The anchored test rejects stale subjects and nonterminal states, but it does not present an UNKNOWN observation; bullet-kernel/crate"
   },
   {
    "id": "spec.s4.s9",
@@ -4604,26 +4856,36 @@
    "doc": "spec",
    "ref": "W10",
    "unit": "Hostile Git hooks, filters, credential helpers, includes, protocols, drivers, submodules are controlled by runner policy",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/real_repository.rs",
     "symbol": "hostile_hooks_and_home_config_never_execute"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It controls hooks and hostile HOME/include configuration, but not filters, credential helpers, protocols, drivers, or submodules; bu"
   },
   {
    "id": "spec.s4.w2",
    "doc": "spec",
    "ref": "W2",
    "unit": "Writable Attempts never use Git worktrees",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-gitd/src/lib.rs",
     "symbol": "worktree_writes_are_blocked"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Marks only the in-memory fake as a worktree and rejects its write; no real writable Attempt creation is exercised. lib.rs:450"
   },
   {
    "id": "spec.s4.w3",
@@ -4643,27 +4905,36 @@
    "doc": "spec",
    "ref": "W4",
    "unit": "Every actual delivered write is covered by a granted Change Intent",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/real_repository.rs",
     "symbol": "out_of_scope_patch_is_refused_naming_the_path_and_tree_untouched"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): An out-of-scope batch is refused with an untouched tree, but the test does not bind all delivered writes to a granted Change Intent;"
   },
   {
    "id": "spec.s4.w5",
    "doc": "spec",
    "ref": "W5",
    "unit": "Out-of-scope writes pause execution before further mutation",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): The in-memory fake rejects a mixed-scope batch and stays empty, but no production Attempt pause or further-execution barrier is test",
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-gitd/src/lib.rs",
     "symbol": "out_of_scope_patch_leaves_tree_untouched"
-   },
-   "note": "ADR 0001: provider is read-only; BulletGit refuses the whole proposal before any tree mutation"
+   }
   },
   {
    "id": "spec.s4.w6",
@@ -4688,26 +4959,36 @@
    "doc": "spec",
    "ref": "W7",
    "unit": "Candidate preparation requires a classified, clean workspace manifest",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/real_repository.rs",
     "symbol": "unclassified_untracked_file_outside_scope_blocks_prepare"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Only one unclassified untracked file blocks prepare; classified-manifest validity and other dirty states are not asserted. real_repo"
   },
   {
    "id": "spec.s4.w8",
    "doc": "spec",
    "ref": "W8",
    "unit": "No cleanup may delete a workspace until preservation is verified and a deletion receipt is recorded",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/preservation_authority.rs",
     "symbol": "sealed_receipt_preserves_salvage_state_before_exact_cleanup"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Happy path preserves, deletes and writes a tombstone; it does not prove deletion cannot occur when receipt persistence fails. preser"
   },
   {
    "id": "spec.s4.w9",
@@ -5271,41 +5552,54 @@
    "doc": "spec",
    "ref": "§44.3",
    "unit": "Runner partition: self-fence, freeze, terminate children, server expiry, salvage, successor fence",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Covers fence-1 expiry, freeze, salvage and adapter termination; successor fencing and process-child termination are not in this test",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/runner/src/attempt/simulation_tests/orchestration.rs",
     "symbol": "stale_heartbeat_after_clone_salvages_terminates_and_never_applies"
-   },
-   "note": "heartbeat_failure_kills_the_process_group; lease_reaper reclaims exactly once"
+   }
   },
   {
    "id": "spec.s44.4.ambiguous-push",
    "doc": "spec",
    "ref": "§44.4",
    "unit": "Ambiguous push: UNKNOWN, query remote, compare OIDs, adopt if matching, retry only on proven non-execution",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Covers after-push UNKNOWN becoming adopted; it does not test retry only after proven non-execution or safe idempotence. reconcile.rs",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/effects/tests/reconcile.rs",
     "symbol": "lost_response_after_push_is_unknown_then_adopted"
-   },
-   "note": "Proven on LocalBareForge/Jeryu port, not GitHub"
+   }
   },
   {
    "id": "spec.s44.5.cleanup-uncertainty",
    "doc": "spec",
    "ref": "§44.5",
    "unit": "Cleanup uncertainty: verify nonce, inspect state, deny on UNKNOWN, delete, verify absence, tombstone",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/preservation_authority.rs",
     "symbol": "post_delete_tombstone_failure_is_unknown_and_preservation_survives"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Only tombstone failure after deletion yields UNKNOWN with salvage; nonce checks, pre-delete denial and absence verification are unte"
   },
   {
    "id": "spec.s44.6.database-failover",
@@ -5459,40 +5753,54 @@
    "doc": "spec",
    "ref": "§48.2",
    "unit": "Browser stores snapshots with as_of_sequence, pending commands by command_id, SSE cursor; never secrets",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W6"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It rejects mismatched snapshot sequences, but does not test stored snapshots, pending command IDs, SSE cursor, or secret absence; bu",
+   "partial": {
     "kind": "test",
     "repo": "bullet-portal",
     "path": "src/pages/ProjectedSurface.test.tsx",
     "symbol": "refuses to combine projection snapshots from different sequences"
-   },
-   "note": "ControlTower clears stale local session material after a definitive refusal"
+   }
   },
   {
    "id": "spec.s48.3.event-ingestion",
    "doc": "spec",
    "ref": "§48.3",
    "unit": "Snapshot then SSE after sequence; dedupe, monotonic, gap detection, pause, replay, resume; lag visible",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W6"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-portal",
     "path": "src/sse.test.ts",
     "symbol": "rebases an open stream after snapshot recovery before acknowledging more events"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Covers gap recovery, cancellation and reconnect from a snapshot cursor; no dedupe, monotonic rejection or lag visibility. sse.test.t"
   },
   {
    "id": "spec.s48.4.command-ux",
    "doc": "spec",
    "ref": "§48.4",
    "unit": "Mutations render pending until CommandCompleted or refreshed state; failed/unknown stay visible",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W6"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-portal",
     "path": "src/pages/ControlTower.test.tsx",
     "symbol": "shows APPLIED as non-green until the exact command becomes VERIFIED"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Asserts APPLIED stays pending then VERIFIED turns green; FAILED and UNKNOWN visibility occur only in separate tests. ControlTower.te"
   },
   {
    "id": "spec.s48.5.graph-rendering",
@@ -5579,14 +5887,18 @@
    "doc": "spec",
    "ref": "§49.1",
    "unit": "Forward-only checksummed ordered migrations; no ambient CLI migrates; restore-based rollback",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Checksum changes with version, name and SQL only; ordering, forward-only execution, ambient CLI prohibition and restore rollback are",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/src/sqlite/migrations/tests.rs",
     "symbol": "checksum_binds_domain_version_name_and_sql"
-   },
-   "note": "legacy_schema_without_metadata_is_refused_without_mutation"
+   }
   },
   {
    "id": "spec.s49.2.configuration-generations",
@@ -5662,14 +5974,18 @@
    "doc": "spec",
    "ref": "§49.7",
    "unit": "Versioned /v1, additive changes, generated clients, explicit deprecation, event payload versions",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Proves typed retirement and inertness of legacy /v1; not additive compatibility, generated clients or event-payload versioning. real",
+   "partial": {
     "kind": "test",
     "repo": "bullet-portal",
     "path": "e2e/real-farmd.spec.ts",
     "symbol": "legacy operator routes are typed retired and a valid command remains inert"
-   },
-   "note": "/api/v1 current; legacy /v1 returns typed API_VERSION_RETIRED without mutation"
+   }
   },
   {
    "id": "spec.s49.8.backup-restore",
@@ -5712,13 +6028,18 @@
    "doc": "spec",
    "ref": "§5.2",
    "unit": "Modular Rust monolith control plane; runner, verifier, and broker are separate processes as trust boundaries",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W11"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "apps/bullet-verifier/tests/bin.rs",
     "symbol": "stdin_round_trip_emits_typed_e2_record"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Exercises the verifier executable's stdin/output only; it proves neither monolith modularity nor separate runner and broker boundari"
   },
   {
    "id": "spec.s5.3.enterprise-mode",
@@ -5872,14 +6193,18 @@
    "doc": "spec",
    "ref": "§51.5",
    "unit": "Common contract carries capability, limits, transport, freshness, confidence, version, fallback; no flattening",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W10"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Only refuses UNKNOWN/UNSUPPORTED capabilities; limits, transport, freshness, confidence, version, fallback and anti-flattening are u",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/harness-core/src/capability.rs",
     "symbol": "dispatch_refuses_unknown_and_unsupported"
-   },
-   "note": "capability_count_is_24; probe facts, not provider assumptions"
+   }
   },
   {
    "id": "spec.s52.gastown-crosswalk",
@@ -5978,39 +6303,54 @@
    "doc": "spec",
    "ref": "§6.13",
    "unit": "Immutable Candidate identity; a rebase creates a new Candidate and stales descendants' Evidence",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W2"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-types/tests/properties.rs",
     "symbol": "rebase_family_invalidates_and_repair_does_not"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Only classifies rewrite kinds as evidence-invalidating; it creates no rebased Candidate and stales no descendant Evidence. propertie"
   },
   {
    "id": "spec.s6.14.evidence",
    "doc": "spec",
    "ref": "§6.14",
    "unit": "Immutable Evidence claim bound to subject, tier, kind, producer, environment, validity",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W2"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/src/gates.rs",
     "symbol": "typed_evidence_round_trips_and_pass_only_satisfies"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Constructs Evidence with candidate, tier, producer and PASS; no kind, environment or validity binding is asserted. gates.rs:398"
   },
   {
    "id": "spec.s6.15.effect",
    "doc": "spec",
    "ref": "§6.15",
    "unit": "Effect Intent with logical key, preconditions, idempotency key; Receipt with observed remote state",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W2"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/effects/tests/broker.rs",
     "symbol": "divergent_payload_under_same_key_is_typed_conflict"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Only detects divergent payload under one idempotency key; preconditions and Receipt observed-remote-state fields are not asserted. b"
   },
   {
    "id": "spec.s6.16.intervention",
@@ -6045,26 +6385,36 @@
    "doc": "spec",
    "ref": "§6.3",
    "unit": "Plan Revision immutable and content-addressed; materialize(plan_hash) is one atomic idempotent transaction",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W2"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/application/tests/materialization_atomicity.rs",
     "symbol": "every_memory_failure_boundary_is_exactly_old_or_complete_next"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Strongly checks in-memory atomicity and replay, but not plan content addressing, immutability or materialize(plan_hash). materializa"
   },
   {
    "id": "spec.s6.4.graph-delta",
    "doc": "spec",
    "ref": "§6.4",
    "unit": "Graph Delta is a new immutable delta applied atomically or not at all",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W2"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/application/tests/graph_delta_atomicity.rs",
     "symbol": "delta_is_atomic_and_idempotent"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Checks successful apply/replay and stale conflict; immutable delta identity and injected all-or-nothing failure boundaries are not t"
   },
   {
    "id": "spec.s6.5.work-package",
@@ -6274,26 +6624,36 @@
    "doc": "spec",
    "ref": "§8.3",
    "unit": "Adapters default UNSUPPORTED until conformance proves each capability; UNKNOWN is never dispatched",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W10"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/harness-core/src/capability.rs",
     "symbol": "dispatch_refuses_unknown_and_unsupported"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Proves UNKNOWN and UNSUPPORTED are not dispatched; the anchor does not assert default state or conformance-only promotion. capabilit"
   },
   {
    "id": "spec.s8.4.harness-adapter-trait",
    "doc": "spec",
    "ref": "§8.4",
    "unit": "HarnessAdapter trait: probe, models, quota, login, start, resume, send, steer, approve, compact, interrupt",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W10"
+   },
+   "partial": {
     "kind": "symbol",
     "repo": "bullet-kernel",
     "path": "crates/harness-core/src/adapter.rs",
     "symbol": "HarnessAdapter"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): The trait declares the named method signatures, but a type definition proves no adapter implements or honors the contract. adapter.r"
   },
   {
    "id": "spec.s8.5.antigravity",
@@ -6371,13 +6731,18 @@
    "doc": "spec",
    "ref": "§8.6",
    "unit": "After start/resume the adapter probes the effective profile; mismatch fails closed",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W10"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/harness-core/src/probe.rs",
     "symbol": "mismatch_fails_closed_with_profile_mismatch"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Directly verifies one ProbeResult mismatch; it does not run start/resume or prove post-operation effective-profile probing. probe.rs"
   },
   {
    "id": "spec.s9.1.tier-model",
@@ -6509,39 +6874,54 @@
    "doc": "git_role",
    "ref": "capability API",
    "unit": "Operation: apply validated PatchProposal against exact checkpoint preimages",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/real_repository.rs",
     "symbol": "apply_proposal_publishes_only_after_exact_checkpoint_and_preimages_match"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Applies one valid exact proposal successfully; this named test never refuses a mismatched checkpoint or preimage. real_repository.rs"
   },
   {
    "id": "git_role.api.checkpoint",
    "doc": "git_role",
    "ref": "capability API",
    "unit": "Operation: checkpoint binding the exact tree and journal range",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-journal/src/lib.rs",
     "symbol": "checkpoint_identity_binds_the_exact_git_tree"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Varies the Git tree and observes checkpoint ID/digest changes, but does not vary or assert binding of the journal range. lib.rs:234"
   },
   {
    "id": "git_role.api.prepare-candidate",
    "doc": "git_role",
    "ref": "capability API",
    "unit": "Operation: prepare an exact immutable Candidate with strict provenance",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/real_repository.rs",
     "symbol": "full_lifecycle_produces_exact_candidate"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It prepares a Candidate and checks base, head, tree, scope, and Attempt, but does not assert immutability or complete strict provena"
   },
   {
    "id": "git_role.api.query-proof",
@@ -6561,14 +6941,18 @@
    "doc": "git_role",
    "ref": "capability API",
    "unit": "Operation: read object/tree through the daemon",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (DISAGREE): The test invokes clone, apply_change and checkpoint only; it never calls read_tree or read_object through the daemon. fixture_autho",
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-gitd/tests/fixture_authority.rs",
     "symbol": "fixture_daemon_clones_applies_and_checkpoints"
-   },
-   "note": "Served as read_tree."
+   }
   },
   {
    "id": "git_role.api.read-symbol",
@@ -6646,13 +7030,18 @@
    "doc": "git_role",
    "ref": "#1",
    "unit": "Stable Change ID plus Candidate evolution graph; ChangeId never authorizes integration",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W2"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-types/src/change.rs",
     "symbol": "every_manifest_field_is_candidate_sensitive"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Shows CandidateId sensitivity to manifest fields only; no stable ChangeId evolution graph or integration-authorization denial is tes"
   },
   {
    "id": "git_role.f10.semantic-merge",
@@ -6813,13 +7202,18 @@
    "doc": "git_role",
    "ref": "#2",
    "unit": "One Merkle root binds candidate, scope, environment, evidence, reviews, policy, approvals, receipts",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-gitd/tests/proof_root_rpc.rs",
     "symbol": "verify_proof_root_refuses_a_tampered_leaf"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): The root receives all named inputs, but the test perturbs only the evidence leaf, so binding of every listed leaf is unproved; bulle"
   },
   {
    "id": "git_role.f20.cross-repo-saga",
@@ -6843,26 +7237,36 @@
    "doc": "git_role",
    "ref": "#3",
    "unit": "Every repository call validates the current authority token and fence",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W3"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-gitd/src/lib.rs",
     "symbol": "wrong_fence_token_is_stale"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): One read_tree call rejects a wrong fence; the test does not cover every repository call or all token fields; bullet-git/crates/bulle"
   },
   {
    "id": "git_role.f4.journal-checkpoints",
    "doc": "git_role",
    "ref": "#4",
    "unit": "Durable workspace journal with first-class immutable checkpoints",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-journal/tests/durable.rs",
     "symbol": "batch_is_one_immutable_file_and_recovers_exactly"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Shows one journal batch survives reopen with the same checkpoint; it does not attempt mutation of a batch or checkpoint. durable.rs:"
   },
   {
    "id": "git_role.f5.variant-selection-dag",
@@ -6886,13 +7290,18 @@
    "doc": "git_role",
    "ref": "#6",
    "unit": "History-rewriting operations emit typed Candidate transitions that invalidate proof by default",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W5"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-types/tests/properties.rs",
     "symbol": "rebase_family_invalidates_and_repair_does_not"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Only maps rewrite enum kinds to invalidates_evidence; no typed Candidate successor transition is emitted. properties.rs:32"
   },
   {
    "id": "git_role.f7.evidence-dependency-graph",
@@ -6951,13 +7360,18 @@
    "doc": "git_role",
    "ref": "Phase 1",
    "unit": "ChangeId/CandidateId, gitd API, journal, evolution edges and proof root built together",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W4"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/real_repository.rs",
     "symbol": "full_lifecycle_produces_exact_candidate"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Direct repository lifecycle covers read, apply, checkpoint and Candidate; no gitd API, evolution edge or proof-root operation. real_"
   },
   {
    "id": "git_role.phase2.authority",
@@ -7011,14 +7425,18 @@
    "doc": "git_role",
    "ref": "#2 ProofRoot",
    "unit": "ProofRoot binds candidate plus eight caller-supplied leaves; gitd bind_proof calls ProofRoot::bind",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Maps a legacy four-blob computation to a bind with four empty leaves; it proves neither eight supplied leaves nor the daemon call. p",
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-types/tests/proof_root.rs",
     "symbol": "proof_root_compute_maps_historical_blobs_onto_the_eight_leaf_bind"
-   },
-   "note": "ProofInputs has 8 leaves; daemon.rs calls ProofRoot::bind."
+   }
   },
   {
    "id": "git_role.refusals.twelve",
@@ -7079,13 +7497,18 @@
    "doc": "git_role",
    "ref": "§2",
    "unit": "Stable ChangeId for intent and exact CandidateId per revision, held in BulletGit's own graph",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-types/src/ids.rs",
     "symbol": "candidate_and_content_ids_are_distinct_digest_addresses"
-   }
+   },
+   "note": "audit 2026-08-26 (DISAGREE): Compares CandidateId with ContentId prefixes only; it never creates or checks a ChangeId or an evolution graph. ids.rs:315"
   },
   {
    "id": "git_role.s3.capability-service",
@@ -7331,13 +7754,18 @@
    "doc": "gastown",
    "ref": "E2",
    "unit": "Private-clone runner and hostile Git boundary",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/gc_safety.rs",
     "symbol": "mirror_gc_prune_and_deletion_after_clone_never_corrupt_private_clones"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Exercises hostile mirror GC, prune, deletion, and clone integrity, but not runner isolation or the broader hostile-Git boundary. bul"
   },
   {
    "id": "gastown.e3",
@@ -7471,26 +7899,36 @@
    "doc": "gastown",
    "ref": "11-pt #10",
    "unit": "No cleanup occurs until preservation/integration postconditions are verified",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W8"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/preservation_authority.rs",
     "symbol": "forged_stale_or_mutated_subject_receipts_never_clean"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Forged, stale, or changed preservation receipts retain the workspace; integration postconditions are not exercised. bullet-git/crate"
   },
   {
    "id": "gastown.milestone.11",
    "doc": "gastown",
    "ref": "11-pt #11",
    "unit": "The portal reports every uncertainty, lag and contradiction honestly",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W8"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-portal",
     "path": "src/pages/FleetPage.test.tsx",
     "symbol": "renders lease rows with store-clock liveness and linkage contradictions spelled out"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): One Fleet case spells out expiry and a missing-attempt contradiction, but does not cover lag or every portal uncertainty. bullet-por"
   },
   {
    "id": "gastown.milestone.2",
@@ -7510,65 +7948,90 @@
    "doc": "gastown",
    "ref": "11-pt #3",
    "unit": "A stale duplicate cannot alter state or create an Effect",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W8"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/effects/tests/broker.rs",
     "symbol": "superseded_fence_cannot_authorize"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): A stale fence cannot authorize an already-proposed Effect and its state stays Proposed; stale Effect creation is not tested. bullet-"
   },
   {
    "id": "gastown.milestone.4",
    "doc": "gastown",
    "ref": "11-pt #4",
    "unit": "Useful work survives process death",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W8"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/runner/src/attempt/simulation_tests/orchestration.rs",
     "symbol": "stale_heartbeat_after_clone_salvages_terminates_and_never_applies"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Proves cooperative salvage after lease expiry while the runner task remains alive, not survival across process death. bullet-kernel/"
   },
   {
    "id": "gastown.milestone.5",
    "doc": "gastown",
    "ref": "11-pt #5",
    "unit": "No other worker or maintenance process can mutate its clone",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W8"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/gc_safety.rs",
     "symbol": "gc_loop_concurrent_with_clone_creation_and_workspace_commits_corrupts_nothing"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): A GC thread mutates only the mirror and clones remain intact; it never attempts or prevents another worker from mutating a clone. bu"
   },
   {
    "id": "gastown.milestone.6",
    "doc": "gastown",
    "ref": "11-pt #6",
    "unit": "A Candidate has exact lineage and scope",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W8"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/real_repository.rs",
     "symbol": "full_lifecycle_produces_exact_candidate"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Checks base, head, tree shape, producing attempt, and scope inclusion, but not exact scope equality or complete lineage. bullet-git/"
   },
   {
    "id": "gastown.milestone.7",
    "doc": "gastown",
    "ref": "11-pt #7",
    "unit": "Failed reads remain UNKNOWN",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W8"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/authority.rs",
     "symbol": "unavailable_authority_table_never_authorizes"
-   }
+   },
+   "note": "audit 2026-08-26 (DISAGREE): Dropping the authority table makes ledger open fail with UNSUPPORTED_SCHEMA; no failed read is represented as UNKNOWN; bullet-kerne"
   },
   {
    "id": "gastown.milestone.8",
@@ -7624,39 +8087,54 @@
    "doc": "gastown",
    "ref": "R10",
    "unit": "Probe results are VALUE, EMPTY, UNKNOWN or CONTRADICTORY; failures never serialize as empty or pass",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/tests/invariants.rs",
     "symbol": "observation_kinds_do_not_grant_generic_destruction_authority"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Checks only UNKNOWN is unverified and VALUE is verified; EMPTY, CONTRADICTORY, failure serialization, and pass confusion are absent."
   },
   {
    "id": "gastown.r11",
    "doc": "gastown",
    "ref": "R11",
    "unit": "UNKNOWN or CONTRADICTORY cannot authorize deletion, reassignment, merge, rotation or remote mutation",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/effects/tests/reconcile.rs",
     "symbol": "dispatch_on_unknown_is_refused_as_retry_without_reconcile"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Refuses blind redispatch of one OUTCOME_UNKNOWN remote push; CONTRADICTORY and deletion, reassignment, merge, and rotation are untes"
   },
   {
    "id": "gastown.r12",
    "doc": "gastown",
    "ref": "R12",
    "unit": "No command reports success before its durable transition and external postconditions are verified",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/application/tests/command_integrity.rs",
     "symbol": "offline_worker_is_atomic_idempotent_and_never_green"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): One offline worker rolls back and ends UNKNOWN/FAILED; it does not cover every command or external postconditions; bullet-kernel/cra"
   },
   {
    "id": "gastown.r13",
@@ -7676,13 +8154,18 @@
    "doc": "gastown",
    "ref": "R14",
    "unit": "Every external mutation has durable Effect Intent, idempotency key, target, desired-state hash, fence, receipt",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/effects/tests/broker.rs",
     "symbol": "divergent_payload_under_same_key_is_typed_conflict"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Only proves divergent payload reuse of one idempotency key conflicts; it does not assert all required intent fields, durability, or "
   },
   {
    "id": "gastown.r15",
@@ -7737,13 +8220,18 @@
    "doc": "gastown",
    "ref": "R18",
    "unit": "Any Candidate mutation, rebase, retarget or head change invalidates incompatible evidence and review",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-types/src/lineage.rs",
     "symbol": "rebase_invalidates_predecessor_evidence"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): A Rebase edge invalidates its predecessor; mutation, retarget, head change, incompatible-evidence selection, and review invalidation"
   },
   {
    "id": "gastown.r19",
@@ -7767,26 +8255,36 @@
    "doc": "gastown",
    "ref": "R2",
    "unit": "Fence counters monotonic, independent of leases, never reused",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/chaos.rs",
     "symbol": "stale_delta_cannot_rewind_successor_fence"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Shows one successor fence increases and one crafted rewind is rejected, but not lease independence or general never-reuse. bullet-ke"
   },
   {
    "id": "gastown.r20",
    "doc": "gastown",
    "ref": "R20",
    "unit": "Completion is distinct from session exit, task closure, push, PR creation, queue entry or check start",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/tests/invariants.rs",
     "symbol": "work_package_does_not_complete_from_executing"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It blocks Executing-to-Integrated/Survived jumps, but does not exercise session exit, closure, push, PR, queue, or check-start signa"
   },
   {
    "id": "gastown.r21",
@@ -7854,13 +8352,18 @@
    "doc": "gastown",
    "ref": "R25",
    "unit": "Plans/workflow graphs are immutable, content-addressed, atomic, idempotent; partial materialization unrepresentable",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/application/tests/graph_delta_atomicity.rs",
     "symbol": "delta_is_atomic_and_idempotent"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It proves one graph delta is atomic and idempotent, not immutable/content-addressed plans or unrepresentable partial materialization"
   },
   {
    "id": "gastown.r26",
@@ -7938,13 +8441,18 @@
    "doc": "gastown",
    "ref": "R3",
    "unit": "No destructive action targets a name, cwd, prefix, branch, socket, PID or path without exact identity",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/tests/invariants.rs",
     "symbol": "only_exact_preserved_value_constructs_cleanup_decision"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Exact preservation evidence gates workspace cleanup, but other destructive actions and unsafe name, cwd, prefix, branch, socket, PID"
   },
   {
    "id": "gastown.r30",
@@ -8043,26 +8551,36 @@
    "doc": "gastown",
    "ref": "R36",
    "unit": "Portal status carries as_of_sequence, projected_at, lag, source health, exact IDs, confidence",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-portal",
     "path": "src/components/ProjectionCard.test.tsx",
     "symbol": "renders a published value with as_of, source, observed_at, and freshness"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Renders sequence, source, observed time, freshness, and projection state; projected_at, lag, exact IDs, and confidence are missing. "
   },
   {
    "id": "gastown.r37",
    "doc": "gastown",
    "ref": "R37",
    "unit": "Provider lifecycle prefers structured protocol; PTY/ConPTY is compatibility and forensic only",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/harness-core/tests/provider_admission.rs",
     "symbol": "runtime_protocol_and_capabilities_are_probe_facts_not_provider_assumptions"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Treats protocol and capabilities as probe facts and blocks nonconformance, but never tests structured-over-PTY preference or forensi"
   },
   {
    "id": "gastown.r38",
@@ -8086,13 +8604,18 @@
    "doc": "gastown",
    "ref": "R4",
    "unit": "A stale Attempt cannot heartbeat, checkpoint, attach evidence, create effects, finalize or clean a successor",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/domain/tests/invariants.rs",
     "symbol": "stale_token_cannot_authorize"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Only verifies token rejection for mismatched attempt ID or fence; heartbeat, checkpoint, evidence, effects, finalization, and cleanu"
   },
   {
    "id": "gastown.r5",
@@ -8117,39 +8640,54 @@
    "doc": "gastown",
    "ref": "R6",
    "unit": "Private writable clone per Attempt; no shared worktree, .git, index, refs, caches or overlays",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/mirror_clone.rs",
     "symbol": "clone_goes_through_a_dissociated_mirror"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Proves no object alternates or remotes remain and records copy mode; it does not prove per-Attempt isolation of .git, index, refs, c"
   },
   {
    "id": "gastown.r7",
    "doc": "gastown",
    "ref": "R7",
    "unit": "No maintenance worker stages or commits inside a live writer clone",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/real_repository.rs",
     "symbol": "sequencer_state_blocks_checkpoint_and_prepare"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): MERGE_HEAD blocks checkpoint/prepare, but no maintenance worker staging or commit in a live writer clone is exercised; bullet-git/cr"
   },
   {
    "id": "gastown.r8",
    "doc": "gastown",
    "ref": "R8",
    "unit": "Destructive workspace action requires verified preservation or explicit abandonment record",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/preservation_authority.rs",
     "symbol": "sealed_receipt_preserves_salvage_state_before_exact_cleanup"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It demonstrates sealed preservation before exact cleanup, but not explicit abandonment or universal refusal without either authority"
   },
   {
    "id": "gastown.r9",
@@ -8374,13 +8912,18 @@
    "doc": "gastown",
    "ref": "§3.2 A",
    "unit": "Models propose; kernel owns permissions, identity, postconditions, evidence, destruction",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "apps/bullet/tests/transaction_demo.rs",
     "symbol": "painted_success_and_stale_pass_cannot_be_signed"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Signing rejects painted command verification and a missing stale refusal, but does not establish kernel ownership of all permissions"
   },
   {
    "id": "gastown.s3.2.b.acknowledged-start",
@@ -8427,26 +8970,36 @@
    "doc": "gastown",
    "ref": "§3.2 E",
    "unit": "Private clone per Attempt is an authority boundary; no writable worktrees",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/real_repository.rs",
     "symbol": "worktree_shaped_directory_is_refused"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Apply and checkpoint reject a worktree-shaped .git file; private-clone-per-Attempt construction and the full authority boundary are "
   },
   {
    "id": "gastown.s3.2.f.trusted-finalization",
    "doc": "gastown",
    "ref": "§3.2 F",
    "unit": "Candidate preparation and finalization live in trusted runner/effect services",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/runner/src/gitd.rs",
     "symbol": "missing_candidate_bindings_are_refused_instead_of_synthesized"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): A runner helper refuses missing candidate bindings, but the test does not prove preparation and finalization ownership across truste"
   },
   {
    "id": "gastown.s3.2.g.one-message-substrate",
@@ -8464,13 +9017,18 @@
    "doc": "gastown",
    "ref": "§3.2 H",
    "unit": "Push-not-scrape, structured, correlated, fail-closed-unknown provider integration",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/harness-core/tests/provider_admission.rs",
     "symbol": "malformed_duplicate_delayed_and_crashed_streams_never_conform"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Malformed, duplicate, delayed, crashed, and failed structured streams fail closed; push-not-scrape transport and UNKNOWN handling ar"
   },
   {
    "id": "gastown.s3.2.i.survival-routing",
@@ -8512,26 +9070,36 @@
    "doc": "nightshift",
    "ref": "What Nightshift does well",
    "unit": "Generated static handoff artifact for the morning after an unattended shift",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W6"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-farm",
     "path": "tests/release_truth.rs",
     "symbol": "portable_report_matches_the_golden_page_from_a_hub_only_checkout"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Proves deterministic generation of a portable golden Markdown report, not production after an unattended shift or its morning-handof"
   },
   {
    "id": "nightshift.principle.claim-first",
    "doc": "nightshift",
    "ref": "Final judgment",
    "unit": "Display the exact claim that remains unproved, not work remaining",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W6"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-farm",
     "path": "src/check/truth/rows.rs",
     "symbol": "unreceipted_claims_never_read_as_closed"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Ensures unreceipted row text is nonempty and avoids closed-state words, but not that the displayed item is the exact remaining unpro"
   },
   {
    "id": "nightshift.shift-brief.default-screen",
@@ -8590,13 +9158,18 @@
    "doc": "nightshift",
    "ref": "Weakness 1",
    "unit": "Every section carries as_of, source, scope, freshness and projection status",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W6"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-portal",
     "path": "src/components/ProjectionCard.test.tsx",
     "symbol": "renders a published value with as_of, source, observed_at, and freshness"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): One card renders as-of, source, observed time, freshness, and projection state; it omits scope and does not cover every section. bul"
   },
   {
    "id": "nightshift.w2.gate-vs-readiness",
@@ -8673,13 +9246,18 @@
    "doc": "potential",
    "ref": "A2",
    "unit": "Clones use --reference --dissociate or reflink so mirror GC never corrupts a workspace",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/mirror_clone.rs",
     "symbol": "clone_goes_through_a_dissociated_mirror"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Asserts no alternates survive and copy mode is reflink or fallback, but neither the reference/dissociate invocation nor post-GC inte"
   },
   {
    "id": "potential.a3.blind-review-normalization",
@@ -8748,13 +9326,18 @@
    "doc": "potential",
    "ref": "A7",
    "unit": "Runner self-kills at LeaseDuration minus Grace, strictly before server expiry",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/runner/tests/stonith.rs",
     "symbol": "runner_deadline_precedes_server_expiry_for_every_admitted_ttl"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): For every admitted TTL, deadline arithmetic and mocked expiry are strictly before server expiry; actual runner self-termination is n"
   },
   {
    "id": "potential.a8.forecast-not-lock",
@@ -8877,13 +9460,18 @@
    "doc": "potential",
    "ref": "C5",
    "unit": "Four-valued liveness; UNKNOWN/CONTRADICTORY fail closed with fence-mediated exit",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/runner/src/heartbeat.rs",
     "symbol": "self_kill_fires_on_the_mocked_clock_even_when_beats_succeed"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Proves a mocked deadline triggers self-kill despite successful beats; it does not exercise four-valued liveness, UNKNOWN/CONTRADICTO"
   },
   {
    "id": "potential.c6.probe-reservation",
@@ -8919,13 +9507,18 @@
    "doc": "potential",
    "ref": "C7",
    "unit": "Exactly two protocols model-checked: lease/fence/reclaim and effect idempotency under ambiguity",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-farm",
     "path": "crates/bullet-wire/tests/formal_traces.rs",
     "symbol": "effect_check_traces_replay_ambiguity_and_orphaning"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It replays EffectCheck ambiguity/orphaning traces only; it does not assert the lease/fence/reclaim model or that exactly two protoco"
   },
   {
    "id": "potential.c8.any-two-providers",
@@ -8944,13 +9537,18 @@
    "doc": "potential",
    "ref": "C9",
    "unit": "Remote ref adopted only if OID equals this attempt's desired state, else ORPHANED_REMOTE",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/effects/tests/reconcile.rs",
     "symbol": "remote_moved_while_unknown_is_quarantined_not_retried"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): A differing remote OID is quarantined and left untouched, but the anchor neither tests desired-OID adoption nor asserts ORPHANED_REM"
   },
   {
    "id": "potential.s4.1.shape",
@@ -9170,13 +9768,18 @@
    "doc": "potential",
    "ref": "§5.7",
    "unit": "Partitioned runner self-terminates before a successor fence is leased",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/runner/src/clock.rs",
     "symbol": "budget_is_strictly_shorter_than_the_ttl"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Only proves the local budget is 4/5 of TTL; no partition, runner termination, or ordering against successor-fence leasing is tested."
   },
   {
    "id": "paper.artifact.record",
@@ -9195,13 +9798,18 @@
    "doc": "paper",
    "ref": "Core contribution",
    "unit": "No claim of measured superiority, zero regressions, autonomy or exactly-once effects",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W3"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-farm",
     "path": "tests/assurance_controls.rs",
     "symbol": "exception_repairs_and_documented_budgets_are_complete_and_policy_bound"
-   }
+   },
+   "note": "audit 2026-08-26 (DISAGREE): The test checks exception metadata, repair docs, and budget documentation, not prohibited superiority/autonomy claims; bullet-farm/"
   },
   {
    "id": "paper.claims.five-planes",
@@ -9226,28 +9834,36 @@
    "doc": "paper",
    "ref": "What the paper contains",
    "unit": "Codex, Claude, Cursor and Antigravity contracts examined; each needs its own conformance",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W7"
+   },
+   "note": "audit 2026-08-26 (DISAGREE): The test merely lists four executable names and denies spawning all of them; it examines no provider contracts and runs no per-prov",
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/harness-core/src/argv.rs",
     "symbol": "every_known_live_provider_is_quarantined"
-   },
-   "note": "All four adapters exist and are quarantined; live certification W8/W10."
+   }
   },
   {
    "id": "paper.claims.lifecycle",
    "doc": "paper",
    "ref": "Core contribution",
    "unit": "Mission to observation-window lifecycle with exact Candidate, Evidence, Effect, Integration",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W3"
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Exercises repository clone, patch, checkpoint, and Candidate preparation only; Mission, observation window, Evidence, Effect, and In",
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-workspace/tests/real_repository.rs",
     "symbol": "full_lifecycle_produces_exact_candidate"
-   },
-   "note": "Offline component chain; live transaction W7/W8."
+   }
   },
   {
    "id": "paper.evidence.regeneration",
@@ -9379,26 +9995,36 @@
    "doc": "evo",
    "ref": "acceptance #1",
    "unit": "Concurrent Variant acquisition yields one active writer and unique fences",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/adapters/tests/conformance.rs",
     "symbol": "two_connections_racing_one_variant_grant_exactly_once"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): Two SQLite connections race and exactly one creates an attempt at fence 1; successor acquisitions are absent, so fence uniqueness be"
   },
   {
    "id": "evo.accept.v1.2",
    "doc": "evo",
    "ref": "acceptance #2",
    "unit": "Authority-field mutation, replay, expiry, supersession or outage yields zero unauthorized mutation",
-   "disposition": "IMPLEMENTED",
+   "disposition": "PLANNED",
    "anchor": {
+    "kind": "wave",
+    "value": "W9"
+   },
+   "partial": {
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-gitd/src/authority_gateway_tests.rs",
     "symbol": "changed_fields_and_expiry_never_produce_a_consumable_permit"
-   }
+   },
+   "note": "audit 2026-08-26 (PARTIAL): It covers subject mismatch, expiry, and changed consume inputs, but not replay, supersession, outage, or actual mutation absence; bu"
   },
   {
    "id": "evo.accept.v1.3",
