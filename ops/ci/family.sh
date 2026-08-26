@@ -13,6 +13,18 @@ cd "$REPO_ROOT"
   || { refuse FAMILY_NODE_VERSION_INVALID "$(node --version)"; exit 1; }
 [[ "$(npm --version)" == "$PINNED_NPM_VERSION" ]] \
   || { refuse FAMILY_NPM_VERSION_INVALID "$(npm --version)"; exit 1; }
+[[ "$(b3sum --version)" == 'b3sum 1.8.2' ]] \
+  || { refuse FAMILY_B3SUM_VERSION_INVALID "$(b3sum --version 2>&1)"; exit 1; }
+[[ "$(rustup --version 2>/dev/null | head -n 1)" == 'rustup 1.29.0 '* ]] \
+  || { refuse FAMILY_RUSTUP_VERSION_INVALID "$(rustup --version 2>&1 | head -n 1)"; exit 1; }
+hub_rustc_version="$(rustc --version)"
+hub_cargo_version="$(command cargo --version)"
+git_rustc_version="$(rustup run 1.97.1 rustc --version)"
+git_cargo_version="$(rustup run 1.97.1 cargo --version)"
+[[ "$hub_rustc_version" == 'rustc 1.95.0 '* && "$hub_cargo_version" == 'cargo 1.95.0 '* ]] \
+  || { refuse FAMILY_HUB_TOOLCHAIN_INVALID "$hub_rustc_version / $hub_cargo_version"; exit 1; }
+[[ "$git_rustc_version" == 'rustc 1.97.1 '* && "$git_cargo_version" == 'cargo 1.97.1 '* ]] \
+  || { refuse FAMILY_GIT_TOOLCHAIN_INVALID "$git_rustc_version / $git_cargo_version"; exit 1; }
 FAMILY_ROOT="$(cd "$REPO_ROOT/.." && pwd)"
 GIT_ROOT="$FAMILY_ROOT/bullet-git"
 KERNEL_ROOT="$FAMILY_ROOT/bullet-kernel"
@@ -114,8 +126,14 @@ log "1/7 BulletGit standalone required"
 assert_family_subjects after-stage-1
 assert_family_subjects before-stage-2
 log "2/7 build the sole-writer daemon from the admitted BulletGit subject"
-(cd "$GIT_ROOT" && CARGO_INCREMENTAL=0 CARGO_TARGET_DIR="$family_tmp/gitd-target" \
-  cargo build --locked -p bullet-gitd --bin bullet-gitd)
+# Start a clean non-login shell so Hub's sourced Cargo boundary cannot leak
+# across the repository boundary. The explicit rustup subject agrees with
+# BulletGit's checked-in primary toolchain and leaves Hub on Rust 1.95.0.
+(cd "$GIT_ROOT" && env -i HOME="${HOME:?}" PATH="$PATH" LC_ALL=C TZ=UTC \
+  CARGO_INCREMENTAL=0 CARGO_TARGET_DIR="$family_tmp/gitd-target" \
+  CARGO_NET_OFFLINE=true \
+  bash --noprofile --norc -c \
+    'exec rustup run 1.97.1 cargo build --locked -p bullet-gitd --bin bullet-gitd')
 gitd_expected="$family_tmp/gitd-target/debug/bullet-gitd"
 gitd_bin="$(realpath -e -- "$gitd_expected")" \
   || { refuse BULLET_GITD_BIN_MISSING "$gitd_expected"; exit 1; }
@@ -157,67 +175,95 @@ prepare_ci_directory "$REPO_ROOT" .ci-artifacts/family \
   || { refuse FAMILY_ARTIFACT_ROOT_INVALID .ci-artifacts/family; exit 1; }
 subjects='{}'
 for member in "${members[@]}"; do
-  subjects="$(jq -c --arg member "$member" --arg commit "${family_commits[$member]}" \
-    --arg tree "${family_trees[$member]}" \
+  object_format="$(git -C "$FAMILY_ROOT/$member" rev-parse --show-object-format)"
+  [[ "$object_format" == sha1 || "$object_format" == sha256 ]] \
+    || { refuse FAMILY_OBJECT_FORMAT_INVALID "$member:$object_format"; exit 1; }
+  subjects="$(jq -c --arg member "$member" \
+    --arg commit "$object_format:${family_commits[$member]}" \
+    --arg tree "$object_format:${family_trees[$member]}" \
     '. + {($member): {commit_oid:$commit,tree_oid:$tree,clean:true}}' <<<"$subjects")"
 done
 reports='[]'
+raw_report_hashes='[]'
+mkdir -m 700 -- "$family_tmp/report-snapshots"
+report_id_for() {
+  case "$1|$2" in
+    'bullet-git|.ci-artifacts/reports/fast.junit.xml') printf '%s\n' bullet-git-fast ;;
+    'bullet-git|.ci-artifacts/reports/contract.junit.xml') printf '%s\n' bullet-git-contract ;;
+    'bullet-kernel|.ci-artifacts/junit/fast.xml') printf '%s\n' bullet-kernel-fast ;;
+    'bullet-kernel|.ci-artifacts/junit/contract.xml') printf '%s\n' bullet-kernel-contract ;;
+    'bullet-kernel|.ci-artifacts/junit/family.xml') printf '%s\n' bullet-kernel-family ;;
+    'bullet-portal|.ci-artifacts/reports/vitest.json') printf '%s\n' bullet-portal-vitest ;;
+    'bullet-portal|.ci-artifacts/reports/playwright.xml') printf '%s\n' bullet-portal-playwright ;;
+    'bullet-portal|.ci-artifacts/reports/real-farmd.xml') printf '%s\n' bullet-portal-real-farmd ;;
+    'bullet-farm|.ci-artifacts/junit/contract.xml') printf '%s\n' bullet-farm-contract ;;
+    'bullet-farm|.ci-artifacts/formal/contract.json') printf '%s\n' bullet-farm-formal ;;
+    'bullet-farm|.ci-artifacts/formal/contract.log') printf '%s\n' bullet-farm-formal-log ;;
+    *) refuse FAMILY_REPORT_ID_UNKNOWN "$1/$2"; return 1 ;;
+  esac
+}
 for spec in "${report_specs[@]}"; do
   IFS='|' read -r report_member relative kind expected_tests expected_skipped <<<"$spec"
   report="$(member_root "$report_member")/$relative"
   prepare_ci_directory "$(member_root "$report_member")" "${relative%/*}" \
     || { refuse FAMILY_ARTIFACT_ROOT_INVALID "$report_member/${relative%/*}"; exit 1; }
+  label="$report_member/$relative"
+  report_id="$(report_id_for "$report_member" "$relative")" || exit 1
+  snapshot="$family_tmp/report-snapshots/$report_id"
+  [[ -f "$report" && ! -L "$report" ]] \
+    || { refuse FAMILY_REPORT_INVALID "$label"; exit 1; }
+  source_hash_before="$(sha256_file "$report")"
+  cp -P -- "$report" "$snapshot"
+  [[ -f "$snapshot" && ! -L "$snapshot" && -f "$report" && ! -L "$report" ]] \
+    || { refuse FAMILY_REPORT_SNAPSHOT_INVALID "$label"; exit 1; }
+  snapshot_hash="$(sha256_file "$snapshot")"
+  source_hash_after="$(sha256_file "$report")"
+  [[ "$source_hash_before" == "$snapshot_hash" && "$source_hash_after" == "$snapshot_hash" ]] \
+    || { refuse FAMILY_REPORT_CHANGED_DURING_SNAPSHOT "$label"; exit 1; }
   case "$kind" in
-    junit) summary="$(bash ops/ci/family-report-check.sh junit "$report" "$expected_tests" "$expected_skipped")" ;;
-    vitest) summary="$(bash ops/ci/family-report-check.sh vitest "$report" "$expected_tests")" ;;
-    formal-json|formal-log) summary="$(bash ops/ci/family-report-check.sh "$kind" "$report")" ;;
+    junit) summary="$(bash ops/ci/family-report-check.sh junit "$snapshot" "$expected_tests" "$expected_skipped")" ;;
+    vitest) summary="$(bash ops/ci/family-report-check.sh vitest "$snapshot" "$expected_tests")" ;;
+    formal-json|formal-log) summary="$(bash ops/ci/family-report-check.sh "$kind" "$snapshot")" ;;
     *) refuse FAMILY_REPORT_KIND_INVALID "$kind"; exit 1 ;;
   esac
-  digest="$(sha256_file "$report")"
-  label="$report_member/$relative"
-  reports="$(jq -c --arg repository "$report_member" --arg path "$label" \
-    --arg sha256 "$digest" --argjson summary "$summary" \
-    '. + [{repository:$repository,path:$path,sha256:$sha256,summary:$summary}]' <<<"$reports")"
+  [[ "$(sha256_file "$snapshot")" == "$snapshot_hash" \
+    && -f "$report" && ! -L "$report" \
+    && "$(sha256_file "$report")" == "$snapshot_hash" ]] \
+    || { refuse FAMILY_REPORT_CHANGED_DURING_PARSE "$label"; exit 1; }
+  digest="$snapshot_hash"
+  reports="$(jq -c --arg id "$report_id" --arg repository "$report_member" \
+    --argjson summary "$summary" \
+    '. + [{id:$id,repository:$repository,summary:$summary}]' <<<"$reports")"
+  raw_report_hashes="$(jq -c --arg path "$label" --arg sha256 "$digest" \
+    '. + [{path:$path,sha256:$sha256}]' <<<"$raw_report_hashes")"
 done
-[[ "$(jq '[.[].path] | unique | length' <<<"$reports")" -eq "${#report_specs[@]}" ]] \
-  || { refuse FAMILY_REPORT_LABEL_DUPLICATE "report paths"; exit 1; }
+[[ "$(jq '[.[].id] | unique | length' <<<"$reports")" -eq "${#report_specs[@]}" \
+  && "$(jq '[.[].path] | unique | length' <<<"$raw_report_hashes")" -eq "${#report_specs[@]}" ]] \
+  || { refuse FAMILY_REPORT_LABEL_DUPLICATE "report identities"; exit 1; }
 jq -n --argjson subjects "$subjects" --argjson reports "$reports" \
-  --arg gitd_sha256 "$gitd_sha256" --arg gitd_commit "${family_commits[bullet-git]}" \
-  --arg node "$(node --version)" --arg npm "$(npm --version)" \
+  --arg gitd_commit "$(git -C "$GIT_ROOT" rev-parse --show-object-format):${family_commits[bullet-git]}" \
+  --arg hub_rustc "$hub_rustc_version" --arg hub_cargo "$hub_cargo_version" \
+  --arg git_rustc "$git_rustc_version" --arg git_cargo "$git_cargo_version" \
+  --arg node "$(node --version)" --arg npm "$(npm --version)" --arg b3sum "$(b3sum --version)" \
   '{schema_version:"bullet.family-ci-observation.v1",subjects:$subjects,reports:$reports,
-   sole_writer_daemon:{repository:"bullet-git",commit_oid:$gitd_commit,sha256:$gitd_sha256,
-     build:{cargo_locked:true,incremental:false,fresh_target:true}},
-   tool_versions:{node:$node,npm:$npm},signed:false,evidence_class:"DIAGNOSTIC_ONLY",
+   sole_writer_daemon:{repository:"bullet-git",commit_oid:$gitd_commit,
+     build:{cargo_locked:true,incremental:false,fresh_target:true,offline:true,toolchain:"1.97.1",
+       binary_hash_verified_during_run:true}},
+   tool_versions:{hub_rustc:$hub_rustc,hub_cargo:$hub_cargo,
+     bullet_git_rustc:$git_rustc,bullet_git_cargo:$git_cargo,node:$node,npm:$npm,b3sum:$b3sum},
+   signed:false,evidence_class:"DIAGNOSTIC_ONLY",
    release_authority:false}' \
-  >.ci-artifacts/family/subjects.json
-
-jq -e --argjson report_count "${#report_specs[@]}" \
-  --arg node "v$PINNED_NODE_VERSION" --arg npm "$PINNED_NPM_VERSION" '
-  .schema_version == "bullet.family-ci-observation.v1" and
-  (.subjects | keys | sort) == ["bullet-farm","bullet-git","bullet-kernel","bullet-portal"] and
-  all(.subjects[]; .clean == true and (.commit_oid | test("^[0-9a-f]{40}$")) and
-    (.tree_oid | test("^[0-9a-f]{40}$"))) and
-  (.reports | length) == $report_count and
-  ([.reports[].path] | unique | length) == $report_count and
-  all(.reports[]; (.repository | type == "string") and
-    (.path | test("^bullet-(farm|git|kernel|portal)/\\.ci-artifacts/")) and
-    (.sha256 | test("^[0-9a-f]{64}$")) and (.summary | type == "object")) and
-  .sole_writer_daemon.repository == "bullet-git" and
-  .sole_writer_daemon.commit_oid == .subjects["bullet-git"].commit_oid and
-  (.sole_writer_daemon.sha256 | test("^[0-9a-f]{64}$")) and
-  .sole_writer_daemon.build == {cargo_locked:true,incremental:false,fresh_target:true} and
-  .tool_versions == {node:$node,npm:$npm} and
-  .signed == false and .evidence_class == "DIAGNOSTIC_ONLY" and
-  .release_authority == false
-' .ci-artifacts/family/subjects.json >/dev/null \
-  || { refuse FAMILY_OBSERVATION_INVALID ".ci-artifacts/family/subjects.json"; exit 1; }
+  >"$family_tmp/family-observation-candidate.json"
+bash ops/ci/family-observation.sh write "$family_tmp/family-observation-candidate.json" \
+  .ci-artifacts/family/subjects.json
 
 assert_family_subjects before-observation-publication
 while IFS=$'\t' read -r label expected_hash; do
   report="$FAMILY_ROOT/$label"
   [[ -f "$report" && ! -L "$report" && "$(sha256_file "$report")" == "$expected_hash" ]] \
     || { refuse FAMILY_REPORT_CHANGED_AFTER_HASH "$label"; exit 1; }
-done < <(jq -r '.reports[] | [.path,.sha256] | @tsv' .ci-artifacts/family/subjects.json)
-[[ "$(sha256_file "$gitd_bin")" == "$(jq -r '.sole_writer_daemon.sha256' .ci-artifacts/family/subjects.json)" ]] \
+done < <(jq -r '.[] | [.path,.sha256] | @tsv' <<<"$raw_report_hashes")
+[[ "$(sha256_file "$gitd_bin")" == "$gitd_sha256" ]] \
   || { refuse BULLET_GITD_BIN_CHANGED after-observation; exit 1; }
+assert_family_subjects after-observation-publication
 log "family lane passed (unsigned clean component observation only)"

@@ -10,34 +10,40 @@ lane_tools() {
   case "$lane" in
     all)
       printf '%s\n' \
-        awk bash dirname git head jq mkdir mv realpath rm sed sort tr \
+        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr \
         actionlint b3sum cargo cargo-clippy cargo-deny cargo-llvm-cov cargo-nextest cat chmod \
         cmp comm cp curl date docker file find gitleaks grep id jankurai java ln lychee mktemp node \
-        npm rmdir rg rustc rustfmt rustup sha1sum shellcheck stat tee uname wc xargs zizmor
+        jsonschema npm rmdir rg rustc rustfmt rustup sha1sum shellcheck stat tee uname wc xargs zizmor
       ;;
     lint)
       printf '%s\n' \
-        awk bash dirname git head jq mkdir mv realpath rm sed sort tr actionlint cargo cargo-clippy \
-        cargo-deny cargo-nextest cmp comm cp find ln rg rustc rustfmt shellcheck wc
+        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr actionlint b3sum cargo cargo-clippy \
+        cargo-deny cargo-nextest cmp comm cp find jsonschema ln rg rustc rustfmt shellcheck wc
+      ;;
+    required)
+      printf '%s\n' \
+        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr actionlint b3sum cargo cargo-clippy \
+        cargo-deny cargo-nextest chmod cmp comm cp curl date docker file find gitleaks grep id java \
+        jsonschema ln mktemp rg rmdir rustc rustfmt sha1sum shellcheck stat tee wc zizmor
       ;;
     coverage)
       printf '%s\n' \
-        awk bash dirname git head jq mkdir mv realpath rm sed sort tr cargo cargo-llvm-cov \
+        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr cargo cargo-llvm-cov \
         cargo-nextest cmp comm grep ln mktemp rustc wc
       ;;
     platform)
       printf '%s\n' \
-        awk bash dirname git head jq mkdir mv realpath rm sed sort tr cargo cargo-clippy grep rustc uname
+        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr cargo cargo-clippy grep rustc uname
       ;;
     toolchain-pinned)
       printf '%s\n' \
-        awk bash dirname git head jq mkdir mv realpath rm sed sort tr b3sum cargo date grep rustc rustup tee wc
+        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr b3sum cargo date grep rustc rustup tee wc
       ;;
     family|family-contract)
       printf '%s\n' \
-        awk bash dirname git head jq mkdir mv realpath rm sed sort tr actionlint cargo cargo-clippy cargo-deny \
+        awk bash dirname env git head jq mkdir mv realpath rm sed sort tr actionlint b3sum cargo cargo-clippy cargo-deny \
         cargo-nextest chmod cmp comm cp curl date docker file find gitleaks grep id java ln mktemp \
-        node npm rg rmdir rustc rustfmt sha1sum shellcheck stat tee uname wc zizmor
+        jsonschema node npm rg rmdir rustc rustfmt rustup sha1sum shellcheck stat tee uname wc zizmor
       ;;
     *)
       return 1
@@ -113,7 +119,7 @@ probe_with_missing_tools() {
   MISSING_TOOLS["status"]="$status"
 }
 
-for tool in b3sum curl node npm realpath rustup lychee cargo-llvm-cov; do
+for tool in b3sum curl env node npm realpath rustup jsonschema lychee cargo-llvm-cov; do
   probe_with_missing_tools all "$tool" 0
   output="${MISSING_TOOLS["output"]}"
   status="${MISSING_TOOLS["status"]}"
@@ -123,11 +129,12 @@ for tool in b3sum curl node npm realpath rustup lychee cargo-llvm-cov; do
   }
 done
 for lane_tool in \
-  'lint cp' 'lint ln' \
+  'lint cp' 'lint ln' 'lint b3sum' 'lint env' 'lint jsonschema' \
+  'required b3sum' 'required env' 'required jsonschema' \
   'coverage cmp' 'coverage comm' 'coverage ln' \
   'platform grep' \
   'toolchain-pinned date' 'toolchain-pinned grep' 'toolchain-pinned tee' \
-  'family-contract node'; do
+  'family-contract node' 'family b3sum' 'family env' 'family rustup' 'family jsonschema'; do
   read -r lane tool <<<"$lane_tool"
   probe_with_missing_tools "$lane" "$tool" 1
   output="${MISSING_TOOLS["output"]}"

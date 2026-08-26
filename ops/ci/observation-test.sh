@@ -303,38 +303,6 @@ if output="$(bash ops/ci/artifact-check.sh toolchain-pinned 2>&1)" \
 fi
 rm -f .ci-artifacts/observations/toolchain-pinned.json "$test_root/toolchain-valid.json"
 
-mkdir -p .ci-artifacts/family
-printf '{"schema_version":"bullet.family-ci-observation.v1"}\n' \
-  >.ci-artifacts/family/subjects.json
-CI_COMMAND_COUNT=2 bash scripts/ci-observation.sh family-contract 0 \
-  'bash scripts/ci-doctor.sh family-contract' 'bash ops/ci/family-contract.sh' \
-  .ci-artifacts/family/subjects.json >/dev/null
-jq '.tool_versions += {
-  git:"git version 2.43.0",rustc:"rustc 1.95.0 (123456789 2026-01-01)",
-  cargo:"cargo 1.95.0 (123456789 2026-01-01)",
-  cargo_nextest:"cargo-nextest 0.9.137 (123456789 2026-01-01)",
-  node:"v22.23.2",npm:"10.9.8"
-}' .ci-artifacts/observations/family-contract.json >"$test_root/family-contract.json"
-mv "$test_root/family-contract.json" .ci-artifacts/observations/family-contract.json
-bash ops/ci/artifact-check.sh family-contract >/dev/null
-valid_subjects="$test_root/family-subjects.json"
-cp .ci-artifacts/family/subjects.json "$valid_subjects"
-{
-  printf '%s\n' '{' '  "schema_version": "hostile-duplicate",'
-  sed '1d' "$valid_subjects"
-} >.ci-artifacts/family/subjects.json
-subjects_digest="$(sha256_file .ci-artifacts/family/subjects.json)"
-jq --arg digest "$subjects_digest" \
-  '(.artifact_hashes[] | select(.path == ".ci-artifacts/family/subjects.json").sha256) = $digest' \
-  .ci-artifacts/observations/family-contract.json >"$test_root/family-contract.json"
-mv "$test_root/family-contract.json" .ci-artifacts/observations/family-contract.json
-if output="$(bash ops/ci/artifact-check.sh family-contract 2>&1)" \
-  || [[ "$output" != *CI_JSON_STRICT_INVALID* ]]; then
-  refuse OBSERVATION_TYPED_JSON_GUARD_FAILED "$output"; exit 1
-fi
-rm -rf .ci-artifacts/family
-rm -f .ci-artifacts/observations/family-contract.json
-
 guard_root="$test_root/artifact-root"
 guard_outside="$test_root/outside"
 mkdir -p "$guard_root" "$guard_outside"

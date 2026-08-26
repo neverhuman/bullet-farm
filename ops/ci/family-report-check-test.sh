@@ -18,11 +18,20 @@ expect_refusal() {
     || { refuse FAMILY_REPORT_NEGATIVE_FAILED "$code status=$status output=$output"; exit 1; }
 }
 
-printf '<testsuites tests="4" failures="0" errors="0" skipped="0"/>\n' >"$fixtures/junit.xml"
+printf '%s\n' \
+  '<testsuites tests="4" failures="0" errors="0" skipped="0">' \
+  '  <testsuite tests="4" failures="0" errors="0" skipped="0"/>' \
+  '</testsuites>' >"$fixtures/junit.xml"
 bash ops/ci/family-report-check.sh junit "$fixtures/junit.xml" 4 0 >/dev/null
-printf '<testsuites tests="0" failures="0" errors="0" skipped="0"/>\n' >"$fixtures/junit.xml"
+printf '%s\n' \
+  '<testsuites tests="0" failures="0" errors="0" skipped="0">' \
+  '  <testsuite tests="0" failures="0" errors="0" skipped="0"/>' \
+  '</testsuites>' >"$fixtures/junit.xml"
 expect_refusal FAMILY_REPORT_OUTCOME_INVALID junit "$fixtures/junit.xml" 4 0
-printf '<testsuites tests="4" failures="1" errors="0" skipped="0"/>\n' >"$fixtures/junit.xml"
+printf '%s\n' \
+  '<testsuites tests="4" failures="1" errors="0" skipped="0">' \
+  '  <testsuite tests="4" failures="1" errors="0" skipped="0"/>' \
+  '</testsuites>' >"$fixtures/junit.xml"
 expect_refusal FAMILY_REPORT_OUTCOME_INVALID junit "$fixtures/junit.xml" 4 0
 printf '%s\n' \
   '<testsuites tests="4" failures="0" errors="0">' \
@@ -30,6 +39,48 @@ printf '%s\n' \
   '</testsuites>' >"$fixtures/junit.xml"
 bash ops/ci/family-report-check.sh junit "$fixtures/junit.xml" 4 1 >/dev/null
 expect_refusal FAMILY_REPORT_OUTCOME_INVALID junit "$fixtures/junit.xml" 4 0
+printf '%s\n' '<testsuites tests="4" failures="0" errors="0" skipped="0">' \
+  'malformed' >"$fixtures/junit.xml"
+expect_refusal FAMILY_REPORT_XML_INVALID junit "$fixtures/junit.xml" 4 0
+printf '%s\n' \
+  '<testsuites tests="4" failures="0" errors="0" skipped="0">' \
+  '  <testsuite tests="4" failures="1" errors="0" skipped="0"/>' \
+  '</testsuites>' >"$fixtures/junit.xml"
+expect_refusal FAMILY_REPORT_XML_INVALID junit "$fixtures/junit.xml" 4 0
+printf '%s\n' '<!DOCTYPE testsuites [<!ENTITY green "4">]>' \
+  '<testsuites tests="4" failures="0" errors="0" skipped="0">' \
+  '  <testsuite tests="4" failures="0" errors="0" skipped="0"/>' \
+  '</testsuites>' >"$fixtures/junit.xml"
+expect_refusal FAMILY_REPORT_XML_INVALID junit "$fixtures/junit.xml" 4 0
+python_bin="$(command -v python3 || command -v python)"
+"$python_bin" -I -S - "$fixtures/junit.xml" <<'PY'
+from pathlib import Path
+import sys
+
+document = '''<?xml version="1.0" encoding="UTF-16"?>
+<!DOCTYPE testsuites [<!ENTITY green "0">]>
+<testsuites tests="4" failures="&green;" errors="0" skipped="0">
+  <testsuite tests="4" failures="&green;" errors="0" skipped="0"/>
+</testsuites>'''
+Path(sys.argv[1]).write_bytes(document.encode("utf-16"))
+PY
+expect_refusal FAMILY_REPORT_XML_INVALID junit "$fixtures/junit.xml" 4 0
+printf '%s\n' \
+  '<testsuites tests="4" tests="4" failures="0" errors="0" skipped="0">' \
+  '  <testsuite tests="4" failures="0" errors="0" skipped="0"/>' \
+  '</testsuites>' >"$fixtures/junit.xml"
+expect_refusal FAMILY_REPORT_XML_INVALID junit "$fixtures/junit.xml" 4 0
+printf '%s\n' \
+  '<testsuites tests="4" failures="0" errors="0" skipped="0">' \
+  '  <testsuite tests="4" failures="0" errors="0" skipped="0"/>' \
+  '</testsuites>' '<testsuites tests="4" failures="0" errors="0" skipped="0"/>' \
+  >"$fixtures/junit.xml"
+expect_refusal FAMILY_REPORT_XML_INVALID junit "$fixtures/junit.xml" 4 0
+printf '%s\n' \
+  '<testsuites tests="5" failures="0" errors="0" skipped="0">' \
+  '  <testsuite tests="4" failures="0" errors="0" skipped="0"/>' \
+  '</testsuites>' >"$fixtures/junit.xml"
+expect_refusal FAMILY_REPORT_XML_INVALID junit "$fixtures/junit.xml" 4 0
 printf '{"success":true,"numTotalTests":3,"numPassedTests":3,"numFailedTests":0,"numPendingTests":0,"numTodoTests":0}\n' >"$fixtures/vitest.json"
 bash ops/ci/family-report-check.sh vitest "$fixtures/vitest.json" 3 >/dev/null
 printf '{"success":false,"success":true,"numTotalTests":3,"numPassedTests":3,"numFailedTests":0,"numPendingTests":0,"numTodoTests":0}\n' >"$fixtures/vitest.json"

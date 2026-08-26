@@ -20,6 +20,15 @@ lane_scripts[contract]=ops/ci/contract.sh
 lane_scripts[security]=ops/ci/security.sh
 lane_scripts[docs]=ops/ci/docs.sh
 
+write_fixture_junit() {
+  local output="$1" lane="$2" tests="$3"
+  printf '%s\n' \
+    '<?xml version="1.0" encoding="UTF-8"?>' \
+    "<testsuites tests=\"$tests\" failures=\"0\" errors=\"0\" skipped=\"0\">" \
+    "  <testsuite name=\"bullet-farm-$lane\" tests=\"$tests\" failures=\"0\" errors=\"0\" skipped=\"0\"/>" \
+    '</testsuites>' >"$output"
+}
+
 origin_for() {
   printf '%s/hub-%s-%s-%s\n' "$test_root" "$1" "$run_id" "$run_attempt"
 }
@@ -36,15 +45,13 @@ make_fixtures() {
     case "$lane" in
       fast)
         mkdir -p "$origin/.ci-artifacts/junit"
-        write_junit_summary fast "$HUB_EXPECTED_TESTS" 0 0 0
-        mv "$REPO_ROOT/.ci-artifacts/junit/fast.xml" "$origin/.ci-artifacts/junit/fast.xml"
+        write_fixture_junit "$origin/.ci-artifacts/junit/fast.xml" fast "$HUB_EXPECTED_TESTS"
         files=(.ci-artifacts/junit/fast.xml)
         ;;
       contract)
         mkdir -p "$origin/.ci-artifacts/junit" "$origin/.ci-artifacts/formal" \
           "$origin/.ci-artifacts/contracts"
-        write_junit_summary contract "$WIRE_EXPECTED_TESTS" 0 0 0
-        mv "$REPO_ROOT/.ci-artifacts/junit/contract.xml" "$origin/.ci-artifacts/junit/contract.xml"
+        write_fixture_junit "$origin/.ci-artifacts/junit/contract.xml" contract "$WIRE_EXPECTED_TESTS"
         printf '%s\n' \
           'schema=bullet.formal-log.v1' \
           'models=2' \
@@ -76,6 +83,7 @@ make_fixtures() {
          cargo:"cargo 1.95.0 (123456789 2026-01-01)",
          cargo_nextest:"cargo-nextest 0.9.137 (123456789 2026-01-01)",
          actionlint:"1.7.8",shellcheck:"0.10.0",
+         b3sum:"b3sum 1.8.2",
          java:"openjdk version \"21.0.0\" 2026-01-01",gitleaks:"8.21.2",
          cargo_deny:"cargo-deny 0.19.8",zizmor:"zizmor 1.25.2",
          docker:"Docker version 28.0.0, build 1234567",file:"file-5.45",

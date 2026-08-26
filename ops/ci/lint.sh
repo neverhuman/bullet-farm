@@ -41,6 +41,7 @@ bash ops/ci/aggregate-test.sh
 bash ops/ci/observation-test.sh
 bash ops/ci/coverage-sanitize-test.sh
 bash ops/ci/family-report-check-test.sh
+bash ops/ci/family-observation-test.sh
 bash ops/ci/check-links-test.sh
 bash ops/ci/checkout-subject-test.sh
 bash ops/ci/doctor-test.sh

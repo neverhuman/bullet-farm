@@ -3,16 +3,16 @@ set -euo pipefail
 # shellcheck source=ops/ci/toolchain-pins.sh
 source "$(dirname "${BASH_SOURCE[0]}")/../ops/ci/toolchain-pins.sh"
 lane="${1:-all}"
-baseline=(awk bash dirname git head jq mkdir mv realpath rm sed sort tr)
+baseline=(awk bash dirname env git head jq mkdir mv realpath rm sed sort tr)
 case "$lane" in
   source-scan) tools=("${baseline[@]}" cat gitleaks xargs) ;;
   fast) tools=("${baseline[@]}" cargo cargo-nextest chmod grep mktemp rmdir rustc) ;;
-  lint) tools=("${baseline[@]}" actionlint cargo cargo-clippy cargo-nextest cmp comm cp find ln rg rustc rustfmt shellcheck wc) ;;
+  lint) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-nextest cmp comm cp find jsonschema ln rg rustc rustfmt shellcheck wc) ;;
   contract) tools=("${baseline[@]}" cargo cargo-nextest curl find grep java mktemp rustc sha1sum tee) ;;
   security) tools=("${baseline[@]}" cargo cargo-deny date gitleaks mktemp rustc zizmor) ;;
   docs) tools=("${baseline[@]}" cargo cmp cp docker file find grep id mktemp realpath rg rustc stat) ;;
-  required) tools=("${baseline[@]}" actionlint cargo cargo-clippy cargo-deny cargo-nextest chmod cmp comm cp curl date docker file find gitleaks grep id java ln mktemp realpath rg rmdir rustc rustfmt sha1sum shellcheck stat tee wc zizmor) ;;
-  family|family-contract) tools=("${baseline[@]}" actionlint cargo cargo-clippy cargo-deny cargo-nextest chmod cmp comm cp curl date docker file find gitleaks grep id java ln mktemp node npm rg rmdir rustc rustfmt sha1sum shellcheck stat tee uname wc zizmor) ;;
+  required) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-deny cargo-nextest chmod cmp comm cp curl date docker file find gitleaks grep id java jsonschema ln mktemp realpath rg rmdir rustc rustfmt sha1sum shellcheck stat tee wc zizmor) ;;
+  family|family-contract) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-deny cargo-nextest chmod cmp comm cp curl date docker file find gitleaks grep id java jsonschema ln mktemp node npm rg rmdir rustc rustfmt rustup sha1sum shellcheck stat tee uname wc zizmor) ;;
   history) tools=("${baseline[@]}" cat gitleaks xargs) ;;
   links) tools=("${baseline[@]}" lychee rg) ;;
   advisory) tools=("${baseline[@]}" cargo cargo-deny date rustc) ;;
@@ -20,7 +20,7 @@ case "$lane" in
   platform) tools=("${baseline[@]}" cargo cargo-clippy grep rustc uname) ;;
   audit) tools=("${baseline[@]}" jankurai) ;;
   toolchain-pinned) tools=("${baseline[@]}" b3sum cargo date grep rustc rustup tee wc) ;;
-  all) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-deny cargo-llvm-cov cargo-nextest cat chmod cmp comm cp curl date docker file find gitleaks grep id jankurai java ln lychee mktemp node npm realpath rg rmdir rustc rustfmt rustup sha1sum shellcheck stat tee uname wc xargs zizmor) ;;
+  all) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-deny cargo-llvm-cov cargo-nextest cat chmod cmp comm cp curl date docker file find gitleaks grep id jankurai java jsonschema ln lychee mktemp node npm realpath rg rmdir rustc rustfmt rustup sha1sum shellcheck stat tee uname wc xargs zizmor) ;;
   *)
     echo "ci-doctor: expected source-scan|fast|lint|contract|security|docs|required|family|family-contract|history|links|advisory|coverage|platform|audit|toolchain-pinned|all" >&2
     exit 2
@@ -87,10 +87,16 @@ if [[ "$lane" =~ ^(contract|required|family|family-contract|all)$ ]]; then
   java_version="$(java -version 2>&1 | head -n 1)"
   [[ "$java_version" == *'"21.'* ]] || { printf 'ci-doctor: expected Java 21, found %s\n' "$java_version" >&2; exit 1; }
 fi
-if [[ "$lane" =~ ^(docs|required|family|family-contract|all)$ ]]; then
+if [[ "$lane" =~ ^(lint|docs|required|family|family-contract|all)$ ]]; then
   jsonschema_version="$("$python_bin" -c 'from importlib.metadata import version; print(version("jsonschema"))' 2>/dev/null || true)"
   [[ "$jsonschema_version" == 4.26.0 ]] \
     || { printf 'ci-doctor: expected jsonschema 4.26.0, found %s\n' "${jsonschema_version:-missing}" >&2; exit 1; }
+fi
+if [[ "$lane" =~ ^(lint|required|family|family-contract|all)$ ]]; then
+  [[ "$(jsonschema --version)" == 4.26.0 ]] \
+    || { echo "ci-doctor: expected jsonschema CLI 4.26.0" >&2; exit 1; }
+  [[ "$(b3sum --version)" == "b3sum 1.8.2" ]] \
+    || { echo "ci-doctor: expected b3sum 1.8.2 for $lane" >&2; exit 1; }
 fi
 if [[ "$lane" == links || "$lane" == all ]]; then
   [[ "$(lychee --version)" == "lychee 0.24.0" ]] || { echo "ci-doctor: expected lychee 0.24.0" >&2; exit 1; }
@@ -103,6 +109,14 @@ if [[ "$lane" == family || "$lane" == family-contract || "$lane" == all ]]; then
     || { printf 'ci-doctor: expected Node v%s, found %s\n' "$PINNED_NODE_VERSION" "$(node --version)" >&2; exit 1; }
   [[ "$(npm --version)" == "$PINNED_NPM_VERSION" ]] \
     || { printf 'ci-doctor: expected npm %s, found %s\n' "$PINNED_NPM_VERSION" "$(npm --version)" >&2; exit 1; }
+  [[ "$(rustup --version 2>/dev/null | head -n 1)" == "rustup 1.29.0 "* ]] \
+    || { echo "ci-doctor: expected rustup 1.29.0 for $lane" >&2; exit 1; }
+  rustup toolchain list | grep -q '^1\.97\.1-' \
+    || { echo "ci-doctor: Rust 1.97.1 toolchain is missing for $lane" >&2; exit 1; }
+  [[ "$(rustup run 1.97.1 rustc --version)" == "rustc 1.97.1 "* ]] \
+    || { echo "ci-doctor: invalid Rust 1.97.1 toolchain for $lane" >&2; exit 1; }
+  [[ "$(rustup run 1.97.1 cargo --version)" == "cargo 1.97.1 "* ]] \
+    || { echo "ci-doctor: invalid Cargo 1.97.1 toolchain for $lane" >&2; exit 1; }
 fi
 if [[ "$lane" == audit || "$lane" == all ]]; then
   [[ "$(jankurai --version)" == "jankurai 1.6.11" ]] || { echo "ci-doctor: expected jankurai 1.6.11" >&2; exit 1; }

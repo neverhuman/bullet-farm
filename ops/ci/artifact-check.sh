@@ -71,9 +71,9 @@ jq -e --arg lane "$lane" --arg tool_keys "$CI_TOOL_KEYS" '
 
 while IFS= read -r tool_key; do
   tool_value="$(jq -er --arg key "$tool_key" '.tool_versions[$key]' "$observation")" \
-    || { refuse CI_TOOL_VERSION_INVALID "tool_versions entry"; exit 1; }
+    || { refuse CI_TOOL_VERSION_INVALID "tool_versions[$tool_key] is missing"; exit 1; }
   ci_tool_version_shape_is_valid "$tool_key" "$tool_value" \
-    || { refuse CI_TOOL_VERSION_INVALID "tool_versions entry"; exit 1; }
+    || { refuse CI_TOOL_VERSION_INVALID "tool_versions[$tool_key] has an invalid lexical shape"; exit 1; }
 done < <(jq -r '.tool_versions | keys[]' "$observation")
 
 if [[ -n "$expected_commit" ]]; then
@@ -118,12 +118,13 @@ lane_tools_for() {
   case "$1" in
     source-scan) printf '%s\n' 'git gitleaks' ;;
     fast) printf '%s\n' 'git rustc cargo cargo_nextest' ;;
-    lint) printf '%s\n' 'git rustc cargo cargo_nextest actionlint shellcheck' ;;
+    lint) printf '%s\n' 'git rustc cargo cargo_nextest actionlint shellcheck b3sum jsonschema' ;;
     contract) printf '%s\n' 'git rustc cargo cargo_nextest java' ;;
     security) printf '%s\n' 'git rustc cargo gitleaks cargo_deny zizmor' ;;
     docs) printf '%s\n' 'git rustc cargo docker file jsonschema' ;;
-    required) printf '%s\n' 'git rustc cargo cargo_nextest actionlint shellcheck java gitleaks cargo_deny zizmor docker file jsonschema' ;;
-    family|family-contract) printf '%s\n' 'git rustc cargo cargo_nextest node npm jsonschema' ;;
+    required) printf '%s\n' 'git rustc cargo cargo_nextest actionlint shellcheck java gitleaks cargo_deny zizmor docker file jsonschema b3sum' ;;
+    family|family-contract) printf '%s\n' \
+      'git rustc cargo cargo_nextest node npm jsonschema rustup b3sum rustc_pinned cargo_pinned' ;;
     history) printf '%s\n' 'git gitleaks' ;;
     links) printf '%s\n' 'git lychee' ;;
     advisory) printf '%s\n' 'git rustc cargo cargo_deny' ;;
@@ -138,7 +139,7 @@ lane_tools_for() {
 validate_tool_version() {
   local key="$1" value
   value="$(jq -r --arg key "$key" '.tool_versions[$key] // empty' "$observation")"
-  [[ -n "$value" ]] || { refuse CI_TOOL_VERSION_MISSING "tool_versions entry"; return 1; }
+  [[ -n "$value" ]] || { refuse CI_TOOL_VERSION_MISSING "tool_versions[$key]"; return 1; }
   case "$key" in
     git) [[ "$value" == "git version "* ]] ;;
     rustc) [[ "$value" == "rustc 1.95.0 "* ]] ;;
@@ -163,8 +164,8 @@ validate_tool_version() {
     cargo_pinned) [[ "$value" == "cargo 1.97.1 "* ]] ;;
     python) [[ "$value" == "Python 3.12."* ]] ;;
     jsonschema) [[ "$value" == 4.26.0 ]] ;;
-    *) refuse CI_TOOL_KEY_UNKNOWN "tool_versions entry"; return 1 ;;
-  esac || { refuse CI_TOOL_VERSION_INVALID "tool_versions entry"; return 1; }
+    *) refuse CI_TOOL_KEY_UNKNOWN "tool_versions[$key]"; return 1 ;;
+  esac || { refuse CI_TOOL_VERSION_INVALID "tool_versions[$key] has an inadmissible version"; return 1; }
 }
 
 # The strict parser is part of every observation's semantic admission, so its
@@ -317,7 +318,13 @@ if [[ "$status" == PASS ]]; then
       bash "$REPO_ROOT/ops/ci/coverage-sanitize.sh" check .ci-artifacts/coverage/cobertura.xml
       ;;
     family|family-contract)
-      validate_strict_json .ci-artifacts/family/subjects.json
+      bash "$REPO_ROOT/ops/ci/family-observation.sh" check \
+        "$artifact_container/.ci-artifacts/family/subjects.json" >/dev/null
+      jq -e --arg commit "sha1:$(jq -r '.commit_oid' "$observation")" \
+        --arg tree "sha1:$(jq -r '.tree_oid' "$observation")" '
+        .subjects["bullet-farm"] == {commit_oid:$commit,tree_oid:$tree,clean:true}
+      ' .ci-artifacts/family/subjects.json >/dev/null \
+        || { refuse CI_FAMILY_SUBJECT_INVALID "family observation does not bind its outer Hub subject"; exit 1; }
       ;;
   esac
 fi

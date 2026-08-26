@@ -78,8 +78,12 @@
       "purpose": "verify exact unsigned media subjects, transcripts, frames, and deterministic rendering"
     },
     "docs/schemas/": {
-      "command": "bash ops/ci/observation-test.sh && just readme-check",
+      "command": "bash ops/ci/observation-test.sh && bash ops/ci/family-observation-test.sh && just readme-check",
       "purpose": "verify docs-only observation schemas against their emitted documents"
+    },
+    "ops/ci/family-observation.sh": {
+      "command": "bash ops/ci/family-observation-test.sh",
+      "purpose": "prove the clean-family diagnostic has closed semantics, a stable framed identity, and no release authority"
     },
     "docs/README.md": {
       "command": "cargo test --locked --test assurance_controls",
