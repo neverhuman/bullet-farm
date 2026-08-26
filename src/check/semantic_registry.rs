@@ -3,6 +3,7 @@
 #[cfg(target_os = "linux")]
 #[path = "semantic_registry/admission.rs"]
 mod admission;
+mod kinds;
 #[cfg(not(target_os = "linux"))]
 #[path = "semantic_registry/unsupported.rs"]
 mod unsupported;

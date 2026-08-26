@@ -1,8 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use bullet_wire::{v1alpha1::ReleaseEvidenceKindV1, validate_release_bundle_manifest_v2_binding};
+use bullet_wire::{
+    v1alpha1::{GateReceiptV1, ReleaseEvidenceKindV1},
+    validate_release_bundle_manifest_v2_binding,
+};
 
-use super::*;
+use super::{kinds::validate_receipt_kind, *};
 
 pub(super) fn validate_registry(
     manifest: &ReleaseRegistryManifestV1,
@@ -93,6 +96,7 @@ pub(super) fn validate_registry(
         referenced.insert(request_object.subject.object_path.as_str());
         validate_release_bindings(graph, spec_object.decoded.gate_spec()?, request, receipt)
             .map_err(|error| reject(format!("release binding is invalid: {error}")))?;
+        validate_receipt_kind(receipt)?;
         validate_artifact_binding(receipt, objects, &mut referenced)?;
         validate_entry(
             entry,
