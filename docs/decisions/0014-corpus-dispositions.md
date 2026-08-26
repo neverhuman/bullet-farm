@@ -1,7 +1,7 @@
 # ADR 0014 — Corpus dispositions: what "addressed" means for the historical vision
 
-Status: **PROPOSED** (operator ruling recorded 2026-08-25; register maintained by the generated
-corpus-coverage instrument; not runtime, release, or scoring authority)
+Status: **ACCEPTED** (documentation-governance decision recorded 2026-08-25; register maintained by
+the generated corpus-coverage instrument; not operator, runtime, release, or scoring authority)
 Applies to: `policy/corpus-coverage-v1.json`, `docs/assurance/corpus-coverage.generated.md`,
 `scripts/corpus-coverage.sh`, `src/check/corpus/`.
 

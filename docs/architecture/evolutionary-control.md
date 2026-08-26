@@ -171,12 +171,17 @@ reads back the exact idempotency subject and either adopts the original effect
 or reports a conflict; it never retries a write merely because transport timed
 out.
 
-## `self-hosted-v1` adaptation boundary
+## Boundary between `self-hosted-v1` and evolutionary adaptation
 
-The self-hosted substrate must persist task, role/profile, routing, context,
-proposal, dissent, Evidence, cost, and outcome provenance. Its routing and
-selection policies are versioned, reviewed, deterministic inputs. It does not
-update weights, prompts, policies, or privileges online.
+`self-hosted-v1` establishes the durable transaction substrate selected by its
+own profile: Mission and graph authority, Attempts and leases, Candidates,
+Evidence, effects, reconciliation, and outcomes. It does not promise the
+cognitive and evolutionary records that the profile deliberately leaves
+`OUT_OF_PROFILE`. Before `evolution-v1` can activate, Wave 9 must extend that
+base with durable task-class, role/profile, routing, context, proposal,
+dissent, cost, selection, and lineage records and certify their replay. Those
+routing and selection policies are versioned, reviewed, deterministic inputs;
+neither profile updates weights, prompts, policies, or privileges online.
 
 Contextual routing learners, automatic role evolution, cross-repository sagas,
 and larger councils are outside `self-hosted-v1`. Evolutionary mechanisms require
@@ -189,11 +194,11 @@ before influencing production admission.
 
 The mechanisms in this section—`TeamRecipe` campaigns, quality-diversity
 archives, promotion ladders, islands, and adaptive champion/challenger
-routing—belong to `evolution-v1`. The self-hosted profile's durable routing,
-context, dissent, Evidence, and outcome records are their prerequisite
-substrate, not a running optimizer. The transaction proof below is necessary
-before this program can start; it is not sufficient to authorize evolution or
-promote a recipe.
+routing—belong to `evolution-v1`. The self-hosted transaction records plus the
+separately certified Wave-9 routing, context, dissent, selection, and lineage
+records are their prerequisite substrate, not a running optimizer. The
+transaction proof below is necessary before this program can start; it is not
+sufficient to authorize evolution or promote a recipe.
 
 The evolutionary program begins only after one real single-lane transaction
 can acquire authority, produce and apply a proposal, construct an exact
