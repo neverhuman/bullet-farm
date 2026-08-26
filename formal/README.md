@@ -16,7 +16,9 @@ This corpus intentionally contains exactly two bounded models:
 recorded SHA-256. `model-lock.json` pins every module/config hash and the deterministic
 single-worker state counts and depth. `model-check.sh` downloads only that exact asset, verifies
 both digests, requires Java 21, rejects a third model, and fails on any lock-shape,
-source/config/state/depth drift.
+source/config/state/depth drift. Every invocation uses a unique private run root with separate
+per-model metadata and logs; `model-check-concurrency-test.sh` overlaps two real pinned checks and
+refuses shared metadata, incomplete output, count/depth drift, or leaked run state.
 
 The JSON traces under `formal/traces/` are executable conformance fixtures, not model-check
 success claims. Rust tests replay the same refusal/adoption decisions. Run `just model-check`.

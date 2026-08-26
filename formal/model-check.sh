@@ -116,6 +116,16 @@ mapfile -t modules < <(find "$FORMAL" -maxdepth 1 -type f -name '*.tla' -printf 
 }
 
 observations='[]'
+run_root="$(mktemp -d "$CACHE/run.XXXXXX")"
+generated_lock=""
+cleanup() {
+  if [[ -n "$generated_lock" ]]; then
+    rm -f -- "$generated_lock"
+  fi
+  rm -rf -- "$run_root"
+}
+trap cleanup EXIT
+
 for module in "${modules[@]}"; do
   name="${module%.tla}"
   config="$name.cfg"
@@ -135,11 +145,14 @@ for module in "${modules[@]}"; do
     }
   fi
 
-  log="$CACHE/$name.log"
+  model_run_root="$run_root/$name"
+  mkdir -m 0700 -- "$model_run_root"
+  metadata_root="$model_run_root/metadata"
+  log="$model_run_root/$name.log"
   (
     cd "$FORMAL"
-    java -XX:+UseParallelGC -cp "$JAR" tlc2.TLC -cleanup -workers "$WORKERS" \
-      -seed "$SEED" -fp 0 -config "$config" "$module"
+    java -XX:+UseParallelGC -cp "$JAR" tlc2.TLC -workers "$WORKERS" \
+      -metadir "$metadata_root" -seed "$SEED" -fp 0 -config "$config" "$module"
   ) | tee "$log"
   grep -Fq "Model checking completed. No error has been found." "$log" || {
     echo "formal-check: $name did not complete cleanly" >&2
@@ -183,7 +196,6 @@ done
 
 if [[ "$MODE" == "write" ]]; then
   generated_lock="$(mktemp "$FORMAL/.model-lock.json.tmp.XXXXXX")"
-  trap 'rm -f "$generated_lock"' EXIT
   jq -cn \
     --argjson models "$observations" \
     --argjson seed "$SEED" \
@@ -193,7 +205,7 @@ if [[ "$MODE" == "write" ]]; then
   validate_model_lock "$generated_lock"
   chmod 0644 "$generated_lock"
   mv "$generated_lock" "$MODEL_LOCK"
-  trap - EXIT
+  generated_lock=""
   echo "formal-check: wrote model-lock.json from 2/2 pinned TLC observations"
 else
   echo "formal-check: 2/2 models match pinned tool, exact lock shape, source, config, states, and depth"

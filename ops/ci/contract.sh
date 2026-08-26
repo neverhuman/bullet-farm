@@ -70,4 +70,5 @@ if [[ "$formal_complete" != true ]]; then
   refuse FORMAL_PROOF_INCOMPLETE "exit=$formal_status completed=$completed_models summary=$final_summary"
   exit 1
 fi
+bash formal/model-check-concurrency-test.sh
 log "contract lane passed"
