@@ -30,71 +30,78 @@ tests, unsupported, skipped, flaky, or infrastructure error never equals
 
 | Stage | Required baseline | Additional requirement |
 | --- | --- | --- |
-| V1 GA | Exact offline transaction; conformant Claude, Codex, Cursor, and Antigravity receipts; protected Jeryu and GitHub effect receipts; five signed archives | Install, operations, recovery, security, containment, and supply-chain gates |
-| `linux-preview` | Ubuntu 24.04 x86_64/systemd, exact offline transaction, one Claude receipt, and local Jeryu integration | Non-release diagnostic slice only; it cannot authorize V1 or waive any omitted provider, GitHub, or package gate |
-| `provider-*`, `github-adapter-v1`, `platform-*` | One exact certification slice | Diagnostic evidence reusable by canonical V1 only when its exact gate also appears in the 26-gate release decision |
-| `team-v1` | Explicitly post-V1 | PostgreSQL/workload-mTLS partition, failover, freeze, and restore receipts |
+| `self-hosted-v1` | **First GA:** exact offline transaction; conformant Claude; protected local Jeryu effect; signed Ubuntu 24.04 x86_64/systemd distribution | Install, operations, recovery, security, Linux containment, supply chain, and profile-bound receipt admission |
+| `evolution-v1` | Passing `self-hosted-v1` | Separate study, shadow/canary, promotion, rollback, and drift receipts; never implied by another profile |
+| `provider-*`, forge-adapter, and `platform-*` | One exact independent certification slice after the self-hosted substrate; Wave 10 follows evolution Wave 9 in implementation order | One slice never certifies another; the current structural registry cannot PASS |
+| `universal-v1` | Later compatible composition of `self-hosted-v1`, all four providers, Jeryu, GitHub, both GitLab adapters, and five platforms | Fresh composition smoke and closure checks; it does not include evolution, team, or saga |
+| `team-v1` | Passing `self-hosted-v1` | PostgreSQL/workload-mTLS partition, failover, freeze, and restore receipts |
+| `saga-v1` | Passing `team-v1` | Cross-repository staged Candidate, quarantine, compensation, and forward-repair receipts |
+| `linux-preview` | A subset of Ubuntu/Jeryu/Claude diagnostics | Non-release only; it cannot replace `self-hosted-v1` or authorize a tag |
 
 Multi-tenant SaaS is outside this roadmap. A provider/model/adapter/profile is
 eligible only under its own exact, unexpired certification; one provider's
 receipt never certifies another provider or profile.
+
+There is no implicit `v1-ga` profile. The first-GA executable decision is
+`self-hosted-v1`. `universal-v1` is a later maximum-scope composition. Every
+narrower named profile authorizes only its own exact dependency closure.
 
 ## Current hard blockers
 
 | Gate | Status | Evidence needed to clear it |
 | --- | --- | --- |
 | Hub-only installation | `BLOCKED` | The checked-in alpha.4 lock is schema 2 and intentionally rejected. Descriptor-relative private staging, no-replace publication, fsync, bounded no-follow cleanup, sealed Linux execution of admitted Cargo/Node/Bash/npm/setup-mutation/family-lock/checkout Git subjects, a build-free default-refusing wrapper, and two-run fixture setup are committed. The wrapper's operator-selected external executable is not signed package admission; clone transport Git/helpers, non-Git traversal, and transient/between-child repository stability remain open. Publish a real schema-3 lock with authenticated Jeryu URL/slug and signed exact subjects, then replay the invariant using a signed prebuilt installer from tagged release bytes in a fresh home |
-| Production Kernel transaction | `BLOCKED` | Atomic lease/command/event/outbox, snapshots, authenticated ingress, exact offline reconciliation, admitted verifier gates, bounded verifier transport, PASETO launch-grant admission, Linux egress isolation, six read-only operational projections including revision-one Context Lineage, and a policy-gated common provider path are committed. Current v1alpha1 policy refuses before provider spawn. The unauthenticated `HttpLeaseClient` must not be exposed; signed full-subject internal lease transport, durable authority epoch/budget reservation, source/Attempt reconstruction authority, production JSON-RPC/effect dispatch, remaining normalized cognitive truth, CAS/GC, admitted restore, and cross-plane crash receipts remain |
+| Production Kernel transaction | `BLOCKED` | Atomic lease/command/event/outbox, snapshots, authenticated ingress, exact offline reconciliation, admitted verifier gates, bounded verifier transport, PASETO launch-grant admission, Linux egress isolation, six read-only operational projections including revision-one Context Lineage, a policy-gated common provider path, and a signed internal UDS lease RPC/client prototype are committed. Current v1alpha1 policy refuses before provider spawn. The unauthenticated `HttpLeaseClient` must not be exposed; the UDS prototype still needs peer-credential and descriptor-bound identity, durable client recovery/read-back, and product Runner admission. Durable authority epoch/budget reservation, source/Attempt reconstruction authority, production JSON-RPC/effect dispatch, remaining normalized cognitive truth, CAS/GC, admitted restore, and cross-plane crash receipts remain |
 | Production BulletGit transaction | `BLOCKED` | Durable CAS/journal, generation-atomic apply, preservation-bound cleanup, honest post-delete UNKNOWN outcomes, and a complete provenance-bound local Candidate identity are committed; positive online authority/settlement, complete Integration proof, immutable shared-wire tag consumption, and reviewed tagged `jeryu-gitd` remain |
 | Offline five-plane proof | `BLOCKED` | One signed `TRANSACTION_PROOF` covering authority, runner death/salvage, independent verification, ambiguous-effect reconciliation, protected integration, preservation, and truthful portal projection |
-| Jeryu live effect | `BLOCKED` | Operator-restored authentication and read-back/reconciliation receipt; the running forge must not be modified to work around missing capability |
-| GitHub live effect | `BLOCKED` | Configured GitHub App test repository and exact-subject integration/reconciliation receipt; V1 GA requires this effect proof even though GitHub is not source authority |
-| Provider conformance | `BLOCKED` | The common policy→key→lease→admission→grant→egress→read-only-turn→canary→receipt path is committed for all four providers. Current v1alpha1 policy yields neutral refusal and zero spawn. Real Claude, Codex, Cursor, and Antigravity identity/profile admission, native behavior, settlement, teardown, and separately conformant live receipts remain mandatory for V1 GA |
-| Security quality | `BLOCKED` | The latest deterministic Hub Jankurai report is 58 (raw 58), with 10 caps and 44 findings: 29 high/hard and 15 medium/soft. The score, caps, and hard findings block release. Hosted CI also lacks a portable checksum-pinned Jankurai artifact; do not replace that gap with a machine-local or skip-green lane. Release needs at least 90, zero caps/hard findings, and all required scans |
-| Release supply chain | `BLOCKED` | A Linux component verifies an exact non-circular signed five-target manifest and every declared byte subject, then can safely materialize one exact signed archive at an absent destination. Portal now emits a deterministic clean-commit bundle manifest binding its lock, Git/Node/npm subjects, and emitted files. Neither component is a package builder, installer, activation/rollback mechanism, or release authority. Reproducible package production, Rust embedding, semantic binary/SBOM/provenance validation, package signatures from protected release keys, installer smoke, and tagged release receipts remain |
+| Jeryu live effect | `BLOCKED` | Engineering must land typed capability probes, protected integration/read-back reconciliation, and semantic receipt admission; then the operator restores scoped authentication on an unmodified pinned forge and registers exact integration, reconciliation, backup/restore, and drift receipts |
+| GitHub live effect | `BLOCKED` | Engineering must land the typed capability/delivery/check/integration/read-back/reconciliation adapter and semantic receipt admission; then the operator configures a GitHub App test repository with role-separated credentials and registers the exact-subject receipt for the independent GitHub adapter profile and later `universal-v1`. GitHub is not source authority and is not selected by first-GA `self-hosted-v1` |
+| Provider conformance | `BLOCKED` | The four bounded offline adapters, zero-spawn refusal, launch-grant, and egress components exist, but complete schema-3 policy/enrollment-anchor admission, provider onboarding/runtime probes, and semantic sealed-receipt registration remain local engineering. The operator must then ratify the policy/enrollments and supply exact provider executables, profiles, credentials, and native live runs. First-GA `self-hosted-v1` requires Claude; Codex, Cursor, and Antigravity require independent profile receipts and are all selected again by later `universal-v1` |
+| Security quality | `BLOCKED` | The 65 (raw 66), 5-cap, 48-finding Hub Jankurai result is a historical unsigned component checkpoint recorded in G8, not a current-HEAD or release result. Moving working-tree diagnostics may score differently and are never promoted as evidence. Hosted CI also lacks a portable checksum-pinned Jankurai artifact; do not replace that gap with a machine-local or skip-green lane. Release needs at least 90, zero caps/hard findings, and all required scans |
+| Release supply chain | `BLOCKED` | A Linux component verifies an exact non-circular signed five-target universal manifest and every declared byte subject, then can safely materialize one exact signed archive at an absent destination. Portal now emits a deterministic clean-commit bundle manifest, and farmd has manifest-verified same-origin embedding as component proof. Neither component is a package builder, installer, activation/rollback mechanism, or release authority. First-GA `self-hosted-v1` needs one signed Ubuntu archive in a new profile-preserving manifest; later `universal-v1` needs all five. Reproducible package production, signed package integration, semantic binary/SBOM/provenance validation, package signatures from protected release keys, installer smoke, and tagged release receipts remain |
 | Platform containment | `BLOCKED` | Linux production containment plus fail-closed proof on every other packaged platform until an equivalent native backend passes |
 
 Missing credentials produce a neutral, unregistered live lane only when that
 lane is not required for the requested profile. Missing required tools,
 adapters, receipts, or signatures fail the release.
 
-The canonical V1 command is the unprofiled
-`bullet-family check release --json`; it contains exactly 26 gates and all are
-currently `BLOCKED`. `bullet-family check release --report` renders that same
-decision. Named profiles are fail-closed diagnostic slices only;
-`--profile linux-preview` deliberately omits frozen V1 requirements and can
-never authorize a release. No static placeholder or generic receipt envelope
-is counted as passing evidence. The portable generated
-copy is [`assurance/release-truth.generated.md`](assurance/release-truth.generated.md);
+Every release command requires an explicit profile and absolute receipt
+registry. The first-GA target is `self-hosted-v1`; the later maximum full-
+vision target is `universal-v1`, which intentionally includes both GitLab
+certification profiles so GitLab configurability cannot be claimed without
+proof. No forge adapter substitutes for another. Every profile is currently
+`BLOCKED`. `legacy-v1-26 --report
+--portable` preserves the historical 26-gate projection, with all 26 rows
+`BLOCKED`; it is not any release authority. `linux-preview` is likewise
+a non-release diagnostic and deliberately omits required subjects. No static
+placeholder or generic receipt envelope is counted as passing evidence. The
+portable generated current-profile copy is
+[`assurance/release-truth.generated.md`](assurance/release-truth.generated.md);
 it is a drift-checked projection, not a receipt.
 
-Exactly one gate, `release.rust-msrv-1-95`, has a semantic receipt-admission
-path. Its absence still produces the blocker above; the other 25 gates remain
-unconditionally blocked. Production discovery reads only the fixed
-`/etc/bullet-farm/release-msrv-1-95-admission.toml` descriptor. That
-root-owned descriptor selects a separately root-owned policy, an external
-evidence directory, and distinct source-tag, build-attestor, and trusted-time
-roots. Environment variables and repository files cannot redirect it. Every
-operator input and ancestor is admitted with no-follow descriptor reads,
-root ownership, non-writable mode, single-link identity, and bounded stable
-bytes. The three roots must contain distinct actual Ed25519 keys, not merely
-different pathnames or principals.
+The public `legacy-v1-26` diagnostic is static: it ignores the supplied receipt
+registry and keeps all 26 rows `BLOCKED`. It has no semantic admission command
+and reads neither a registry nor a fixed machine descriptor. Profiled release
+evaluation selects an explicit registry, but the current implementation proves
+only structural envelope and profile-binding checks. Hub engineering still
+owes kind-specific semantic verifiers, exact-family admission, and durable
+replay/high-water enforcement; operators still owe independently provisioned
+signer policy, trusted time, and real signed tagged receipts. Until both halves
+exist, selected-registry outcomes are absent, rejected, or structurally valid
+but untrusted, and no named product profile can PASS.
 
-The admitted evidence directory uses fixed receipt, detached-signature, and
-trusted-time filenames. Its canonical typed payload binds the schema-3 lock,
-current clean signed Hub/member commits and trees, every dependency-lock
-digest, exact admitted Rust 1.95 rustc/cargo bytes, and the fixed locked/offline
-build and test argv for all three Rust workspaces. Every build and test
-observation must be nonempty with exit zero, zero failures, and zero skips.
-The independently signed time observation binds the receipt digest, nonce,
-policy, gate, expiry, future-skew limit, and freshness window. A generic result
-digest, a self-selected signer file, or a receipt from another subject cannot
-clear the gate. Even when this one gate is receipted, the family release remains
-blocked until the remaining 25 gates have their own kind-specific authority.
+An older unprofiled one-gate MSRV evaluator and its fixed-descriptor tests are
+quarantined component provenance only. No public command or current profile
+invokes that path, and it cannot close or waive any release gate.
 
-## Current component receipt snapshot
+## Historical component checkpoints
 
-These reviewed commits are component evidence, not release or live evidence:
+The OIDs and any test counts below are point-in-time observations at the cited
+commits, not current-HEAD totals. They remain useful provenance, but every row
+is component evidence—not transaction, live, package, install, or release
+evidence. Exact working-tree counts are enforced by each repository's machine
+inventory ratchet and are deliberately not mirrored here as “current.” Those
+local results are unsigned CI observations and clear no release gate.
 
 | Subject | Committed receipt | Remaining authority boundary |
 | --- | --- | --- |
@@ -109,18 +116,18 @@ These reviewed commits are component evidence, not release or live evidence:
 | Verifier transport | Kernel `365bb5d` | Bounded strict one-shot request/output, exact frame and overflow kill/reap; no JSON-RPC, signed reconstruction source, or process-tree contract |
 | Signed launch grant + Linux egress | Hub `a2d6b2a`; Kernel `d388733` | Exact PASETO subject, policy key lifecycle, active-lease issuance, single-use nonce, and live namespace/nft/proxy isolation; live dispatch stays policy-disabled and no provider conformance receipt exists |
 | Operator-ratifiable live policy | Hub `bf5c642`; Kernel loader mirror `0d848f6`; descendant consumers BulletGit `236f4ef`, Portal `95108e3` | v1alpha2 structural/time validation requires generation >=2 and an active provider-runner key while preserving conservative invariants. ADR 0012 is proposed; the committed policy remains v1alpha1 generation 1 and no committed policy enables live admission |
-| Policy-gated provider conformance | Kernel `ba485d5`, nightly real-mode wrapper `b4735da` | Common fail-closed orchestration and sealed step receipts; required 439/439 with 3 intentional live skips, egress 3/3, and four-provider neutral refusal with zero spawn. Only Claude has a deep positive fake-process proof; no provider has a live receipt |
-| Operational farmd projections | Kernel `529bad1`, `7cdf850`; Portal `3033b67` | Six new atomic watermark-bound surfaces with generated/strictly validated clients, including revision-one Context Lineage; Portal 104/104 unit, 10/10 mocked browser, and 2/2 real farmd. Six designed surfaces remain explicit UNKNOWN, successor/compression lineage and the generated AJV root are absent, and there is no packaged runtime |
+| Policy-gated provider conformance | Kernel `ba485d5`, nightly real-mode wrapper `b4735da` | At those commits, the common fail-closed orchestration and sealed step receipts ran 439 required tests with 3 intentional live skips, egress 3/3, and four-provider neutral refusal with zero spawn. The present required lane instead excludes live tests and has zero skips. Only Claude has a deep positive fake-process proof; no provider has a live receipt |
+| Operational farmd projections | Kernel `529bad1`, `7cdf850`; Portal `3033b67` | At those commits, six atomic watermark-bound surfaces had generated/strictly validated clients and Portal ran 104 unit, 10 mocked-browser, and 2 real-farmd tests. The current component adds manifest-verified same-origin embedding and packaged-farmd browser proof. Six designed surfaces remain explicit UNKNOWN, successor/compression lineage and a signed package/install receipt are absent |
 | Initial Context Capsule authority | Kernel `7cdf850` | Immutable revision-one identity/package membership is normalized and atomically bound to graph materialization, lease, fence, and Attempt; cross-graph replay refuses. Successor/compression lineage, task/role/fusion, quota/budget, and routing scheduler truth remain open |
 | Setup transaction | Hub `94b6549`, `7efe2f3`, `3039878`, `e8f0180`, `34f3326`, `093a0e2` | Descriptor-relative source/component fixture plus sealed Linux Cargo/Node/Bash/npm, mutation-Git, family-lock verification-Git, and checkout verification-Git subjects and a build-free default-refusing wrapper; signed admission of its external executable, clone transport Git/helpers, transient/between-child object/ref/index/config/file stability, non-Git traversal, allowed-signers admission, production Jeryu/validator replay, public schema-3 authority, and prebuilt installer remain open |
-| MSRV receipt admission | Hub `d762f86` | One fixed root-owned policy/descriptor/evidence path can admit exact independently signed Rust 1.95 semantic evidence; no real admission exists, and this mechanism cannot clear any of the other 25 release gates |
-| Release-truth report | Hub `0cc7eec` | Deterministic 26-row operator projection with explicit mechanical/evidence/review/deployment/survival separation and decision exit 3; 0/26 receipts remain and the report itself cannot satisfy a gate |
-| Bundle verifier/extractor | Hub `352f963`, `ba09056` | Exact-byte verification and safe absent-destination materialization only; no package production, semantic admission, activation/rollback, or signing authority |
+| Legacy MSRV receipt admission | Hub `d762f86` | One fixed root-owned policy/descriptor/evidence path can admit exact independently signed Rust 1.95 evidence for the historical evaluator only; no real admission exists, and this mechanism cannot clear a profiled release gate |
+| Release-truth report | Hub `0cc7eec` | The cited historical checkpoint rendered 26 rows. The current generated `universal-v1` projection renders 43/43 `BLOCKED` with explicit mechanical/evidence/review/deployment/survival separation and decision exit 3; the report itself cannot satisfy a gate |
+| Bundle verifier/extractor | Hub `352f963`, `ba09056` | Public exact-byte verification plus a quarantined safe-materialization component; public extraction always refuses publication, and neither path owns package production, semantic admission, activation/rollback, or signing authority |
 | Signed receipt verifier | Hub `143f8b9` | Canonical receipt/policy and exact OpenSSH signer/namespace/interval verification; no external policy, trusted time/revocation/custody, semantic adjudication, registry/replay, or real receipt |
 | BulletGit subject/recovery contract | BulletGit `274fd6d`, `f551736`, `4c508e4` | Exact local freeze/recovery, strict wire-shaped subjects, and provenance-complete Candidate/Content identities; no immutable shared-wire tag, Kernel caller convergence, online authority/settlement, Integration proof, or production Jeryu service |
 | BulletGit cleanup/CI contract | BulletGit `2d22c28`, `5dac98e` | Synced tombstone before cleanup success and fail-closed UNKNOWN after ambiguous deletion; no positive online authority/Jeryu proof and Jankurai remains below release floor |
-| Generated/browser runtime truth | Kernel `35b6484`; Portal `181cd00`; Hub `601cb82` | Generated consumed DTO validation plus exact correlated UNKNOWN/SSE proof against Vite preview + real farmd; not Rust-embedded or package-served, and Candidate/Evidence/Effect DTOs remain open |
-| Portal bundle manifest | Portal `3033b67`; ignored generated root `blake3:3dd9ad08d729247b9889e6e68ee150c6aeca3e47306c7992d4cde509ab999596` | Clean commit/tree, lock, exact Git/Node, whole npm tree, and emitted bundle identity; `bundle:generate` and `bundle:check` exit 0. The manifest lives under ignored `dist/` and is not release evidence. No signed environment, Rust embedding, archive, activation, or installer authority |
+| Generated/browser runtime truth | Kernel `35b6484`; Portal `181cd00`; Hub `601cb82` | The cited checkpoint proved generated consumed DTO validation and exact correlated UNKNOWN/SSE against Vite preview + real farmd. Manifest-verified farmd embedding is now component-proved, but no signed package serves it and Candidate/Evidence/Effect DTOs remain open |
+| Portal bundle manifest | Portal `3033b67`; ignored generated root `blake3:3dd9ad08d729247b9889e6e68ee150c6aeca3e47306c7992d4cde509ab999596` | Clean commit/tree, lock, exact Git/Node/npm subjects, and emitted bundle identity at the cited checkpoint. Current same-origin embedding verifies that manifest, but the ignored `dist/` subject is not release evidence. No signed environment, archive, activation, or installer authority exists |
 
 ## Local pre-release gates
 
@@ -133,7 +140,9 @@ just check-family
 just family-contract
 just security
 just audit
-bullet-family check release --json
+bullet-family check release --profile self-hosted-v1 --receipts /absolute/admitted-registry --json
+bullet-family check release --profile universal-v1 --receipts /absolute/admitted-registry --json # later composition
+bullet-family check release --profile legacy-v1-26 --receipts /absolute/empty-registry --report --portable
 bullet-family check release --profile linux-preview --receipts /absolute/registry --json # non-release diagnostic
 ```
 
@@ -181,8 +190,9 @@ bullet-family release verify \
 ```
 
 It binds the manifest, schema-3 lock, five byte-sorted target entries, archive/SBOM/provenance bytes,
-detached signatures, and exact Ed25519 signer status. After that complete verification, the separate
-component extractor can materialize one signed target into an absent canonical destination:
+detached signatures, and exact Ed25519 signer status. The public extraction command performs that
+verification and then unconditionally refuses publication because the required different-identity
+or privileged containment backend does not exist:
 
 ```bash
 bullet-family release extract \
@@ -192,14 +202,13 @@ bullet-family release extract \
   --destination /absolute/absent/path
 ```
 
-Extraction is currently Linux GNU only. It re-hashes the selected signed archive into an immutable descriptor,
-admits a bounded regular-file/directory-only `tar.zst` or canonical stored ZIP layout, stages and fsyncs the complete
-tree beside the destination, and publishes with descriptor-relative no-replace rename. It rejects non-ASCII names
-(therefore every Unicode normalization ambiguity), case collisions, traversal, platform-special names, links and
-special files, ZIP64/multi-disk/data-descriptor ambiguity, oversize/ratio abuse, and any existing destination. A
-post-rename parent-fsync failure returns `RELEASE_PUBLICATION_UNKNOWN`; the destination is the complete next tree.
-Intermediate bundle-directory replacement remains outside the verifier's path-pinning guarantee, but substituted
-archive bytes cannot reach a parser unless their exact size and signed BLAKE3 digest match.
+On Linux, an exact valid bundle therefore ends in
+`RELEASE_PUBLICATION_CONTAINMENT_UNAVAILABLE` with the destination still absent; off Linux, structural
+verification may refuse earlier. The internal archive scanner and no-replace publisher remain quarantined
+components exercised only by tests. They admit bounded regular-file/directory-only `tar.zst` or canonical stored
+ZIP layouts and reject non-ASCII names, case collisions, traversal, platform-special names, links, special files,
+ZIP64/multi-disk/data-descriptor ambiguity, oversize/ratio abuse, and existing destinations. Those tests do not
+make the internal publisher a reachable installer surface.
 
 This command does not interpret binary, SBOM, or provenance semantics; run an installer; activate or roll back an
 installation; provision signing trust; or emit release evidence. No package builder or signed prebuilt
@@ -239,22 +248,24 @@ production transport and validation.
 
 ## Package matrix
 
-V1 GA requires archives for Linux x86_64/aarch64, macOS x86_64/arm64, and
-Windows x64. The built Portal is embedded in the Rust distribution. Linux is
-the initial production runner. Other packages must refuse real mutation unless
-their native containment backend has equivalent release evidence. The
-`linux-preview` diagnostic covers only Ubuntu x86_64 and cannot waive the other
-four archives.
+First-GA `self-hosted-v1` requires the signed Ubuntu 24.04 x86_64/systemd
+distribution. Independent platform profiles add Linux arm64, macOS
+x86_64/arm64, and Windows x64; later `universal-v1` composes all five. The built
+Portal is embedded in the Rust distribution. Every platform must refuse real
+mutation until its native containment backend has equivalent release evidence.
+The `linux-preview` diagnostic cannot replace the self-hosted release profile.
 
 Every certified archive is bound to the same hub tag and family lock and
 carries both SBOM formats, checksums, signatures, and provenance. The final
 manifest binds the hub tag without embedding its own digest.
 
-### Single-target component builder
+### Quarantined single-target builder component
 
-`bullet-family release build --target x86_64-unknown-linux-gnu --out ABSOLUTE_ABSENT_PATH`
-produces one unsigned Linux x86_64 bundle from a clean four-repository committed
-subject: a `bullet-farm/`-rooted deterministic `tar.zst` carrying eight locked
+The public `bullet-family release build` command always returns
+`RELEASE_BUILD_CONTAINMENT_UNAVAILABLE` before argument parsing, validation, source/tool inspection, child
+execution, or output creation. The quarantined internal builder component, exercised by focused tests only,
+can produce one unsigned Linux x86_64 bundle from a clean four-repository committed subject: a
+`bullet-farm/`-rooted deterministic `tar.zst` carrying eight locked
 release binaries, including the read-only `bullet-mcpd`, with `bullet-farmd`
 built `--features embedded-portal` from a scratch clone of the committed Portal
 subject and its own bundle manifest; all eight direct `bin/` entries are required
@@ -266,12 +277,12 @@ every exact build argv; a BLAKE3 checksum manifest over every archive entry and
 bundle file that is re-opened, re-parsed, and re-hashed before the build reports
 success; and a canonical-JSON build manifest that binds the four repository
 subjects, the family lock, the toolchain, and every artifact digest without ever
-binding its own. It refuses any other target with `UNSUPPORTED_RELEASE_TARGET`,
+binding its own. The internal component refuses any other target with `UNSUPPORTED_RELEASE_TARGET`,
 any member with tracked, untracked, or index changes with `DIRTY_SOURCE`, an
 absent toolchain with `RELEASE_TOOLCHAIN_MISSING`, and a Portal bundle manifest
 that disagrees with its own files with `RELEASE_PORTAL_BUNDLE_INVALID`.
 
-This builder is not the five-archive contract and clears no gate. It signs
+This internal component is not a public builder, is not the five-archive contract, and clears no gate. It signs
 nothing; signing remains OD-E and the build only prints the exact `ssh-keygen -Y
 sign` commands. It writes no `release-manifest.toml`, because that frozen schema
 requires all five byte-sorted targets and a schema-3 `family.lock` while this
@@ -282,11 +293,11 @@ emits BLAKE3 only, because no SHA-256 implementation is pinned in `Cargo.lock`.
 `bullet-family release verify` therefore refuses the bundle it produces, and
 `release.package-matrix`, `release.checksums`, `release.sbom`,
 `release.manifest-non-circular`, and `release.provenance` all remain `BLOCKED`.
-The producer runbook is [`runbooks/release-build.md`](runbooks/release-build.md).
+The containment/refusal runbook is [`runbooks/release-build.md`](runbooks/release-build.md).
 
 ## Tagging rule
 
 Do not create or advertise a V1 release tag while any required row above is
-`BLOCKED`, `UNKNOWN`, or supported only by component/synthetic evidence. When a
+`BLOCKED`, `UNKNOWN`, or supported only by component evidence. When a
 gate changes, update this index in the same reviewed transaction that adds its
 independently verifiable receipt; prose alone cannot change status.

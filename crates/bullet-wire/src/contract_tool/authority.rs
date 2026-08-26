@@ -1,8 +1,13 @@
 use serde_json::{Value, json};
 
 use crate::{
-    AuthorityAudience, AuthorityClaims, AuthoritySigningKey, MutationOperation, WireError,
-    authority_request_digest, canonical_json, hash_canonical,
+    AcceptanceContractId, AttemptId, AuthorityAudience, AuthorityClaims, AuthoritySigningKey,
+    CandidateId, ChangeId, CheckpointId, CommandId, ContentId, EffectIntentId, EffectReceiptId,
+    EventId, EvidenceId, GateId, GraphRevisionId, IntegrationProofRoot, MissionId, MutationId,
+    MutationOperation, MutationReservationId, OrganizationId, PlanRevisionId, PrincipalId,
+    ProviderProfileId, RepositoryId, RpcRequestId, RunnerId, ScopeGrantId, SelectionGroupId,
+    SourceDescriptorId, VariantId, WireError, WorkPackageId, WorkspaceId, authority_request_digest,
+    canonical_json, hash_canonical,
 };
 
 /// Fixture-only deterministic PASETO v4.public test vector. Its private half
@@ -177,12 +182,56 @@ pub(super) fn authority_golden() -> Result<(Value, crate::Blake3Digest), WireErr
     Ok((value, digest))
 }
 
-pub(super) fn parse_id<T>(prefix: &str, fill: char) -> Result<T, WireError>
-where
-    T: std::str::FromStr,
-    T::Err: std::fmt::Display,
-{
-    format!("{prefix}{}", fill.to_string().repeat(64))
-        .parse::<T>()
-        .map_err(|error| WireError::new("GOLDEN_ID_FAILED", error.to_string()))
+pub(super) trait GoldenId: Sized {
+    fn parse_golden_id(value: &str) -> Result<Self, WireError>;
+}
+
+macro_rules! golden_ids {
+    ($($type:ty),+ $(,)?) => {
+        $(
+            impl GoldenId for $type {
+                fn parse_golden_id(value: &str) -> Result<Self, WireError> {
+                    <$type>::parse_checked(value)
+                }
+            }
+        )+
+    };
+}
+
+golden_ids!(
+    AcceptanceContractId,
+    AttemptId,
+    CandidateId,
+    ChangeId,
+    CheckpointId,
+    CommandId,
+    ContentId,
+    EffectIntentId,
+    EffectReceiptId,
+    EventId,
+    EvidenceId,
+    GateId,
+    GraphRevisionId,
+    IntegrationProofRoot,
+    MissionId,
+    MutationId,
+    MutationReservationId,
+    OrganizationId,
+    PlanRevisionId,
+    PrincipalId,
+    ProviderProfileId,
+    RepositoryId,
+    RpcRequestId,
+    RunnerId,
+    ScopeGrantId,
+    SelectionGroupId,
+    SourceDescriptorId,
+    VariantId,
+    WorkPackageId,
+    WorkspaceId,
+);
+
+pub(super) fn parse_id<T: GoldenId>(prefix: &str, fill: char) -> Result<T, WireError> {
+    let text = format!("{prefix}{}", fill.to_string().repeat(64));
+    T::parse_golden_id(&text).map_err(|error| WireError::new("GOLDEN_ID_FAILED", error.to_string()))
 }

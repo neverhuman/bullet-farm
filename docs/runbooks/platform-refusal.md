@@ -3,15 +3,17 @@
 Status: **Linux GNU is the only runner that mutates; every other platform fails closed before mutation**  
 Owner: Bullet Farm maintainers  
 Last reviewed: 2026-08-25  
-Applies to: bullet-farm `d762f86`, bullet-kernel `0109a90` (harness-egress, launch-grant key custody, farmd
+Component receipt baselines (minimum; replay current-head lanes before use): bullet-farm `d762f86`, bullet-kernel `0109a90` (harness-egress, launch-grant key custody, farmd
 worker token), bullet-git `236f4ef` (workspace generations/preservation)
 
-Five archives are promised (`REQUIRED_TARGETS` in `src/release/schema.rs`: `aarch64-apple-darwin`,
-`aarch64-unknown-linux-gnu`, `x86_64-apple-darwin`, `x86_64-pc-windows-msvc`, `x86_64-unknown-linux-gnu`).
-One runner is supported: Linux GNU. An archive existing for a platform never authorizes execution there
-([`../release.md`](../release.md) "Package matrix"; gate `release.platform-containment` is `BLOCKED` until
-both the Linux containment receipt and the fail-closed refusal receipts for the other four exist). The `cfg`
-gates below select on OS/libc, not on architecture; no aarch64 Linux receipt exists either.
+First-GA `self-hosted-v1` selects one Ubuntu 24.04 x86_64/systemd archive and a
+Linux production-containment receipt. Independent platform profiles later add
+Linux arm64, macOS x86_64/arm64, and Windows x64; `universal-v1` composes those
+five targets. The existing `REQUIRED_TARGETS` verifier in `src/release/schema.rs`
+is a frozen five-target universal-envelope component: it is incompatible with
+and cannot admit the first-GA one-target package. An archive existing for a
+platform never authorizes execution there. The `cfg` gates below select on
+OS/libc, not on architecture; no aarch64 Linux receipt exists either.
 
 Every refusal below is produced before authority-bearing mutation. Some read-only commands first admit and read
 their subjects or run a bounded signature verifier; that work is not installation or publication. Each
@@ -87,7 +89,9 @@ it fails closed with the workspace intact.
 2. Do not work around it by patching `cfg` gates, copying archives across platforms, or running the Linux
    binary under an emulation layer and calling the result a receipt. `release.platform-containment` needs
    (a) the Linux production containment receipt and (b) fail-closed mutation refusal receipts on the other
-   four packaged targets — a refusal reproduced from tagged bytes on that platform is the receipt for (b).
+   targets selected by that profile. `self-hosted-v1` selects only Linux
+   x86_64; later platform profiles require their own tagged-byte refusals, and
+   `universal-v1` requires the complete five-target composition.
 3. On Linux GNU with a passing platform gate, the next refusal is usually the schema-2 lock
    ([`schema-removal.md`](schema-removal.md)) or missing egress tooling; follow those runbooks.
 

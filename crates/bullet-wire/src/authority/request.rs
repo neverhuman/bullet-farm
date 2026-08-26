@@ -1,12 +1,12 @@
-use std::{collections::BTreeSet, fmt::Display, str::FromStr};
+use std::collections::BTreeSet;
 
 use serde::Serialize;
 
 use super::{AUTHORITY_SCHEMA_VERSION, AuthorityClaims, MutationOperation, authority_error};
 use crate::{
-    AttemptId, Blake3Digest, CandidateId, ChangeId, CheckpointId, ContentId, EffectIntentId,
-    GitOid, MutationId, RepositoryId, SourceDescriptorId, WireError, WorkspaceId, hash_canonical,
-    v1alpha1,
+    AttemptId, Blake3Digest, CandidateId, CandidateProofRoot, ChangeId, CheckpointId, ContentId,
+    EffectIntentId, GateId, GitOid, MutationId, RepoPath, RepositoryId, ScopeGrantId,
+    SourceDescriptorId, WireError, WorkspaceId, hash_canonical, v1alpha1,
 };
 
 const MAX_SAFE_INTEGER: u64 = 9_007_199_254_740_991;
@@ -398,12 +398,43 @@ fn validate_effect_subject(
     validate_label("logical_key", logical_key)
 }
 
-fn parse<T>(name: &str, value: &str) -> Result<T, WireError>
-where
-    T: FromStr,
-    T::Err: Display,
-{
-    value.parse::<T>().map_err(|error| {
+trait AuthorityField: Sized {
+    fn parse_authority_field(value: &str) -> Result<Self, WireError>;
+}
+
+macro_rules! authority_fields {
+    ($($type:ty),+ $(,)?) => {
+        $(
+            impl AuthorityField for $type {
+                fn parse_authority_field(value: &str) -> Result<Self, WireError> {
+                    <$type>::parse_checked(value)
+                }
+            }
+        )+
+    };
+}
+
+authority_fields!(
+    AttemptId,
+    Blake3Digest,
+    CandidateId,
+    CandidateProofRoot,
+    ChangeId,
+    CheckpointId,
+    ContentId,
+    EffectIntentId,
+    GateId,
+    GitOid,
+    MutationId,
+    RepoPath,
+    RepositoryId,
+    ScopeGrantId,
+    SourceDescriptorId,
+    WorkspaceId,
+);
+
+fn parse<T: AuthorityField>(name: &str, value: &str) -> Result<T, WireError> {
+    T::parse_authority_field(value).map_err(|error| {
         authority_error(
             "INVALID_AUTHORITY_REQUEST",
             format!("{name} is invalid: {error}"),
@@ -413,8 +444,7 @@ where
 
 fn parse_unique<T>(name: &str, values: &[String]) -> Result<(), WireError>
 where
-    T: FromStr + ToString,
-    T::Err: Display,
+    T: AuthorityField + ToString,
 {
     let mut unique = BTreeSet::new();
     for value in values {

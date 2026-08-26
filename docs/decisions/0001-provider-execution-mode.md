@@ -18,7 +18,7 @@ provider validator, containment, credential projection, protocol conformance, an
 production boundary returns `LIVE_ADMISSION_UNAVAILABLE`. No environment flag, cached OAuth state, or test feature
 may upgrade a probe into live authority.
 
-## Frozen V1 adapter order and runtime observations
+## Adapter certification order and runtime observations
 
 The adapter order is normative:
 
@@ -27,8 +27,12 @@ The adapter order is normative:
 3. Cursor Agent Client Protocol (ACP).
 4. Antigravity headless structured mode.
 
-V1 GA requires current conformance receipts for **all four** adapters. `TEAM.md` critique C8's earlier suggestion
-that any two providers could gate GA is historical provenance and is superseded by the frozen V1 closure plan.
+First-GA `self-hosted-v1` requires a current Claude conformance receipt. Codex,
+Cursor, and Antigravity are certified through independent provider profiles;
+later `universal-v1` requires current receipts for **all four** adapters.
+`TEAM.md` critique C8's earlier suggestion that any two unnamed providers could
+gate GA remains historical provenance: no provider receipt substitutes for
+another.
 
 On 2026-08-24, sanitized local `--version`/`--help` probes of absolute resolved binaries observed:
 

@@ -1,13 +1,15 @@
-# Phase 9–10 — later, gated
+# Historical Phase 9–10 sketch
 
-Status: **post-V1; do not start**  
+Status: **SUPERSEDED planning provenance; do not execute**
 Last reviewed: 2026-08-25
 
-Do not start these while G2 / V1-S4 lacks a signed `TRANSACTION_PROOF`, or while any
-predecessor V1-S0..S8 gate has a known counterexample. Historical “Wave A–D” language
-in older specs is provenance only.
+This phase numbering predates the active dependency graph and is preserved only
+for provenance. The current order is
+[`closure-roadmap.md`](assurance/closure-roadmap.md): Wave 9 is `evolution-v1`,
+Wave 10 is provider/forge/platform breadth and `universal-v1`, and Wave 11 is
+`team-v1` followed by `saga-v1`. Nothing below overrides that order.
 
-## Phase 9 — team distribution
+## Historical Phase 9 — team distribution
 
 Build only after the five-plane `TRANSACTION_PROOF` exists and the self-hosted release
 baseline in [`release.md`](release.md) is green:
@@ -21,7 +23,7 @@ baseline in [`release.md`](release.md) is green:
 
 Exit: partition/failover chaos creates no double authority or accepted stale Effect.
 
-## Phase 10 — advanced optimization
+## Historical Phase 10 — advanced optimization
 
 Only after empirical proof from Phase 9:
 

@@ -3,7 +3,9 @@
 use std::ffi::OsString;
 use std::process::{Command, Output};
 
-use bullet_family::forge::{execute, setup_forge_banner, setup_forge_only, should_intercept};
+use bullet_family::forge::{
+    SETUP_FORGE_ONLY_EXIT_CODE, execute, setup_forge_banner, setup_forge_only, should_intercept,
+};
 use serde_json::Value;
 
 fn args(words: &[&str]) -> Vec<OsString> {
@@ -49,9 +51,28 @@ fn setup_forge_local_is_banner_only() {
     assert!(banner.contains("promotional: false"));
     assert!(banner.contains("admission-eligible: false"));
     assert!(banner.contains("receipt-status: ABSENT"));
+    assert!(banner.contains("First-GA self-hosted-v1"));
+    assert!(banner.contains("selected only by later universal-v1"));
+    assert!(!banner.contains("requires BOTH"));
+    assert!(!banner.contains("does not remove the GitHub requirement"));
     assert!(!banner.contains("LIVE_PROOF"));
     assert!(!banner.contains("capability_receipt"));
     assert!(setup_forge_only(&argv));
+
+    let github = setup_forge_banner(&args(&["setup", "--forge", "github"])).expect("banner");
+    assert!(github.contains("NOT self-hosted-v1"));
+    assert!(!github.contains("First-GA self-hosted-v1 requires"));
+
+    for profile in ["local", "github", "gitlab"] {
+        let output = run(&["setup", "--forge", profile]);
+        assert_eq!(
+            output.status.code(),
+            Some(i32::from(SETUP_FORGE_ONLY_EXIT_CODE)),
+            "banner-only setup for {profile} must report BLOCKED"
+        );
+        assert!(output.stderr.is_empty());
+        assert!(!output.stdout.is_empty());
+    }
 }
 
 #[test]

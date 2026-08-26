@@ -133,7 +133,7 @@ pub fn parse(bytes: &[u8]) -> Result<FamilyLock, CoordError> {
         return Err(CoordError::new(
             "UNSUPPORTED_SCHEMA",
             format!(
-                "family.lock schema {version} is not installable; remove it or regenerate schema {LOCK_SCHEMA_VERSION} from authenticated signed tags"
+                "family.lock schema {version} is not installable; retain it for diagnosis, regenerate schema {LOCK_SCHEMA_VERSION} from authenticated signed tags, and replace it atomically"
             ),
         ));
     }
@@ -155,7 +155,7 @@ pub(crate) fn validate(lock: &FamilyLock) -> Result<(), CoordError> {
         return Err(CoordError::new(
             "UNSUPPORTED_SCHEMA",
             format!(
-                "family.lock schema {} is not installable; regenerate schema {LOCK_SCHEMA_VERSION} from authenticated signed tags",
+                "family.lock schema {} is not installable; retain it for diagnosis, regenerate schema {LOCK_SCHEMA_VERSION} from authenticated signed tags, and replace it atomically",
                 lock.schema_version
             ),
         ));

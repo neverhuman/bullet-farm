@@ -3,7 +3,7 @@
 Status: **drill runnable on Linux GNU; the positive setup path is refused by design (schema 2), so recovery today is diagnosis, not repair**  
 Owner: Bullet Farm maintainers  
 Last reviewed: 2026-08-25  
-Applies to: bullet-farm `d762f86` (`src/setup.rs`, `src/setup/transaction.rs`, `src/doctor`, `src/checkout`);
+Component receipt baseline (minimum; replay current-head lanes before use): bullet-farm `d762f86` (`src/setup.rs`, `src/setup/transaction.rs`, `src/doctor`, `src/checkout`);
 transaction rules in [`source-setup.md`](source-setup.md)
 
 Run this drill after any setup crash, refusal, power loss, or "it printed an error after it said it
@@ -64,8 +64,8 @@ local binary when compiler-cache writes would interfere with evidence preservati
    cargo run --locked --quiet --bin bullet-family -- checkout verify; echo EXIT=$?
    ```
 
-   Observed: `UNSUPPORTED_SCHEMA: family.lock schema 2 is not installable; remove it or regenerate schema 3
-   from authenticated signed tags`, `EXIT=4`. That is the expected negative under the checked-in lock; with an
+   Observed: `UNSUPPORTED_SCHEMA: family.lock schema 2 is not installable; retain it for diagnosis, regenerate
+   schema 3 from authenticated signed tags, and replace it atomically`, `EXIT=4`. That is the expected negative under the checked-in lock; with an
    admitted schema-3 lock this command is the clean-family verdict. Record the refusal, do not "fix" the lock
    ([`schema-removal.md`](schema-removal.md)).
 

@@ -13,7 +13,8 @@ build broker; same-UID pathname checks cannot provide that boundary.
 The compiler-retained code under `src/release/build/` and its tests preserve a
 one-target Linux x86_64 assembly component. It is quarantined implementation
 material, not a callable producer, release archive, installer, signer, or
-package matrix. V1 still requires five signed archives from admitted builders.
+package matrix. First-GA `self-hosted-v1` requires one signed Ubuntu 24.04
+x86_64/systemd archive; later `universal-v1` requires all five signed archives.
 
 ## Quarantined component shape
 
@@ -56,10 +57,12 @@ only; the public extractor is disabled even on Linux.
 - **No public output.** `release build` refuses before it can create `--out`.
 - **No signature.** Signing remains operator decision OD-E. Component code may
   render signing instructions, but it owns no signing credential.
-- **No `release-manifest.toml`.** ReleaseManifest v2 requires a schema-3
-  `family.lock`, all five byte-sorted targets, and separately signed archive,
-  checksum, CycloneDX, SPDX, and provenance subjects for each target. The
-  checked-in lock is schema 2 and four target archives are absent.
+- **No profile-preserving `release-manifest.toml`.** ReleaseManifest v2 is the
+  frozen universal-envelope component: it requires a schema-3 `family.lock`,
+  all five byte-sorted targets, and separately signed archive, checksum,
+  CycloneDX, SPDX, and provenance subjects for each target. It cannot represent
+  the one-target `self-hosted-v1` package. The checked-in lock is schema 2 and
+  four universal target archives are absent.
 - **No SPDX producer.** ReleaseManifest v2 can structurally bind an SPDX subject;
   the quarantined one-target builder still emits CycloneDX only. SPDX generation
   and semantic admission remain open builder work.

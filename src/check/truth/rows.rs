@@ -6,7 +6,8 @@
 //! gap ids come from the G-table in `docs/assurance/product-gaps.md`. A claim
 //! sentence must never read as closed while its gate is unreceipted; the unit
 //! tests below enforce vocabulary, one-to-one catalog coverage, and that every
-//! G-id is answered by a gate row, the ungated section, or the inventory itself.
+//! G-id is visible through a gate row, the ungated section, or the inventory
+//! itself. G12 deliberately binds both the inventory and its admission gate.
 
 mod gates;
 mod ungated;
@@ -27,16 +28,21 @@ pub(super) const PRODUCT_GAPS: &[(&str, &str)] = &[
     ("G6", "Jeryu live effect"),
     ("G7", "GitHub live effect"),
     ("G8", "Security release floor"),
-    ("G9", "Signed five-target release"),
-    ("G10", "Non-Linux containment"),
+    ("G9", "Signed profile-selected release"),
+    ("G10", "Platform containment"),
     ("G11", "Evolutionary runtime"),
     ("G12", "Family `check release`"),
     ("G13", "Portal product surfaces"),
     ("G14", "farmd production API"),
     ("G15", "Cognitive persistence"),
+    ("G16", "GitLab adapter effects"),
+    ("G17", "Distributed team mode"),
+    ("G18", "Cross-repository sagas"),
 ];
 
-/// The gap that is this inventory itself; it owns no row.
+/// The gap that is this exact profile inventory and its semantic admission
+/// machinery. `release.receipt-contracts` owns the machinery; the renderer
+/// separately shows the inventory without counting either as evidence.
 pub(super) const INVENTORY_GAP: &str = "G12";
 
 /// Words that would make an unreceipted claim read as closed.
@@ -261,33 +267,55 @@ mod tests {
     use crate::check::prerequisites;
 
     fn gap_number(id: &str) -> u32 {
-        id.strip_prefix('G').unwrap().parse().unwrap()
+        id.strip_prefix('G')
+            .unwrap()
+            .bytes()
+            .try_fold(0_u32, |number, byte| {
+                number
+                    .checked_mul(10)?
+                    .checked_add(u32::from(byte.checked_sub(b'0')?))
+            })
+            .unwrap()
     }
 
     #[test]
-    fn rows_cover_the_universal_release_profile_exactly_once() {
-        let profile = crate::check::profiles::ReleaseProfile::parse("universal-v1").unwrap();
-        let report = prerequisites::report_release_profile(
-            profile,
-            std::path::Path::new("/nonexistent/bullet-release-truth-registry"),
-        )
-        .unwrap();
-        let catalog = report
-            .gates()
-            .iter()
-            .map(|gate| gate.id())
-            .collect::<Vec<_>>();
+    fn rows_cover_every_product_profile_exactly_once() {
         let rows = all_rows().map(|row| row.id).collect::<Vec<_>>();
-        for id in &catalog {
-            assert!(rows.contains(id), "catalog gate without a claim row: {id}");
+        let mut reachable = std::collections::BTreeSet::new();
+        for name in [
+            "self-hosted-v1",
+            "evolution-v1",
+            "universal-v1",
+            "team-v1",
+            "saga-v1",
+        ] {
+            let profile = crate::check::profiles::ReleaseProfile::parse(name).unwrap();
+            let report = prerequisites::report_release_profile(
+                profile,
+                std::path::Path::new("/nonexistent/bullet-release-truth-registry"),
+            )
+            .unwrap();
+            let catalog = report
+                .gates()
+                .iter()
+                .map(|gate| gate.id())
+                .collect::<Vec<_>>();
+            let unique = catalog
+                .iter()
+                .copied()
+                .collect::<std::collections::BTreeSet<_>>();
+            assert_eq!(catalog.len(), unique.len(), "{name} duplicated a gate");
+            for id in catalog {
+                assert!(rows.contains(&id), "{name} gate has no claim row: {id}");
+                reachable.insert(id.to_owned());
+            }
         }
         for id in &rows {
             assert!(
-                catalog.contains(id),
-                "claim row without a catalog gate: {id}"
+                reachable.contains(*id),
+                "claim row is unreachable from every product profile: {id}"
             );
         }
-        assert_eq!(rows.len(), catalog.len());
         assert!(ROWS.windows(2).all(|pair| pair[0].id < pair[1].id));
         assert!(NATIVE_ROWS.windows(2).all(|pair| pair[0].id < pair[1].id));
         assert!(
@@ -300,7 +328,7 @@ mod tests {
     #[test]
     fn every_gate_names_a_gap_and_every_gap_is_answered_once() {
         let known = PRODUCT_GAPS.iter().map(|(id, _)| *id).collect::<Vec<_>>();
-        assert_eq!(known.len(), 15);
+        assert_eq!(known.len(), 18);
         assert!(
             known
                 .windows(2)
@@ -310,7 +338,6 @@ mod tests {
             assert!(!row.gap_ids.is_empty(), "{} names no product gap", row.id);
             for gap in row.gap_ids {
                 assert!(known.contains(gap), "{} names unknown gap {gap}", row.id);
-                assert_ne!(*gap, INVENTORY_GAP, "{} claims the inventory gap", row.id);
             }
             assert!(
                 row.gap_ids
@@ -336,7 +363,7 @@ mod tests {
                 !gates_for(gap).is_empty() || ungated_for(gap).is_some() || *gap == INVENTORY_GAP;
             assert!(answered, "{gap} is answered nowhere");
         }
-        assert!(gates_for(INVENTORY_GAP).is_empty());
+        assert_eq!(gates_for(INVENTORY_GAP), ["release.receipt-contracts"]);
         assert!(ungated_for(INVENTORY_GAP).is_none());
     }
 

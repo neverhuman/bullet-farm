@@ -5,6 +5,10 @@ use std::path::PathBuf;
 
 use crate::coord::CoordError;
 
+/// Banner-only setup diagnoses an unavailable adapter without performing setup.
+/// Use the family's BLOCKED exit code so transport success cannot imply mutation.
+pub const SETUP_FORGE_ONLY_EXIT_CODE: u8 = 3;
+
 /// Process-facing forge result. Kept separate so this module does not
 /// depend on [`crate::cli`] while that file is claimed elsewhere.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -49,8 +53,8 @@ forge: local (Jeryu at http://127.0.0.1:8787) [RECOMMENDED AFTER INDEPENDENT ADM
     no signed release artifacts to pin against (Jeryu tags are unsigned)
     the forge runs on your machine, so it is not an independent authority
 
-  V1 GA requires BOTH a Jeryu effect receipt AND a GitHub App effect receipt.
-  Choosing local does not remove the GitHub requirement.
+  First-GA self-hosted-v1 requires the admitted local Jeryu effect receipt.
+  GitHub is certified independently and is selected only by later universal-v1.
 ";
 
 const GITHUB_BANNER: &str = "\

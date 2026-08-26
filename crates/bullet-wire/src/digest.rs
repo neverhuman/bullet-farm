@@ -19,6 +19,14 @@ impl Blake3Digest {
     pub fn to_hex(self) -> String {
         blake3::Hash::from_bytes(self.0).to_hex().to_string()
     }
+
+    pub(crate) fn parse_checked(raw: &str) -> Result<Self, WireError> {
+        validate_lower_hex(raw, 64, "INVALID_BLAKE3_DIGEST")?;
+        let hash = blake3::Hash::from_hex(raw).map_err(|error| {
+            WireError::new("INVALID_BLAKE3_DIGEST", format!("invalid digest: {error}"))
+        })?;
+        Ok(Self(*hash.as_bytes()))
+    }
 }
 
 impl fmt::Debug for Blake3Digest {
@@ -40,11 +48,7 @@ impl FromStr for Blake3Digest {
     type Err = WireError;
 
     fn from_str(raw: &str) -> Result<Self, Self::Err> {
-        validate_lower_hex(raw, 64, "INVALID_BLAKE3_DIGEST")?;
-        let hash = blake3::Hash::from_hex(raw).map_err(|error| {
-            WireError::new("INVALID_BLAKE3_DIGEST", format!("invalid digest: {error}"))
-        })?;
-        Ok(Self(*hash.as_bytes()))
+        Self::parse_checked(raw)
     }
 }
 
@@ -62,9 +66,8 @@ impl<'de> Deserialize<'de> for Blake3Digest {
     where
         D: Deserializer<'de>,
     {
-        String::deserialize(deserializer)?
-            .parse()
-            .map_err(de::Error::custom)
+        let raw = String::deserialize(deserializer)?;
+        Self::parse_checked(&raw).map_err(de::Error::custom)
     }
 }
 

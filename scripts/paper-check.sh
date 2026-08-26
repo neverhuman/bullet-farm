@@ -11,6 +11,8 @@ allow_dirty="${PAPER_ALLOW_DIRTY:-0}"
 fail() { printf 'paper-check: %s\n' "$*" >&2; exit 1; }
 need() { command -v "$1" >/dev/null 2>&1 || fail "required tool missing: $1"; }
 for tool in jq git sha256sum pdflatex bibtex pdfinfo pdffonts perl; do need "$tool"; done
+bash "$repo_root/ops/ci/strict-json.sh" "$evidence" >/dev/null \
+  || fail "evidence.json is ambiguous or invalid JSON"
 
 jq -e '
   .schema_version == "bullet.paper-evidence.v1" and

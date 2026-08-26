@@ -1,55 +1,18 @@
 #!/usr/bin/env bash
-# Security lane: secret scan, supply-chain policy, and workflow policy scan.
-# Every step fails closed. scripts/ci-doctor.sh pins gitleaks 8.21.2,
-# cargo-deny 0.19.8, and zizmor 1.25.2; a missing or wrong-version tool, a
-# missing deny.toml, or an unfetchable advisory database fails the lane rather
-# than reducing it to the checks that happen to be runnable.
+# Current-tree secrets, a real-detection canary, the complete Rust supply-chain
+# policy, and offline workflow analysis. Every check fails closed.
 set -euo pipefail
+# shellcheck source=ops/ci/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+# shellcheck source=ops/ci/advisory-db.sh
+source "$(dirname "${BASH_SOURCE[0]}")/advisory-db.sh"
 cd "$REPO_ROOT"
-bash scripts/ci-doctor.sh security
-log "security lane"
-require_file "deny.toml"
-gitleaks detect --source . --no-git --redact --no-banner
-# The advisory database is refreshed and then independently proved fresh.
-# cargo-deny 0.19.8 fetches it through the git CLI, and its capture() helper
-# reads a non-zero git exit as success (upstream src/advisories/helpers/db.rs),
-# so on a host that already has a database a failed fetch cannot fail the check.
-# `maximum-db-staleness` in deny.toml does not close that hole either: a failed
-# `git fetch` still rewrites FETCH_HEAD, so its timestamp looks current. The
-# lane therefore reads the database's own newest commit. A missing, unreadable,
-# or stale database is a typed refusal, never a skipped check.
-cargo deny fetch db
-advisory_db_max_age_days=14
-advisory_db=""
-for candidate in target/advisory-db/advisory-db-*; do
-  [[ -d "$candidate/.git" ]] || continue
-  advisory_db="$candidate"
-  break
-done
-if [[ -z "$advisory_db" ]]; then
-  echo "[ci] ADVISORY_DB_ABSENT: no advisory database under target/advisory-db" >&2
-  echo "[ci] run 'cargo deny fetch db' on a host with network access" >&2
-  exit 1
-fi
-if ! advisory_db_commit="$(git -C "$advisory_db" log -1 --format=%ct)"; then
-  echo "[ci] ADVISORY_DB_UNREADABLE: $advisory_db has no readable git history" >&2
-  exit 1
-fi
-advisory_db_age_days=$(( ( $(date -u +%s) - advisory_db_commit ) / 86400 ))
-if (( advisory_db_age_days > advisory_db_max_age_days )); then
-  printf '[ci] ADVISORY_DB_STALE: %s newest commit is %sd old, limit %sd\n' \
-    "$advisory_db" "$advisory_db_age_days" "$advisory_db_max_age_days" >&2
-  echo "[ci] refresh it on a host with network access; the scan is not trusted" >&2
-  exit 1
-fi
-log "advisory database $advisory_db newest commit ${advisory_db_age_days}d old (limit ${advisory_db_max_age_days}d)"
 
-# licenses/advisories/bans/sources are gated by the committed deny.toml policy.
+log "security lane: current tree before dependency resolution"
+bash ops/ci/source-scan.sh
+bash ops/ci/secret-canary.sh
+require_file deny.toml
+refresh_advisory_database
 cargo deny --locked check licenses advisories bans sources
-# zizmor audits the committed workflow bytes. Without a GitHub API token it
-# reports that it is skipping its five online audits (impostor-commit,
-# ref-confusion, known-vulnerable-actions, stale-action-refs,
-# ref-version-mismatch); the offline audits still fail the lane on a finding.
-zizmor .
+zizmor --offline --no-ignores --strict-collection .
 log "security lane passed"

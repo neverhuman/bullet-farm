@@ -141,12 +141,15 @@ mod tests {
             assert!(!first.ends_with('\n'));
             assert_eq!(first.matches("   - Release-blocking: yes\n").count(), 28);
             assert_eq!(first.matches("   - Product gap: G").count(), 28);
-            assert_eq!(first.matches("   - Next command: ").count(), 28 + 5);
-            assert!(first.contains("Agreement with `docs/assurance/product-gaps.md`: YES — all 43 crosswalk rows and the G-id list agree"));
+            assert_eq!(
+                first.matches("   - Next command: ").count(),
+                28 + rows::UNGATED.len()
+            );
+            assert!(first.contains("Agreement with `docs/assurance/product-gaps.md`: YES — all 46 crosswalk rows and the G-id list agree"));
             assert!(first.contains(
                 "| G12 | Family `check release` | this `unprofiled` inventory — 28 selected gates, 0 receipted"
             ));
-            assert!(first.contains("| G4 | Production BulletGit write path | ungated — see"));
+            assert!(first.contains("| G4 | Production BulletGit write path | ungated — release-blocking through the selected `release.transaction-demo`; see below"));
         }
         let live = render::render(&synthetic(Variant::Live), &report).unwrap();
         assert!(live.contains("| hub | `/fixture/bullet-farm` |"));
@@ -172,7 +175,7 @@ mod tests {
             );
             blocks += 1;
         }
-        assert_eq!(blocks, (28 + 5) * 3);
+        assert_eq!(blocks, (28 + rows::UNGATED.len()) * 3);
         for line in page.lines().filter(|line| line.starts_with("   - Owner: ")) {
             let owner = line.trim_start_matches("   - Owner: ");
             assert!(

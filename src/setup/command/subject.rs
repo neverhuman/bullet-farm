@@ -8,7 +8,7 @@ use std::{
 #[cfg(target_os = "linux")]
 use std::os::{
     fd::{AsRawFd, RawFd},
-    unix::fs::{OpenOptionsExt, PermissionsExt},
+    unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt},
 };
 #[cfg(target_os = "linux")]
 use std::{
@@ -26,8 +26,16 @@ pub(super) struct AdmittedFile {
     pub(super) path: PathBuf,
     label: &'static str,
     fingerprint: [u8; 32],
+    size_bytes: u64,
     executable: bool,
     subject: File,
+    source_identity: SourceIdentity,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct SourceIdentity {
+    device: u64,
+    inode: u64,
 }
 
 impl AdmittedFile {
@@ -57,19 +65,23 @@ impl AdmittedFile {
                 format!("use the canonical path {}", canonical.display()),
             ));
         }
-        let (subject, fingerprint) = snapshot_source(label, &canonical, executable)?;
+        let (subject, fingerprint, size_bytes, source_identity) =
+            snapshot_source(label, &canonical, executable)?;
         Ok(Self {
             path: canonical,
             label,
             fingerprint,
+            size_bytes,
             executable,
             subject,
+            source_identity,
         })
     }
 
     pub(super) fn verify(&self) -> Result<(), CoordError> {
-        let actual = source_fingerprint(self.label, &self.path, self.executable)?;
-        if actual != self.fingerprint {
+        let (fingerprint, size_bytes) =
+            source_fingerprint(self.label, &self.path, self.executable)?;
+        if fingerprint != self.fingerprint || size_bytes != self.size_bytes {
             return Err(tool_error(
                 "SETUP_TOOL_CHANGED",
                 self.label,
@@ -77,6 +89,25 @@ impl AdmittedFile {
             ));
         }
         Ok(())
+    }
+
+    pub(super) fn canonical_path(&self) -> &Path {
+        &self.path
+    }
+
+    pub(super) fn digest(&self) -> String {
+        format!(
+            "blake3:{}",
+            blake3::Hash::from_bytes(self.fingerprint).to_hex()
+        )
+    }
+
+    pub(super) const fn size_bytes(&self) -> u64 {
+        self.size_bytes
+    }
+
+    pub(super) fn aliases(&self, other: &Self) -> bool {
+        self.path == other.path || self.source_identity == other.source_identity
     }
 
     #[cfg(target_os = "linux")]
@@ -95,7 +126,7 @@ fn snapshot_source(
     label: &'static str,
     path: &Path,
     executable: bool,
-) -> Result<(File, [u8; 32]), CoordError> {
+) -> Result<(File, [u8; 32], u64, SourceIdentity), CoordError> {
     use nix::{
         fcntl::{FcntlArg, FdFlag, SealFlag, fcntl},
         sys::{
@@ -105,10 +136,17 @@ fn snapshot_source(
     };
 
     let mut source = open_source(label, path, executable)?;
+    let metadata = source
+        .metadata()
+        .map_err(|error| unavailable(label, path, error))?;
+    let source_identity = SourceIdentity {
+        device: metadata.dev(),
+        inode: metadata.ino(),
+    };
     let descriptor = memfd_create(c"bullet-setup-tool", MemFdCreateFlag::MFD_ALLOW_SEALING)
         .map_err(|error| pin_error(label, error))?;
     let mut writable = File::from(descriptor);
-    let fingerprint = copy_fingerprint(label, &mut source, Some(&mut writable))?;
+    let (fingerprint, size_bytes) = copy_fingerprint(label, &mut source, Some(&mut writable))?;
     writable.flush().map_err(|error| pin_error(label, error))?;
     fchmod(
         writable.as_raw_fd(),
@@ -138,7 +176,7 @@ fn snapshot_source(
     fcntl(subject.as_raw_fd(), FcntlArg::F_SETFD(FdFlag::empty()))
         .map_err(|error| pin_error(label, error))?;
     drop(writable);
-    Ok((subject, fingerprint))
+    Ok((subject, fingerprint, size_bytes, source_identity))
 }
 
 #[cfg(not(target_os = "linux"))]
@@ -146,7 +184,7 @@ fn snapshot_source(
     label: &'static str,
     _path: &Path,
     _executable: bool,
-) -> Result<(File, [u8; 32]), CoordError> {
+) -> Result<(File, [u8; 32], u64, SourceIdentity), CoordError> {
     Err(tool_error(
         "SETUP_TOOL_PIN_UNSUPPORTED",
         label,
@@ -159,7 +197,7 @@ fn source_fingerprint(
     label: &'static str,
     path: &Path,
     executable: bool,
-) -> Result<[u8; 32], CoordError> {
+) -> Result<([u8; 32], u64), CoordError> {
     let mut source = open_source(label, path, executable)?;
     copy_fingerprint(label, &mut source, None)
 }
@@ -169,7 +207,7 @@ fn source_fingerprint(
     label: &'static str,
     _path: &Path,
     _executable: bool,
-) -> Result<[u8; 32], CoordError> {
+) -> Result<([u8; 32], u64), CoordError> {
     Err(tool_error(
         "SETUP_TOOL_PIN_UNSUPPORTED",
         label,
@@ -216,7 +254,7 @@ fn copy_fingerprint(
     label: &'static str,
     source: &mut File,
     mut destination: Option<&mut File>,
-) -> Result<[u8; 32], CoordError> {
+) -> Result<([u8; 32], u64), CoordError> {
     let mut hasher = blake3::Hasher::new();
     let mut copied = 0_u64;
     let mut buffer = [0_u8; 64 * 1024];
@@ -225,7 +263,7 @@ fn copy_fingerprint(
             .read(&mut buffer)
             .map_err(|error| tool_error("SETUP_TOOL_UNAVAILABLE", label, error.to_string()))?;
         if count == 0 {
-            return Ok(*hasher.finalize().as_bytes());
+            return Ok((*hasher.finalize().as_bytes(), copied));
         }
         copied = copied.checked_add(count as u64).ok_or_else(|| {
             tool_error(

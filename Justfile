@@ -14,8 +14,29 @@ coord *args:
 demo:
     bash scripts/demo.sh
 
+preview:
+    bash scripts/preview.sh
+
+dev:
+    bash scripts/dev.sh
+
+readme-record:
+    bash scripts/readme-record.sh
+
+readme-render:
+    bash scripts/readme-render.sh
+
+readme-check:
+    bash scripts/readme-check.sh
+
 fast:
     bash scripts/ci-local.sh fast
+
+lint:
+    bash scripts/ci-local.sh lint
+
+docs:
+    bash scripts/ci-local.sh docs
 
 check:
     bash scripts/ci-local.sh required
@@ -75,8 +96,8 @@ check-family:
     bash scripts/ci-local.sh family
 
 [positional-arguments]
-lock-generate tag:
-    cargo run --locked --quiet --bin bullet-family -- lock generate --tag "$1"
+lock-generate tag subjects:
+    cargo run --locked --quiet --bin bullet-family -- lock generate --tag "$1" --subjects "$2"
 
 [positional-arguments]
 lock-verify tag:

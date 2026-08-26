@@ -55,14 +55,17 @@ release subject.
 
 ## Authority
 
-Write inventory rows only from
-[`../assurance/v1-closure-plan.md`](../assurance/v1-closure-plan.md),
+Write inventory rows only from the active
+[`closure roadmap`](../assurance/closure-roadmap.md), generated
+[`release truth`](../assurance/release-truth.generated.md),
 [`../release.md`](../release.md), and the operator index
-[`../assurance/product-gaps.md`](../assurance/product-gaps.md). Pin competitor
+[`../assurance/product-gaps.md`](../assurance/product-gaps.md). The superseded
+[`v1-closure-plan.md`](../assurance/v1-closure-plan.md) is provenance, not a
+current inventory authority. Pin competitor
 subjects from
 [`../assurance/competitor-snapshot.md`](../assurance/competitor-snapshot.md)
 and the dated landscape appendix. The non-authoritative opportunity backlog is
-[`../workplan.md`](../workplan.md); it cannot change the closure plan.
+[`../workplan.md`](../workplan.md); it cannot change the active closure roadmap.
 
 Stage 2, including any matched benchmark or measured superiority claim, is
 deferred until a signed connected `TRANSACTION_PROOF` exists. Historical

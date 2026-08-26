@@ -10,8 +10,9 @@ Applies to: bullet-farm
 Public hub, installer, family manifest and lock, fusion script, onboarding,
 frozen wire contracts (`crates/bullet-wire`), canonical policy (`policy/`),
 release verification (`bullet-family release verify|extract|receipt-verify`),
-family coordination (`bullet-family coord`), the fail-closed release-truth
-report (`bullet-family check release --report`, `just release-truth`), and
+family coordination (`bullet-family coord`), the fail-closed explicit-profile
+release decision (`bullet-family check release --profile <profile> --receipts
+<absolute-registry> --json`; `just release-truth` renders the diagnostic page), and
 historical Centerrail design provenance.
 
 ## Repositories

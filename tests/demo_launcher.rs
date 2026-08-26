@@ -7,6 +7,7 @@ use std::{
 };
 
 const DEMO_LAUNCHER: &str = include_str!("../scripts/demo.sh");
+const PREVIEW_LAUNCHER: &str = include_str!("../scripts/preview.sh");
 
 #[cfg(unix)]
 fn rejected_data_directory(path: &Path) -> std::process::Output {
@@ -57,14 +58,20 @@ fn demo_launcher_uses_a_fresh_default_and_preserves_explicit_data() {
         fs::set_permissions(&target, fs::Permissions::from_mode(0o755)).unwrap();
         let bad_mode = rejected_data_directory(&target);
         assert!(!bad_mode.status.success());
-        assert_eq!(fs::metadata(&target).unwrap().permissions().mode() & 0o777, 0o755);
+        assert_eq!(
+            fs::metadata(&target).unwrap().permissions().mode() & 0o777,
+            0o755
+        );
 
         fs::set_permissions(&target, fs::Permissions::from_mode(0o700)).unwrap();
         let alias = root.path().join("alias");
         symlink(&target, &alias).unwrap();
         let linked = rejected_data_directory(&alias);
         assert!(!linked.status.success());
-        assert_eq!(fs::metadata(&target).unwrap().permissions().mode() & 0o777, 0o700);
+        assert_eq!(
+            fs::metadata(&target).unwrap().permissions().mode() & 0o777,
+            0o700
+        );
 
         let relative = rejected_data_directory(Path::new("relative-demo-data"));
         assert!(!relative.status.success());
@@ -93,10 +100,50 @@ fn demo_launcher_labels_component_evidence_before_running_the_fixture() {
     for exact_binding in [
         "export BULLET_GITD_BIN=\"$GIT/target/debug/bullet-gitd\"",
         "export BULLET_GITD_FIXTURE_BIN=\"$GIT/target/debug/bullet-gitd-fixture\"",
+        "BULLET_GITD_SHA256=\"$(sha256sum -- \"$BULLET_GITD_BIN\")\"",
+        "BULLET_GITD_SHA256=\"${BULLET_GITD_SHA256%% *}\"",
+        "export BULLET_GITD_SHA256",
+        "BULLET_GITD_FIXTURE_SHA256=\"$(sha256sum -- \"$BULLET_GITD_FIXTURE_BIN\")\"",
+        "BULLET_GITD_FIXTURE_SHA256=\"${BULLET_GITD_FIXTURE_SHA256%% *}\"",
+        "export BULLET_GITD_FIXTURE_SHA256",
         "export BULLET_FARMD_BIN=\"$KERNEL/target/debug/bullet-farmd\"",
         "export BULLET_VERIFIER_BIN=\"$KERNEL/target/debug/bullet-verifier\"",
     ] {
         assert!(DEMO_LAUNCHER.contains(exact_binding));
     }
     assert!(!DEMO_LAUNCHER.contains("${BULLET_GITD_BIN:-"));
+    assert!(
+        PREVIEW_LAUNCHER.contains(".effect_unknown_outcome == \"NOT_DISPATCHED\""),
+        "current preview must distinguish a non-dispatched effect from an ambiguous UNKNOWN effect"
+    );
+    assert!(!PREVIEW_LAUNCHER.contains(".effect_unknown_outcome == \"unknown\""));
+    assert!(
+        PREVIEW_LAUNCHER.contains("cargo run --locked --quiet -p bullet --bin bullet -- demo"),
+        "preview must select the component CLI explicitly when the package has multiple binaries"
+    );
+    for exact_release_assertion in [
+        "--profile self-hosted-v1",
+        ".profile == \"self-hosted-v1\"",
+        "(.gates | length) == 27",
+        "all(.gates[]; .status == \"BLOCKED\")",
+        "([.gates[] | select(.status == \"PASS\")] | length) == 0",
+        "([.gates[] | select(.id == \"release.transaction-demo\")] | length) == 1",
+        "([.gates[] | select(.id == \"release.profile.self-hosted-v1\")] | length) == 1",
+    ] {
+        assert!(
+            PREVIEW_LAUNCHER.contains(exact_release_assertion),
+            "preview must bind self-hosted release truth: {exact_release_assertion}"
+        );
+    }
+    for sentinel in [
+        ".candidate_head == \"NOT_PRODUCED\"",
+        ".evidence_result == \"NOT_RUN\"",
+        ".effect_outcome == \"NOT_DISPATCHED\"",
+        ".effect_unknown_outcome == \"NOT_DISPATCHED\"",
+    ] {
+        assert!(
+            PREVIEW_LAUNCHER.contains(sentinel),
+            "preview must bind negative demo sentinel {sentinel}"
+        );
+    }
 }

@@ -6,15 +6,17 @@ Owner: Bullet Farm maintainers
 
 This page answers “what is still missing before Bullet Farm is a product?”
 It does not make a gate green. Authoritative status remains
-[`release.md`](../release.md) and the receipt rows in
-[`v1-closure-plan.md`](v1-closure-plan.md). A newer commit invalidates a row
-until those documents are replayed.
+[`release.md`](../release.md), the explicitly profiled release command, and
+generated [`release-truth.generated.md`](release-truth.generated.md). The active
+dependency order is [`closure-roadmap.md`](closure-roadmap.md). A newer commit
+invalidates a row until those sources are replayed.
 
-There is no remaining *undocumented* V1 product gap: every blocked capability
-below already has an owner document, a fail-closed checker, and a typed
-refusal. The remaining work is implementation, operator ratification, and
-receipts — not missing prose. Closing a row in this file is not closing the
-product.
+This is the best-known current gap inventory, not a completeness proof. Every
+blocked capability listed below has an owner document, a fail-closed checker,
+and a typed refusal, but the Wave-0 bidirectional implementation↔invariant
+inventory may discover additional orphaned requirements or enforcement sites.
+Any discovery becomes a new explicit row before implementation proceeds.
+Closing a row in this file is not closing the product.
 
 ## How to read a row
 
@@ -26,59 +28,62 @@ product.
 | Closer | Who or what can close it |
 | Authority | Document that may flip the status |
 
-`bullet-family check release --profile universal-v1 --receipts
-<admitted-absolute-registry> --json` is the executable form of the complete
-frozen portable V1 contract. `legacy-v1-26` preserves the historical 26-gate
-projection and `linux-preview` is a narrower non-release diagnostic; neither
-can waive a provider, effect, platform, or package gate in `universal-v1`. If
-this page and the explicitly profiled command disagree, the command wins.
+`bullet-family check release --profile self-hosted-v1 --receipts
+<admitted-absolute-registry> --json` is the first-GA decision. The later
+`universal-v1` composition adds every provider, forge, and platform profile
+without implicitly adding evolution. `legacy-v1-26` and `linux-preview` are
+diagnostics only. If this page and an explicitly profiled command disagree, the
+command wins.
 
 ## What an agent may close versus what it may not
 
-Gaps are closed only by a receipt. Prose cannot close G1–G15. Agents may close
+Gaps are closed only by a receipt. Prose cannot close G1–G18. Agents may close
 a gap only when every closer in the row is code or a mapped test **and** no
 operator secret, signer, or policy generation flip is required.
 
 | Class | IDs | Agent action |
 | --- | --- | --- |
-| Operator-blocked | G1, G5, G6, G7 | Document the exact act. Do not invent a lock, flip `live_admission_enabled`, or patch Jeryu/GitHub to look green. |
-| Engineering, predecessor-blocked | G2, G3, G4, G9, G12, G13, G14, G15 | Implement only behind an unexpired `coord claim`. A component receipt does not clear the family gate. |
+| Engineering then operator | G1, G5, G6, G7, G16 | Implement and prove only the local producer/admission half behind an unexpired claim. Then document the exact operator act; do not invent a lock, flip `live_admission_enabled`, credentials, or patch a forge to look green. |
+| Engineering, predecessor-blocked | G2, G3, G4, G9, G12, G13, G14, G15, G17, G18 | Implement only behind an unexpired `coord claim`. A component receipt does not clear the family gate. |
 | Quality / platform | G8, G10 | Reduce hard findings; add a native backend. A local Jankurai binary is not CI evidence. |
-| Explicitly post-V1 | G11 | Keep `evolutionary_authority=false`. The `linux-preview` evolution diagnostic cannot alter the `universal-v1` dependency closure or start an evolutionary campaign. |
+| Dependent certification | G11 | Keep `evolutionary_authority=false` through `self-hosted-v1`; implement and certify `evolution-v1` separately afterwards. Universal never implies it. |
 
 A gap that is *fully specified, fail-closed, and indexed* is a **documented
 open gap**, not a missing product definition. That is the only sense in which
-documentation can “close” G1–G15 today.
+documentation can “close” G1–G18 today.
 
 ## Remaining V1 product gaps
 
 | ID | Gap | Why it is still open | What already exists | Closer | Authority |
 | --- | --- | --- | --- | --- | --- |
-| G1 | Hub-only signed install | Checked-in lock is schema 2 and is refused on purpose. The build-free `scripts/setup.sh` refuses unless the operator selects an external `bullet-family` executable, but that selection is not signed package admission. Clone transport helpers still use path-selected Git, and no production Jeryu/validator two-run, package lifecycle, or signed prebuilt exists | Descriptor-relative setup, no-replace publish, sealed Linux Cargo/Node/Bash/npm/setup-mutation/family-lock/checkout Git subjects, default-refusing wrapper, two-run component fixture | Operator publishes schema-3 lock + signed prebuilt `bullet-family`; engineering admits every remaining Git/helper subject and replays production setup | [`release.md`](../release.md), [`runbooks/source-setup.md`](../runbooks/source-setup.md) |
-| G2 | Connected five-plane transaction | No signed `TRANSACTION_PROOF` covering crash, salvage, verify, ambiguous effect, integration, portal truth | Atomic lease/command/outbox; fail-closed `bullet-gitd`; fixture E2; Portal `PENDING→UNKNOWN` | Kernel + BulletGit + Portal owners land one exact offline saga | [`v1-closure-plan.md`](v1-closure-plan.md) V1-S4 |
-| G3 | Production Kernel write path | Signed full-subject lease transport, durable reservation, JSON-RPC, provider/effect dispatch, CAS/GC, production restore remain | DB-clock leases; authenticated ingress; UNKNOWN/FAILED worker; launch-grant + Linux egress components | Kernel V1-S2/S4; do not remount unauthenticated `HttpLeaseClient` | [`release.md`](../release.md), [ADR 0011](../decisions/0011-signed-launch-grant-and-egress-isolation.md) |
-| G4 | Production BulletGit write path | Public `clone` still returns `AUTHORITY_CONTRACT_UNAVAILABLE`; no published immutable `bullet-wire` tag, online reservation/settlement, complete Integration proof, or tagged Jeryu service | Dissociate clone, hostile-git, generations, preservation, honest cleanup UNKNOWN, and a complete provenance-bound local Candidate manifest/identity | Operator publishes wire/Jeryu tags; Kernel supplies online reservation/settlement | [`v1-closure-plan.md`](v1-closure-plan.md) V1-S3 |
-| G5 | Live provider conformance | Committed policy is v1alpha1 / generation 1 / `live_admission_enabled=false`; the common production path therefore refuses before provider spawn and has no live receipt | Four bounded adapters; signed launch grant; Linux egress; common policy-to-sealed-receipt orchestration; neutral four-provider zero-spawn nightly; deep fake-process proof for Claude only | Operator ratifies v1alpha2 + runner key and proves conformant native read-only turns for Claude, Codex, Cursor, and Antigravity against the same frozen release subject | [ADR 0012](../decisions/0012-policy-v1alpha2-live-admission.md), [`runbooks/live-conformance.md`](../runbooks/live-conformance.md) |
-| G6 | Jeryu live effect | No authenticated read-back/reconciliation receipt | Local bare-forge component; Jeryu adapter is typed quarantine | Operator restores scoped Jeryu auth on an unmodified forge | [`release.md`](../release.md) |
-| G7 | GitHub live effect | No App-test-repo integration receipt; the frozen V1 GA contract requires this second effect adapter in addition to Jeryu | Effect adapter is specified, not certified | Operator configures a GitHub App test repository and produces an exact reconciliation receipt | [`release.md`](../release.md), [ADR 0002](../decisions/0002-jeryu-forge-requirements.md), [0008](../decisions/0008-forge-gates.md) |
-| G8 | Security release floor | Hub Jankurai 65 (raw 66), five caps, and zero critical/hard findings; no portable CI artifact | Pinned local scan that fails closed | Score ≥90 with the remaining caps resolved; checksum-pinned CI binary and portable exact-subject report | [`release.md`](../release.md) |
-| G9 | Signed five-target release | Only one unsigned Linux x86_64 component builder exists; the other four target builders, protected signing, lifecycle smoke, and signed archives are absent from the complete five-target V1 matrix | The component builder embeds the Portal and eight binaries, then re-reads its archive, CycloneDX SBOM, provenance, BLAKE3 checksums, and non-circular build manifest; signed-bundle verify + safe extract also exist | Release engineering produces and verifies Linux x86_64/aarch64, macOS x86_64/arm64, and Windows x64 archives; Linux remains the only production mutation platform until native containment passes | [`release.md`](../release.md), [ADR 0010](../decisions/0010-supply-chain-policy.md) |
-| G10 | Non-Linux containment | Mutation on macOS/Windows fails until a native backend passes | Linux is the strong-isolation reference | Platform owners | [ADR 0007](../decisions/0007-sandbox-secret-taint.md) |
-| G11 | Evolutionary runtime | Self-tuning optimization and evolutionary campaigns are explicitly post-V1 | [`evolutionary-control.md`](../architecture/evolutionary-control.md); policy `evolutionary_authority=false`; a preview-only diagnostic | Keep disabled for V1. A later release may close the bounded offline study and R0/R1 canary gates before any R2+ exact signed human approval | [`phase-9-10.md`](../phase-9-10.md) |
-| G12 | Family `check release` | The complete `universal-v1` dependency closure remains `BLOCKED`; the historical `legacy-v1-26` projection remains 26/26 `BLOCKED`, and `linux-preview` remains a narrower blocked diagnostic | Fail-closed explicit profiles and diagnostic reports; supplied generic registries cannot clear a gate | Kind-specific semantic receipt admission for every gate in the complete `universal-v1` closure | `bullet-family check release --profile universal-v1 --receipts <admitted-absolute-registry> --json`; [`release-truth.generated.md`](release-truth.generated.md) |
-| G13 | Portal product surfaces | Six of fifteen spec surfaces have no durable ledger subject and stay explicit UNKNOWN; Context Lineage exposes revision-one subjects only; same-origin embedding is component-proved, but no signed package or installation receipt exists | Control Tower, Mission Graph, Live Attempt, Incidents and Audit, Fleet, Session Supervisor, Merge Rail, Quality Lab, and Context Lineage projections; CSRF/202; `PENDING→UNKNOWN`; SSE STALE; packaged-farmd browser proof | Portal + farmd owners after G2/G3 add Cognitive Router, Fusion Lab, Quota/Capacity, Struggle, Behavior, and Workspace Hygiene, plus successor/compression lineage; release engineering supplies the signed package/install receipt under G9 | Portal architecture; V1-S5 |
-| G14 | farmd production API | Public surface is the authenticated command/snapshot/SSE subset plus six read-only operational projections, not the designed ~80-route control plane | Loopback origin, no-wildcard CORS, command 202, ready/outbox/missions plus Fleet/Session/Merge/Quality/Audit/Context snapshots | Kernel API after signed dispatch and the missing ledger subjects exist | V1-S5 |
-| G15 | Cognitive persistence | One immutable revision-one Context Capsule is now normalized and atomically bound to graph materialization, lease, fence, and Attempt; CognitiveTask / SelectionGroup / Role / Fusion, quotas, budgets, routing decisions, successor lineage, and compression remain absent or design-only | Context Capsule schema/migration/replay and exact projection; wire shapes; offline provider parsers | Kernel V1-S6 after G2 | [`evolutionary-control.md`](../architecture/evolutionary-control.md) |
+| G1 | Hub-only signed install | Checked-in lock is schema 2 and is refused on purpose. The build-free `scripts/setup.sh` refuses unless the operator selects an external `bullet-family` executable, but that selection is not signed package admission. Clone transport helpers still use path-selected Git, and no production Jeryu/validator two-run, package lifecycle, or signed prebuilt exists | Descriptor-relative setup, no-replace publish, sealed Linux Cargo/Node/Bash/npm/setup-mutation/family-lock/checkout Git subjects, default-refusing wrapper, two-run component fixture | Engineering admits every remaining Git/helper subject and production lifecycle transition; then release custody publishes the signed schema-3 lock and prebuilt `bullet-family` and runs the fresh-host replay | [`release.md`](../release.md), [`runbooks/source-setup.md`](../runbooks/source-setup.md) |
+| G2 | Connected five-plane transaction | No signed `TRANSACTION_PROOF` covering crash, salvage, verify, ambiguous effect, integration, portal truth | Atomic lease/command/outbox; fail-closed `bullet-gitd`; fixture E2; Portal `PENDING→UNKNOWN` | Kernel + BulletGit + Portal owners land one exact offline saga | [`closure-roadmap.md`](closure-roadmap.md) Waves 2–7 |
+| G3 | Production Kernel write path | The signed UDS lease RPC/client remains unadmitted without peer-credential and descriptor-bound identity, durable client recovery/read-back, and product Runner wiring; durable reservation, production JSON-RPC/provider/effect dispatch, CAS/GC, and production restore also remain | DB-clock leases; authenticated ingress; UNKNOWN/FAILED worker; signed UDS prototype; launch-grant + Linux egress components | Kernel V1-S2/S4; harden the UDS path and do not remount unauthenticated `HttpLeaseClient` | [`release.md`](../release.md), [ADR 0011](../decisions/0011-signed-launch-grant-and-egress-isolation.md) |
+| G4 | Production BulletGit write path | Public `clone` still returns `AUTHORITY_CONTRACT_UNAVAILABLE`; no published immutable `bullet-wire` tag, online reservation/settlement, complete Integration proof, or tagged Jeryu service | Dissociate clone, hostile-git, generations, preservation, honest cleanup UNKNOWN, and a complete provenance-bound local Candidate manifest/identity | Operator publishes wire/Jeryu tags; Kernel supplies online reservation/settlement | [`closure-roadmap.md`](closure-roadmap.md) Waves 1 and 4 |
+| G5 | Live provider conformance | Committed policy is v1alpha1 / generation 1 / `live_admission_enabled=false`; the v1alpha2 loader shape-validates but does not yet machine-admit the complete external policy/enrollment anchor, and provider onboarding plus semantic live-receipt registration remain incomplete | Four bounded adapters; signed launch grant; Linux egress; common policy-to-sealed-receipt orchestration; neutral four-provider zero-spawn nightly; deep fake-process proof for Claude only | Engineering lands hostile-tested schema-3 policy/enrollment-anchor admission, provider onboarding/runtime probing, and semantic sealed-receipt registration; then the operator ratifies the policy and enrollments, supplies exact executables/profiles/credentials, and proves native read-only turns against the same frozen release subject | [ADR 0012](../decisions/0012-policy-v1alpha2-live-admission.md), [`runbooks/live-conformance.md`](../runbooks/live-conformance.md) |
+| G6 | Jeryu live effect | No authenticated protected-integration, read-back, reconciliation, backup/restore, or drift receipt | Local bare-forge component; the adapter is typed quarantine and the Jeryu condition explicitly retains backup/restore/drift in its semantic closure | Engineering lands typed read-only probes, protected integration/read-back reconciliation, and semantic receipt admission; then the operator restores scoped Jeryu auth on an unmodified pinned forge and registers exact integration/reconciliation/backup/restore/drift receipts | [`release.md`](../release.md) |
+| G7 | GitHub live effect | No App-test-repo integration receipt exists for the independent GitHub adapter profile | Effect adapter is specified, not certified | Engineering lands the typed capability/delivery/check/integration/read-back/reconciliation adapter and semantic receipt admission; then the operator configures a GitHub App test repository with role-separated credentials and registers the exact receipt | [`release.md`](../release.md), [ADR 0002](../decisions/0002-jeryu-forge-requirements.md), [0008](../decisions/0008-forge-gates.md) |
+| G8 | Security release floor | Historical Hub Jankurai checkpoint 65 (raw 66), five caps, 21 high/hard and 27 medium/soft findings; no portable hosted CI artifact | Pinned local scan that fails closed | Score ≥90 with zero caps and zero hard findings; checksum-pinned CI binary and portable exact-subject report | [`release.md`](../release.md) |
+| G9 | Signed profile-selected release | No profile has an admitted signed package set. One quarantined component builds an unsigned Linux x86_64 archive; the frozen verifier expects the later five-target universal envelope and cannot admit the first-GA single-target profile | The component builder embeds the Portal and eight binaries, then re-reads its archive, CycloneDX SBOM, provenance, BLAKE3 checksums, and non-circular build manifest; signed-bundle verify + safe extract also exist as incompatible components | Release engineering first produces and lifecycle-smokes the signed Ubuntu 24.04 x86_64/systemd archive selected by `self-hosted-v1`; independent platform profiles add four targets and later `universal-v1` composes all five | [`release.md`](../release.md), [ADR 0010](../decisions/0010-supply-chain-policy.md) |
+| G10 | Platform containment | Linux production containment has component proof only; every selected target still lacks an admitted target/profile-bound containment or typed refusal receipt | Linux is the strong-isolation reference; non-Linux mutation is fail-closed | Platform owners certify each named platform independently; `self-hosted-v1` selects Linux x86_64 only and `universal-v1` composes all five | [ADR 0007](../decisions/0007-sandbox-secret-taint.md) |
+| G11 | Evolutionary runtime | `evolution-v1` has no study, canary, promotion, or rollback receipt and is deliberately not selected by self-hosted or universal | [`evolutionary-control.md`](../architecture/evolutionary-control.md); policy `evolutionary_authority=false` | After `self-hosted-v1`, complete the frozen offline study, no-effect shadow, and rollback-readiness proof; OD-H then authorizes one exact expiring ≤1% R0/R1 canary, followed by independent canary, promotion, drift, and rollback receipts | [`closure-roadmap.md`](closure-roadmap.md) Wave 9 |
+| G12 | Family `check release` | Every named product profile remains `BLOCKED`; the historical `legacy-v1-26` and `linux-preview` diagnostics also remain blocked | Fail-closed explicit profiles and reports; supplied generic registries cannot clear a gate | Both kind-specific semantic admission through `release.receipt-contracts` and the explicitly requested profile-condition receipt over its exact dependency closure; neither half substitutes for the other | `bullet-family check release --profile <profile> --receipts <admitted-absolute-registry> --json`; [`release-truth.generated.md`](release-truth.generated.md) |
+| G13 | Portal product surfaces | Six of fifteen spec surfaces have no durable ledger subject and stay explicit UNKNOWN; Context Lineage exposes revision-one subjects only; same-origin embedding is component-proved, but no signed package or installation receipt exists | Control Tower, Mission Graph, Live Attempt, Incidents and Audit, Fleet, Session Supervisor, Merge Rail, Quality Lab, and Context Lineage projections; CSRF/202; `PENDING→UNKNOWN`; SSE STALE; packaged-farmd browser proof | Portal + farmd owners after G2/G3 add Cognitive Router, Fusion Lab, Quota/Capacity, Struggle, Behavior, and Workspace Hygiene, plus successor/compression lineage; release engineering supplies the signed package/install receipt under G9 | [`closure-roadmap.md`](closure-roadmap.md) Waves 6 and 9 |
+| G14 | farmd production API | Public surface is the authenticated command/snapshot/SSE subset plus six read-only operational projections, not the designed ~80-route control plane | Loopback origin, no-wildcard CORS, command 202, ready/outbox/missions plus Fleet/Session/Merge/Quality/Audit/Context snapshots | Kernel API after the minimal offline G2 transaction settles honestly; add routes only after each missing ledger subject exists | [`closure-roadmap.md`](closure-roadmap.md) Waves 2, 5, and 6 |
+| G15 | Cognitive persistence | One immutable revision-one Context Capsule is now normalized and atomically bound to graph materialization, lease, fence, and Attempt; CognitiveTask / SelectionGroup / Role / Fusion, quotas, budgets, routing decisions, successor lineage, and compression remain absent or design-only | Context Capsule schema/migration/replay and exact projection; wire shapes; offline provider parsers | Kernel evolution owners after the self-hosted substrate | [`closure-roadmap.md`](closure-roadmap.md) Wave 9; [`evolutionary-control.md`](../architecture/evolutionary-control.md) |
+| G16 | GitLab adapter effects | Neither GitLab.com nor one exact self-managed GitLab endpoint/version has a typed effect adapter or a protected integration, exact-SHA status, read-back, UNKNOWN reconciliation, or drift receipt | Two explicit profile nodes and structural receipt bindings; no live adapter proof | Effects owners land the typed capability/delivery/check/integration/read-back/reconciliation adapters and semantic receipt admission; then operators provide scoped test projects and credentials and certify GitLab.com and self-managed GitLab separately | [`closure-roadmap.md`](closure-roadmap.md) Waves 4, 5, and 10 |
+| G17 | Distributed team mode | PostgreSQL, remote runners, workload mTLS/SPIFFE, replicated projections, object storage, partition/failover, and distributed restore are absent | `team-v1` is an explicit fail-closed profile depending on self-hosted | Distributed runtime owners implement and certify `team-v1` only after self-hosted | [`closure-roadmap.md`](closure-roadmap.md) Wave 11 |
+| G18 | Cross-repository sagas | No staged multi-repository Candidate, dependency-aware quarantine, compensation, or forward-repair transaction exists | `saga-v1` is an explicit fail-closed profile depending on team mode | Saga owners implement and certify `saga-v1` only after `team-v1` | [`closure-roadmap.md`](closure-roadmap.md) Wave 11 |
 
 ## Historical 26-gate catalog and release profiles
 
-`universal-v1` is the complete frozen portable V1 product profile. Its
-dependency closure requires Claude, Codex, Cursor, Antigravity, the admitted
-forge adapters, and all five platform profiles without implicitly admitting
-post-V1 evolution. `legacy-v1-26` preserves the old 26-gate catalog solely as
-a historical diagnostic. `linux-preview` is a deliberately narrower Ubuntu
-x86_64/Jeryu/Claude diagnostic and is not release authority. A receipt for one
-profile never certifies another or clears the `universal-v1` closure.
+`self-hosted-v1` is the first GA profile: Ubuntu 24.04 x86_64/systemd, Claude,
+and local Jeryu. `evolution-v1` depends on self-hosted and certifies separately.
+Provider, forge, and platform profiles are independent. The later
+`universal-v1` composition requires all four providers, Jeryu, GitHub,
+GitLab.com, self-managed GitLab, and all five platforms without implicitly
+admitting evolution, team, or saga. `legacy-v1-26` and `linux-preview` are
+diagnostics only. A receipt for one profile never certifies another.
 
 The profiled JSON report uses schema 3 and names its `profile`. The current
 registry boundary is intentionally conservative: an absolute registry may be
@@ -115,7 +120,7 @@ evaluating the full `universal-v1` dependency closure.
 | `release.manifest-non-circular` | G9 | Release |
 | `release.package-matrix` | G9 | Release |
 | `release.provenance` | G9 | Release |
-| `release.receipt-contracts` | G9 | Release |
+| `release.receipt-contracts` | G12 | Release |
 | `release.rust-msrv-1-95` | G9 | Release |
 | `release.rust-pinned-1-97-1` | G9 | Release |
 | `release.sbom` | G9 | Release |
@@ -131,15 +136,17 @@ platform condition.
 | `release.package-linux-x86_64` | G9 | Release |
 | `release.systemd-v1` | G1, G9 | Release |
 
-The profile also selects these fifteen condition gates. They make the
-dependency closure visible; they do not duplicate or clear the historical or
-native capability gates above.
+The global product-profile catalog has eighteen condition gates. The universal
+projection selects fifteen of them; evolution, team, and saga remain separate.
+Conditions make dependency closure visible; they do not duplicate or clear the
+historical or native capability gates above.
 
 | Gate ID | Product gap | Class |
 | --- | --- | --- |
+| `release.profile.evolution-v1` | G11, G13, G14, G15 | Release |
 | `release.profile.github-adapter-v1` | G7 | Release |
-| `release.profile.gitlab-adapter-v1` | G7 | Release |
-| `release.profile.gitlab-self-managed-v1` | G7 | Release |
+| `release.profile.gitlab-adapter-v1` | G16 | Release |
+| `release.profile.gitlab-self-managed-v1` | G16 | Release |
 | `release.profile.jeryu-forge-v1` | G6 | Release |
 | `release.profile.platform-linux-aarch64` | G9, G10 | Release |
 | `release.profile.platform-linux-x86_64` | G9, G10 | Release |
@@ -150,16 +157,27 @@ native capability gates above.
 | `release.profile.provider-claude` | G5 | Release |
 | `release.profile.provider-codex` | G5 | Release |
 | `release.profile.provider-cursor` | G5 | Release |
-| `release.profile.self-hosted-v1` | G1, G2, G3, G5, G6, G8, G9, G10 | Release |
-| `release.profile.universal-v1` | G1, G2, G3, G5, G6, G7, G8, G9, G10 | Release |
+| `release.profile.saga-v1` | G18 | Release |
+| `release.profile.self-hosted-v1` | G1, G2, G3, G5, G6, G8, G9, G10, G13, G14 | Release |
+| `release.profile.team-v1` | G17 | Release |
+| `release.profile.universal-v1` | G1, G2, G3, G5, G6, G7, G8, G9, G10, G16 | Release |
 
-G4, G11, G13, G14, and G15 are product gaps that are not themselves a historical
-catalog `release.*` id. G4, G13, G14, and G15 still block G2 and therefore
-`release.transaction-demo`. G11 is explicitly post-V1; the extra evolution
-diagnostic surfaced by `linux-preview` cannot alter the `universal-v1`
-dependency closure. G12 is the inventory of these tables. The generated page
-([`release-truth.generated.md`](release-truth.generated.md)) binds all 43
-`release.*` crosswalk rows and the G-ID list by digest: a crosswalk change requires
+G4, G13, G14, and G15 have no dedicated historical catalog `release.*` id. G4
+blocks G2 and therefore `release.transaction-demo`. G13 and G14 follow the
+minimal authenticated offline transaction, so they do not form a cycle by
+blocking their own prerequisite. They are nevertheless mechanically owned by
+the `self-hosted-v1` condition (durable or typed `OUT_OF_PROFILE`) and also by
+the `evolution-v1` condition (all fifteen surfaces durable). G15 is owned only
+by `evolution-v1`: a Wave 6 `OUT_OF_PROFILE` projection is honest but does not
+close cognitive persistence before Wave 9. Universal inherits the self-hosted
+condition but never implies evolution. G11 and G16–G18 are owned by
+their explicit profile-condition gates. G12 is the inventory of these tables
+plus semantic admission for profiles that evaluate a selected registry;
+`legacy-v1-26` is inventory-only.
+The generated universal page
+([`release-truth.generated.md`](release-truth.generated.md)) selects 43 gates
+while binding all 46 global `release.*` crosswalk rows and the 18-G-id list by
+digest: a crosswalk change requires
 `just release-truth` in the same commit or `required` fails on drift.
 
 ## How to verify each gap is still open
@@ -168,10 +186,12 @@ From the hub checkout:
 
 ```bash
 bullet-family doctor --json          # G1: BLOCKED / UNSUPPORTED_SCHEMA is honest
+bullet-family check release --profile self-hosted-v1 --receipts /absolute/admitted-registry --json
+bullet-family check release --profile evolution-v1 --receipts /absolute/admitted-registry --json
 bullet-family check release --profile universal-v1 --receipts /absolute/admitted-registry --json
 bullet-family check release --profile legacy-v1-26 --receipts /absolute/empty-registry --report --portable
 bullet-family check release --profile linux-preview --receipts /absolute/registry --json
-just fast && just contract           # component lanes; never G2–G15
+just fast && just contract           # component lanes; never G2–G18
 ```
 
 Do not convert a green `just fast` into a closed G-row.
@@ -180,10 +200,11 @@ Do not convert a green `just fast` into a closed G-row.
 
 | Command | Proves | Does not prove |
 | --- | --- | --- |
-| `just fast` | Mapped component lanes on this checkout | G2–G15, live, install, release |
+| `just fast` | Mapped component lanes on this checkout | G2–G18, live, install, release |
 | `just contract` | Generated wire/schema identity | A running issuer or published tag |
 | `bullet-family doctor --json` | Honest refusal of schema-2 hub-only install | That schema-3 exists |
-| `bullet-family check release --profile universal-v1 --receipts <admitted-absolute-registry> --json` | The complete frozen portable V1 dependency closure and exact blockers | That an absent or generic registry entry is evidence |
+| `bullet-family check release --profile self-hosted-v1 --receipts <admitted-absolute-registry> --json` | First-GA Ubuntu/Jeryu/Claude closure and exact blockers | Any independent provider, hosted forge, non-Linux platform, or evolution profile |
+| `bullet-family check release --profile universal-v1 --receipts <admitted-absolute-registry> --json` | Later maximum-scope composition and exact blockers | Evolution, team, saga, or evidence from an absent/generic registry |
 | `bullet-family check release --profile legacy-v1-26 --receipts <empty-registry> --report --portable` | The historical 26-gate diagnostic projection and exact blockers | Complete `universal-v1` release authority |
 | `bullet-family check release --profile linux-preview --receipts <registry> --json` | A non-release Ubuntu/Jeryu/Claude diagnostic slice | Any omitted provider, GitHub, package, or canonical GA gate |
 | Archived 2026-08-24 live demo | That one past tree spawned under then-policy | HEAD conformance |
@@ -195,17 +216,17 @@ Do not convert a green `just fast` into a closed G-row.
 | Question | Answer |
 | --- | --- |
 | How do I install from a hub-only clone? | You cannot, honestly. Schema 2 is refused. Contributor bootstrap is [`runbooks/source-setup.md`](../runbooks/source-setup.md); signed install is G1. |
-| Can I turn on live Claude/Codex/Cursor/Antigravity? | Not from this tree. Ratify ADR 0012 with a real runner key (G5). The v1alpha2 validator is not a live policy. |
+| Can I turn on live Claude/Codex/Cursor/Antigravity? | Not from this tree. Engineering must first land schema-3 policy/enrollment-anchor admission, provider onboarding/runtime probing, and semantic receipt registration; only then may operators ratify ADR 0012, enroll exact providers, and supply profiles/credentials for native runs (G5). The v1alpha2 shape validator is not live admission. |
 | Why does `doctor` fail? | The checked-in lock is schema 2. That refusal is the product. |
-| Did the white paper close the product? | No. The paper inventories G1–G15. Closing prose is not a receipt. |
-| Is `just fast` enough to ship? | No. It is a component lane. The `universal-v1` dependency closure remains `BLOCKED`; the historical 26-gate projection and `linux-preview` diagnostic also remain blocked. |
+| Did the white paper close the product? | No. The paper's G1–G15 inventory is extended here by explicit GitLab/team/saga profile gaps G16–G18. Closing prose is not a receipt. |
+| Is `just fast` enough to ship? | No. It is a component lane. First-GA `self-hosted-v1`, later `universal-v1`, the historical 26-gate projection, and the `linux-preview` diagnostic all remain `BLOCKED`. |
 | What is the same-UID install hole? | The Rust boundary seals Cargo/Node/Bash/npm plus setup mutation, family-lock verification, and checkout verification Git bytes, and the wrapper no longer invokes ambient Cargo. G1 still includes unsigned selection of the external prebuilt, clone transport Git/helpers, transient and between-child repository object/ref/index/config/file races, non-Git work-tree traversal, and allowed-signers path admission; signed prebuilt admission plus complete Git/helper isolation closes those surfaces. |
-| Does ADR 0012 mean the committed policy enables live providers? | No. The Kernel loader can validate v1alpha2 since `0d848f6`, but the committed v1alpha1 generation-1 policy still disables live admission and refuses before spawn. |
+| Does ADR 0012 mean the committed policy enables live providers? | No. The Kernel loader can shape-validate v1alpha2 since `0d848f6`, but full external-anchor admission and semantic receipt registration are not implemented, and the committed v1alpha1 generation-1 policy still disables live admission and refuses before spawn. |
 | Where is `docs/INDEX.md`? | It must not exist. This family's index is [`../README.md`](../README.md). |
 
 ## Slice leftovers (V1-S0..S8)
 
-This is the same work as G1–G15, indexed by the closure-plan slices so an
+This is the same predecessor work as G1–G18, indexed by the closure-plan slices so an
 implementer cannot “lose” a leftover by reading only the G-table.
 
 | Slice | Status class | Leftover that still blocks a product claim |
@@ -216,9 +237,9 @@ implementer cannot “lose” a leftover by reading only the G-table.
 | V1-S3 | LOCAL-BLOCKED | Positive online authority/settlement; immutable shared-wire tag; complete Integration proof; reviewed tagged `jeryu-gitd` (the local Candidate manifest/identity is complete) |
 | V1-S4 | LOCAL-BLOCKED | Signed internal lease transport; runner/verifier/effect saga; credential-free `TRANSACTION_PROOF` |
 | V1-S5 | LOCAL-BLOCKED | APPLIED/VERIFIED dispatch; six Portal surfaces without durable ledger subjects; successor/compression Context lineage; packaged farmd-served Portal |
-| V1-S6 | LOCAL-BLOCKED | Cognitive objects beyond the revision-one Context Capsule; operator-ratified native/live receipts for all four providers; quota/budget/routing/fusion replay from persisted inputs |
-| V1-S7 | LOCAL-BLOCKED | Schema-3 lock, signed admission of the build-free wrapper's external executable and remaining clone Git/helper/non-Git filesystem subjects, five signed archives, SBOM/provenance, hosted Jankurai artifact, docs that wait on typed commands |
-| V1-S8 | EXTERNAL-BLOCKED | Operator-issued Jeryu and GitHub effect credentials, all four provider service profiles, five-platform signing authority, and exact protected test repositories |
+| V1-S6 | LOCAL-BLOCKED | Cognitive objects beyond the revision-one Context Capsule; schema-3 provider policy/enrollment-anchor admission, provider onboarding/runtime probing, semantic receipt registration, and quota/budget/routing/fusion replay from persisted inputs |
+| V1-S7 | LOCAL-BLOCKED | Schema-3 lock, signed admission of the build-free wrapper's external executable and remaining clone Git/helper/non-Git filesystem subjects, the profile-selected signed archive set (one for first GA; five only for universal), SBOM/provenance, hosted Jankurai artifact, docs that wait on typed commands |
+| V1-S8 | EXTERNAL-BLOCKED | Operator-issued first-GA Jeryu/Claude authority and Ubuntu signing custody; later independent GitHub/GitLab, three-provider, and four-additional-platform authority; exact protected test repositories |
 
 V1 is done only when every `V1-S0..S8` gate has a current independently
 verifiable receipt from the same signed subjects. “Agents ran” is not that
@@ -238,7 +259,7 @@ register. Disposition of each critique:
 
 | ID | Adopted meaning | Product status |
 | --- | --- | --- |
-| C1 | Every invariant is T1 schema / T2 gateway / T3 test | Registry exists; most later-wave rows remain `planned` |
+| C1 | Every entry declared in the registry has one T1 schema / T2 gateway / T3 test primary tier | Validator proves registry-internal completeness only; the whole-product bidirectional orphan inventory remains open Wave-0 work |
 | C2 | Oracle-modifying diffs + required holdouts for R2+ | Designed; implemented verifier is one fixture E2 |
 | C3 | Two-track scope expansion ([ADR 0004](../decisions/0004-scope-amendment-tracks.md)) | Accepted decision; not a live Attempt path |
 | C4 | Attestor ≠ broker; reconstructible check from proof bundle | Designed; live forge blocked |
@@ -246,11 +267,11 @@ register. Disposition of each critique:
 | C6 | Bounded probe reservation; `unknown` is never headroom | Designed |
 | C6b | One seat-equivalent per named human | Designed; not enforced in the kernel |
 | C7 | Formal-model exactly two protocols in Phase 0 | Adopted and component-complete |
-| C8 | Historical proposal: GA = kernel + any two certified providers | Superseded by the frozen V1 contract requiring conformant Claude, Codex, Cursor, and Antigravity adapters |
+| C8 | Historical proposal: GA = kernel + any two certified providers | Superseded: first-GA `self-hosted-v1` names Claude exactly; independent provider profiles name Codex, Cursor, and Antigravity; later `universal-v1` composes all four, and no receipt substitutes for another |
 | C9 | Identity-exact effect adoption (fence + desired OID) | Command idempotency component; graph mint not a live path |
 | C10 | Verifier dwell is writer-admission backpressure | Designed |
 | C11 | Freeze chip shows recorded vs enforced-on-N/M runners | Portal honesty component; freeze countdown designed |
-| C12 | Multi-repo saga quarantines blast radius, not the fleet | Out of V1; [`phase-9-10.md`](../phase-9-10.md) |
+| C12 | Multi-repo saga quarantines blast radius, not the fleet | Explicit `saga-v1` profile after `team-v1`; [closure roadmap](closure-roadmap.md) Wave 11 |
 
 Rejected critiques stay rejected: do not drop the verifier plane, do not
 mandate Postgres for V1, do not collapse the five planes, do not replace
@@ -266,7 +287,7 @@ fail-closed.
 | Public name, five planes, providers-propose | [`architecture/overview.md`](../architecture/overview.md), [ADR 0001](../decisions/0001-provider-execution-mode.md), [0003](../decisions/0003-five-trust-planes.md) |
 | Competitor pins (README: Gas Town, DeepSeek Harness, Omnigent; paper: Gas City also) | [Dated README snapshot](competitor-snapshot.md); [paper evidence lock](../paper/evidence.json) |
 | IEEE preprint source | [`../paper/`](../paper/) |
-| Why authority-bearing evolution is post-V1 | [`evolutionary-control.md`](../architecture/evolutionary-control.md) |
+| Why authority-bearing evolution is independently certified | [`evolutionary-control.md`](../architecture/evolutionary-control.md) |
 | Evidence classes and skip-green ban | [`testing.md`](../testing.md) |
 | C1–C12 / TEAM.md red-team | This page + paper Section “Red-Team Disposition”; `TEAM.md` is provenance |
 | Mascot / brand briefs | [`../brand/mascots/`](../brand/mascots/) |
@@ -299,4 +320,4 @@ does not exist. They become runbook work after the named command is real.
 - That Bullet Farm is measured faster, cheaper, or safer than Gas Town,
   DeepSeek Harness, or Omnigent.
 - That an agent may enable live admission or invent a schema-3 lock.
-- That finishing the white paper, or this register, closed G1–G15.
+- That finishing the white paper, or this register, closed G1–G18.

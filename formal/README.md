@@ -14,8 +14,9 @@ This corpus intentionally contains exactly two bounded models:
 
 `toolchain.lock.json` pins the stable TLC 1.7.4 release asset by its published SHA-1 and a locally
 recorded SHA-256. `model-lock.json` pins every module/config hash and the deterministic
-single-worker state counts. `model-check.sh` downloads only that exact asset, verifies both
-digests, requires Java 21, rejects a third model, and fails on any source/config/state drift.
+single-worker state counts and depth. `model-check.sh` downloads only that exact asset, verifies
+both digests, requires Java 21, rejects a third model, and fails on any lock-shape,
+source/config/state/depth drift.
 
 The JSON traces under `formal/traces/` are executable conformance fixtures, not model-check
 success claims. Rust tests replay the same refusal/adoption decisions. Run `just model-check`.
@@ -30,8 +31,11 @@ operator approval, policy renewal, or a remote outcome.
   `MaxOps = 2`, `MaxEpoch = 2`, `MaxFreeze = 3`) — INVARIANTS `TypeOK`,
   `BarrierHasNoInFlightApply`, `RestoredAuthorityNeedsFreshAcquire`,
   `RecoveryApprovalIsScoped`; PROPERTIES `ExpiredLeaseEventuallyReaped` and
-  `RecoveryApprovalEventuallySettles`; weak fairness on `AbortInvalidApply`, `Expire`, and
-  `RecoverActive`. State graph: 565,731 generated, 141,963 distinct, depth 27.
+  `RecoveryApprovalEventuallySettles`; weak fairness on `AbortInvalidApply`, `Reap`,
+  and `RecoverActive`. `Reap` is the single scheduler reaping transition;
+  `Terminated` / `StutterDone` is the named terminal successor when the bound is
+  exhausted and the holder is empty. `CHECK_DEADLOCK` is `TRUE`. State graph:
+  578,478 generated, 141,963 distinct, depth 27.
 - `EffectCheck.cfg` (`MaxDispatches = 2`, `MaxEpoch = 2`) — INVARIANTS `TypeOK`,
   `AtMostOneLogicalEffect`, `VerifiedEffectWasReadBack`, `CheckRequiresDurableProof`,
   `ThirdPartyStateIsNeverAdopted`; PROPERTIES `NoNewDispatchAfterStop`,
@@ -50,13 +54,13 @@ require it eventually to leave `unknown` for exactly one typed state: `verified`
 remote value, `intent` when no mutation occurred, or `orphaned` for a third-party value. The model
 does not turn timeout, ambiguity, or a foreign value into PASS.
 
-Deadlock checking is enabled for `EffectCheck`: its explicit total `Crash` self-loop means every
-bounded state has a `Next` successor, while the read-back fairness assumptions separately prevent
-that self-loop from starving an enabled reconciliation forever. `LeaseFence` intentionally keeps
-`CHECK_DEADLOCK FALSE`. Exhausting `MaxTime`, `MaxFence`, `MaxOps`, `MaxEpoch`, and `MaxFreeze` can
-produce a bounded terminal state after all liveness obligations are settled. That is finite-model
-counter exhaustion, not a claim that the production protocol may deadlock; `[Next]_vars` admits the
-terminal stutter so the bounded safety and liveness properties remain checkable.
+Deadlock checking is enabled for both models. `EffectCheck` has its explicit `Crash`
+self-loop. Every executable `LeaseFence` assignment clamps `expires` to `0..MaxTime`;
+when time is exhausted, a due holder can be reaped after an invalid in-flight apply is
+aborted, and `StutterDone` is the explicit successor once `Terminated` holds. Weak
+fairness on the single `Reap` transition is the scheduler progress that empties an
+expired holder (`ExpiredLeaseEventuallyReaped`); it does not manufacture wall-clock
+progress or require that `Reap` occur when `Restore` already invalidates the lease.
 
 `NoNewDispatchAfterStop == [][(~policyLive \/ frozen) => UNCHANGED <<effectDispatches,
 checkDispatches>>]_vars` states the guarantee the protocol actually gives: after policy expiry or
@@ -72,8 +76,9 @@ request already on the wire. Listing it as an invariant would assert something f
 would hide the boundary. An in-flight dispatch surviving a stop is therefore a modelled reality the
 read-back path must absorb, not a case the model rules out.
 
-Re-pinning after a model change: run the exact `model-check.sh` TLC invocation, take the final
-`N states generated, M distinct states found` line and the reported depth after temporal checking,
-and write those with the new `sha256sum` of the module and config into `model-lock.json`. Run
-`just model-check` twice and require identical hashes, counts, and depths. The V1 contract of exactly
-two models is unchanged; `model-check.sh` still refuses a third.
+Re-pinning after a model change: run `bash formal/model-check.sh write`. This is the only supported
+generator; it runs both pinned TLC subjects to completion and atomically replaces `model-lock.json`
+only after exact schema/inventory, hashes, counts, and depth validate. Do not hand-edit the lock.
+Then run `bash formal/model-check.sh check` twice and require identical hashes, counts, and depths.
+The default mode is `check`, and neither default nor explicit `check` writes the lock. The V1
+contract of exactly two models is unchanged; `model-check.sh` still refuses a third.

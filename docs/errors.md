@@ -96,8 +96,9 @@ The release gate detail `no ... receipt is registered` and codes such as
   becoming release authority.
 - Repair: run the exact tagged proof, verify it under the external signer and
   trusted-time policy, then register the kind-specific receipt.
-- Proof: `bullet-family check release --json` remains authoritative and nonzero
-  until every required gate is independently receipted.
+- Proof: `bullet-family check release --profile universal-v1 --receipts
+  <admitted-absolute-registry> --json` remains authoritative and nonzero until
+  every gate in that dependency closure is independently receipted.
 
 ## Escalation rule
 

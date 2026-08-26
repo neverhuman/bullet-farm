@@ -3,11 +3,14 @@
 Status: **diagnostics only; no export or removal command exists**  
 Owner: Bullet Farm maintainers  
 Last reviewed: 2026-08-25  
-Applies to: bullet-farm `347da232`, bullet-kernel `c4731aa` (SQLite ledger), the checked-in schema-2
+Component receipt baselines (minimum; replay current-head lanes before use): bullet-farm `347da232`, bullet-kernel `c4731aa` (SQLite ledger), the checked-in schema-2
 `family.lock`
 
-Rule (frozen in [`../assurance/v1-closure-plan.md`](../assurance/v1-closure-plan.md)): **pre-1.0 schemas are
-disposable.** An unknown or legacy database, lock, manifest, or log fails closed with typed
+Current rule (retained from the historical
+[`v1-closure-plan.md`](../assurance/v1-closure-plan.md) and governed now by
+Waves 1–2 of the active [`closure roadmap`](../assurance/closure-roadmap.md)):
+**pre-1.0 schemas are disposable.** An unknown or legacy database, lock,
+manifest, or log fails closed with typed
 `UNSUPPORTED_SCHEMA` plus explicit guidance. Nothing migrates silently and nothing is deleted for you.
 
 ## 1. Where the code refuses
@@ -53,11 +56,13 @@ package, checksum, SBOM, and provenance semantic validators are admitted.
 ### Family lock (schema 2)
 
 - **Do not delete it.** `hub check` (`src/hub_check.rs` `REQUIRED_FILES`) and the required lane
-  (`require_file "family.lock"`) fail without the file, and `doctor` needs it to prove the member set. The
-  refusal text says "remove it or regenerate"; in this tree only regeneration is compatible with proof.
-- **Regeneration is blocked.** `bullet-family lock generate --tag VERSION` needs authenticated Jeryu URLs and
+  (`require_file "family.lock"`) fail without the file, and `doctor` needs it to prove the member set. Runtime
+  guidance requires retaining it for diagnosis, regenerating schema 3 from authenticated signed tags, and
+  replacing it atomically.
+- **Regeneration is blocked.** `bullet-family lock generate --tag VERSION --subjects <absolute-path>` needs authenticated Jeryu URLs and
   slugs, signed member tags, exact trees, lockfiles, and artifact checksums. Those are operator inputs
-  ([ADR 0013](../decisions/0013-operator-decision-register.md) OD-B and OD-D). Until they exist, use the
+  ([ADR 0013](../decisions/0013-operator-decision-register.md) OD-D). OD-B is later live-forge mutation
+  custody and is not a predecessor. Until OD-D exists, use the
   refusal as the expected negative and cite `doctor --json` as the diagnostic.
 - Never hand-edit `schema_version` to `3`; strict schema-3 decoding then fails on the missing signed
   subjects, and the required lane's negative assertion flips.
@@ -83,8 +88,8 @@ package, checksum, SBOM, and provenance semantic validators are admitted.
 
 | Missing | Notes |
 | --- | --- |
-| A schema-3 lock from authenticated signed tags | OD-B/OD-D; gate `release.installable-lock` |
-| A typed export/removal command for legacy lock, ledger, or log | promised by the closure plan's disposable-schema rule; not implemented; the closure-plan runbook list names "schema removal" as writable only "after the typed commands exist" — this document is the diagnostic half written today |
+| A schema-3 lock from authenticated signed non-Hub tags, committed before the Hub tag is signed | OD-D; gate `release.installable-lock` |
+| A typed export/removal command for legacy lock, ledger, or log | required by the active roadmap's explicit export → verify → import and operational lifecycle work; not implemented — this document is the diagnostic half written today |
 | Production restore admission | [`backup-restore.md`](backup-restore.md) |
 
 Nothing here migrates, exports, or removes anything; every command above is read-only on this host.

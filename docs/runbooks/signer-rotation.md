@@ -3,7 +3,7 @@
 Status: **launch-grant key lifecycle available offline; release signing not provisioned; no rotation receipt exists**  
 Owner: Bullet Farm maintainers  
 Last reviewed: 2026-08-25  
-Applies to: bullet-kernel `d388733`+ (`bullet authority keygen`, launch-grant issuer; read at `0109a90`),
+Component receipt baseline (minimum; replay current-head lanes before use): bullet-kernel `d388733`+ (`bullet authority keygen`, launch-grant issuer; read at `0109a90`),
 bullet-farm `bf5c642`+ (policy v1alpha2 rule) and `143f8b9`+ (`release receipt-verify`), ADRs 0005, 0010,
 0011, 0012
 

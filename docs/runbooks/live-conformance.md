@@ -3,7 +3,7 @@
 Status: **runbook for an operator act; no live receipt exists yet**
 Owner: Bullet Farm maintainers
 Last reviewed: 2026-08-25
-Applies to: bullet-kernel `ba485d5`+ (signed launch grants, egress isolation, live-conformance
+Component receipt baseline (minimum; replay current-head lanes before use): bullet-kernel `ba485d5`+ (signed launch grants, egress isolation, live-conformance
 path), bullet-farm `bf5c642`+ (policy v1alpha2 rule), ADRs 0011 and 0012.
 
 A provider process is dispatched only when Kernel admission holds two pieces of evidence — a
@@ -27,7 +27,7 @@ The fake-provider path (mint → verify grant → admit signed → egress sandbo
 dispatch → canary scan → PONG match) is exercised by the Kernel test suite with a test-only
 policy seam; the production loader never accepts such a policy.
 
-## 2. Operator act — one time, on the host that will run providers
+## 2. Prepare the operator-owned candidate inputs; this is not admission
 
 1. Generate the authority key (private half stays at `<data-dir>/authority/launch-grant.key`,
    mode 0600, never copied or committed):
@@ -40,7 +40,7 @@ policy seam; the production loader never accepts such a policy.
    The command prints the public key and a ready-to-paste `IssuerKeyV1` JSON with
    `key_purpose = authority-signing`, `algorithm = paseto-v4.public`, `audiences = ["provider-runner"]`.
 
-2. Write the ratified policy: copy `policy/v1alpha1/policy.json`, set `schema_version` to
+2. Prepare a candidate policy: copy `policy/v1alpha1/policy.json`, set `schema_version` to
    `v1alpha2`, `policy_generation` to `2`, append the `IssuerKeyV1` to `issuer_keys`, and set
    `sandbox_policy.live_admission_enabled` to `true`. Leave every other field unchanged;
    `route_policy.evolutionary_authority` must stay `false`. The hub validator accepts exactly this
@@ -48,9 +48,15 @@ policy seam; the production loader never accepts such a policy.
    `UNSAFE_POLICY` otherwise). Store it outside the repositories, e.g.
    `/abs/path/bullet-data/policy/policy.json`.
 
-3. Record the ratification in `AGENT_CHAT.md` at the family root:
-   `## <UTC> — operator — POLICY-GENERATION-2 — RATIFIED: live_admission_enabled=true with key <key_id>; evolutionary authority stays false.`
-   No agent flips the field; the log line is the authority for the running policy.
+3. Follow [ADR 0013 OD-A](../decisions/0013-operator-decision-register.md) for the common-policy witness and a
+   separate enrollment witness for each selected provider. The witness must bind the operator-owned path,
+   owner/mode, policy digest, schema-3 trust anchor, key fingerprint/custody, signer/approver, exact executable
+   path/digest, service identity, credential handle, budget, validity, revocation, and rollback.
+
+The log line is an auditable coordination witness, never runtime authority. Before a real run, machine admission
+must verify and read back every bound subject through the schema-3 trust anchor. The current loader validates the
+v1alpha2 shape but does not yet implement that complete external anchor, so live release admission remains
+BLOCKED. A self-created key/policy plus a forged operator-looking line cannot qualify a LIVE_PROOF.
 
 ## 3. Run the real conformance lane
 
@@ -71,7 +77,8 @@ cargo run --locked -p bullet -- provider live-conformance \
   --data-dir /abs/path/bullet-data --provider claude --executable "$(readlink -f "$(command -v claude)")"
 ```
 
-Exit 0 = PONG receipt; 78 = policy refusal (neutral); anything else = a named failing step in the
+Exit 0 = PONG-shaped diagnostic output until the local anchor-admission and semantic-registration work below
+lands; 78 = policy refusal (neutral); anything else = a named failing step in the
 receipt (`POLICY`, `OPERATOR_KEY`, `LEASE`, `ADMISSION`, `MINT`, `VERIFY_GRANT`, `ADMIT_SIGNED`,
 `EGRESS_PREPARE`, `ADMIT_EGRESS`, `REQUIRE_DISPATCH`, `DISPATCH`, `CANARY_SCAN`, `PONG_MATCH`). A step that
 did not run is `NOT_RUN`, never omitted. Reason codes: `LAUNCH_GRANT_*`, `POLICY_*`,
@@ -79,11 +86,14 @@ did not run is `NOT_RUN`, never omitted. Reason codes: `LAUNCH_GRANT_*`, `POLICY
 
 ## 4. What a receipt does and does not prove
 
-A PONG receipt is LIVE_PROOF-class evidence for **provider conformance of one adapter on one
-host under one policy generation**: the exact binary digest, grant, egress receipt and policy
-digest are sealed in it. It is not a five-plane transaction, not forge evidence, and not release
-evidence; the `release.provider.<name>` gates accept it as the receipt they name, nothing else.
-Spend is bounded by the grant's budget fields (default cap 50 000 micro-USD per run).
+Today a PONG-shaped result is **unregistered diagnostic input**, not LIVE_PROOF: schema-3 machine admission of
+the external policy/enrollment anchor and the provider receipt's kind-specific semantic registration are still
+local engineering gaps. After those controls land, an independently ratified native run may produce
+LIVE_PROOF-class evidence for **provider conformance of one adapter on one host under one policy generation**:
+the exact binary digest, grant, egress receipt, and policy digest are sealed in it. It is not a five-plane
+transaction, forge evidence, or release evidence. The `release.provider.<name>` gates accept only that
+machine-admitted and semantically registered form. Spend is bounded by the grant's budget fields (default cap
+50 000 micro-USD per run).
 
 ## 5. Rollback
 

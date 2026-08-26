@@ -3,7 +3,7 @@
 Status: **one definition per term, with its authoritative source**  
 Owner: Bullet Farm maintainers  
 Last reviewed: 2026-08-25  
-Applies to: bullet-farm `d762f86`, bullet-kernel `0109a90`, bullet-git `236f4ef`, bullet-portal `95108e3`
+Component receipt baselines (minimum; replay current-head lanes before use): bullet-farm `d762f86`, bullet-kernel `0109a90`, bullet-git `236f4ef`, bullet-portal `95108e3`
 
 A glossary entry explains a word; it never makes a claim true. Where two documents define a term
 differently, the entry records both, names the one chosen here, and says why (see "Adjudicated
@@ -48,20 +48,24 @@ An exit code, model statement, HTTP success, branch push, or pull request is nev
 
 | Term | Definition | Source |
 | --- | --- | --- |
-| `COMPLETE` | exact committed subject and mapped receipt exist for a bounded claim | [`assurance/v1-closure-plan.md`](assurance/v1-closure-plan.md) |
+| `COMPLETE` | exact committed subject and mapped receipt exist for a bounded claim; never an implicit profile promotion | [`workplan.md`](workplan.md), [`assurance/closure-roadmap.md`](assurance/closure-roadmap.md) |
 | `IN PROGRESS` | claimed work or focused evidence exists; no completed commit receipt | same |
 | `LOCAL-BLOCKED` | implementable offline work remains, or a predecessor safety gate is not green | same |
 | `EXTERNAL-BLOCKED` | promotion needs operator-controlled service, credential, signer, or platform evidence | same |
-| `BLOCKED` (gate) | a `check release` gate with no registered receipt; every row is one of `LOCAL (closable offline)` or `EXTERNAL (needs operator credential, signer, service, or platform)` | [`release.md`](release.md), [`assurance/release-truth.generated.md`](assurance/release-truth.generated.md) |
+| `PASS` (gate) | the requested gate condition passed its evaluator; process exit 0 | `src/check/model.rs` `GateStatus` |
+| `FAIL` (gate) | the requested gate condition ran and failed; fail-closed process exit 1 | same |
+| `BLOCKED` (gate) | a `check release` gate with no registered receipt; every row is one of `LOCAL (closable offline)`, `EXTERNAL (needs operator credential, signer, service, or platform)`, or `LOCAL-then-EXTERNAL` (local producer/admission engineering must land before external custody can supply evidence) | [`release.md`](release.md), [`assurance/release-truth.generated.md`](assurance/release-truth.generated.md) |
+| `NEUTRAL` (gate) | a check result that grants nothing and exits 1; it is not the optional live-lane process outcome below | `src/check/model.rs` `GateStatus` |
+| `UNKNOWN` (gate) | the gate evaluator cannot establish the condition; grants nothing and exits 1 | same |
 | `BLOCKED` / `PASS` (doctor) | per-check diagnostic status of `bullet-family doctor --json`; `BLOCKED` carries a `repair` string and grants nothing | `src/doctor` |
-| neutral (`78`) | a live lane that could not run because its optional registration or tooling is absent; distinct from success and from failure | `ops/ci/nightly.sh`, `ops/ci/egress.sh`, `apps/bullet/src/provider.rs` |
+| optional live-lane neutral (process exit `78`) | a live lane could not run because its optional registration or tooling is absent; distinct from gate `NEUTRAL`, success, and required-lane failure | `ops/ci/nightly.sh`, `ops/ci/egress.sh`, `apps/bullet/src/provider.rs` |
 
 ## Command and projection states
 
 | Term | Definition | Source |
 | --- | --- | --- |
 | `PENDING` | command admitted and durable; one correlated outbox row; nothing executed | Kernel `CommandPhase`; closure-plan frozen contract |
-| `APPLIED` | dispatched to an execution adapter; not read back | same (no adapter can set it today) |
+| `APPLIED` | the command's durable local transition was applied; dispatch alone is insufficient | Kernel `CommandPhase` |
 | `VERIFIED` | read-back proved the exact intended effect; the only state the Portal renders green | same |
 | `FAILED` | durably refused; nothing ran | same |
 | `UNKNOWN` (persisted) | adapter or response lost; the effect may or may not have happened; settled only by read-back reconciliation | same; [`runbooks/effect-reconciliation.md`](runbooks/effect-reconciliation.md) |
@@ -82,7 +86,7 @@ Sources: `crates/bullet-wire/src/ids.rs` (hub wire), `bullet-git/crates/bullet-g
 | ChangeId (`chg_`) | The logical change a series of checkpoints and Candidates belongs to. |
 | CheckpointId (`ckp_`) | An exact journal checkpoint a proposal is based on (`base_checkpoint_id` + digest in `PatchProposal`). |
 | ContentId (`cnt_`) | Digest identity of content bytes alone — e.g. `PatchProposal.proposal_id`. Identical bytes give the identical id regardless of who produced them or where. |
-| CandidateId (`can_`) | Identity of a Candidate. In BulletGit today: `CandidateId::from_content(change, tree, head)` — content-derived from change + tree + head, so two trees under one Change never collide. Lineage subject and environment digest are optional and **outside** the id. The frozen V1 contract wants it provenance-bound and distinct from ContentId; see inconsistencies. |
+| CandidateId (`can_`) | Provenance-bound identity of the complete strict `CandidateManifest`, hashed canonically under `candidate.provenance`. The manifest binds repository/change, base checkpoint and Git base/head/tree/patch, producing Attempt and fence, work package/variant/plan/graph, parents, granted/actual scope, context/configuration/policy/routing snapshots, environment, and toolchain. `ContentId` separately hashes the reusable repository-content manifest, so provenance-only changes preserve ContentId while changing CandidateId. |
 | ProofRoot | Merkle binding of proof claims to an exact Candidate (`bullet-git-types::ProofRoot`); computed with length-framed fields. The wire distinguishes `CandidateProofRoot` (`cpr_`) from `IntegrationProofRoot` (`ipr_`): a Candidate's proof and an integration's proof are different roots. |
 
 ## Authority and admission
@@ -103,7 +107,7 @@ Sources: `crates/bullet-wire/src/ids.rs` (hub wire), `bullet-git/crates/bullet-g
 
 | Term | Definition A | Definition B | Chosen here, and why |
 | --- | --- | --- | --- |
-| CandidateId | "provenance-bound immutable software-change phenotype" (`docs/architecture/evolutionary-control.md`); "`ContentId` is distinct from provenance-bound `CandidateId`" (`docs/assurance/v1-closure-plan.md` frozen contract) | content-derived from change + tree + head; lineage subject and environment digest optional and outside the id (`bullet-git/crates/bullet-git-types/src/ids.rs`, `bullet-git/docs/architecture.md`) | Both are recorded: B is what the code computes today, A is the frozen V1 target. `release.md` already lists "provenance-complete Candidate identity" as open, so the documents agree that A is not yet implemented; the glossary entry says so rather than picking one. |
+| CandidateId (resolved 2026-08-25) | Historical notes described `CandidateId::from_content(change, tree, head)` with provenance outside the id. | Current BulletGit hashes every strict `CandidateManifest` field under `candidate.provenance`; `ContentId` alone is reusable content identity. | Current code and tests are authoritative: `every_manifest_field_is_candidate_sensitive` mutates every manifest field and requires CandidateId to change, while `provenance_changes_leave_content_identity_reusable` requires ContentId to remain stable for provenance-only changes. The historical description is retired, not a competing current definition. |
 | Key algorithm string | `paseto-v4-public` (formerly `docs/runbooks/live-conformance.md` §2 step 1 and family-root `TEAM_PLAN_CLAUDE.md` §10.5; both corrected 2026-08-25, hub `e8b184c`) | `paseto-v4.public` (`crates/bullet-wire/src/policy.rs` serde rename; `bullet authority keygen` output; ADR 0012) | `paseto-v4.public` — it is the byte the validator accepts. The hyphenated spelling in `live-conformance.md` is a prose typo and should be corrected by its owner. |
 | `CONFIRMED` | Portal lists spec §25 vocabulary `PENDING, CONFIRMED, FAILED, UNKNOWN, STALE, CONTRADICTORY` (`bullet-portal/docs/architecture.md`) | Kernel wire phases are `PENDING, APPLIED, VERIFIED, FAILED, UNKNOWN` (`apps/bullet-farmd/src/commands.rs`) | `VERIFIED` is the only green and the only wire name; `CONFIRMED` is retained as the spec's historical word for the same state and is not a wire value. |
 | `BLOCKED` | closure-plan slice statuses `LOCAL-BLOCKED` / `EXTERNAL-BLOCKED` | gate status `BLOCKED` with a separate `LOCAL`/`EXTERNAL` closability column (`check release`), and doctor's per-check `BLOCKED` | Same partition expressed at three granularities (slice, gate, diagnostic); no contradiction, but never sum them: only `check release` counts gates. |

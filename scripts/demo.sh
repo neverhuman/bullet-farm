@@ -47,6 +47,12 @@ fi
 
 export BULLET_GITD_BIN="$GIT/target/debug/bullet-gitd"
 export BULLET_GITD_FIXTURE_BIN="$GIT/target/debug/bullet-gitd-fixture"
+BULLET_GITD_SHA256="$(sha256sum -- "$BULLET_GITD_BIN")"
+BULLET_GITD_SHA256="${BULLET_GITD_SHA256%% *}"
+export BULLET_GITD_SHA256
+BULLET_GITD_FIXTURE_SHA256="$(sha256sum -- "$BULLET_GITD_FIXTURE_BIN")"
+BULLET_GITD_FIXTURE_SHA256="${BULLET_GITD_FIXTURE_SHA256%% *}"
+export BULLET_GITD_FIXTURE_SHA256
 export BULLET_FARMD_BIN="$KERNEL/target/debug/bullet-farmd"
 export BULLET_VERIFIER_BIN="$KERNEL/target/debug/bullet-verifier"
 

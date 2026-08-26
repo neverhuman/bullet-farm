@@ -43,13 +43,15 @@ fn release_profiles_are_named_independent_and_fail_closed() {
         .iter()
         .map(|gate| gate["id"].as_str().unwrap())
         .collect::<Vec<_>>();
-    assert_eq!(ids.len(), 25);
+    assert_eq!(ids.len(), 23);
     for excluded in [
         "release.forge.github-app",
         "release.provider.codex",
         "release.provider.cursor",
         "release.provider.antigravity",
         "release.package-matrix",
+        "release.operations-v1",
+        "release.evolution-v1",
     ] {
         assert!(!ids.contains(&excluded));
     }
@@ -58,8 +60,6 @@ fn release_profiles_are_named_independent_and_fail_closed() {
         "release.provider.claude",
         "release.package-linux-x86_64",
         "release.systemd-v1",
-        "release.operations-v1",
-        "release.evolution-v1",
     ] {
         assert!(ids.contains(&required));
     }

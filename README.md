@@ -2,267 +2,173 @@
 
 **Many minds. One verified line to main.**
 
-Bullet Farm is an open-source platform for ambitious software projects where
-most work is broken into actions a weaker model can finish, and the hard work
-(planning, deep R&D, fusion, review) uses frontier models — even several
-providers at once — without ever letting a model grant itself authority.
+Bullet Farm is building the transaction boundary for coding agents: fenced authority, one repository writer, exact Candidates, independent Evidence, durable effect reconciliation, and protected integration.
 
-It is a **transaction processor** for software changes, model cognition, and
-consequential external effects. It is designed to replace the operational role
-of [Gas Town](https://github.com/gastownhall/gastown) without inheriting its
-authority model.
+**Current alpha:** the boundaries are component-proved; public installation, live providers, and the connected transaction remain blocked.
+
+[Dated Stage-1 architecture preprint](docs/paper/bullet_farm_ieee.pdf) · [Dated Stage-1 executive brief](docs/paper/executive_brief.pdf) · [Architecture](docs/architecture.md) · [Current release truth](docs/assurance/release-truth.generated.md)
+
+The preprints describe the earlier universal release envelope; the current staged release order is the [closure roadmap](docs/assurance/closure-roadmap.md). Paper regeneration remains blocked under [WP-01](docs/workplan.md).
+
+![Terminal recording showing Bullet Farm doctor BLOCKED, component checks passing, a fence advancing, stale authority refused, and an ambiguous effect remaining UNKNOWN](docs/readme-media/component-preview/component-preview.gif)
+
+[Static fallback](docs/readme-media/component-preview/fallback.png) · [Accessible transcript](docs/readme-media/component-preview/transcript.txt) · [Reproduction manifest](docs/readme-media/component-preview/manifest.json)
+
+This is a pre-release engineering system, not an installer announcement. A model saying “done,” a process exiting zero, or a pull request opening has no completion authority.
+
+## Why Bullet is different
+
+| Boundary | What Bullet requires |
+| --- | --- |
+| Fenced authority | Every Attempt carries a monotonically advancing fence. Superseded or expired authority is refused even if an old process is still alive. |
+| One repository writer | Agents propose changes; BulletGit alone owns private clones and repository mutation. |
+| Exact Candidate identity | A Candidate hashes its complete strict manifest: repository/change and base/head/tree/patch, producing Attempt and fence, scope and lineage, context/configuration/policy/routing snapshots, environment, and toolchain. Any changed manifest subject is a different Candidate; reusable content identity remains separate. |
+| Independent Evidence | A verifier evaluates the exact Candidate without inheriting the writer's completion claim. |
+| Ambiguous-effect read-back | A lost response becomes `UNKNOWN`. The broker reads the external system and adopts only the exact intended state; it never retries blindly. |
+| Truthful uncertainty | `UNKNOWN` and `CONTRADICTORY` remain first-class outcomes. Missing state is never painted green. |
+
+The intended transaction is:
 
 ```text
 Mission → immutable Plan → fenced Attempt → exact Candidate
-  → independent Evidence → brokered Effect → protected Integration
-  → observation → surviving Outcome
+        → independent Evidence → brokered Effect → protected Integration
+        → durable observation → surviving Outcome
 ```
 
-A model saying “done,” a terminal going idle, a process exiting zero, or a
-pull request opening has **no completion authority**.
+## Preview an existing family
 
-## Contributor quick start
+Public installation is not available. The checked-in `family.lock` is a diagnostic schema-2 snapshot; it cannot authorize source acquisition or a release install. The [source-setup runbook](docs/runbooks/source-setup.md) explains that boundary.
 
-Prerequisites: Rust stable, Node 22+, `just`, Git, and the four ordinary sibling
-checkouts in `repos.manifest.toml`.
+If all four ordinary sibling checkouts already exist as listed in `repos.manifest.toml`, run:
 
 ```bash
-cd /path/to/bullet/bullet-farm
-cargo run --locked --quiet --bin bullet-family -- doctor --json; echo EXIT=$?
-just fast
-just demo
+cd bullet-farm
+just preview
 ```
 
-`doctor` reports its verdict in its exit status as well as its JSON: `0` READY,
-`3` BLOCKED — the family's "diagnosed, not usable" code, the same one
-`check` and `coord` use. On a fresh clone of this tree the honest answer is
-`EXIT=3` with `"status": "BLOCKED"`, because the checked-in `family.lock` is the
-diagnostic schema-2 lock. Read the `repair` string of each blocked check; do not
-chain `doctor` with `&&`, and never read exit 0 as proof of a healthy family.
+`just preview` diagnoses tools, requires `doctor` to report `BLOCKED` with exit 3, runs the Hub component lane, and executes the bounded credential-free non-dispatch CLI demo. Its own success means the component preview behaved exactly as expected; it does not establish that the family is installable or releasable. The dated media below separately shows a synthetic component effect remaining `UNKNOWN`.
 
-Install the repository-owned pre-push proof hook once per clone:
+For supervised local UI development:
 
 ```bash
-just hooks-install
+just dev
 ```
 
-The hook runs the same deterministic fast lane used by CI. `just ci-doctor`
-reports missing local tools before a lane starts; `just ci-doctor audit`
-additionally requires the exact locally admitted Jankurai 1.6.11 binary.
-`just ci-doctor toolchain-pinned` additionally requires rustup toolchain 1.97.1 and
-`b3sum` 1.8.2 for the explicit pinned-toolchain lane; the repository pin and every
-other lane still refuse any rustc that is not 1.95.0.
+That command installs the locked Portal dependencies with lifecycle scripts disabled, starts `bullet-farmd` and Vite on loopback with a strict port, waits for both HTTP endpoints, and shuts down both process groups together. Open <http://127.0.0.1:5173>. Portal is a non-authoritative projection: it can display pending, verified, `UNKNOWN`, or contradictory state, but it cannot create authority.
 
-## Installation status
+## Provider boundary status
 
-This alpha requires the four ordinary sibling checkouts listed in `repos.manifest.toml`. A hub-only
-clone is diagnosis-only because the checked-in `family.lock` is the legacy schema-2 snapshot and
-does not carry install authority. The Rust source-setup and `checkout verify` commands require a
-signed schema-3 lock with an authenticated Jeryu URL/slug, exact commit/tree, signer,
-dependency-lock digest, and generated-artifact manifest for every non-hub member. On Linux, setup
-publishes through retained directory descriptors, rejects replaced/symlinked components, and uses
-no-replace renames plus directory fsync; its signed fixture also proves a clean idempotent second
-run. Until real release inputs are published, `doctor` reports `BLOCKED` and `just setup` returns
-`UNSUPPORTED_SCHEMA` before creating member directories or running dependency tools. Do not create
-Git worktrees or infer source locations from local paths. A future published lock is checked with
-`bullet-family lock verify --tag <version>`; the current schema-2 lock cannot pass that check.
+Offline suites validate bounded protocol transcripts. They do not execute a live model, read a provider home, or prove account/profile/version behavior.
 
-Accordingly, there is no trusted public install command yet. `scripts/setup.sh`
-is a contributor source-bootstrap wrapper around the Rust setup mechanism; it
-is not an authenticated installer and currently reaches the same schema-2
-refusal. A release install starts only from a signed prebuilt `bullet-family`,
-a verified schema-3 lock, and a verified five-platform release bundle.
+| Provider | Current status | Contract boundary |
+| --- | --- | --- |
+| Claude | contract-tested / live blocked | Frozen stream-JSON request/event subset; live admission is disabled. |
+| Codex | contract-tested / live blocked | Frozen [App Server](https://learn.chatgpt.com/docs/app-server) JSONL subset; the [Codex CLI](https://learn.chatgpt.com/docs/codex/cli) is not spawned by this proof. |
+| Cursor | contract-tested / live blocked | Frozen ACP request/event subset; live admission is disabled. |
+| Antigravity | contract-tested / live blocked | Frozen structured headless transcript subset; live admission is disabled. |
 
-On Linux, a local operator can verify an already-materialized bundle without
-mutating it:
+![Terminal recording showing four offline provider protocol suites passing followed by four POLICY_LIVE_ADMISSION_DISABLED outcomes and zero provider spawns](docs/readme-media/provider-safety/provider-safety.gif)
 
-```bash
-bullet-family release verify \
-  --bundle /absolute/path/to/bundle \
-  --allowed-signers /absolute/path/to/allowed_signers
+[Static fallback](docs/readme-media/provider-safety/fallback.png) · [Accessible transcript](docs/readme-media/provider-safety/transcript.txt) · [Reproduction manifest](docs/readme-media/provider-safety/manifest.json)
+
+## Seven functions, five transaction authorities
+
+Bullet Farm separates seven useful functions from five independently authorized
+transaction domains: Control→Control; Cognitive execution, Repository execution,
+and Session supervision→Execution; Independent verification→Verification;
+Effect and delivery→Delivery/integration; and Evidence and audit→Evidence/audit.
+The five-domain flow below is the authority path, not a claim that only five
+functional planes exist.
+
+```mermaid
+flowchart LR
+    C[Control plane<br/>Mission, Plan, lease, fence, policy]
+    X[Execution plane<br/>provider proposal in a private Attempt]
+    V[Verification plane<br/>exact Candidate, independent gates]
+    D[Effect / delivery plane<br/>idempotency, read-back, protected ref]
+    A[Evidence / audit plane<br/>receipts, observations, reconciliation]
+    C -->|scoped authority| X
+    X -->|PatchProposal| V
+    V -->|Evidence for exact subject| D
+    D -->|observed outcome| A
+    A -->|durable facts only| C
 ```
 
-That command verifies exact manifest, lock, payload, detached-signature, and
-signer subjects. On Linux/glibc, the same verified component can safely extract
-one exact signed target into a new, absent destination:
+The authority domains exchange typed, bounded subjects; they do not share a
+model's informal notion of completion. Runner, BulletGit, broker, attestor,
+integrator, observer, and auditor remain distinct principals inside their mapped
+domains.
 
-```bash
-bullet-family release extract \
-  --bundle /absolute/path/to/bundle \
-  --allowed-signers /absolute/path/to/allowed_signers \
-  --target x86_64-unknown-linux-gnu \
-  --destination /absolute/path/to/new-directory
-```
+Concrete timeout example: the effect broker submits integration key `K` and loses the response. It records `UNKNOWN`, performs no second write, reads the protected ref and forge operation back, and adopts success only if the observed identity matches `K`, the expected old OID, and the intended Candidate. Missing or conflicting read-back stays `UNKNOWN` or becomes `CONTRADICTORY` for operator reconciliation.
 
-Extraction re-verifies the pinned archive subject, admits only the constrained
-archive shape, fully syncs a staging tree, and publishes with a no-replace
-rename. Neither command builds, downloads, produces, activates, or installs a
-package, and neither supplies absent schema-3 release authority.
+## Where the code lives
 
-`just demo` runs a deterministic ledger simulator (no provider process, forge
-credential, or network effect). It demonstrates component behavior only:
+Bullet remains four independent repositories. No physical consolidation or committed package/dependency sibling
+path is required; `preview` and `dev` operate on the four existing sibling checkouts declared by the family manifest.
 
-1. One Mission materializes once.
-2. A released Variant receives a higher, never-reused fence on reacquisition.
-3. A stale Attempt is refused.
-4. Ambiguous effect execution remains `UNKNOWN`.
+| Repository | Owns | Start here |
+| --- | --- | --- |
+| `bullet-farm` | onboarding, family/setup/release, policy, contracts, models, fixtures, public assurance | `README.md`, `src/`, `policy/`, `contracts/`, `formal/` |
+| `bullet-kernel` | durable ledger, authority, provider boundaries, runner, verifier, effects, `bullet-farmd` | `crates/application/`, `crates/adapters/`, `crates/runner/`, `apps/` |
+| `bullet-git` | sole writer, private clones, journal/CAS, Change and Candidate identity | `crates/bullet-git-*`, `crates/bullet-gitd/` |
+| `bullet-portal` | generated API client and non-authoritative projections | `src/generated/`, `src/pages/`, `src/components/` |
 
-Receipts print to the terminal and are written under `bullet-kernel/target/demo/`.
+See the [code map and “change X here” guide](docs/code-map.md) before editing a boundary.
 
-Readiness is intentionally explicit:
+## What exists, and what is still unproved
 
-| Surface | Current meaning |
-| --- | --- |
-| Component tests | Individual lease, workspace, verifier, broker, and portal primitives |
-| `just demo` | Deterministic ledger simulation; not a five-plane transaction |
-| `bullet demo-synthetic` | Simulator-only integration scaffolding with `transaction_gate_eligible=false` |
-| Gate 0 contracts | Canonical v1alpha1 policy/schema bundle, hostile fixtures, invariant registry, and exactly two bounded models |
-| Hub source setup | Descriptor-relative publication and a signed two-run local fixture are implemented on Linux; real schema-3 Jeryu lock/tag publication remains blocked |
-| Release bundle components | Signed five-target integrity verification and constrained one-target extraction are implemented on Linux/glibc; package production, activation, semantic artifact validation, and installer smoke remain blocked |
-| Signed launch grant | `SignedLaunchGrantV1` contract and Kernel verification with a single-use nonce (ADR 0011) are `COMPONENT_PROOF`; no grant has admitted a real provider |
-| Provider egress isolation | Linux user+net namespace, nftables default-drop, and host CONNECT proxy (`bullet-harness-egress`; Kernel `egress` lane, neutral 78 without tools) are `COMPONENT_PROOF` on this host class only |
-| Live-conformance refusal | `bullet provider live-conformance` refuses at step `POLICY` with exit 78 under the committed generation-1 policy; the thirteen-step path is exercised only against a fake provider process (component evidence); `LIVE_PROOF` is absent for every provider |
-| farmd projections and Portal views | Fleet, sessions, merge rail, quality lab, and audit are read-only projections (`COMPONENT_PROOF`); a projection holds no authority and seven designed Portal surfaces remain `UNKNOWN` |
-| Trusted public installer | Not available; no published schema-3 authority, signed package set, or activation transaction exists |
-| Transaction-ready | Not yet achieved; requires the signed V1-S4 `TRANSACTION_PROOF` (the historical "Wave 4" offline receipt) |
-| Production-ready | Not yet achieved; live providers and credentialed forges are quarantined |
+| Area | Implemented now | Not yet proved |
+| --- | --- | --- |
+| Authority | Lease/fence components and stale-attempt refusal | Connected Kernel-issued mutation authority across Runner and production BulletGit |
+| Repository safety | BulletGit capability, journal, private-clone, and Candidate components | One connected transaction through protected integration |
+| Verification | Exact-subject schemas and independent verifier components | Release-grade Evidence over the connected Candidate |
+| Effects | Durable intent/outcome components and truthful `UNKNOWN` behavior | Credentialed Jeryu/GitHub write plus exact remote read-back receipt |
+| Providers | Four offline protocol suites and policy-disabled zero-spawn refusal | Any sealed live-provider conformance receipt |
+| Operator UI | farmd projections and Portal component/browser proofs | Authority-bearing commands or complete designed product surfaces |
+| Distribution | Signed bundle verification/extraction components | Authenticated schema-3 sources, package production, activation, and two clean installs |
 
-Then start the local control plane and portal:
+The exhaustive inventories are [product gaps](docs/assurance/product-gaps.md), the active [closure roadmap](docs/assurance/closure-roadmap.md), and generated [release truth](docs/assurance/release-truth.generated.md). `TRANSACTION_PROOF` is absent, so transaction-ready and production-ready remain false.
 
-```bash
-# terminal 1
-just farmd
+## Pinned public comparison
 
-# terminal 2
-just portal
-```
+This table compares documented contracts, not benchmark results or product quality. The three external subjects are pinned to [Gas Town v1.2.1](https://github.com/gastownhall/gastown/releases/tag/v1.2.1), [DeepSeek Harness dsh-v0.1.1-rc.2](https://github.com/deepseek-ai/DeepSeek-Harness/releases/tag/dsh-v0.1.1-rc.2), and [Omnigent v0.10.0](https://github.com/omnigent-ai/omnigent/releases/tag/v0.10.0); their immutable per-dimension sources and adjudication notes live in the [dated comparison snapshot](docs/assurance/competitor-snapshot.md#pinned-dimension-notes). The Bullet row summarizes this local checkout's component evidence and explicit unproved boundary; it is not a pinned external benchmark result.
 
-Open http://127.0.0.1:5173. The Control Tower shows pending versus verified
-mutations. `UNKNOWN` renders as unknown. It is never painted healthy.
+| Pinned subject | Writer identity | Incarnation fence | Exact verification subject | Effect read-back | Protected integration | Truthful uncertainty |
+| --- | --- | --- | --- | --- | --- | --- |
+| Bullet Farm current alpha | Partial/configuration-dependent | Partial/configuration-dependent | Partial/configuration-dependent | Partial/configuration-dependent | Partial/configuration-dependent | Documented |
+| Gas Town v1.2.1 | Partial/configuration-dependent | Not documented | Partial/configuration-dependent | Partial/configuration-dependent | Partial/configuration-dependent | Partial/configuration-dependent |
+| DeepSeek Harness dsh-v0.1.1-rc.2 | Not documented | Not documented | Not documented | N/A | N/A | Partial/configuration-dependent |
+| Omnigent v0.10.0 | Partial/configuration-dependent | Partial/configuration-dependent | Not documented | Partial/configuration-dependent | Partial/configuration-dependent | Partial/configuration-dependent |
 
-## Why this exists
-
-Models and harnesses commoditize. Orchestrators that infer meaning from tmux
-names, worktrees, Beads rows, and “the agent said done” fail in the same ways:
-false delivery, destroyed work, and green dashboards for questions they did not
-resolve.
-
-Bullet Farm keeps three non-overlapping truths:
-
-| Domain | System |
-| --- | --- |
-| Leases, fences, commands, quota, unsettled effects | Kernel ledger |
-| Change identity, Candidates, proof, lineage | BulletGit |
-| Refs, pull requests, checks, merge queue | GitHub or Jeryu |
-
-Gastown’s best product ideas stay — persistent work, provider plurality,
-escalation, cost learning, a merge rail, operator visibility. They become
-**portal views and policies**, not personas with write authority.
-
-| Gas Town role | Bullet Farm |
-| --- | --- |
-| Mayor | Control Tower policy view |
-| Witness | Audit and incident projection |
-| Refinery | Merge Rail over exact Candidates |
-| Polecat / worker | Fenced Attempt on a private clone |
-
-## Repository family
-
-This hub is the public clone and pin surface. Product source lives in four
-repos, declared in `repos.manifest.toml` and pinned by `family.lock`.
-
-| Repo | Role |
-| --- | --- |
-| `bullet-farm` | Hub, installer, onboarding, spec corpus |
-| `bullet-kernel` | Domain, ledger, router, `bullet-farmd`, runner/verifier/effects bins |
-| `bullet-git` | BulletGit capability API, journal, proof roots |
-| `bullet-portal` | Vite + React operations portal |
-
-Local fusion (the only place sibling path patches may appear):
-
-```bash
-./scripts/fuse.sh --source local
-.fusion/dev.sh build
-```
-
-Jeryu is consumed through pinned tags from the operator-configured canonical `jeryu-split` family.
-The family `AGENTS.md` policy identifies that checkout for local development; do not create a
-substitute checkout or commit sibling path dependencies.
+Vocabulary is deliberately narrow: `Documented`, `Partial/configuration-dependent`, `Not documented`, `Unknown`, and `N/A`. `Not documented` is not a claim that a mechanism cannot exist; `Unknown` is reserved for a pinned source that cannot be adjudicated. No matched receipt-bearing benchmark exists, so Bullet makes no superiority claim.
 
 ## What we will not claim
 
-- 100% autonomy
-- Zero regressions
-- Exactly-once physical side effects across the network
-- That a provider session is canonical memory
-- That a GitHub App token enforces Bullet Farm fences
+- 100% autonomy or zero regressions.
+- Exactly-once physical effects across an unreliable network.
+- That provider state, terminal state, a portal color, or HTTP success is canonical truth.
+- That a GitHub App token enforces Bullet fences.
+- Public installation, live-provider execution, a connected transaction, or production readiness before their required signed receipts exist.
 
-Uncertainty is explicit: observations are `VALUE`, `EMPTY`, `UNKNOWN`, or
-`CONTRADICTORY`. Unknown quota is not capacity. A timeout is not proof of
-non-execution.
+## Contributing and proof
 
-## Proof
+Start with the [code map](docs/code-map.md), [test and evidence strategy](docs/testing.md), [architecture](docs/architecture.md), and [coordination runbook](docs/runbooks/fleet.md). Local and hosted lanes call the same forge-neutral scripts:
 
 ```bash
-just fast          # hub onboarding checks
-bash scripts/ci-local.sh required
-just contract-check # generated policy/schema/client byte drift
-just model-check    # exactly two pinned TLC models and state locks
-just contract       # hub-only canonical contract + model gate
-just check-family   # hub plus every member required lane
-just security       # gitleaks, the committed cargo-deny policy (licenses/advisories/bans/sources), and zizmor
-just family-contract # family required lanes + canonical contract + models
-just release-truth  # regenerate docs/assurance/release-truth.generated.md (decision exit 3 kept)
-just toolchain-pinned # build + test this workspace under pinned Rust 1.97.1 (local-only; writes the ignored .bullet-family/toolchain-1.97.1-bullet-farm.json observation, never a receipt)
-cargo run --locked --quiet --bin bullet-family -- check release --report   # 26-gate operator brief, exit 3 while BLOCKED
+just fast
+just lint
+just contract
+just security
+just docs
+just check                 # the five lanes, sequentially, exactly once
+just check-family          # dependency-ordered four-repository component proof
+just readme-record         # real credential-free scenarios
+just readme-render         # pinned VHS image, network disabled
+just readme-check          # claims, media, hashes, limits, double render
 ```
 
-Gate 0 sources live under `policy/`, `contracts/v1alpha1/`, `fixtures/`, and `formal/`. Reviewed
-prose is never runtime authority. The generated policy keeps live admission disabled, and Gate 0
-does not substitute for the signed authority, API authentication, sandbox, vector-budget, freeze,
-audit-anchor, and restore gates of the later V1-S stages (historically "Wave 2").
+GitHub is prepared as a secretless PR/discovery mirror; the [workflow](.github/workflows/ci.yml) converges on `CI / required`. It is not authoritative release Evidence, and no badge is published before a hosted run and branch-protection read-back exist. Future Jeryu jobs are described by `ci.toml` but remain inactive pending forge ratification and immutable provisioning.
 
-There is deliberately no `demo-live` command. Later proof entrypoints are
-`proof-transaction-offline`, `proof-transaction-jeryu`, and
-`proof-transaction-github`; they are unavailable until their prerequisite
-waves can emit independently verifiable signed receipts.
+Documentation: [index](docs/README.md) · [paper sources](docs/paper/README.md) · [workplan](docs/workplan.md) · [CI policy](docs/testing.md) · [license](LICENSE)
 
-Member repos use the same Jankurai shape: `AGENTS.md`, owner-map, test-map,
-generated zones, `ops/ci/*.sh`, and `just fast`.
-
-Concurrent agents claim exact repository-relative paths through the Rust coordinator:
-
-```bash
-just coord status --json --all
-just coord claim --agent codex-a --lane docs --repo bullet-farm --path docs
-just coord heartbeat --claim clm_... --agent codex-a --note proof-started
-just coord handoff --claim clm_... --agent codex-a --proof 'bash scripts/ci-local.sh required' \
-  --exit-code 0 --changed-path docs/README.md
-just coord receipt --claim clm_... --orchestrator codex-root --commit <40-hex> --committed-path docs/README.md
-just coord receipt-group --claim clm_a... --claim clm_b... --orchestrator codex-root --commit <40-hex>
-just coord correct-receipt --claim clm_... --orchestrator codex-root --previous-commit <40-hex> \
-  --commit <40-hex> --committed-path docs/README.md --reason 'amended commit'
-```
-
-The coordinator keeps a locked append-only ledger at the discovered family root and rejects active
-path overlaps before product edits begin. `handoff` requires green proof and refuses changed paths
-outside the claim; `receipt`/`receipt-group` bind a claim to the exact path set of one commit;
-`correct-receipt` rebinds an already-receipted claim to a replacement commit only when
-`--previous-commit` equals the recorded OID and the new commit's actual paths equal
-`--committed-path`, appending a reasoned correction record rather than rewriting history.
-
-Target stack: Rust control plane, TypeScript/React/Vite portal, SQLite WAL
-locally (PostgreSQL in team mode later), generated contracts. No Python
-product truth. No writable Git worktrees.
-
-## Design corpus
-
-- [Centerrail engineering spec](docs/spec/CENTERRAIL_FINAL_ADAPTIVE_MULTI_FRONTIER_ENGINEERING_SPEC.md)
-- [Gastown risk audit](docs/spec/GASTOWN_OPEN_ISSUES_RISK_AUDIT_FOR_CENTERRAIL.md)
-- [BulletGit / git role](docs/spec/git_role.md)
-- [IEEE paper abstract](docs/spec/paper.md)
-- [Architecture](docs/architecture/overview.md)
-
-## License
-
-Apache-2.0
+Apache-2.0.

@@ -30,7 +30,10 @@ pub use authority::{
     SignedAuthorityEnvelope, SignedLaunchGrant, SignedMutationPermit, authority_request_digest,
     environment_digest, policy_snapshot_digest, workspace_nonce_digest,
 };
-pub use canonical::{MAX_CANONICAL_DOCUMENT_BYTES, decode_canonical, decode_canonical_value};
+pub use canonical::{
+    MAX_CANONICAL_DOCUMENT_BYTES, MAX_UNIQUE_DOCUMENT_BYTES, decode_canonical,
+    decode_canonical_value, decode_unique_value, decode_unique_value_bounded,
+};
 pub use catalog::*;
 pub use contract_tool::{ContractMode, execute as execute_contract_tool};
 pub use digest::{Blake3Digest, canonical_json, hash_canonical, hash_framed_bytes};

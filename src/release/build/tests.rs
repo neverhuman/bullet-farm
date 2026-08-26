@@ -177,6 +177,13 @@ fn a_manifest_that_binds_its_own_digest_is_refused() {
 }
 
 #[test]
+fn a_manifest_with_duplicate_members_is_refused() {
+    let error = manifest::admit(br#"{"status":"FAIL","status":"PASS"}"#, "blake3:00")
+        .expect_err("duplicate members are ambiguous");
+    assert_eq!(error.code(), "INVALID_RELEASE_BUILD_MANIFEST");
+}
+
+#[test]
 fn canonical_json_is_compact_sorted_and_newline_terminated() {
     let bytes = manifest::canonical_bytes(&json!({ "b": 1, "a": { "d": 2, "c": 3 } }))
         .expect("canonical bytes");

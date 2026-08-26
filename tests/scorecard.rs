@@ -1,4 +1,4 @@
-//! The scorecard instrument scores floors until evidence is admitted.
+//! The scorecard instrument awards typed deltas only after semantic admission.
 
 use std::path::PathBuf;
 
@@ -70,39 +70,68 @@ fn set_path_shaped_evidence(value: &mut Value) {
     });
 }
 
+fn freeze_status(value: &mut Value) {
+    value["status"] = Value::from("frozen-baseline");
+}
+
+fn incomplete_inventory(value: &mut Value) {
+    value["criterion_inventory_complete"] = Value::Bool(false);
+}
+
+fn inflate_delta(value: &mut Value) {
+    value["rows"][0]["implemented_delta"] = Value::from(32);
+}
+
 #[test]
-fn rubric_loads_and_keeps_implemented_floors() {
+fn rubric_admits_only_rederived_product_rows() {
     let report = evaluate(&hub()).expect("scorecard");
     assert_eq!(report.rubric, "d2-v1");
     assert_eq!(report.dimensions.len(), 12);
     assert!(
-        (report.implemented - 39.7).abs() < 0.15,
+        (report.implemented - 40.0).abs() < 0.15,
         "implemented={}",
         report.implemented
     );
     assert!(
-        (report.blended - 43.3).abs() < 0.15,
+        (report.blended - 43.5).abs() < 0.15,
         "blended={}",
         report.blended
     );
+    assert!(report.blended > 43.3);
+    assert!(!report.authoritative);
+    let admitted: Vec<&str> = report
+        .rows
+        .iter()
+        .filter(|row| row.admitted)
+        .map(|row| row.id.as_str())
+        .collect();
+    assert_eq!(admitted, ["d7.evolution-off"]);
+    let nonce = report
+        .rows
+        .iter()
+        .find(|row| row.id == "d1.nonce-ledger")
+        .expect("nonce row");
+    assert!(!nonce.admitted);
+    assert_eq!(nonce.refusal_reason, "PINNED_FAMILY_SUBJECT_UNAVAILABLE");
     let txn = report
         .rows
         .iter()
         .find(|row| row.id == "g2.transaction-proof")
         .expect("g2");
     assert!(!txn.admitted);
-    assert!(!report.authoritative);
-    assert!(report.rows.iter().all(|row| !row.admitted));
+    assert_eq!(txn.refusal_reason, "NO_EVIDENCE_REFERENCE");
     let evolution = report
         .rows
         .iter()
         .find(|row| row.id == "d7.evolution-off")
         .expect("evolution row");
-    assert_eq!(evolution.refusal_reason, "NO_EVIDENCE_REFERENCE");
+    assert!(evolution.admitted);
+    assert_eq!(evolution.refusal_reason, "-");
 
-    let original: Value =
-        serde_json::from_slice(&std::fs::read(hub().join("policy/scorecard-v1.json")).unwrap())
-            .unwrap();
+    let original: Value = bullet_wire::decode_unique_value(
+        &std::fs::read(hub().join("policy/scorecard-v1.json")).unwrap(),
+    )
+    .unwrap();
     for (name, mutate) in [
         ("unknown field", add_unknown_field as fn(&mut Value)),
         ("duplicate dimension", duplicate_dimension),
@@ -118,6 +147,9 @@ fn rubric_loads_and_keeps_implemented_floors() {
         ("changed row claim", change_row_claim),
         ("changed row mapping", change_row_mapping),
         ("path-shaped evidence", set_path_shaped_evidence),
+        ("frozen status", freeze_status),
+        ("incomplete inventory", incomplete_inventory),
+        ("inflated delta", inflate_delta),
     ] {
         let mut hostile = original.clone();
         mutate(&mut hostile);
@@ -133,16 +165,96 @@ fn rubric_loads_and_keeps_implemented_floors() {
 }
 
 #[test]
+fn mutable_sibling_bytes_cannot_buy_points() {
+    let directory = tempfile::tempdir().unwrap();
+    let isolated = directory.path().join("bullet-farm");
+    std::fs::create_dir_all(isolated.join("policy/v1alpha1")).unwrap();
+    std::fs::copy(
+        hub().join("policy/scorecard-v1.json"),
+        isolated.join("policy/scorecard-v1.json"),
+    )
+    .unwrap();
+    std::fs::copy(
+        hub().join("policy/v1alpha1/policy.json"),
+        isolated.join("policy/v1alpha1/policy.json"),
+    )
+    .unwrap();
+
+    let kernel = directory.path().join("bullet-kernel");
+    std::fs::create_dir_all(kernel.join("crates/application/src")).unwrap();
+    std::fs::create_dir_all(kernel.join("crates/application/tests")).unwrap();
+    std::fs::create_dir_all(kernel.join("crates/budgets/src")).unwrap();
+    std::fs::write(
+        kernel.join("crates/application/src/nonce_ledger.rs"),
+        "fn issue() {} fn consume() {} enum State { Issued, Consumed }",
+    )
+    .unwrap();
+    std::fs::write(
+        kernel.join("crates/application/tests/nonce_ledger.rs"),
+        "fn issue_does_not_consume() { ledger.issue(); ledger.consume(); } fn consume_replay_is_refused() {}",
+    )
+    .unwrap();
+    std::fs::write(
+        kernel.join("crates/budgets/src/lib.rs"),
+        "fn reserve() {} fn settle() {} fn conserved() {} remaining: u64, reserved: u64, settled: u64, unknown_liability: u64,",
+    )
+    .unwrap();
+
+    let git = directory.path().join("bullet-git");
+    std::fs::create_dir_all(git.join("crates/bullet-git-types/src")).unwrap();
+    std::fs::create_dir_all(git.join("crates/bullet-git-types/tests")).unwrap();
+    std::fs::write(
+        git.join("crates/bullet-git-types/src/change.rs"),
+        "pub const fn named_leaves() -> [(&'static str, &[u8]); 8] { todo!() }",
+    )
+    .unwrap();
+    std::fs::write(
+        git.join("crates/bullet-git-types/tests/proof_root.rs"),
+        "fn proof_root_each_of_the_eight_leaves_is_tamper_evident() {}",
+    )
+    .unwrap();
+
+    let report = evaluate(&isolated).expect("portable scorecard");
+    let admitted = report
+        .rows
+        .iter()
+        .filter(|row| row.admitted)
+        .map(|row| row.id.as_str())
+        .collect::<Vec<_>>();
+    assert_eq!(admitted, ["d7.evolution-off"]);
+    assert!((report.implemented - 40.0).abs() < 0.15);
+    assert!((report.blended - 43.5).abs() < 0.15);
+}
+
+#[test]
+fn isolated_hub_cannot_buy_sibling_points() {
+    let original = std::fs::read(hub().join("policy/scorecard-v1.json")).unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    std::fs::create_dir(directory.path().join("policy")).unwrap();
+    std::fs::write(directory.path().join("policy/scorecard-v1.json"), original).unwrap();
+    let report = evaluate(directory.path()).expect("isolated scorecard");
+    assert!(
+        (report.implemented - 39.7).abs() < 0.15,
+        "implemented={}",
+        report.implemented
+    );
+    assert!(
+        (report.blended - 43.3).abs() < 0.15,
+        "blended={}",
+        report.blended
+    );
+    assert!(report.rows.iter().all(|row| !row.admitted));
+}
+
+#[test]
 fn markdown_names_the_instrument() {
     let report = evaluate(&hub()).expect("scorecard");
     let page = render_markdown(&report);
     assert!(page.contains("not release authority"));
-    assert!(page.contains("frozen baseline estimate"));
-    assert!(
-        page.contains("SEMANTIC_VERIFIER_UNAVAILABLE") || page.contains("NO_EVIDENCE_REFERENCE")
-    );
+    assert!(page.contains("instrumented estimate"));
+    assert!(page.contains("Frozen baseline was **43.3**"));
     assert!(page.contains("g2.transaction-proof"));
-    assert!(!page.contains("| yes |"));
+    assert!(page.contains("| yes |"));
     assert_eq!(
         page,
         include_str!("../docs/assurance/scorecard.generated.md"),

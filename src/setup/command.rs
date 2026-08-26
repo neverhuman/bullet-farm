@@ -19,6 +19,7 @@ use self::subject::AdmittedFile;
 use super::{BASH_BIN, GIT_BIN};
 use crate::{
     coord::CoordError,
+    family_lock::ToolchainSubject,
     process::{Limits, run_bounded},
 };
 
@@ -52,21 +53,80 @@ pub(super) struct Toolchain {
 }
 
 impl Toolchain {
+    #[cfg(test)]
     pub(super) fn admit(
         cargo: Option<&Path>,
         node: Option<&Path>,
         npm_cli: Option<&Path>,
     ) -> Result<Self, CoordError> {
+        Self::admit_inner(cargo, node, npm_cli, None)
+    }
+
+    pub(super) fn admit_locked(
+        cargo: Option<&Path>,
+        node: Option<&Path>,
+        npm_cli: Option<&Path>,
+        subjects: &[ToolchainSubject],
+    ) -> Result<Self, CoordError> {
+        Self::admit_inner(cargo, node, npm_cli, Some(subjects))
+    }
+
+    fn admit_inner(
+        cargo: Option<&Path>,
+        node: Option<&Path>,
+        npm_cli: Option<&Path>,
+        subjects: Option<&[ToolchainSubject]>,
+    ) -> Result<Self, CoordError> {
         let cargo = required_path(cargo, "Cargo")?;
         let node = required_path(node, "Node")?;
         let npm_cli = required_path(npm_cli, "npm CLI")?;
-        let cargo = CommandSpec::admit(ToolIdentity::Cargo, cargo, Vec::new(), Vec::new())?;
+        let cargo = AdmittedFile::admit("Cargo setup operation", cargo, true)?;
         let node = AdmittedFile::admit("Node", node, true)?;
-        CommandSpec::probe_identity(ToolIdentity::Node, &node, &[], &[])?;
         let npm_cli = AdmittedFile::admit("npm CLI", npm_cli, false)?;
+        let mut cargo_companions = Vec::new();
+        let mut npm_companions = Vec::new();
+        let expected_versions = if let Some(subjects) = subjects {
+            let cargo_subject = required_tool_subject(subjects, "cargo")?;
+            let node_subject = required_tool_subject(subjects, "node")?;
+            let npm_subject = required_tool_subject(subjects, "npm-cli")?;
+            let cargo_manifest = admit_locked_tool(cargo_subject, &cargo, "Cargo")?;
+            let node_manifest = admit_locked_tool(node_subject, &node, "Node")?;
+            let npm_manifest = admit_locked_tool(npm_subject, &npm_cli, "npm CLI")?;
+            require_disjoint_tool_files(&[
+                &cargo,
+                &node,
+                &npm_cli,
+                &cargo_manifest,
+                &node_manifest,
+                &npm_manifest,
+            ])?;
+            cargo_companions.push(cargo_manifest);
+            npm_companions.push(node_manifest);
+            npm_companions.push(npm_manifest);
+            Some((
+                cargo_subject.version.clone(),
+                node_subject.version.clone(),
+                npm_subject.version.clone(),
+            ))
+        } else {
+            None
+        };
+        let cargo =
+            CommandSpec::from_admitted(ToolIdentity::Cargo, cargo, Vec::new(), cargo_companions)?;
+        if let Some((cargo_expected, _, _)) = &expected_versions {
+            require_locked_version("cargo", cargo_expected, &cargo.version)?;
+        }
+        let node_version = CommandSpec::probe_identity(ToolIdentity::Node, &node, &[], &[])?;
+        if let Some((_, node_expected, _)) = &expected_versions {
+            require_locked_version("node", node_expected, &node_version)?;
+        }
         let npm_subject = npm_cli.execution_path().into_os_string();
+        npm_companions.insert(0, npm_cli);
         let npm =
-            CommandSpec::from_admitted(ToolIdentity::Npm, node, vec![npm_subject], vec![npm_cli])?;
+            CommandSpec::from_admitted(ToolIdentity::Npm, node, vec![npm_subject], npm_companions)?;
+        if let Some((_, _, npm_expected)) = &expected_versions {
+            require_locked_version("npm-cli", npm_expected, &npm.version)?;
+        }
         let bash_path = fs::canonicalize(BASH_BIN).map_err(|error| {
             tool_error(
                 "SETUP_TOOL_UNAVAILABLE",
@@ -122,6 +182,7 @@ struct CommandSpec {
     program: AdmittedFile,
     prefix_args: Vec<OsString>,
     companions: Vec<AdmittedFile>,
+    version: String,
 }
 
 impl CommandSpec {
@@ -141,12 +202,13 @@ impl CommandSpec {
         prefix_args: Vec<OsString>,
         companions: Vec<AdmittedFile>,
     ) -> Result<Self, CoordError> {
-        Self::probe_identity(identity, &program, &prefix_args, &companions)?;
+        let version = Self::probe_identity(identity, &program, &prefix_args, &companions)?;
         Ok(Self {
             identity,
             program,
             prefix_args,
             companions,
+            version,
         })
     }
 
@@ -155,7 +217,7 @@ impl CommandSpec {
         program: &AdmittedFile,
         prefix_args: &[OsString],
         companions: &[AdmittedFile],
-    ) -> Result<(), CoordError> {
+    ) -> Result<String, CoordError> {
         program.verify()?;
         for companion in companions {
             companion.verify()?;
@@ -183,14 +245,15 @@ impl CommandSpec {
             )
         })?;
         let version = stdout.lines().next().unwrap_or_default();
-        if !output.status.success() || !identity.matches(version) {
+        let normalized = identity.normalized_version(version);
+        if !output.status.success() || normalized.is_none() {
             return Err(tool_error(
                 "SETUP_TOOL_IDENTITY_MISMATCH",
                 identity.label(),
                 "bounded --version probe did not identify the required tool",
             ));
         }
-        Ok(())
+        Ok(normalized.expect("checked normalized version").to_owned())
     }
 
     fn run(
@@ -302,18 +365,109 @@ impl ToolIdentity {
         }
     }
 
-    fn matches(self, version: &str) -> bool {
+    fn normalized_version(self, version: &str) -> Option<&str> {
         match self {
             Self::Cargo => version
                 .strip_prefix("cargo ")
                 .and_then(|rest| rest.split_whitespace().next())
-                .is_some_and(is_version),
-            Self::Node => super::supported_node_version(version),
-            Self::Npm => is_version(version),
-            Self::Bash => version.starts_with("GNU bash, version "),
-            Self::Git => version.strip_prefix("git version ").is_some_and(is_version),
+                .filter(|value| is_numeric_triplet(value)),
+            Self::Node => version
+                .strip_prefix('v')
+                .filter(|_| super::supported_node_version(version)),
+            Self::Npm => super::supported_npm_version(version).then_some(version),
+            Self::Bash => version.starts_with("GNU bash, version ").then_some(version),
+            Self::Git => version
+                .strip_prefix("git version ")
+                .filter(|value| is_version(value)),
         }
     }
+}
+
+fn required_tool_subject<'a>(
+    subjects: &'a [ToolchainSubject],
+    id: &str,
+) -> Result<&'a ToolchainSubject, CoordError> {
+    let mut matches = subjects.iter().filter(|subject| subject.id == id);
+    let subject = matches.next().ok_or_else(|| {
+        tool_error(
+            "SETUP_TOOL_SUBJECT_MISSING",
+            id,
+            "signed family.lock has no exact tool subject",
+        )
+    })?;
+    if matches.next().is_some() {
+        return Err(tool_error(
+            "SETUP_TOOL_SUBJECT_MISMATCH",
+            id,
+            "signed family.lock repeats the tool subject",
+        ));
+    }
+    Ok(subject)
+}
+
+fn admit_locked_tool(
+    subject: &ToolchainSubject,
+    binary: &AdmittedFile,
+    label: &'static str,
+) -> Result<AdmittedFile, CoordError> {
+    let manifest = AdmittedFile::admit(
+        "toolchain manifest",
+        Path::new(&subject.manifest_path),
+        false,
+    )?;
+    let path_matches = binary.canonical_path().to_str() == Some(subject.install_path.as_str());
+    if !path_matches
+        || binary.digest() != subject.binary_digest
+        || binary.size_bytes() != subject.size_bytes
+        || manifest.canonical_path().to_str() != Some(subject.manifest_path.as_str())
+        || manifest.digest() != subject.manifest_digest
+    {
+        return Err(tool_error(
+            "SETUP_TOOL_SUBJECT_MISMATCH",
+            label,
+            "canonical path, BLAKE3 digest, byte count, or manifest differs from signed family.lock",
+        ));
+    }
+    Ok(manifest)
+}
+
+fn require_disjoint_tool_files(files: &[&AdmittedFile]) -> Result<(), CoordError> {
+    for (index, subject) in files.iter().enumerate() {
+        if files[index + 1..]
+            .iter()
+            .any(|other| subject.aliases(other))
+        {
+            return Err(tool_error(
+                "SETUP_TOOL_SUBJECT_MISMATCH",
+                "signed toolchain",
+                "every executable and referenced manifest must be a distinct file subject",
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn require_locked_version(id: &str, expected: &str, actual: &str) -> Result<(), CoordError> {
+    if expected == actual {
+        Ok(())
+    } else {
+        Err(tool_error(
+            "SETUP_TOOL_SUBJECT_MISMATCH",
+            id,
+            format!("signed version {expected} differs from sealed tool version {actual}"),
+        ))
+    }
+}
+
+fn is_numeric_triplet(value: &str) -> bool {
+    let mut parts = value.split('.');
+    matches!(
+        (parts.next(), parts.next(), parts.next(), parts.next()),
+        (Some(major), Some(minor), Some(patch), None)
+            if [major, minor, patch].into_iter().all(|part| {
+                !part.is_empty() && part.bytes().all(|byte| byte.is_ascii_digit())
+            })
+    )
 }
 
 fn is_version(value: &str) -> bool {

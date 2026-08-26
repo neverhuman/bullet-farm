@@ -7,15 +7,16 @@ use std::{
 };
 
 use super::{CommandSpec, SetupEnvironment, ToolIdentity, Toolchain};
-use crate::setup::transaction::AdmittedRoot;
+use crate::{family_lock::ToolchainSubject, setup::transaction::AdmittedRoot};
 
 #[test]
-fn node_version_floor_is_exact_and_fail_closed() {
-    for admitted in ["v22.0.0", "v26.1.0", "v18446744073709551615.0.0"] {
-        assert!(crate::setup::supported_node_version(admitted), "{admitted}");
-    }
+fn node_and_npm_versions_are_exact_and_fail_closed() {
+    assert!(crate::setup::supported_node_version("v22.23.2"));
+    assert!(crate::setup::supported_npm_version("10.9.8"));
     for refused in [
         "v21.99.99",
+        "v22.23.1",
+        "v26.1.0",
         "v22",
         "v22.0",
         "v22.0.0-rc.1",
@@ -24,6 +25,189 @@ fn node_version_floor_is_exact_and_fail_closed() {
         "node v22.0.0",
     ] {
         assert!(!crate::setup::supported_node_version(refused), "{refused}");
+    }
+    for refused in ["10.9.7", "11.13.0", "10.9", "v10.9.8"] {
+        assert!(!crate::setup::supported_npm_version(refused), "{refused}");
+    }
+    assert_eq!(
+        ToolIdentity::Cargo.normalized_version("cargo 1.97.1"),
+        Some("1.97.1")
+    );
+    for refused in [
+        "cargo 1.97",
+        "cargo 1.97.1.2",
+        "cargo 1.97.1-rc.1",
+        "cargo 1.x.1",
+    ] {
+        assert_eq!(
+            ToolIdentity::Cargo.normalized_version(refused),
+            None,
+            "{refused}"
+        );
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn locked_tool_subjects_bind_every_file_field_before_execution() {
+    let fixture = fixture_root("locked-tool-subjects");
+    let probe_marker = fixture.join("cargo-probed");
+    let node_probe_marker = fixture.join("node-probed");
+    let npm_probe_marker = fixture.join("npm-probed");
+    let cargo = executable(
+        &fixture,
+        "cargo-real",
+        &format!(
+            "#!/bin/sh\nif [ \"${{1-}}\" = --version ]; then printf probed > '{}'; printf 'cargo 1.97.1\\n'; exit 0; fi\nprintf work > '{}'\n",
+            probe_marker.display(),
+            fixture.join("cargo-work").display()
+        ),
+    );
+    let node = executable(
+        &fixture,
+        "node-real",
+        &format!(
+            concat!(
+                "#!/bin/sh\n",
+                "if [ \"${{1-}}\" = --version ]; then printf probed > '{}'; printf 'v22.23.2\\n'; exit 0; fi\n",
+                "if [ \"${{2-}}\" = --version ]; then printf probed > '{}'; printf '10.9.8\\n'; exit 0; fi\n",
+                "exit 99\n",
+            ),
+            node_probe_marker.display(),
+            npm_probe_marker.display(),
+        ),
+    );
+    let npm_cli = fixture.join("npm-cli.js");
+    fs::write(&npm_cli, "fixture npm cli\n").unwrap();
+    let cargo_manifest = fixture.join("cargo.manifest");
+    let node_manifest = fixture.join("node.manifest");
+    let npm_manifest = fixture.join("npm.manifest");
+    fs::write(&cargo_manifest, "cargo manifest\n").unwrap();
+    fs::write(&node_manifest, "node manifest\n").unwrap();
+    fs::write(&npm_manifest, "npm manifest\n").unwrap();
+
+    let subjects = vec![
+        tool_subject("cargo", "1.97.1", &cargo, &cargo_manifest),
+        tool_subject("node", "22.23.2", &node, &node_manifest),
+        tool_subject("npm-cli", "10.9.8", &npm_cli, &npm_manifest),
+    ];
+    let toolchain = Toolchain::admit_locked(Some(&cargo), Some(&node), Some(&npm_cli), &subjects)
+        .expect("exact locked tools");
+    assert!(probe_marker.exists(), "exact sealed Cargo was not probed");
+    assert!(
+        node_probe_marker.exists(),
+        "exact sealed Node was not probed"
+    );
+    assert!(npm_probe_marker.exists(), "exact sealed npm was not probed");
+
+    let missing = &subjects[1..];
+    for marker in [&probe_marker, &node_probe_marker, &npm_probe_marker] {
+        fs::remove_file(marker).unwrap();
+    }
+    let error = Toolchain::admit_locked(Some(&cargo), Some(&node), Some(&npm_cli), missing)
+        .expect_err("missing Cargo subject");
+    assert_eq!(error.code(), "SETUP_TOOL_SUBJECT_MISSING");
+    assert!(!probe_marker.exists(), "missing subject executed Cargo");
+    assert!(!node_probe_marker.exists(), "missing subject executed Node");
+    assert!(!npm_probe_marker.exists(), "missing subject executed npm");
+
+    let mut duplicated = subjects.clone();
+    duplicated.push(subjects[0].clone());
+    let error = Toolchain::admit_locked(Some(&cargo), Some(&node), Some(&npm_cli), &duplicated)
+        .expect_err("duplicate Cargo subject");
+    assert_eq!(error.code(), "SETUP_TOOL_SUBJECT_MISMATCH");
+
+    for field in [
+        "install-path",
+        "binary-digest",
+        "size",
+        "manifest-path",
+        "manifest-digest",
+        "npm-manifest-digest",
+    ] {
+        let mut hostile = subjects.clone();
+        match field {
+            "install-path" => hostile[0].install_path.push_str(".other"),
+            "binary-digest" => {
+                hostile[0].binary_digest = format!("blake3:{}", "0".repeat(64));
+            }
+            "size" => hostile[0].size_bytes += 1,
+            "manifest-path" => {
+                hostile[0].manifest_path = node_manifest.display().to_string();
+            }
+            "manifest-digest" => {
+                hostile[0].manifest_digest = format!("blake3:{}", "1".repeat(64));
+            }
+            "npm-manifest-digest" => {
+                hostile[2].manifest_digest = format!("blake3:{}", "2".repeat(64));
+            }
+            _ => unreachable!(),
+        }
+        let _ = fs::remove_file(&probe_marker);
+        let error =
+            match Toolchain::admit_locked(Some(&cargo), Some(&node), Some(&npm_cli), &hostile) {
+                Ok(_) => panic!("changed locked file subject was admitted: {field}"),
+                Err(error) => error,
+            };
+        assert_eq!(error.code(), "SETUP_TOOL_SUBJECT_MISMATCH");
+        assert!(!probe_marker.exists(), "mismatched subject executed Cargo");
+        assert!(
+            !node_probe_marker.exists(),
+            "mismatched subject executed Node"
+        );
+        assert!(
+            !npm_probe_marker.exists(),
+            "mismatched subject executed npm"
+        );
+    }
+
+    let cargo_manifest_alias = fixture.join("cargo.manifest.alias");
+    fs::hard_link(&cargo_manifest, &cargo_manifest_alias).unwrap();
+    let mut hostile = subjects.clone();
+    hostile[1].manifest_path = cargo_manifest_alias.display().to_string();
+    hostile[1].manifest_digest = hostile[0].manifest_digest.clone();
+    let error = Toolchain::admit_locked(Some(&cargo), Some(&node), Some(&npm_cli), &hostile)
+        .expect_err("hard-linked cross-tool manifest alias");
+    assert_eq!(error.code(), "SETUP_TOOL_SUBJECT_MISMATCH");
+    assert!(!probe_marker.exists(), "aliased subject executed Cargo");
+    assert!(!node_probe_marker.exists(), "aliased subject executed Node");
+    assert!(!npm_probe_marker.exists(), "aliased subject executed npm");
+
+    let mut hostile = subjects.clone();
+    hostile[0].version = "1.97.0".into();
+    let error = Toolchain::admit_locked(Some(&cargo), Some(&node), Some(&npm_cli), &hostile)
+        .expect_err("changed locked version");
+    assert_eq!(error.code(), "SETUP_TOOL_SUBJECT_MISMATCH");
+    assert!(probe_marker.exists(), "Cargo version was not probed");
+    assert!(!node_probe_marker.exists(), "Cargo mismatch executed Node");
+    assert!(!npm_probe_marker.exists(), "Cargo mismatch executed npm");
+
+    let root = AdmittedRoot::open(&fixture).unwrap();
+    let environment = SetupEnvironment::create(&root, &toolchain).unwrap();
+    let original_manifest = fixture.join("cargo.manifest.original");
+    fs::rename(&cargo_manifest, &original_manifest).unwrap();
+    fs::write(&cargo_manifest, "attacker manifest\n").unwrap();
+    let error = toolchain
+        .run_cargo(&fixture, &["fetch", "--locked", "--offline"], &environment)
+        .expect_err("post-admission manifest swap");
+    assert_eq!(error.code(), "SETUP_TOOL_CHANGED");
+    assert!(!fixture.join("cargo-work").exists());
+    environment.finish().unwrap();
+
+    fs::remove_dir_all(fixture).unwrap();
+}
+
+fn tool_subject(id: &str, version: &str, binary: &Path, manifest: &Path) -> ToolchainSubject {
+    let binary_bytes = fs::read(binary).unwrap();
+    let manifest_bytes = fs::read(manifest).unwrap();
+    ToolchainSubject {
+        id: id.into(),
+        version: version.into(),
+        install_path: binary.display().to_string(),
+        binary_digest: format!("blake3:{}", blake3::hash(&binary_bytes).to_hex()),
+        manifest_path: manifest.display().to_string(),
+        manifest_digest: format!("blake3:{}", blake3::hash(&manifest_bytes).to_hex()),
+        size_bytes: binary_bytes.len() as u64,
     }
 }
 
@@ -38,7 +222,7 @@ fn tool_admission_rejects_missing_relative_noncanonical_and_mismatched_inputs() 
         "cargo-real",
         "#!/bin/sh\nprintf 'cargo 1.97.1\\n'\n",
     );
-    let node = executable(&fixture, "node-real", "#!/bin/sh\nprintf 'v26.1.0\\n'\n");
+    let node = executable(&fixture, "node-real", "#!/bin/sh\nprintf 'v22.23.2\\n'\n");
     let npm_cli = fixture.join("npm-cli.js");
     fs::write(&npm_cli, "fixture\n").expect("npm fixture");
 
@@ -190,7 +374,7 @@ fn sealed_subjects_defeat_post_verification_path_swaps() {
         "node-real",
         concat!(
             "#!/bin/sh\n",
-            "if [ \"${1-}\" = --version ]; then printf 'v26.1.0\\n'; exit 0; fi\n",
+            "if [ \"${1-}\" = --version ]; then printf 'v22.23.2\\n'; exit 0; fi\n",
             "exec /bin/sh \"$@\"\n",
         ),
     );
@@ -198,7 +382,7 @@ fn sealed_subjects_defeat_post_verification_path_swaps() {
     fs::write(
         &npm_cli,
         concat!(
-            "if [ \"${1-}\" = --version ]; then printf '11.13.0\\n'; exit 0; fi\n",
+            "if [ \"${1-}\" = --version ]; then printf '10.9.8\\n'; exit 0; fi\n",
             "printf admitted > npm-admitted\n",
         ),
     )
@@ -349,8 +533,8 @@ fn tool_fixtures(root: &Path) {
         "node-real",
         concat!(
             "#!/bin/sh\n",
-            "if [ \"${1-}\" = --version ]; then printf 'v26.1.0\\n'; exit 0; fi\n",
-            "if [ \"${2-}\" = --version ]; then printf '11.13.0\\n'; exit 0; fi\n",
+            "if [ \"${1-}\" = --version ]; then printf 'v22.23.2\\n'; exit 0; fi\n",
+            "if [ \"${2-}\" = --version ]; then printf '10.9.8\\n'; exit 0; fi\n",
             "printf 'canary=%s\\nchild=%s\\nargs=%s\\npath=%s\\nhome=%s\\n' \\\n",
             "  \"${BULLET_INSTALL_CANARY_SECRET-unset}\" \\\n",
             "  \"${BULLET_SETUP_TOOL_TEST_CHILD-unset}\" \"$*\" \"$PATH\" \"$HOME\" \\\n",

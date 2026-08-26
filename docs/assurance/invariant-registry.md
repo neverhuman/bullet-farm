@@ -15,4 +15,8 @@ unknown controls, incomplete traceability, an enforced entry without a target an
 planned entry assigned to Gate 0. Future controls are intentionally `planned`; they cannot satisfy
 an earlier gate. The generated crosswalk is a review view, not a second source of truth.
 
+This is completeness for entries declared in this registry only. The validator does not prove that every
+runtime invariant or enforcement site has been inventoried, nor that every implementation site points back to
+one entry. That whole-product bidirectional orphan inventory is explicit Wave-0 work.
+
 Proof: `cargo test --locked -p bullet-wire --test policy_registry`.

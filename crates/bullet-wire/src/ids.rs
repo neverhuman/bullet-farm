@@ -19,12 +19,8 @@ macro_rules! digest_id {
             pub fn as_str(&self) -> &str {
                 &self.0
             }
-        }
 
-        impl FromStr for $name {
-            type Err = WireError;
-
-            fn from_str(raw: &str) -> Result<Self, Self::Err> {
+            pub(crate) fn parse_checked(raw: &str) -> Result<Self, WireError> {
                 let hex = raw.strip_prefix(Self::PREFIX).ok_or_else(|| {
                     WireError::new(
                         "INVALID_ID",
@@ -33,6 +29,14 @@ macro_rules! digest_id {
                 })?;
                 validate_lower_hex(hex, 64, "INVALID_ID")?;
                 Ok(Self(raw.to_owned()))
+            }
+        }
+
+        impl FromStr for $name {
+            type Err = WireError;
+
+            fn from_str(raw: &str) -> Result<Self, Self::Err> {
+                Self::parse_checked(raw)
             }
         }
 
@@ -65,9 +69,8 @@ macro_rules! digest_id {
             where
                 D: Deserializer<'de>,
             {
-                String::deserialize(deserializer)?
-                    .parse()
-                    .map_err(de::Error::custom)
+                let raw = String::deserialize(deserializer)?;
+                Self::parse_checked(&raw).map_err(de::Error::custom)
             }
         }
     };
@@ -112,24 +115,7 @@ pub enum GitOid {
 }
 
 impl GitOid {
-    pub fn algorithm(&self) -> &'static str {
-        match self {
-            Self::Sha1(_) => "sha1",
-            Self::Sha256(_) => "sha256",
-        }
-    }
-
-    pub fn hex(&self) -> &str {
-        match self {
-            Self::Sha1(hex) | Self::Sha256(hex) => hex,
-        }
-    }
-}
-
-impl FromStr for GitOid {
-    type Err = WireError;
-
-    fn from_str(raw: &str) -> Result<Self, Self::Err> {
+    pub(crate) fn parse_checked(raw: &str) -> Result<Self, WireError> {
         let (algorithm, hex) = raw.split_once(':').ok_or_else(|| {
             WireError::new(
                 "INVALID_GIT_OID",
@@ -150,6 +136,27 @@ impl FromStr for GitOid {
                 format!("unsupported Git object algorithm {algorithm}"),
             )),
         }
+    }
+
+    pub fn algorithm(&self) -> &'static str {
+        match self {
+            Self::Sha1(_) => "sha1",
+            Self::Sha256(_) => "sha256",
+        }
+    }
+
+    pub fn hex(&self) -> &str {
+        match self {
+            Self::Sha1(hex) | Self::Sha256(hex) => hex,
+        }
+    }
+}
+
+impl FromStr for GitOid {
+    type Err = WireError;
+
+    fn from_str(raw: &str) -> Result<Self, Self::Err> {
+        Self::parse_checked(raw)
     }
 }
 
@@ -173,8 +180,7 @@ impl<'de> Deserialize<'de> for GitOid {
     where
         D: Deserializer<'de>,
     {
-        String::deserialize(deserializer)?
-            .parse()
-            .map_err(de::Error::custom)
+        let raw = String::deserialize(deserializer)?;
+        Self::parse_checked(&raw).map_err(de::Error::custom)
     }
 }

@@ -162,14 +162,7 @@ fn external_subjects(root: &Path, public_key: &str, allowed: &str) -> ExternalSu
     let fingerprint = ssh_fingerprint(&root.join("release-key.pub"));
     let identity = format!("{PRINCIPAL}|ed25519|{fingerprint}");
     ExternalSubjects {
-        toolchain: vec![ToolchainSubject {
-            id: "rust".into(),
-            version: "1.89.0".into(),
-            install_path: "/usr/lib/bullet/toolchains/rust/1.89.0/rustc".into(),
-            binary_digest: digest(b't'),
-            manifest_digest: digest(b'm'),
-            size_bytes: 1,
-        }],
+        toolchain: fixture_toolchains(),
         provider: vec![ProviderSubject {
             id: "claude".into(),
             version: "1.0.0".into(),
@@ -223,6 +216,27 @@ fn external_subjects(root: &Path, public_key: &str, allowed: &str) -> ExternalSu
             not_after_unix_ms: 2,
         },
     }
+}
+
+fn fixture_toolchains() -> Vec<ToolchainSubject> {
+    [
+        ("cargo", "1.95.0", "rust/1.95.0/cargo", b't', b'm'),
+        ("node", "22.23.2", "node/22.23.2/node", b'n', b'o'),
+        ("npm-cli", "10.9.8", "npm/10.9.8/npm-cli.js", b'q', b's'),
+    ]
+    .into_iter()
+    .map(
+        |(id, version, relative, binary, manifest)| ToolchainSubject {
+            id: id.into(),
+            version: version.into(),
+            install_path: format!("/usr/lib/bullet/toolchains/{relative}"),
+            binary_digest: digest(binary),
+            manifest_path: format!("/usr/lib/bullet/toolchains/{relative}.manifest"),
+            manifest_digest: digest(manifest),
+            size_bytes: 1,
+        },
+    )
+    .collect()
 }
 
 fn digest(seed: u8) -> String {

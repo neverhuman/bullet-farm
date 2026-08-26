@@ -3,7 +3,7 @@
 Status: **offline worker reconciliation available; live read-back blocked**  
 Owner: Bullet Farm maintainers  
 Last reviewed: 2026-08-25  
-Applies to: bullet-kernel `c4731aa` (authenticated offline command reconciliation), bullet-farm `347da232`,
+Component receipt baselines (minimum; replay current-head lanes before use): bullet-kernel `c4731aa` (authenticated offline command reconciliation), bullet-farm `347da232`,
 bullet-portal `6b294ce` (projection rules and same-origin component proof)
 
 This runbook covers what an operator can settle **today**: a `PENDING` public command that no execution
@@ -13,8 +13,10 @@ Jeryu or GitHub effect lanes have a receipt (see §5).
 ## 1. The ladder
 
 Every public mutation is `POST /api/v1/commands`, answers `202` with a `PENDING` subject, and thereafter moves
-only through the closed set below (`status_name` in `apps/bullet-farmd/src/commands.rs`; frozen in
-[`../assurance/v1-closure-plan.md`](../assurance/v1-closure-plan.md)):
+only through the closed set below (`status_name` in `apps/bullet-farmd/src/commands.rs` and the current
+[`glossary`](../glossary.md)). The connected effect order and remaining authority closure are governed by
+Waves 5–6 of the active [`closure roadmap`](../assurance/closure-roadmap.md); the old
+[`v1-closure-plan.md`](../assurance/v1-closure-plan.md) records historical V1 slice names only.
 
 | Phase | Meaning | Who may set it today |
 | --- | --- | --- |
@@ -45,7 +47,7 @@ matching dispatch outbox row and exactly one `command_submitted` event, writes t
 row with the same phase (acked, never delivered), and appends exactly one `command_reconciled` event. A second
 call on a settled command returns the byte-identical body without writing; a ledger whose rows disagree with
 that shape is refused as a store failure rather than re-settled. This is the semantics the Kernel commit
-`77a0ecd` receipt covers ("Authenticated offline command reconciliation", `COMPLETE`, in the closure plan) —
+`77a0ecd` receipt covers ("Authenticated offline command reconciliation", historical component inventory) —
 COMPONENT_PROOF class, nothing more.
 
 ## 3. Procedure (observed on this host, 2026-08-25)
@@ -129,10 +131,10 @@ Today this runs only against the in-process `LocalBareForge`/`LostResponseForge`
 
 | Missing | Why the runbook stops here | Tracked as |
 | --- | --- | --- |
-| Live forge read-back | no authenticated Jeryu or GitHub App test repository; the running forge must not be modified to fake capability | [ADR 0013](../decisions/0013-operator-decision-register.md) OD-B/OD-C; gates `release.forge.jeryu`, `release.forge.github-app` |
+| Live forge read-back | typed Jeryu/GitHub capability, delivery/check, integration/read-back/reconciliation adapters and semantic receipt admission remain local work; authenticated protected test repositories and role-separated credentials remain operator work, and the running forge must not be modified to fake capability | [ADR 0013](../decisions/0013-operator-decision-register.md) OD-B/OD-C; gates `release.forge.jeryu`, `release.forge.github-app` |
 | Identity-exact adoption (C9: fence + desired OID) | command idempotency is a component; graph mint is not a live path | [`../assurance/product-gaps.md`](../assurance/product-gaps.md) C9 |
-| `APPLIED`/`VERIFIED` for any command | no admitted runner/verifier/effect adapter is connected to the worker | closure plan V1-S4/V1-S5; [`../release.md`](../release.md) "Production Kernel transaction" |
-| Runner dispatch | the product `bullet-runner` exits with `LEASE_TRANSPORT_ADMISSION_UNAVAILABLE`; the existing Unix/HTTP components are not production-admitted authority | closure plan V1-S4; peer/process identity, inherited connected transport, replay/read-back, and restart-safe request settlement remain |
+| `APPLIED`/`VERIFIED` for any command | no admitted runner/verifier/effect adapter is connected to the worker | Active roadmap Waves 2, 5, and 6; historical V1-S4/V1-S5; [`../release.md`](../release.md) "Production Kernel transaction" |
+| Runner dispatch | the product `bullet-runner` exits with `LEASE_TRANSPORT_ADMISSION_UNAVAILABLE`; the existing Unix/HTTP components are not production-admitted authority | Active roadmap Waves 2 and 5; historical V1-S4; peer/process identity, inherited connected transport, replay/read-back, and restart-safe request settlement remain |
 | Backup/restore settling outbox ambiguity | restore is quarantined and does not reconcile effects | [`backup-restore.md`](backup-restore.md) |
 
 A `200` from the reconcile route is an honest `UNKNOWN`, not progress toward green.

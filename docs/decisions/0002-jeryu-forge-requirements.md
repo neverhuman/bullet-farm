@@ -1,16 +1,19 @@
 # 0002 — Jeryu as the Bullet Farm effect target: requirements and do-not-disturb rules
 
-Status: Accepted target; credentialed access quarantined at Wave 0
+Status: Accepted target; credentialed access quarantined pending Wave 8
 Owner: Bullet Farm maintainers
-Last reviewed: 2026-08-24
+Last reviewed: 2026-08-25
 Applies to: bullet-kernel (effects), bullet-farm (hub)
 
 ## Decision
 
-Local Jeryu is the first future production forge after Waves 1–2. A local bare repository
-(`LocalBareForge`) backs offline component and fault tests behind the same `ForgeEffects` port.
-GitHub certifies separately later. Wave 0 performs no authenticated probe, repository creation,
-push, check, pull request, or integration.
+Local Jeryu is the default future production forge. Wave 4 closes its pinned
+capability contract, Wave 5 closes the forge semantic port offline, and Wave 8
+requires a separately approved protected live transaction. A local bare
+repository (`LocalBareForge`) backs offline component and fault tests behind the
+same `ForgeEffects` port. GitHub certifies separately. Wave 0 performs no
+authenticated probe, repository creation, push, check, pull request, or
+integration.
 
 ## Do-not-disturb rules (hard)
 
@@ -19,9 +22,11 @@ Many repo families depend on this Jeryu instance. Therefore:
 - NEVER edit the operator's Jeryu configuration/data, its `--split-manifest` files, or the canonical
   `jeryu-split` source family as part of Bullet Farm work. The family `AGENTS.md` identifies the
   permitted checkout; no substitute family may be created.
-- Additive REST calls only: create root/bullet-* repositories, push branches, open PRs, post
-  check-runs. Probe capabilities first; anything unsupported is recorded as Unsupported in the
-  ForgeEffects descriptor — never worked around by touching the forge.
+- Probe only an operator-named, immutable, signed Jeryu build after its exact
+  tag, manifest, binary/API/capability digests, SBOM, provenance, and signature
+  match the family lock. No arbitrary `root/bullet-*` repository or hostname is
+  authorized. Missing semantics return `UNSUPPORTED_BY_ADAPTER`; they are never
+  worked around by touching the forge or reported green.
 - Existing host tokens are outside the trust boundary and do not authorize Bullet Farm. Re-login is
   not requested during quarantine.
 
@@ -29,7 +34,7 @@ Many repo families depend on this Jeryu instance. Therefore:
 
 | Feature (git_role.md / spec §23.3) | Needed for | Jeryu status |
 |---|---|---|
-| Create repo via REST | registering root/bullet-* | UNPROBED — QUARANTINED |
+| Designate or create the exact protected test repository through authorized REST | Wave-8 protected transaction | UNPROBED — QUARANTINED |
 | Push branch `refs/heads/bullet/candidate/<id>` | Candidate export | UNPROBED — QUARANTINED |
 | Expected-old-OID push semantics (or --force-with-lease honored) | exact-subject delivery | UNPROBED — QUARANTINED |
 | Read ref back via REST | Effect receipt | UNPROBED — QUARANTINED |
@@ -39,8 +44,10 @@ Many repo families depend on this Jeryu instance. Therefore:
 | Merge queue / merge-group subject | Phase-later integration | UNPROBED — QUARANTINED |
 | Immutable annotated tags | family release pins | UNPROBED — QUARANTINED |
 
-Gaps become a proposal for a NEW Jeryu release rolled out to git.neverhuman.org (work happens in the
-jeryu-split family, not here), so bullet users can create free accounts or self-host their own binaries.
+Gaps become a reviewed proposal and new signed Jeryu release in the independent
+`/home/ubuntu/jain-split/jeryu-split` family, not a patch to Bullet or the
+running forge. Deployment to any hostname is a separate operator decision;
+`git.neverhuman.org` is not currently ratified for Bullet.
 
 ## Probe results (2026-08-24, unauthenticated GET)
 

@@ -10,7 +10,7 @@
 
 use std::collections::BTreeMap;
 
-use serde::Deserialize;
+use serde::{Deserialize, de::DeserializeOwned};
 use serde_json::{Map, Value, json};
 
 use super::{
@@ -24,6 +24,8 @@ use crate::coord::CoordError;
 
 const RUST_MEMBERS: [&str; 3] = ["bullet-farm", "bullet-git", "bullet-kernel"];
 const MAX_COMPONENTS: usize = 8192;
+const MAX_CARGO_METADATA_BYTES: usize = bullet_wire::MAX_UNIQUE_DOCUMENT_BYTES;
+const MAX_PACKAGE_LOCK_BYTES: usize = 16 * 1024 * 1024;
 
 pub(super) struct SbomOutput {
     pub(super) relative: String,
@@ -153,7 +155,8 @@ fn collect_cargo(
     components: &mut BTreeMap<String, Component>,
 ) -> Result<(), CoordError> {
     let bytes = cargo::metadata(plan, member, commands)?;
-    let metadata: CargoMetadata = serde_json::from_slice(&bytes).map_err(CoordError::json)?;
+    let metadata: CargoMetadata =
+        decode_projection(&bytes, "cargo metadata", MAX_CARGO_METADATA_BYTES)?;
     let family_root = plan.family_root.to_str().unwrap_or_default();
     for package in metadata.packages {
         if package.source.is_none() && !package.manifest_path.starts_with(family_root) {
@@ -185,7 +188,11 @@ fn collect_npm(
     portal: &PortalOutput,
     components: &mut BTreeMap<String, Component>,
 ) -> Result<(), CoordError> {
-    let lock: NpmLock = serde_json::from_slice(&portal.package_lock).map_err(CoordError::json)?;
+    let lock: NpmLock = decode_projection(
+        &portal.package_lock,
+        "package-lock.json",
+        MAX_PACKAGE_LOCK_BYTES,
+    )?;
     if lock.lockfile_version != 3 {
         return Err(CoordError::new(
             "UNSUPPORTED_SCHEMA",
@@ -214,6 +221,17 @@ fn collect_npm(
         });
     }
     Ok(())
+}
+
+fn decode_projection<T: DeserializeOwned>(
+    bytes: &[u8],
+    label: &str,
+    max_bytes: usize,
+) -> Result<T, CoordError> {
+    let value = bullet_wire::decode_unique_value_bounded(bytes, max_bytes)
+        .map_err(|error| invalid(format!("{label} is not strict JSON: {error}")))?;
+    serde_json::from_value(value)
+        .map_err(|error| invalid(format!("{label} does not match its typed schema: {error}")))
 }
 
 fn document(plan: &BuildPlan, components: &BTreeMap<String, Component>) -> Value {
@@ -287,7 +305,10 @@ fn tool(name: &str, version: &str) -> Value {
 
 #[cfg(test)]
 mod tests {
-    use super::{Component, admit};
+    use super::{
+        CargoMetadata, Component, MAX_CARGO_METADATA_BYTES, MAX_PACKAGE_LOCK_BYTES, NpmLock, admit,
+        decode_projection,
+    };
     use crate::release::build::license::AllowList;
 
     fn policy() -> AllowList {
@@ -361,5 +382,49 @@ mod tests {
             admit(&unversioned, &policy).unwrap_err().code(),
             "INVALID_RELEASE_BUILD_INPUT"
         );
+    }
+
+    #[test]
+    fn release_inventory_json_refuses_ambiguous_or_unsafe_projections() {
+        let duplicate_metadata = br#"{
+            "packages": [{
+                "name": "thing",
+                "name": "other",
+                "version": "1.0.0",
+                "license": "MIT",
+                "source": null,
+                "manifest_path": "/source/Cargo.toml"
+            }]
+        }"#;
+        let error = decode_projection::<CargoMetadata>(
+            duplicate_metadata,
+            "cargo metadata",
+            MAX_CARGO_METADATA_BYTES,
+        )
+        .err()
+        .expect("duplicate cargo metadata members must fail closed");
+        assert!(error.to_string().contains("DUPLICATE_JSON_KEY"));
+
+        let mut large_metadata = vec![b' '; bullet_wire::MAX_CANONICAL_DOCUMENT_BYTES + 1];
+        large_metadata.extend_from_slice(br#"{"packages":[]}"#);
+        assert!(
+            decode_projection::<CargoMetadata>(
+                &large_metadata,
+                "cargo metadata",
+                MAX_CARGO_METADATA_BYTES,
+            )
+            .is_ok(),
+            "Cargo inventory preserves its intentional 32 MiB producer allowance"
+        );
+
+        let unsafe_lock = br#"{
+            "lockfileVersion": 9007199254740992,
+            "packages": {}
+        }"#;
+        let error =
+            decode_projection::<NpmLock>(unsafe_lock, "package-lock.json", MAX_PACKAGE_LOCK_BYTES)
+                .err()
+                .expect("an unsafe lockfile integer must fail closed");
+        assert!(error.to_string().contains("UNSAFE_JSON_INTEGER"));
     }
 }

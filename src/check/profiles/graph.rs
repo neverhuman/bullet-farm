@@ -218,11 +218,7 @@ impl ReleaseProfile {
             Self::ProviderAntigravity => {
                 &["release.provider.antigravity", "release.receipt-contracts"]
             }
-            Self::JeryuForgeV1 => &[
-                "release.backup-restore",
-                "release.forge.jeryu",
-                "release.receipt-contracts",
-            ],
+            Self::JeryuForgeV1 => &["release.forge.jeryu", "release.receipt-contracts"],
             Self::GithubAdapterV1 => &["release.forge.github-app", "release.receipt-contracts"],
             Self::GitlabAdapterV1 | Self::GitlabSelfManagedV1 => &["release.receipt-contracts"],
             Self::PlatformLinuxX86_64 => PLATFORM_LINUX_X86_64_GATES,
@@ -264,13 +260,13 @@ impl ReleaseProfile {
         }
     }
 
-    pub(super) const fn required_closure(self) -> &'static str {
+    pub(in crate::check) const fn required_closure(self) -> &'static str {
         match self {
             Self::SelfHostedV1 => {
-                "Ubuntu 24.04 x86_64/systemd, a signed schema-3 family, pinned local Jeryu, Claude service identity, offline and live five-authority transactions, operations, installer, security, and supply-chain closure"
+                "Ubuntu 24.04 x86_64/systemd, a signed schema-3 family, pinned local Jeryu, Claude service identity, offline and live five-authority transactions, every selected product surface durable or typed OUT_OF_PROFILE, operations, installer, security, and supply-chain closure"
             }
             Self::EvolutionV1 => {
-                "self-hosted-v1 plus frozen T0-T5 recipes, external T0-versus-T3 confirmation, MOME/ASHA, shadow routing, R0/R1 canary, and rollback"
+                "self-hosted-v1 plus all fifteen product surfaces durable, frozen T0-T5 recipes, external T0-versus-T3 confirmation, MOME/ASHA, shadow routing, R0/R1 canary, and rollback"
             }
             Self::ProviderClaude => {
                 "one exact Claude provider version, profile, service identity, isolation, failure, quota, and patch certification"

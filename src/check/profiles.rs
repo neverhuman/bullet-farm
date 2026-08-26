@@ -249,16 +249,6 @@ fn replace_linux_preview_details(gates: &mut [GateResult]) -> Result<(), CheckMo
 fn linux_preview_specific_gates() -> Result<Vec<GateResult>, CheckModelError> {
     [
         (
-            "release.evolution-v1",
-            "post-V1 evolutionary study and canary evidence is absent, as expected while evolutionary authority remains disabled for V1",
-            "retain this preview-only diagnostic without treating it as a canonical GA gate; schedule the frozen external study and bounded canary only after V1",
-        ),
-        (
-            "release.operations-v1",
-            "production health/readiness/metrics, freeze, incident, audit-anchor, backup, restore, rollback, and disaster workflows lack one exact operations receipt",
-            "exercise the packaged single-host operations runbook and register its signed exact-subject receipt",
-        ),
-        (
             "release.package-linux-x86_64",
             "the signed Ubuntu 24.04 x86_64 package with embedded Portal, services, migrations, sandbox assets, and guest image is absent",
             "build and semantically verify the exact tagged x86_64-unknown-linux-gnu package and its supply-chain subjects",

@@ -8,6 +8,7 @@ use std::{
     time::UNIX_EPOCH,
 };
 
+use bullet_wire::decode_unique_value;
 use serde_json::Value;
 
 use crate::{
@@ -340,7 +341,7 @@ fn mechanical(path: &Path, expected_tier: &str, subjects: &[SubjectFact]) -> Mec
     let Some(bytes) = read_bounded(path) else {
         return Mechanical::Unreadable("not a regular file within 1 MiB".to_owned());
     };
-    let report: Value = match serde_json::from_slice(&bytes) {
+    let report: Value = match decode_unique_value(&bytes) {
         Ok(report) => report,
         Err(error) => return Mechanical::Unreadable(error.to_string()),
     };

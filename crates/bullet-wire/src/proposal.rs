@@ -12,6 +12,11 @@ pub const DEFAULT_MAX_CONTENT_BYTES: usize = 1_048_576;
 pub struct RepoPath(String);
 
 impl RepoPath {
+    pub(crate) fn parse_checked(raw: &str) -> Result<Self, WireError> {
+        validate_repo_path(raw)?;
+        Ok(Self(raw.to_owned()))
+    }
+
     pub fn as_str(&self) -> &str {
         &self.0
     }
@@ -29,8 +34,7 @@ impl FromStr for RepoPath {
     type Err = WireError;
 
     fn from_str(raw: &str) -> Result<Self, Self::Err> {
-        validate_repo_path(raw)?;
-        Ok(Self(raw.to_owned()))
+        Self::parse_checked(raw)
     }
 }
 
@@ -54,9 +58,8 @@ impl<'de> Deserialize<'de> for RepoPath {
     where
         D: Deserializer<'de>,
     {
-        String::deserialize(deserializer)?
-            .parse()
-            .map_err(de::Error::custom)
+        let raw = String::deserialize(deserializer)?;
+        Self::parse_checked(&raw).map_err(de::Error::custom)
     }
 }
 

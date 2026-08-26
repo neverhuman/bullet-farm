@@ -167,7 +167,12 @@ fn valid_optional_port(rest: &str) -> bool {
     rest.strip_prefix(':').is_some_and(|port| {
         !port.is_empty()
             && port.bytes().all(|byte| byte.is_ascii_digit())
-            && port.parse::<u16>().is_ok_and(|port| port != 0)
+            && port
+                .bytes()
+                .try_fold(0_u32, |number, byte| {
+                    number.checked_mul(10)?.checked_add(u32::from(byte - b'0'))
+                })
+                .is_some_and(|port| port != 0 && port <= u32::from(u16::MAX))
     })
 }
 

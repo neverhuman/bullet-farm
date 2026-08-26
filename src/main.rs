@@ -11,7 +11,7 @@ fn main() -> ExitCode {
     if let Some(banner) = bullet_family::forge::setup_forge_banner(&args) {
         print!("{banner}");
         if bullet_family::forge::setup_forge_only(&args) {
-            return ExitCode::from(u8::from(banner.contains("UNSUPPORTED_BY_ADAPTER")));
+            return ExitCode::from(bullet_family::forge::SETUP_FORGE_ONLY_EXIT_CODE);
         }
     }
     match bullet_family::cli::execute(args, env::current_dir()) {

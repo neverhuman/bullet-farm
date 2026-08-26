@@ -68,14 +68,35 @@ fn member(name: &str, commit: char, tree: char) -> LockedMember {
 
 fn valid_external() -> ExternalSubjects {
     ExternalSubjects {
-        toolchain: vec![ToolchainSubject {
-            id: "rust".to_owned(),
-            version: "1.89.0".to_owned(),
-            install_path: "/usr/lib/bullet/toolchains/rust/1.89.0/rustc".to_owned(),
-            binary_digest: digest('4'),
-            manifest_digest: digest('5'),
-            size_bytes: 1,
-        }],
+        toolchain: vec![
+            ToolchainSubject {
+                id: "cargo".to_owned(),
+                version: "1.95.0".to_owned(),
+                install_path: "/usr/lib/bullet/toolchains/rust/1.95.0/cargo".to_owned(),
+                binary_digest: digest('4'),
+                manifest_path: "/usr/lib/bullet/toolchains/rust/1.95.0/manifest.toml".to_owned(),
+                manifest_digest: digest('5'),
+                size_bytes: 1,
+            },
+            ToolchainSubject {
+                id: "node".to_owned(),
+                version: "22.23.2".to_owned(),
+                install_path: "/usr/lib/bullet/toolchains/node/22.23.2/node".to_owned(),
+                binary_digest: digest('6'),
+                manifest_path: "/usr/lib/bullet/toolchains/node/22.23.2/manifest.toml".to_owned(),
+                manifest_digest: digest('7'),
+                size_bytes: 2,
+            },
+            ToolchainSubject {
+                id: "npm-cli".to_owned(),
+                version: "10.9.8".to_owned(),
+                install_path: "/usr/lib/bullet/toolchains/npm/10.9.8/npm-cli.js".to_owned(),
+                binary_digest: digest('8'),
+                manifest_path: "/usr/lib/bullet/toolchains/npm/10.9.8/manifest.toml".to_owned(),
+                manifest_digest: digest('9'),
+                size_bytes: 3,
+            },
+        ],
         provider: vec![ProviderSubject {
             id: "claude".to_owned(),
             version: "1.0.0".to_owned(),
@@ -179,11 +200,26 @@ fn strict_schema_rejects_hostile_identity_and_path_mutations() {
             lock.member.pop();
         }),
         Box::new(|lock| lock.external.toolchain[0].install_path = "relative/rustc".to_owned()),
+        Box::new(|lock| lock.external.toolchain[0].manifest_path = "relative/manifest".to_owned()),
+        Box::new(|lock| {
+            lock.external.toolchain[0].manifest_path =
+                lock.external.toolchain[0].install_path.clone();
+        }),
+        Box::new(|lock| {
+            lock.external.toolchain[0].manifest_path =
+                lock.external.toolchain[1].install_path.clone();
+        }),
+        Box::new(|lock| lock.external.toolchain[0].version = "1.95".to_owned()),
+        Box::new(|lock| lock.external.toolchain[1].version = "26.1.0".to_owned()),
+        Box::new(|lock| lock.external.toolchain[2].version = "11.13.0".to_owned()),
         Box::new(|lock| lock.external.provider[0].binary_digest = "a".repeat(64)),
-        Box::new(|lock| lock.external.provider[0].id = "rust".to_owned()),
+        Box::new(|lock| lock.external.provider[0].id = "cargo".to_owned()),
         Box::new(|lock| lock.external.portal.source_commit_oid = oid('a')),
         Box::new(|lock| lock.external.portal.size_bytes = 9_007_199_254_740_992),
         Box::new(|lock| lock.external.toolchain.clear()),
+        Box::new(|lock| {
+            lock.external.toolchain.remove(0);
+        }),
         Box::new(|lock| lock.external.provider.clear()),
         Box::new(|lock| lock.external.sandbox.clear()),
         Box::new(|lock| lock.hub.release_signing_identity = "wrong".to_owned()),
@@ -199,6 +235,7 @@ fn strict_schema_rejects_hostile_identity_and_path_mutations() {
 fn subject_manifest_parser_rejects_hostile_nested_inputs() {
     let manifest = ExternalSubjectManifest::new(valid_external());
     let valid = String::from_utf8(manifest.encode().unwrap()).unwrap();
+    assert!(valid.contains("schema_version = \"2\""));
     ExternalSubjectManifest::parse(valid.as_bytes()).expect("strict subject manifest");
 
     let unknown = valid.replacen(
@@ -209,7 +246,7 @@ fn subject_manifest_parser_rejects_hostile_nested_inputs() {
     assert!(ExternalSubjectManifest::parse(unknown.as_bytes()).is_err());
 
     for mutate in [
-        |external: &mut ExternalSubjects| external.provider[0].id = "rust".to_owned(),
+        |external: &mut ExternalSubjects| external.provider[0].id = "cargo".to_owned(),
         |external: &mut ExternalSubjects| external.toolchain[0].install_path = "bin/rustc".into(),
         |external: &mut ExternalSubjects| {
             external.release_signing.not_after_unix_ms = 9_007_199_254_740_992;
@@ -253,6 +290,21 @@ fn strict_schema_rejects_unknown_duplicate_legacy_and_oversized_documents() {
         "UNSUPPORTED_SCHEMA"
     );
     assert!(parse(&vec![b'a'; 1024 * 1024 + 1]).is_err());
+}
+
+#[test]
+fn unsupported_lock_guidance_preserves_the_diagnostic_file() {
+    let root = fixture_root("unsupported-guidance");
+    let path = root.join("family.lock");
+    let bytes = b"schema_version = \"2\"\nfamily = \"bullet-farm\"\n";
+    fs::write(&path, bytes).unwrap();
+    let error = load(&path).expect_err("schema 2 must remain unsupported");
+    assert_eq!(error.code(), "UNSUPPORTED_SCHEMA");
+    assert!(error.to_string().contains("retain it for diagnosis"));
+    assert!(error.to_string().contains("replace it atomically"));
+    assert!(!error.to_string().contains("remove it"));
+    assert_eq!(fs::read(&path).unwrap(), bytes);
+    fs::remove_dir_all(root).unwrap();
 }
 
 #[cfg(unix)]
@@ -378,14 +430,18 @@ fn public_cli_admits_only_generate_and_verify() {
     let usage = lock_cli(&root, &[]);
     assert_eq!(usage.status.code(), Some(2));
     let usage_error = String::from_utf8(usage.stderr).unwrap();
-    assert!(usage_error.contains("lock <generate|verify> --tag VERSION"));
+    assert!(
+        usage_error.contains(
+            "lock <generate --tag VERSION --subjects ABSOLUTE_PATH|verify --tag VERSION>"
+        )
+    );
 
     let legacy = lock_cli(&root, &["lock", "check", "--tag", "v1.0.0"]);
     assert_eq!(legacy.status.code(), Some(2));
     let legacy_error = String::from_utf8(legacy.stderr).unwrap();
     assert!(legacy_error.contains("USAGE"));
-    assert!(legacy_error.contains("lock generate --tag"));
-    assert!(legacy_error.contains("lock verify --tag"));
+    assert!(legacy_error.contains("lock generate --tag <version> --subjects <absolute-path>"));
+    assert!(legacy_error.contains("lock verify --tag <version>"));
     assert!(!legacy_error.contains("generate|check"));
 
     let verify = lock_cli(&root, &["lock", "verify", "--tag", "v1.0.0"]);

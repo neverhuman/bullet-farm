@@ -21,15 +21,19 @@ belongs under `Unreleased`.
 - Policy `v1alpha2` operator-ratified live-admission rule and its five reason
   codes (hub `bf5c642`); Kernel loader mirror (kernel `0d848f6`); ADR 0012. The
   committed policy stays `v1alpha1`, generation 1, live admission disabled.
-- Fail-closed release-truth report `check release --report [--portable]`,
-  `just release-truth`, and the drift-checked generated page
-  `docs/assurance/release-truth.generated.md` (`0cc7eec`).
+- Fail-closed release-truth report, now invoked as `check release --profile
+  <profile> --receipts <absolute-registry> --json`; the earlier unprofiled
+  `--report` spelling is retired. `just release-truth` produces the
+  drift-checked diagnostic page `docs/assurance/release-truth.generated.md`.
 - Release bundle verification (`release verify`, `352f963`), constrained
   one-target extraction (`release extract`, `ba09056`), and the signed receipt
   verifier (`release receipt-verify`, `143f8b9`).
-- Receipt-admission path for exactly one release gate,
-  `release.rust-msrv-1-95`, from a root-owned descriptor outside the
-  repository (`d762f86`); its absence keeps the gate `BLOCKED`.
+- Quarantined former unprofiled component verifier for one historical gate,
+  `release.rust-msrv-1-95`, with fixed-descriptor tests (`d762f86`). No public
+  command or current profile invokes it: `legacy-v1-26` is a static all-BLOCKED
+  diagnostic that ignores registries, and profiled release commands use their
+  selected structural registry boundary while kind-specific semantics remain
+  open engineering work.
 - Sealed setup tool subjects for the source-setup transaction (`7efe2f3`).
 - Five read-only farmd projections — fleet, sessions, merge rail, quality lab,
   audit (kernel `529bad1`) — and the Portal views over them (portal `95108e3`).
@@ -48,11 +52,12 @@ belongs under `Unreleased`.
 
 ### Known limitations
 
-- No V1 release candidate is authorized. Hub-only source installation,
+- No release profile is authorized. Hub-only source installation,
   production transaction storage, admitted live providers/forges, recovery,
   packaging, signing, provenance, and the Jankurai 90 release threshold remain
-  blocked as listed in `docs/release.md`. `bullet-family check release`
-  reports 26/26 gates `BLOCKED` with 0/26 receipts.
+  blocked as listed in `docs/release.md`. The former unprofiled 26/26 inventory
+  survives only as non-authoritative `legacy-v1-26`; an unprofiled release check
+  returns typed `PROFILE_REQUIRED`, and every named profile remains blocked.
 - Everything above is `COMPONENT_PROOF` at most. No `TRANSACTION_PROOF`,
   `LIVE_PROOF`, or `RELEASE_PROOF` receipt exists: no provider has a live
   conformance receipt, no policy generation 2 has been ratified, and the

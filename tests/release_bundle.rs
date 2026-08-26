@@ -584,14 +584,7 @@ fn family_lock_text_for(members: &[&str], identity: &str, allowed_signers_digest
 
 fn external_subjects(identity: &str, allowed_signers_digest: &str) -> ExternalSubjects {
     ExternalSubjects {
-        toolchain: vec![ToolchainSubject {
-            id: "rust".into(),
-            version: "1.89.0".into(),
-            install_path: "/usr/lib/bullet/toolchains/rust/1.89.0/rustc".into(),
-            binary_digest: lock_digest('1'),
-            manifest_digest: lock_digest('2'),
-            size_bytes: 1,
-        }],
+        toolchain: fixture_toolchains(),
         provider: vec![ProviderSubject {
             id: "claude".into(),
             version: "1.0.0".into(),
@@ -645,6 +638,27 @@ fn external_subjects(identity: &str, allowed_signers_digest: &str) -> ExternalSu
             not_after_unix_ms: 2,
         },
     }
+}
+
+fn fixture_toolchains() -> Vec<ToolchainSubject> {
+    [
+        ("cargo", "1.95.0", "rust/1.95.0/cargo", '1', '2'),
+        ("node", "22.23.2", "node/22.23.2/node", '3', '4'),
+        ("npm-cli", "10.9.8", "npm/10.9.8/npm-cli.js", '5', '6'),
+    ]
+    .into_iter()
+    .map(
+        |(id, version, relative, binary, manifest)| ToolchainSubject {
+            id: id.into(),
+            version: version.into(),
+            install_path: format!("/usr/lib/bullet/toolchains/{relative}"),
+            binary_digest: lock_digest(binary),
+            manifest_path: format!("/usr/lib/bullet/toolchains/{relative}.manifest"),
+            manifest_digest: lock_digest(manifest),
+            size_bytes: 1,
+        },
+    )
+    .collect()
 }
 
 fn generate_signer(root: &Path, label: &str, principal: &str) -> TestSigner {

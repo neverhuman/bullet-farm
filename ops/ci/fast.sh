@@ -1,19 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# shellcheck source=ops/ci/lib.sh
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 cd "$REPO_ROOT"
 
-bash scripts/ci-doctor.sh fast
-log "fast lane: hub metadata and onboarding checks"
-require_file "README.md"
-require_file "AGENTS.md"
-require_file "repos.manifest.toml"
-require_file "family.lock"
-require_file "agent/owner-map.json"
-require_file "agent/test-map.json"
-cargo run --quiet --locked --bin bullet-family -- hub check
-log "Rust family CLI"
-cargo fmt --all --check
-cargo clippy --locked --all-targets -- -D warnings
-cargo test --locked
+log "fast lane: Hub metadata and bullet-family component partition"
+for path in README.md AGENTS.md repos.manifest.toml family.lock agent/owner-map.json agent/test-map.json; do
+  require_file "$path" || exit 1
+done
+cargo run --locked --quiet --bin bullet-family -- hub check
+bash ops/ci/setup-refusal.sh
+run_partition fast fast "$HUB_FILTER" "$HUB_EXPECTED_TESTS"
 log "fast lane passed"

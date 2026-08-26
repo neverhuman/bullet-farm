@@ -170,6 +170,39 @@ fn every_locked_profile_is_named_and_fail_closed() {
 fn dependencies_compose_without_smuggling_evolution_into_universal() {
     let registry = Registry::new();
     let self_hosted = ids(&report("self-hosted-v1", registry.path()));
+    let expected_self_hosted = [
+        "release.backup-restore",
+        "release.checksums",
+        "release.fault-suite",
+        "release.forge.jeryu",
+        "release.installable-lock",
+        "release.installer-twice",
+        "release.jankurai-90",
+        "release.manifest-non-circular",
+        "release.package-linux-x86_64",
+        "release.platform-containment",
+        "release.profile.jeryu-forge-v1",
+        "release.profile.platform-linux-x86_64",
+        "release.profile.provider-claude",
+        "release.profile.self-hosted-v1",
+        "release.provenance",
+        "release.provider.claude",
+        "release.receipt-contracts",
+        "release.rust-msrv-1-95",
+        "release.rust-pinned-1-97-1",
+        "release.scan.dependency",
+        "release.scan.license",
+        "release.scan.secret",
+        "release.scan.workflow",
+        "release.sbom",
+        "release.signatures",
+        "release.systemd-v1",
+        "release.transaction-demo",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect::<BTreeSet<_>>();
+    assert_eq!(self_hosted, expected_self_hosted);
     for required in [
         "release.profile.self-hosted-v1",
         "release.profile.provider-claude",
@@ -179,6 +212,52 @@ fn dependencies_compose_without_smuggling_evolution_into_universal() {
         assert!(self_hosted.contains(required), "missing {required}");
     }
     assert!(!self_hosted.contains("release.profile.evolution-v1"));
+    for independent in [
+        "release.package-matrix",
+        "release.profile.provider-codex",
+        "release.profile.provider-cursor",
+        "release.profile.provider-antigravity",
+        "release.profile.github-adapter-v1",
+        "release.profile.gitlab-adapter-v1",
+        "release.profile.gitlab-self-managed-v1",
+        "release.profile.platform-linux-aarch64",
+        "release.profile.platform-macos-x86_64",
+        "release.profile.platform-macos-aarch64",
+        "release.profile.platform-windows-x86_64",
+    ] {
+        assert!(
+            !self_hosted.contains(independent),
+            "self-hosted smuggled independent subject {independent}"
+        );
+    }
+    assert!(self_hosted.contains("release.package-linux-x86_64"));
+    assert!(self_hosted.contains("release.platform-containment"));
+
+    let jeryu_report = report("jeryu-forge-v1", registry.path());
+    assert_eq!(
+        ids(&jeryu_report),
+        [
+            "release.forge.jeryu",
+            "release.profile.jeryu-forge-v1",
+            "release.receipt-contracts",
+        ]
+        .into_iter()
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>()
+    );
+    assert!(!ids(&jeryu_report).contains("release.backup-restore"));
+    let jeryu_condition = jeryu_report["gates"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|gate| gate["id"] == "release.profile.jeryu-forge-v1")
+        .unwrap();
+    assert!(
+        jeryu_condition["detail"]
+            .as_str()
+            .unwrap()
+            .contains("reconciliation, backup/restore, and drift refusal")
+    );
 
     let evolution = ids(&report("evolution-v1", registry.path()));
     assert!(self_hosted.is_subset(&evolution));

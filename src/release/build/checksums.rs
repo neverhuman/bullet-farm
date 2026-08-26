@@ -114,7 +114,8 @@ fn verify(
             "the checksum manifest changed between writing and re-reading it",
         ));
     }
-    let parsed: Value = serde_json::from_slice(&reread).map_err(CoordError::json)?;
+    let parsed: Value = bullet_wire::decode_unique_value(&reread)
+        .map_err(|error| mismatch(format!("the checksum manifest JSON is ambiguous: {error}")))?;
     let files = parsed
         .get("bundle_file")
         .and_then(Value::as_array)

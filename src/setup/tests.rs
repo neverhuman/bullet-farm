@@ -247,13 +247,6 @@ fn missing_tool_authority_blocks_signed_setup_before_install_mutation() {
     clone_repository(sources.join("bullet-farm").as_os_str(), &hub, true)
         .expect("clone signed hub");
     test_git(&hub, &home, &["checkout", "--detach", "--force", TAG]);
-    fs::create_dir(hub.join("scripts")).expect("hub scripts marker");
-    fs::write(
-        hub.join("Cargo.toml"),
-        "[package]\nname = \"fixture-hub\"\nversion = \"0.0.0\"\n",
-    )
-    .expect("hub Cargo marker");
-    fs::write(hub.join("scripts/setup.sh"), "#!/bin/sh\nexit 1\n").expect("hub setup marker");
 
     let error = run(
         &hub,
@@ -270,6 +263,48 @@ fn missing_tool_authority_blocks_signed_setup_before_install_mutation() {
     for member in ["bullet-kernel", "bullet-git", "bullet-portal"] {
         assert!(!install_root.join(member).exists(), "created {member}");
     }
+    assert!(!install_root.join("repos.manifest.toml").exists());
+    assert_no_staging(&install_root);
+
+    let marker = fixture.join("tampered-tool-executed");
+    let fake_tool = fixture.join("tampered-tool");
+    fs::write(
+        &fake_tool,
+        format!("#!/bin/sh\nprintf executed > '{}'\n", marker.display()),
+    )
+    .expect("tampered tool fixture");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&fake_tool, fs::Permissions::from_mode(0o700))
+            .expect("tampered tool mode");
+    }
+    let mut tampered = family_lock::load(&hub.join("family.lock")).expect("signed fixture lock");
+    tampered.external.toolchain[0].size_bytes += 1;
+    fs::write(
+        hub.join("family.lock"),
+        family_lock::encode(&tampered).expect("encode tampered lock"),
+    )
+    .expect("publish tampered lock bytes");
+    let error = run(
+        &hub,
+        None,
+        &[
+            "--root".into(),
+            install_root.to_string_lossy().into_owned(),
+            "--source".into(),
+            "jeryu".into(),
+            "--cargo-bin".into(),
+            fake_tool.display().to_string(),
+            "--node-bin".into(),
+            fake_tool.display().to_string(),
+            "--npm-cli".into(),
+            fake_tool.display().to_string(),
+        ],
+    )
+    .expect_err("tampered lock must fail before candidate tool execution");
+    assert_eq!(error.code(), "HUB_LOCK_MISMATCH");
+    assert!(!marker.exists(), "untrusted tool candidate executed");
     assert!(!install_root.join("repos.manifest.toml").exists());
     assert_no_staging(&install_root);
     fs::remove_dir_all(fixture).expect("remove missing tool fixture");
@@ -381,6 +416,13 @@ fn write_member_files(repo: &Path, member: &str) {
         fs::write(repo.join("Cargo.lock"), "# fixture\n").expect("Cargo lock");
     }
     if member == "bullet-farm" {
+        fs::create_dir_all(repo.join("scripts")).expect("hub scripts directory");
+        fs::write(
+            repo.join("Cargo.toml"),
+            "[package]\nname = \"fixture-hub\"\nversion = \"0.0.0\"\n",
+        )
+        .expect("hub Cargo manifest");
+        fs::write(repo.join("scripts/setup.sh"), "#!/bin/sh\nexit 1\n").expect("hub setup script");
         fs::create_dir_all(repo.join("crates/bullet-wire")).expect("wire schema directory");
         fs::create_dir_all(repo.join("release")).expect("release directory");
         fs::write(repo.join("crates/bullet-wire/schema.txt"), "wire-v1\n").expect("wire schema");

@@ -54,12 +54,14 @@ case "$lane" in
   fast) run_observed fast ops/ci/fast.sh .ci-artifacts/junit/fast.xml ;;
   lint) run_observed lint ops/ci/lint.sh ;;
   contract) run_observed contract ops/ci/contract.sh \
-    .ci-artifacts/junit/contract.xml .ci-artifacts/formal/contract.json .ci-artifacts/formal/contract.log ;;
+    .ci-artifacts/junit/contract.xml .ci-artifacts/formal/contract.json \
+    .ci-artifacts/formal/contract.log .ci-artifacts/contracts/bundle-manifest.json ;;
   security) run_observed security ops/ci/security.sh ;;
   docs) run_observed docs ops/ci/docs.sh ;;
   required) run_observed required ops/ci/required.sh \
     .ci-artifacts/junit/fast.xml .ci-artifacts/junit/contract.xml \
-    .ci-artifacts/formal/contract.json .ci-artifacts/formal/contract.log ;;
+    .ci-artifacts/formal/contract.json .ci-artifacts/formal/contract.log \
+    .ci-artifacts/contracts/bundle-manifest.json ;;
   family) run_observed family ops/ci/family.sh .ci-artifacts/family/subjects.json ;;
   family-contract) run_observed family-contract ops/ci/family-contract.sh .ci-artifacts/family/subjects.json ;;
   history) run_observed history ops/ci/history.sh ;;
@@ -69,9 +71,10 @@ case "$lane" in
   platform) run_observed platform ops/ci/platform-refusal.sh ;;
   audit) run_observed audit ops/ci/audit.sh ;;
   toolchain-pinned) run_observed toolchain-pinned ops/ci/toolchain-pinned.sh ;;
-  gates|all) run_observed required ops/ci/required.sh \
+  all) run_observed required ops/ci/required.sh \
     .ci-artifacts/junit/fast.xml .ci-artifacts/junit/contract.xml \
-    .ci-artifacts/formal/contract.json .ci-artifacts/formal/contract.log ;;
+    .ci-artifacts/formal/contract.json .ci-artifacts/formal/contract.log \
+    .ci-artifacts/contracts/bundle-manifest.json ;;
   *)
     echo "usage: $0 {source-scan|fast|lint|contract|security|docs|required|family|family-contract|history|links|advisory|coverage|platform|audit|toolchain-pinned|all}" >&2
     exit 2

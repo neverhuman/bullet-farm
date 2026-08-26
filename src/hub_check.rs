@@ -2,6 +2,7 @@
 
 use std::{fs, path::Path};
 
+use bullet_wire::decode_unique_value;
 use serde_json::Value;
 
 use crate::{coord::CoordError, doctor::discover_hub};
@@ -9,10 +10,12 @@ use crate::{coord::CoordError, doctor::discover_hub};
 const USAGE: &str = "usage: bullet-family [--root PATH] hub check";
 const REQUIRED_README: &[&str] = &[
     "Many minds. One verified line to main.",
-    "just setup",
-    "just demo",
+    "Current alpha:",
+    "just preview",
+    "just dev",
+    "contract-tested / live blocked",
+    "TRANSACTION_PROOF",
     "What we will not claim",
-    "Gastown",
     "BulletGit",
     "family.lock",
 ];
@@ -80,10 +83,9 @@ fn validate(hub: &Path) -> Result<(), CoordError> {
             "README.md must not claim 100% autonomy or zero regressions",
         ));
     }
-    let owners: Value = serde_json::from_slice(
-        &fs::read(hub.join("agent/owner-map.json")).map_err(CoordError::io)?,
-    )
-    .map_err(|error| CoordError::new("INVALID_OWNER_MAP", error.to_string()))?;
+    let owners: Value =
+        decode_unique_value(&fs::read(hub.join("agent/owner-map.json")).map_err(CoordError::io)?)
+            .map_err(|error| CoordError::new("INVALID_OWNER_MAP", error.to_string()))?;
     if !owners
         .get("owners")
         .and_then(Value::as_object)

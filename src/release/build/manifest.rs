@@ -179,7 +179,8 @@ pub(super) fn write_manifest(
 /// Refuses any release build manifest that binds its own digest. The manifest
 /// is verifiable only from bytes that exist before it does.
 pub(super) fn admit(bytes: &[u8], digest: &str) -> Result<(), CoordError> {
-    let document: Value = serde_json::from_slice(bytes).map_err(CoordError::json)?;
+    let document: Value = bullet_wire::decode_unique_value(bytes)
+        .map_err(|error| circular(format!("release build manifest JSON is ambiguous: {error}")))?;
     let mut stack = vec![&document];
     while let Some(value) = stack.pop() {
         match value {

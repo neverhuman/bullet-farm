@@ -287,8 +287,14 @@ fn command_version(command: &str, args: &[&str]) -> Result<String, String> {
 fn admit_tool_version(label: &str, version: String) -> Result<String, String> {
     if label == "node" && !crate::setup::supported_node_version(&version) {
         return Err(format!(
-            "requires stable Node {} or later; found {version}",
-            crate::setup::MINIMUM_NODE_MAJOR_VERSION
+            "requires exact Node v{}; found {version}",
+            crate::toolchain_pins::node()
+        ));
+    }
+    if label == "npm" && !crate::setup::supported_npm_version(&version) {
+        return Err(format!(
+            "requires exact npm {}; found {version}",
+            crate::toolchain_pins::npm()
         ));
     }
     Ok(version)
@@ -333,16 +339,21 @@ mod tests {
     #[test]
     fn doctor_blocks_unsupported_node_versions() {
         assert_eq!(
-            admit_tool_version("node", "v22.0.0".into()).unwrap(),
-            "v22.0.0"
+            admit_tool_version("node", "v22.23.2".into()).unwrap(),
+            "v22.23.2"
         );
         assert!(
-            admit_tool_version("node", "v21.99.99".into())
+            admit_tool_version("node", "v22.23.1".into())
                 .unwrap_err()
-                .contains("Node 22")
+                .contains("Node v22.23.2")
         );
-        assert!(admit_tool_version("node", "v22.0".into()).is_err());
-        assert!(admit_tool_version("node", "v18446744073709551616.0.0".into()).is_err());
+        assert!(admit_tool_version("node", "v26.1.0".into()).is_err());
+        assert!(admit_tool_version("node", "v22.23".into()).is_err());
+        assert_eq!(
+            admit_tool_version("npm", "10.9.8".into()).unwrap(),
+            "10.9.8"
+        );
+        assert!(admit_tool_version("npm", "11.13.0".into()).is_err());
         assert_eq!(
             admit_tool_version("cargo", "cargo 1.97.1".into()).unwrap(),
             "cargo 1.97.1"

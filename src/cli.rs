@@ -6,7 +6,7 @@ use crate::coord::{
     ReceiptCorrectionInput, discover_family_root, unix_millis,
 };
 
-const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release <build|verify|extract|receipt-verify> [options]|checkout verify|hub check|deps check|lock <generate|verify> --tag VERSION|fuse --source <local|lock>|check <fast|required|release> [options]|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|correct-receipt-group|status> [options]>";
+const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release <build|verify|extract|receipt-verify> [options]|checkout verify|hub check|deps check|lock <generate --tag VERSION --subjects ABSOLUTE_PATH|verify --tag VERSION>|fuse --source <local|lock>|check <fast|required|release> [options]|coord <claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|correct-receipt-group|status> [options]>";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CliOutcome {
@@ -408,21 +408,19 @@ impl Options {
     }
 
     fn u64_or(&self, name: &str, default: u64) -> Result<u64, CoordError> {
-        self.parse_or(name, default)
-    }
-
-    fn i32_or(&self, name: &str, default: i32) -> Result<i32, CoordError> {
-        self.parse_or(name, default)
-    }
-
-    fn parse_or<T>(&self, name: &str, default: T) -> Result<T, CoordError>
-    where
-        T: std::str::FromStr,
-    {
         let Some(value) = self.optional_one(name)? else {
             return Ok(default);
         };
-        value.parse().map_err(|_| {
+        parse_ascii_u64(&value).ok_or_else(|| {
+            CoordError::new("INVALID_OPTION", format!("--{name} has an invalid value"))
+        })
+    }
+
+    fn i32_or(&self, name: &str, default: i32) -> Result<i32, CoordError> {
+        let Some(value) = self.optional_one(name)? else {
+            return Ok(default);
+        };
+        parse_ascii_i32(&value).ok_or_else(|| {
             CoordError::new("INVALID_OPTION", format!("--{name} has an invalid value"))
         })
     }
@@ -480,6 +478,32 @@ impl Options {
             ));
         }
         Ok(())
+    }
+}
+
+fn parse_ascii_u64(value: &str) -> Option<u64> {
+    let digits = value.strip_prefix('+').unwrap_or(value);
+    if digits.is_empty() {
+        return None;
+    }
+    digits.bytes().try_fold(0_u64, |number, byte| {
+        byte.is_ascii_digit()
+            .then_some(byte - b'0')
+            .and_then(|digit| number.checked_mul(10)?.checked_add(u64::from(digit)))
+    })
+}
+
+fn parse_ascii_i32(value: &str) -> Option<i32> {
+    let (negative, digits) = if let Some(digits) = value.strip_prefix('-') {
+        (true, digits)
+    } else {
+        (false, value.strip_prefix('+').unwrap_or(value))
+    };
+    let magnitude = parse_ascii_u64(digits)?;
+    if negative {
+        (magnitude <= i32::MAX as u64 + 1).then(|| -(magnitude as i64) as i32)
+    } else {
+        (magnitude <= i32::MAX as u64).then_some(magnitude as i32)
     }
 }
 

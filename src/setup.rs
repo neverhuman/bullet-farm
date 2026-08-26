@@ -24,28 +24,12 @@ use transaction::{admitted_root_for_test, publish_staged_for_test};
 const GIT_BIN: &str = "/usr/bin/git";
 const BASH_BIN: &str = "/bin/bash";
 const STAGING_PREFIX: &str = ".bullet-family-setup.";
-pub(crate) const MINIMUM_NODE_MAJOR_VERSION: u64 = 22;
-
 pub(crate) fn supported_node_version(value: &str) -> bool {
-    let Some(version) = value.strip_prefix('v') else {
-        return false;
-    };
-    let mut components = version.split('.');
-    let Some(major) = components.next().and_then(|part| part.parse::<u64>().ok()) else {
-        return false;
-    };
-    let Some(minor) = components.next() else {
-        return false;
-    };
-    let Some(patch) = components.next() else {
-        return false;
-    };
-    major >= MINIMUM_NODE_MAJOR_VERSION
-        && !minor.is_empty()
-        && minor.bytes().all(|byte| byte.is_ascii_digit())
-        && !patch.is_empty()
-        && patch.bytes().all(|byte| byte.is_ascii_digit())
-        && components.next().is_none()
+    crate::toolchain_pins::matches_node(value)
+}
+
+pub(crate) fn supported_npm_version(value: &str) -> bool {
+    crate::toolchain_pins::matches_npm(value)
 }
 
 pub fn run(
@@ -72,10 +56,14 @@ pub fn run(
     }
     family_root.ensure_path_identity()?;
     let lock = family_lock::load(&hub_root.join("family.lock"))?;
-    let toolchain = Toolchain::admit(
+    let allowed_signers = hub_root.join("release/allowed_signers");
+    crate::checkout::verify_hub(&lock, &hub_root, family_root.path(), &allowed_signers)?;
+    family_root.ensure_path_identity()?;
+    let toolchain = Toolchain::admit_locked(
         options.cargo_bin.as_deref(),
         options.node_bin.as_deref(),
         options.npm_cli.as_deref(),
+        &lock.external.toolchain,
     )?;
     let environment = SetupEnvironment::create(&family_root, &toolchain)?;
     {

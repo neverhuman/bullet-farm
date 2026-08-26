@@ -44,7 +44,9 @@ canonical regular executable and Cargo/Node/npm are supplied as explicit
 absolute paths. It then invokes:
 
 ```text
-bullet-family setup --root <family-root> --source jeryu
+bullet-family setup --root <family-root> --source jeryu \
+  --cargo-bin <absolute-cargo> --node-bin <absolute-node> \
+  --npm-cli <absolute-npm-cli> [--offline]
 ```
 
 It is not a curl-pipe installer or release trust root. The wrapper performs
@@ -57,14 +59,19 @@ dependency/network behavior; it cannot supply missing signed source authority.
 
 ## Future trusted installation
 
+No positive signed/local-Jeryu install command exists in this alpha. Loopback
+source-shape admission is not signed installation evidence.
+
 Do not publish a public install command until all inputs exist:
 
 1. a signed prebuilt `bullet-family` for the target platform;
 2. an allowed-signers policy and verified non-circular release manifest;
 3. a signed schema-3 family lock with authenticated Jeryu URL/slug, tag,
    commit/tree, dependency-lock, generated-artifact, and checksum subjects;
-4. five package archives with SBOM, provenance, checksums, and signatures; and
-5. installer smoke receipts from clean supported hosts; and
+4. the signed package set selected by the requested profile—one Ubuntu 24.04
+   x86_64/systemd archive for first-GA `self-hosted-v1`, and five archives only
+   for later `universal-v1`—with SBOM, provenance, checksums, and signatures;
+5. installer smoke receipts from clean hosts selected by that profile; and
 6. a different-UID publication broker plus a minimal pathless root helper that
    installs only exact signed entries into retained root-owned generations and
    reconciles an ambiguous activation as `UNKNOWN`.
@@ -72,7 +79,9 @@ Do not publish a public install command until all inputs exist:
 The existing Linux `bullet-family release verify` command only verifies an
 already materialized ReleaseManifest v2 bundle. It structurally validates and
 re-reads the separately signed archive, checksum, CycloneDX, SPDX, and provenance
-subjects for all five targets; it does not interpret their semantics. Public
+subjects for all five targets; that frozen universal-envelope verifier is
+incompatible with and cannot admit the one-target `self-hosted-v1` package. It
+does not interpret subject semantics. Public
 `release build` refuses before validation or mutation with
 `RELEASE_BUILD_CONTAINMENT_UNAVAILABLE`. Public `release extract` verifies its
 input, then refuses before publication with

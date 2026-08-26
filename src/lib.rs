@@ -12,3 +12,4 @@ mod process;
 pub mod release;
 pub mod scorecard;
 pub mod setup;
+mod toolchain_pins;

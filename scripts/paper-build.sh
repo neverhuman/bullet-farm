@@ -12,6 +12,10 @@ for tool in jq pdflatex bibtex; do
     exit 1
   }
 done
+bash "$repo_root/ops/ci/strict-json.sh" "$evidence" >/dev/null || {
+  echo "paper-build: evidence.json is ambiguous or invalid JSON" >&2
+  exit 1
+}
 
 jq -e '
   .schema_version == "bullet.paper-evidence.v1" and
@@ -50,7 +54,8 @@ jq -r '[
 mv -f "$macro_tmp" "$generated"
 trap - EXIT
 
-export SOURCE_DATE_EPOCH="$(jq -r '.snapshot.source_date_epoch' "$evidence")"
+SOURCE_DATE_EPOCH="$(jq -r '.snapshot.source_date_epoch' "$evidence")"
+export SOURCE_DATE_EPOCH
 export FORCE_SOURCE_DATE=1
 export TZ=UTC
 export LC_ALL=C

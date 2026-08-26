@@ -36,7 +36,8 @@ Loop:
   while (TRUE) {
     either when leaseOwner = "none" /\ ~frozen /\ fence < MaxFence;
       with (nextFence = fence + 1) {
-        leaseOwner := self || fence := nextFence || expires := now + 1 ||
+        leaseOwner := self || fence := nextFence ||
+        expires := IF now < MaxTime THEN now + 1 ELSE now ||
         tokenFence[self] := nextFence || tokenEpoch[self] := authorityEpoch ||
         ackRevision := scopeRevision;
       };
@@ -113,7 +114,7 @@ Tick ==
                     ackRevision, barrier, inFlight, acceptedApplies,
                     refusedApplies, recoveryApproved>>
 
-Expire ==
+Reap ==
     /\ leaseOwner # None
     /\ expires <= now
     /\ inFlight = 0
@@ -124,6 +125,16 @@ Expire ==
                     authorityEpoch, freezeGeneration, frozen, scopeRevision,
                     inFlight, acceptedApplies, refusedApplies,
                     recoveryApproved>>
+
+Terminated ==
+    /\ now = MaxTime
+    /\ leaseOwner = None
+    /\ inFlight = 0
+    /\ ~recoveryApproved
+
+StutterDone ==
+    /\ Terminated
+    /\ UNCHANGED vars
 
 EnterBarrier(r) ==
     /\ Authorized(r)
@@ -243,7 +254,8 @@ RecoverActive ==
 
 Next ==
     \/ Tick
-    \/ Expire
+    \/ Reap
+    \/ StutterDone
     \/ Freeze
     \/ Restore
     \/ ApproveRecovery
@@ -257,7 +269,7 @@ TypeOK ==
     /\ now \in 0..MaxTime
     /\ leaseOwner \in Runners \cup {None}
     /\ fence \in 0..MaxFence
-    /\ expires \in 0..(MaxTime + 1)
+    /\ expires \in 0..MaxTime
     /\ tokenFence \in [Runners -> 0..MaxFence]
     /\ tokenEpoch \in [Runners -> Nat]
     /\ authorityEpoch \in 1..MaxEpoch
@@ -278,7 +290,7 @@ RecoveryApprovalIsScoped == recoveryApproved => frozen /\ leaseOwner = None
 \* Reaping is scheduler progress, not a promise that time itself advances.
 \* Once a deadline is already due, weak fairness first aborts any invalid
 \* in-flight apply and then reaps the lease. A restore may also invalidate the
-\* lease and satisfy the property without an Expire step.
+\* lease and satisfy the property without a Reap step.
 ExpiredLeaseEventuallyReaped ==
     (leaseOwner # None /\ expires <= now) ~> (leaseOwner = None)
 
@@ -291,7 +303,7 @@ RecoveryApprovalEventuallySettles ==
 
 Spec == Init /\ [][Next]_vars
         /\ WF_vars(AbortInvalidApply)
-        /\ WF_vars(Expire)
+        /\ WF_vars(Reap)
         /\ WF_vars(RecoverActive)
 
 =============================================================================

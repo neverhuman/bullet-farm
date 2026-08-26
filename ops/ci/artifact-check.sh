@@ -7,6 +7,10 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 # shellcheck source=ops/ci/artifact-path.sh
 source "$(dirname "${BASH_SOURCE[0]}")/artifact-path.sh"
+# shellcheck source=ops/ci/tool-version.sh
+source "$(dirname "${BASH_SOURCE[0]}")/tool-version.sh"
+# shellcheck source=ops/ci/toolchain-pins.sh
+source "$(dirname "${BASH_SOURCE[0]}")/toolchain-pins.sh"
 
 lane="${1:?lane is required}"
 expected_commit="${2:-}"
@@ -28,12 +32,22 @@ if ! validate_ci_artifact_path "$observation" || [[ ! -s "$observation" ]]; then
   refuse CI_OBSERVATION_MISSING "$observation"
   exit 1
 fi
-jq -e --arg lane "$lane" '
+validate_strict_json() {
+  local path="$1"
+  bash "$REPO_ROOT/ops/ci/strict-json.sh" "$path" >/dev/null 2>&1 \
+    || { refuse CI_JSON_STRICT_INVALID "$path"; return 1; }
+}
+validate_strict_json "$observation" || exit 1
+jq -e --arg lane "$lane" --arg tool_keys "$CI_TOOL_KEYS" '
+  ($tool_keys | split(" ")) as $allowed_tool_keys |
   .schema_version == "bullet.ci-observation.v1" and .repository == "bullet-farm" and
   (.commit_oid | test("^[0-9a-f]{40}$")) and (.tree_oid | test("^[0-9a-f]{40}$")) and
   (.clean | type == "boolean") and (.commands | type == "array") and
   all(.commands[]; type == "string" and length > 0) and
-  (.tool_versions | type == "object") and all(.tool_versions[]; type == "string") and
+  (.tool_versions | type == "object") and
+  (((.tool_versions | keys) - $allowed_tool_keys) | length == 0) and
+  all(.tool_versions[]; type == "string" and length >= 1 and length <= 160 and
+    (test("[^ -~]") | not)) and
   (.outcomes | type == "array") and (.outcomes | length == 1) and
   all(.outcomes[]; type == "object" and
     (keys | sort) == (["exit_code","lane","status"] | sort)) and
@@ -47,12 +61,20 @@ jq -e --arg lane "$lane" '
   all(.artifact_hashes[]; type == "object" and
     (keys | sort) == (["path","sha256"] | sort)) and
   all(.artifact_hashes[]; (.path | type == "string") and
+    (.path | test("^\\.ci-artifacts/[A-Za-z0-9_-][A-Za-z0-9._-]*(/[A-Za-z0-9_-][A-Za-z0-9._-]*)*$")) and
     (.sha256 | type == "string") and (.sha256 | test("^[0-9a-f]{64}$"))) and
   .signed == false and
   .evidence_class == "DIAGNOSTIC_ONLY" and
   (keys | sort) == (["artifact_hashes","clean","commands","commit_oid","evidence_class",
     "outcomes","repository","schema_version","signed","tool_versions","tree_oid"] | sort)
 ' "$observation" >/dev/null || { refuse CI_OBSERVATION_INVALID "$observation"; exit 1; }
+
+while IFS= read -r tool_key; do
+  tool_value="$(jq -er --arg key "$tool_key" '.tool_versions[$key]' "$observation")" \
+    || { refuse CI_TOOL_VERSION_INVALID "tool_versions entry"; exit 1; }
+  ci_tool_version_shape_is_valid "$tool_key" "$tool_value" \
+    || { refuse CI_TOOL_VERSION_INVALID "tool_versions entry"; exit 1; }
+done < <(jq -r '.tool_versions | keys[]' "$observation")
 
 if [[ -n "$expected_commit" ]]; then
   [[ "$expected_commit" =~ ^[0-9a-f]{40}$ ]] \
@@ -70,44 +92,53 @@ fi
 
 status="$(jq -r '.outcomes[0].status' "$observation")"
 
-declare -A lane_scripts lane_tools
-lane_scripts[source-scan]=ops/ci/source-scan.sh
-lane_scripts[fast]=ops/ci/fast.sh
-lane_scripts[lint]=ops/ci/lint.sh
-lane_scripts[contract]=ops/ci/contract.sh
-lane_scripts[security]=ops/ci/security.sh
-lane_scripts[docs]=ops/ci/docs.sh
-lane_scripts[required]=ops/ci/required.sh
-lane_scripts[family]=ops/ci/family.sh
-lane_scripts[family-contract]=ops/ci/family-contract.sh
-lane_scripts[history]=ops/ci/history.sh
-lane_scripts[links]=ops/ci/external-links.sh
-lane_scripts[advisory]=ops/ci/advisory.sh
-lane_scripts[coverage]=ops/ci/coverage.sh
-lane_scripts[platform]=ops/ci/platform-refusal.sh
-lane_scripts[audit]=ops/ci/audit.sh
-lane_scripts[toolchain-pinned]=ops/ci/toolchain-pinned.sh
-lane_tools[source-scan]='git gitleaks'
-lane_tools[fast]='git rustc cargo cargo_nextest'
-lane_tools[lint]='git rustc cargo cargo_nextest actionlint shellcheck'
-lane_tools[contract]='git rustc cargo cargo_nextest java'
-lane_tools[security]='git rustc cargo gitleaks cargo_deny zizmor'
-lane_tools[docs]='git rustc cargo docker file'
-lane_tools[required]='git rustc cargo cargo_nextest actionlint shellcheck java gitleaks cargo_deny zizmor docker file'
-lane_tools[family]='git rustc cargo cargo_nextest node npm'
-lane_tools[family-contract]='git rustc cargo cargo_nextest node npm'
-lane_tools[history]='git gitleaks'
-lane_tools[links]='git lychee'
-lane_tools[advisory]='git rustc cargo cargo_deny'
-lane_tools[coverage]='git rustc cargo cargo_nextest cargo_llvm_cov'
-lane_tools[platform]='git rustc cargo'
-lane_tools[audit]='git'
-lane_tools[toolchain-pinned]='git rustc cargo'
+lane_script_for() {
+  case "$1" in
+    source-scan) printf '%s\n' ops/ci/source-scan.sh ;;
+    fast) printf '%s\n' ops/ci/fast.sh ;;
+    lint) printf '%s\n' ops/ci/lint.sh ;;
+    contract) printf '%s\n' ops/ci/contract.sh ;;
+    security) printf '%s\n' ops/ci/security.sh ;;
+    docs) printf '%s\n' ops/ci/docs.sh ;;
+    required) printf '%s\n' ops/ci/required.sh ;;
+    family) printf '%s\n' ops/ci/family.sh ;;
+    family-contract) printf '%s\n' ops/ci/family-contract.sh ;;
+    history) printf '%s\n' ops/ci/history.sh ;;
+    links) printf '%s\n' ops/ci/external-links.sh ;;
+    advisory) printf '%s\n' ops/ci/advisory.sh ;;
+    coverage) printf '%s\n' ops/ci/coverage.sh ;;
+    platform) printf '%s\n' ops/ci/platform-refusal.sh ;;
+    audit) printf '%s\n' ops/ci/audit.sh ;;
+    toolchain-pinned) printf '%s\n' ops/ci/toolchain-pinned.sh ;;
+    *) return 1 ;;
+  esac
+}
+
+lane_tools_for() {
+  case "$1" in
+    source-scan) printf '%s\n' 'git gitleaks' ;;
+    fast) printf '%s\n' 'git rustc cargo cargo_nextest' ;;
+    lint) printf '%s\n' 'git rustc cargo cargo_nextest actionlint shellcheck' ;;
+    contract) printf '%s\n' 'git rustc cargo cargo_nextest java' ;;
+    security) printf '%s\n' 'git rustc cargo gitleaks cargo_deny zizmor' ;;
+    docs) printf '%s\n' 'git rustc cargo docker file jsonschema' ;;
+    required) printf '%s\n' 'git rustc cargo cargo_nextest actionlint shellcheck java gitleaks cargo_deny zizmor docker file jsonschema' ;;
+    family|family-contract) printf '%s\n' 'git rustc cargo cargo_nextest node npm jsonschema' ;;
+    history) printf '%s\n' 'git gitleaks' ;;
+    links) printf '%s\n' 'git lychee' ;;
+    advisory) printf '%s\n' 'git rustc cargo cargo_deny' ;;
+    coverage) printf '%s\n' 'git rustc cargo cargo_nextest cargo_llvm_cov' ;;
+    platform) printf '%s\n' 'git rustc cargo' ;;
+    audit) printf '%s\n' 'git jankurai' ;;
+    toolchain-pinned) printf '%s\n' 'git rustc cargo rustup b3sum rustc_pinned cargo_pinned' ;;
+    *) return 1 ;;
+  esac
+}
 
 validate_tool_version() {
   local key="$1" value
   value="$(jq -r --arg key "$key" '.tool_versions[$key] // empty' "$observation")"
-  [[ -n "$value" ]] || { refuse CI_TOOL_VERSION_MISSING "$key"; return 1; }
+  [[ -n "$value" ]] || { refuse CI_TOOL_VERSION_MISSING "tool_versions entry"; return 1; }
   case "$key" in
     git) [[ "$value" == "git version "* ]] ;;
     rustc) [[ "$value" == "rustc 1.95.0 "* ]] ;;
@@ -121,24 +152,37 @@ validate_tool_version() {
     zizmor) [[ "$value" == "zizmor 1.25.2" ]] ;;
     docker) [[ "$value" == "Docker version "* ]] ;;
     file) [[ "$value" == file-* || "$value" == "file "* ]] ;;
-    node) [[ "$value" == v22.23.2 ]] ;;
-    npm) [[ "$value" == 10.9.8 ]] ;;
+    node) [[ "$value" == "v$PINNED_NODE_VERSION" ]] ;;
+    npm) [[ "$value" == "$PINNED_NPM_VERSION" ]] ;;
     lychee) [[ "$value" == "lychee 0.24.0" ]] ;;
     cargo_llvm_cov) [[ "$value" == "cargo-llvm-cov 0.8.7" ]] ;;
-    *) refuse CI_TOOL_KEY_UNKNOWN "$key"; return 1 ;;
-  esac || { refuse CI_TOOL_VERSION_INVALID "$key=$value"; return 1; }
+    jankurai) [[ "$value" == "jankurai 1.6.11" ]] ;;
+    rustup) [[ "$value" == "rustup 1.29.0 "* ]] ;;
+    b3sum) [[ "$value" == "b3sum 1.8.2" ]] ;;
+    rustc_pinned) [[ "$value" == "rustc 1.97.1 "* ]] ;;
+    cargo_pinned) [[ "$value" == "cargo 1.97.1 "* ]] ;;
+    python) [[ "$value" == "Python 3.12."* ]] ;;
+    jsonschema) [[ "$value" == 4.26.0 ]] ;;
+    *) refuse CI_TOOL_KEY_UNKNOWN "tool_versions entry"; return 1 ;;
+  esac || { refuse CI_TOOL_VERSION_INVALID "tool_versions entry"; return 1; }
 }
 
+# The strict parser is part of every observation's semantic admission, so its
+# exact major/minor runtime is required and bound even for artifact-free lanes.
+validate_tool_version python
+
 if [[ "$lane" != observation-test ]]; then
-  [[ -n "${lane_scripts[$lane]:-}" && -n "${lane_tools[$lane]:-}" ]] \
+  lane_script="$(lane_script_for "$lane")" \
+    || { refuse CI_ARTIFACT_LANE_UNSUPPORTED "$lane"; exit 1; }
+  lane_tool_list="$(lane_tools_for "$lane")" \
     || { refuse CI_ARTIFACT_LANE_UNSUPPORTED "$lane"; exit 1; }
   expected_doctor="bash scripts/ci-doctor.sh $lane"
-  expected_lane="bash ${lane_scripts[$lane]}"
+  expected_lane="bash $lane_script"
   if [[ "$status" == PASS ]]; then
     jq -e --arg doctor "$expected_doctor" --arg command "$expected_lane" \
       '.commands == [$doctor,$command]' "$observation" >/dev/null \
       || { refuse CI_OBSERVATION_COMMAND_INVALID "$lane"; exit 1; }
-    for tool in ${lane_tools[$lane]}; do
+    for tool in $lane_tool_list; do
       validate_tool_version "$tool"
     done
   else
@@ -152,21 +196,23 @@ expected_paths='[]'
 case "$lane" in
   source-scan|lint|security|docs|history|links|advisory|platform|audit|toolchain-pinned) ;;
   fast) expected_paths='[".ci-artifacts/junit/fast.xml"]' ;;
-  contract) expected_paths='[".ci-artifacts/formal/contract.json",".ci-artifacts/formal/contract.log",".ci-artifacts/junit/contract.xml"]' ;;
-  required) expected_paths='[".ci-artifacts/formal/contract.json",".ci-artifacts/formal/contract.log",".ci-artifacts/junit/contract.xml",".ci-artifacts/junit/fast.xml"]' ;;
+  contract) expected_paths='[".ci-artifacts/contracts/bundle-manifest.json",".ci-artifacts/formal/contract.json",".ci-artifacts/formal/contract.log",".ci-artifacts/junit/contract.xml"]' ;;
+  required) expected_paths='[".ci-artifacts/contracts/bundle-manifest.json",".ci-artifacts/formal/contract.json",".ci-artifacts/formal/contract.log",".ci-artifacts/junit/contract.xml",".ci-artifacts/junit/fast.xml"]' ;;
   coverage) expected_paths='[".ci-artifacts/coverage/cobertura.xml"]' ;;
   family|family-contract) expected_paths='[".ci-artifacts/family/subjects.json"]' ;;
   observation-test) expected_paths='[".ci-artifacts/test/artifact.txt"]' ;;
   *) refuse CI_ARTIFACT_LANE_UNSUPPORTED "$lane"; exit 1 ;;
 esac
-while IFS=$'\t' read -r path expected; do
+while IFS=$'\t' read -r artifact_index path expected; do
   [[ -n "$path" ]] || continue
+  artifact_label="artifact_hashes[$artifact_index]"
   validate_ci_artifact_path "$path" \
-    || { refuse CI_ARTIFACT_PATH_INVALID "$path"; exit 1; }
-  actual="$(sha256_file "$path")"
+    || { refuse CI_ARTIFACT_PATH_INVALID "$artifact_label"; exit 1; }
+  actual="$(sha256_file "$path" 2>/dev/null)" \
+    || { refuse CI_ARTIFACT_READ_INVALID "$artifact_label"; exit 1; }
   [[ "$actual" == "$expected" ]] \
-    || { refuse CI_ARTIFACT_HASH_MISMATCH "$path"; exit 1; }
-done < <(jq -r '.artifact_hashes[] | [.path,.sha256] | @tsv' "$observation")
+    || { refuse CI_ARTIFACT_HASH_MISMATCH "$artifact_label"; exit 1; }
+done < <(jq -r '.artifact_hashes | to_entries[] | [.key,.value.path,.value.sha256] | @tsv' "$observation")
 
 if [[ "$status" == PASS ]]; then
   jq -e --argjson expected "$expected_paths" \
@@ -179,11 +225,11 @@ fi
 
 if [[ "$mode" == atomic ]]; then
   if find .ci-artifacts -type l -print -quit | grep -q .; then
-    refuse CI_ATOMIC_ARTIFACT_SYMLINK "$(find .ci-artifacts -type l -print -quit)"
+    refuse CI_ATOMIC_ARTIFACT_SYMLINK "artifact inventory"
     exit 1
   fi
   if find .ci-artifacts -mindepth 1 ! -type d ! -type f -print -quit | grep -q .; then
-    refuse CI_ATOMIC_ARTIFACT_TYPE_INVALID "$(find .ci-artifacts -mindepth 1 ! -type d ! -type f -print -quit)"
+    refuse CI_ATOMIC_ARTIFACT_TYPE_INVALID "artifact inventory"
     exit 1
   fi
   expected_files="$({
@@ -217,6 +263,7 @@ validate_junit_report() {
 validate_formal_reports() {
   local summary=.ci-artifacts/formal/contract.json
   local normalized=.ci-artifacts/formal/contract.log expected_log actual_log
+  validate_strict_json "$summary" || return 1
   jq -e '
     . == {schema_version:"bullet.formal-summary.v1",models:2,completed_models:2,
       pinned_summary_present:true,status:"PASS",exit_code:0,signed:false,
@@ -234,20 +281,43 @@ validate_formal_reports() {
     || { refuse CI_FORMAL_LOG_INVALID "$normalized"; return 1; }
 }
 
+validate_contract_manifest() {
+  local manifest=.ci-artifacts/contracts/bundle-manifest.json
+  validate_strict_json "$manifest" || return 1
+  jq -e '
+    (keys | sort) == (["authority_golden_hash","bundle_hash","catalog_hash",
+      "generated_client_hash","generated_clients","generator","invariant_registry_hash",
+      "launch_grant_golden_hash","policy_snapshot_hash","record_count","schema_version"] | sort) and
+    .schema_version == "v1alpha1" and
+    .generator == "bullet-wire-contract-tool-v1alpha1" and
+    (.record_count | type == "number" and . == floor and . > 0) and
+    (.generated_clients | keys | sort) == ["rust","typescript"] and
+    ([.authority_golden_hash,.bundle_hash,.catalog_hash,.generated_client_hash,
+      .invariant_registry_hash,.launch_grant_golden_hash,.policy_snapshot_hash,
+      .generated_clients.rust,.generated_clients.typescript] |
+      all(type == "string" and test("^[0-9a-f]{64}$")))
+  ' "$manifest" >/dev/null || { refuse CI_CONTRACT_MANIFEST_INVALID "$manifest"; return 1; }
+}
+
 if [[ "$status" == PASS ]]; then
   case "$lane" in
     fast) validate_junit_report .ci-artifacts/junit/fast.xml "$HUB_EXPECTED_TESTS" fast ;;
     contract)
       validate_junit_report .ci-artifacts/junit/contract.xml "$WIRE_EXPECTED_TESTS" contract
       validate_formal_reports
+      validate_contract_manifest
       ;;
     required)
       validate_junit_report .ci-artifacts/junit/fast.xml "$HUB_EXPECTED_TESTS" fast
       validate_junit_report .ci-artifacts/junit/contract.xml "$WIRE_EXPECTED_TESTS" contract
       validate_formal_reports
+      validate_contract_manifest
       ;;
     coverage)
       bash "$REPO_ROOT/ops/ci/coverage-sanitize.sh" check .ci-artifacts/coverage/cobertura.xml
+      ;;
+    family|family-contract)
+      validate_strict_json .ci-artifacts/family/subjects.json
       ;;
   esac
 fi

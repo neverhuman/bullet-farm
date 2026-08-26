@@ -1,6 +1,6 @@
 use std::{
     fs::{self, File, OpenOptions},
-    io::{Read, Seek, SeekFrom, Write},
+    io::{BufRead, BufReader, Read, Seek, SeekFrom, Write},
     path::{Path, PathBuf},
 };
 
@@ -22,6 +22,9 @@ pub struct CoordStore {
     root: PathBuf,
     log_path: PathBuf,
 }
+
+const MAX_COORD_RECORD_BYTES: usize = bullet_wire::MAX_CANONICAL_DOCUMENT_BYTES;
+const MAX_COORD_LOG_BYTES: u64 = 64 * 1024 * 1024;
 
 impl CoordStore {
     pub fn new(root: PathBuf) -> Self {
@@ -444,31 +447,114 @@ fn require_exact_paths(
 fn read_records(file: &File) -> Result<Vec<Record>, CoordError> {
     let mut reader = file.try_clone().map_err(CoordError::io)?;
     reader.seek(SeekFrom::Start(0)).map_err(CoordError::io)?;
-    let mut text = String::new();
-    reader.read_to_string(&mut text).map_err(CoordError::io)?;
-    text.lines()
-        .enumerate()
-        .map(|(index, line)| {
-            let record: Record = serde_json::from_str(line).map_err(|error| {
-                CoordError::new(
-                    "CORRUPT_COORD_LOG",
-                    format!("line {} is invalid JSON: {error}", index + 1),
-                )
-            })?;
-            if record.schema_version() != SCHEMA_VERSION {
-                return Err(CoordError::new(
-                    "UNSUPPORTED_SCHEMA",
-                    format!("line {} uses an unsupported schema", index + 1),
-                ));
-            }
-            Ok(record)
-        })
-        .collect()
+    read_records_with_limits(
+        &mut BufReader::new(reader),
+        MAX_COORD_RECORD_BYTES,
+        MAX_COORD_LOG_BYTES,
+    )
+}
+
+fn read_records_with_limits(
+    reader: &mut BufReader<File>,
+    max_record_bytes: usize,
+    max_total_bytes: u64,
+) -> Result<Vec<Record>, CoordError> {
+    let mut records = Vec::new();
+    let mut line = Vec::new();
+    let mut total = 0_u64;
+    loop {
+        line.clear();
+        let remaining = max_total_bytes.saturating_sub(total);
+        let read_limit = (max_record_bytes as u64 + 2).min(remaining + 1);
+        let read = reader
+            .by_ref()
+            .take(read_limit)
+            .read_until(b'\n', &mut line)
+            .map_err(CoordError::io)?;
+        if read == 0 {
+            break;
+        }
+        total = total.saturating_add(read as u64);
+        if total > max_total_bytes {
+            return Err(CoordError::new(
+                "CORRUPT_COORD_LOG",
+                format!("coordination log exceeds {max_total_bytes} bytes"),
+            ));
+        }
+
+        let index = records.len() + 1;
+        if line.last() != Some(&b'\n') {
+            return Err(CoordError::new(
+                "CORRUPT_COORD_LOG",
+                format!("line {index} has no final LF commit marker"),
+            ));
+        }
+        line.pop();
+        if line.last() == Some(&b'\r') {
+            return Err(CoordError::new(
+                "CORRUPT_COORD_LOG",
+                format!("line {index} uses CRLF instead of its exact LF commit marker"),
+            ));
+        }
+        if line.len() > max_record_bytes {
+            return Err(CoordError::new(
+                "CORRUPT_COORD_LOG",
+                format!("line {index} exceeds {max_record_bytes} bytes"),
+            ));
+        }
+        let value = bullet_wire::decode_unique_value(&line).map_err(|error| {
+            CoordError::new(
+                "CORRUPT_COORD_LOG",
+                format!("line {index} is invalid strict JSON: {error}"),
+            )
+        })?;
+        let record: Record = serde_json::from_value(value).map_err(|error| {
+            CoordError::new(
+                "CORRUPT_COORD_LOG",
+                format!("line {index} does not match the coordination record schema: {error}"),
+            )
+        })?;
+        if record.schema_version() != SCHEMA_VERSION {
+            return Err(CoordError::new(
+                "UNSUPPORTED_SCHEMA",
+                format!("line {index} uses an unsupported schema"),
+            ));
+        }
+        records.push(record);
+    }
+    Ok(records)
 }
 
 fn append_record(file: &mut File, record: &Record) -> Result<(), CoordError> {
+    append_record_with_limit(file, record, MAX_COORD_LOG_BYTES)
+}
+
+fn append_record_with_limit(
+    file: &mut File,
+    record: &Record,
+    max_total_bytes: u64,
+) -> Result<(), CoordError> {
     let mut encoded = serde_json::to_vec(record).map_err(CoordError::json)?;
+    bullet_wire::decode_unique_value(&encoded).map_err(|error| {
+        CoordError::new(
+            "INVALID_COORD_RECORD",
+            format!("record cannot enter the strict coordination log: {error}"),
+        )
+    })?;
     encoded.push(b'\n');
+    let existing = file.metadata().map_err(CoordError::io)?.len();
+    let next = existing
+        .checked_add(encoded.len() as u64)
+        .ok_or_else(|| CoordError::new("COORD_LOG_CAPACITY_EXCEEDED", "log size overflowed"))?;
+    if next > max_total_bytes {
+        return Err(CoordError::new(
+            "COORD_LOG_CAPACITY_EXCEEDED",
+            format!(
+                "appending {} bytes to the {existing}-byte coordination log exceeds its {max_total_bytes}-byte bound",
+                encoded.len()
+            ),
+        ));
+    }
     let written = file.write(&encoded).map_err(CoordError::io)?;
     if written != encoded.len() {
         return Err(CoordError::new(
@@ -477,4 +563,106 @@ fn append_record(file: &mut File, record: &Record) -> Result<(), CoordError> {
         ));
     }
     file.sync_data().map_err(CoordError::io)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::{BufReader, Write};
+
+    use super::{CoordStore, append_record_with_limit, read_records_with_limits};
+    use crate::coord::model::Record;
+
+    fn claim(at: &str, expires: &str) -> String {
+        format!(
+            r#"{{"kind":"claim","schema_version":1,"at_unix_ms":{at},"claim_id":"clm_test","agent":"test-agent","lane":"test-lane","repo":"bullet-farm","paths":["src"],"expires_unix_ms":{expires}}}"#
+        )
+    }
+
+    fn ledger(bytes: &[u8]) -> tempfile::NamedTempFile {
+        let mut file = tempfile::NamedTempFile::new().expect("temporary ledger");
+        file.write_all(bytes).expect("write ledger");
+        file.flush().expect("flush ledger");
+        file
+    }
+
+    #[test]
+    fn coordination_ledger_refuses_unsafe_numbers_and_bounded_input() {
+        let root = tempfile::tempdir().expect("temporary family root");
+        let path = root.path().join(".bullet-family/coord/events.jsonl");
+        std::fs::create_dir_all(path.parent().expect("coord parent")).expect("coord directory");
+        std::fs::write(
+            &path,
+            format!("{}\n", claim("9007199254740992", "9007199254770992")),
+        )
+        .expect("unsafe ledger");
+        let error = CoordStore::new(root.path().to_path_buf())
+            .status(1)
+            .expect_err("an unsafe coordination integer must fail closed");
+        assert_eq!(error.code(), "CORRUPT_COORD_LOG");
+        assert!(error.to_string().contains("UNSAFE_JSON_INTEGER"));
+
+        let valid = claim("1000", "31000");
+        for (bytes, reason) in [
+            (valid.as_bytes().to_vec(), "no final LF commit marker"),
+            (format!("{valid}\r\n").into_bytes(), "uses CRLF"),
+        ] {
+            std::fs::write(&path, bytes).expect("hostile commit marker");
+            let error = CoordStore::new(root.path().to_path_buf())
+                .status(1)
+                .expect_err("a non-LF coordination commit marker must fail closed");
+            assert!(error.to_string().contains(reason), "{error}");
+        }
+
+        let per_line = ledger(format!("{valid}\n").as_bytes());
+        let error = read_records_with_limits(
+            &mut BufReader::new(per_line.reopen().expect("reopen ledger")),
+            valid.len() - 1,
+            4096,
+        )
+        .expect_err("an oversized line must fail closed");
+        assert!(error.to_string().contains("line 1 exceeds"));
+
+        let two_records = format!("{valid}\n{valid}\n");
+        let over_total = ledger(two_records.as_bytes());
+        let error = read_records_with_limits(
+            &mut BufReader::new(over_total.reopen().expect("reopen ledger")),
+            valid.len(),
+            two_records.len() as u64 - 1,
+        )
+        .expect_err("an oversized ledger must fail closed");
+        assert!(error.to_string().contains("coordination log exceeds"));
+
+        let value = bullet_wire::decode_unique_value(valid.as_bytes()).expect("strict record");
+        let record: Record = serde_json::from_value(value).expect("typed record");
+        let encoded_len = serde_json::to_vec(&record).expect("encoded record").len() as u64 + 1;
+        let mut append_boundary = ledger(format!("{valid}\n").as_bytes());
+        let exact_limit = append_boundary
+            .as_file()
+            .metadata()
+            .expect("ledger metadata")
+            .len()
+            + encoded_len;
+        append_record_with_limit(append_boundary.as_file_mut(), &record, exact_limit)
+            .expect("an append ending exactly at the bound is admitted");
+        assert_eq!(
+            append_boundary
+                .as_file()
+                .metadata()
+                .expect("ledger metadata")
+                .len(),
+            exact_limit
+        );
+        let error = append_record_with_limit(append_boundary.as_file_mut(), &record, exact_limit)
+            .expect_err("an append crossing the bound must fail before writing");
+        assert_eq!(error.code(), "COORD_LOG_CAPACITY_EXCEEDED");
+        assert_eq!(
+            append_boundary
+                .as_file()
+                .metadata()
+                .expect("ledger metadata")
+                .len(),
+            exact_limit,
+            "a refused append must leave the exact-bound ledger unchanged"
+        );
+    }
 }

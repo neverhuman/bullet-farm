@@ -304,10 +304,9 @@ pub(super) fn verified_blob(
 ) -> Result<Vec<u8>, CoordError> {
     validate_repository_path(path)?;
     let size = git(repo, &["cat-file", "-s", &format!("{revision}:{path}")])?;
-    let size = size
-        .trim()
-        .parse::<u64>()
-        .map_err(|_| CoordError::new("INVALID_GIT_OUTPUT", "Git emitted an invalid object size"))?;
+    let size = parse_ascii_u64(size.trim()).ok_or_else(|| {
+        CoordError::new("INVALID_GIT_OUTPUT", "Git emitted an invalid object size")
+    })?;
     if size > MAX_HASHED_FILE_BYTES {
         return Err(CoordError::new(
             "TAGGED_FILE_TOO_LARGE",
@@ -315,6 +314,17 @@ pub(super) fn verified_blob(
         ));
     }
     git_bytes(repo, &["show", &format!("{revision}:{path}")])
+}
+
+fn parse_ascii_u64(value: &str) -> Option<u64> {
+    if value.is_empty() {
+        return None;
+    }
+    value.bytes().try_fold(0_u64, |number, byte| {
+        byte.is_ascii_digit()
+            .then_some(byte - b'0')
+            .and_then(|digit| number.checked_mul(10)?.checked_add(u64::from(digit)))
+    })
 }
 
 fn digest_tagged_files(

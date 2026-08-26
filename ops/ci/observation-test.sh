@@ -4,7 +4,34 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 cd "$REPO_ROOT"
 test_root="$(mktemp -d)"
-trap 'rm -rf -- "$test_root"' EXIT
+lock_parent=.bullet-family/locks
+lock_dir="$lock_parent/observation-test"
+mkdir -p "$lock_parent"
+lock_acquired=false
+_attempt=0
+while (( _attempt < 300 )); do
+  if mkdir "$lock_dir" 2>/dev/null; then
+    lock_acquired=true
+    break
+  fi
+  sleep 0.1
+  _attempt=$((_attempt + 1))
+done
+[[ "$lock_acquired" == true ]] \
+  || { refuse OBSERVATION_TEST_LOCK_TIMEOUT "$lock_dir"; exit 1; }
+cleanup() {
+  rm -rf -- "$test_root"
+  rmdir "$lock_dir" 2>/dev/null || true
+}
+trap cleanup EXIT HUP INT TERM
+if grep -Eq 'declare[[:space:]]+-A|(^|[[:space:]])(mapfile|readarray)([[:space:]]|$)' \
+  ops/ci/artifact-check.sh; then
+  refuse OBSERVATION_CHECKER_BASH3_INCOMPATIBLE "associative array or mapfile/readarray"; exit 1
+fi
+if grep -Eq 'realpath[[:space:]]+-[em]([[:space:]]|$)' \
+  ops/ci/artifact-path.sh ops/ci/stage-artifacts.sh; then
+  refuse OBSERVATION_CHECKER_REALPATH_INCOMPATIBLE "GNU-only realpath option"; exit 1
+fi
 mkdir -p .ci-artifacts/test
 printf 'sanitized\n' >.ci-artifacts/test/artifact.txt
 CI_COMMAND_COUNT=1 bash scripts/ci-observation.sh observation-test 0 \
@@ -23,6 +50,108 @@ jq -e '
 bash ops/ci/artifact-check.sh observation-test >/dev/null
 valid_observation="$test_root/valid-observation.json"
 cp "$observation" "$valid_observation"
+runtime_tool_keys="$(
+  # shellcheck source=ops/ci/tool-version.sh
+  source ops/ci/tool-version.sh
+  for key in $CI_TOOL_KEYS; do printf '%s\n' "$key"; done | LC_ALL=C sort
+)"
+schema_tool_keys="$(jq -r '.properties.tool_versions.properties | keys[]' \
+  docs/schemas/bullet.ci-observation.v1.schema.json | LC_ALL=C sort)"
+[[ "$runtime_tool_keys" == "$schema_tool_keys" ]] \
+  || { refuse OBSERVATION_TOOL_VOCABULARY_DRIFT "runtime/schema mismatch"; exit 1; }
+jsonschema -i "$valid_observation" docs/schemas/bullet.ci-observation.v1.schema.json >/dev/null 2>&1 \
+  || { refuse OBSERVATION_SCHEMA_REJECTED_PRODUCER_OUTPUT "$valid_observation"; exit 1; }
+mkdir "$test_root/python-without-jsonschema"
+printf '%s\n' '#!/usr/bin/env sh' \
+  "if [ \"\${1:-}\" = \"--version\" ]; then printf \"%s\\n\" \"Python 3.12.3\"; exit 0; fi" \
+  'exit 1' >"$test_root/python-without-jsonschema/python3"
+chmod +x "$test_root/python-without-jsonschema/python3"
+PATH="$test_root/python-without-jsonschema:$PATH" CI_COMMAND_COUNT=1 \
+  bash scripts/ci-observation.sh observation-test 0 \
+    'bash ops/ci/observation-test.sh' .ci-artifacts/test/artifact.txt >/dev/null
+jq -e '.tool_versions.python == "Python 3.12.3" and
+  (.tool_versions | has("jsonschema") | not)' "$observation" >/dev/null \
+  || { refuse OBSERVATION_OPTIONAL_TOOL_PROBE_FAILED jsonschema; exit 1; }
+cp "$valid_observation" "$observation"
+python_path="$(command -v python3 || command -v python)"
+mkdir "$test_root/python-only"
+ln -s "$python_path" "$test_root/python-only/python"
+PATH="$test_root/python-only" /bin/bash ops/ci/strict-json.sh "$valid_observation" >/dev/null
+assert_strict_json_refuses() {
+  local label="$1" path="$2" output
+  if output="$(bash ops/ci/strict-json.sh "$path" 2>&1)"; then
+    refuse STRICT_JSON_HOSTILE_ADMITTED "$label"; exit 1
+  fi
+  if [[ "$output" != "[ci] STRICT_JSON_INVALID: $path" || "$output" == *Traceback* ]]; then
+    refuse STRICT_JSON_DIAGNOSTIC_LEAK "$label: $output"; exit 1
+  fi
+}
+deep_json="$test_root/deep.json"
+"$python_path" -I -S -c 'print("[" * 2000 + "0" + "]" * 2000)' >"$deep_json"
+assert_strict_json_refuses recursion "$deep_json"
+underflow_json="$test_root/underflow.json"
+printf '{"number":1e-9999}\n' >"$underflow_json"
+assert_strict_json_refuses underflow "$underflow_json"
+precision_loss_json="$test_root/precision-loss.json"
+printf '{"number":0.10000000000000001}\n' >"$precision_loss_json"
+assert_strict_json_refuses precision-loss "$precision_loss_json"
+unsafe_integer_json="$test_root/unsafe-integer.json"
+printf '{"number":9007199254740992}\n' >"$unsafe_integer_json"
+assert_strict_json_refuses unsafe-integer "$unsafe_integer_json"
+unsafe_decimal_json="$test_root/unsafe-integral-decimal.json"
+printf '{"number":9007199254740992.0}\n' >"$unsafe_decimal_json"
+assert_strict_json_refuses unsafe-integral-decimal "$unsafe_decimal_json"
+oversize_json="$test_root/oversize.json"
+"$python_path" -I -S -c 'import sys; sys.stdout.write("0" * (4 * 1024 * 1024 + 1))' \
+  >"$oversize_json"
+assert_strict_json_refuses oversize "$oversize_json"
+if ! "$python_path" -I -S - ops/ci/strict-json.sh scripts/readme-schema-check.sh <<'PY'
+import ast
+import sys
+
+CONSTANTS = {"MAX_DOCUMENT_BYTES", "MAX_SAFE_INTEGER"}
+FUNCTIONS = {"parse_strict_integer", "parse_strict_float"}
+
+
+def numeric_contract(path):
+    text = open(path, encoding="utf-8").read()
+    start = text.index("<<'PY'\n") + len("<<'PY'\n")
+    end = text.index("\nPY\n", start)
+    tree = ast.parse(text[start:end])
+    selected = []
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            names = {target.id for target in node.targets if isinstance(target, ast.Name)}
+            if names & CONSTANTS:
+                selected.append(node)
+        elif isinstance(node, ast.FunctionDef) and node.name in FUNCTIONS:
+            selected.append(node)
+    return ast.dump(ast.Module(body=selected, type_ignores=[]), include_attributes=False)
+
+
+if numeric_contract(sys.argv[1]) != numeric_contract(sys.argv[2]):
+    raise SystemExit(1)
+PY
+then
+  refuse STRICT_JSON_COPY_DRIFT "numeric strict-parser contracts differ"; exit 1
+fi
+{
+  printf '%s\n' '{' '  "repository": "hostile-duplicate",'
+  sed '1d' "$valid_observation"
+} >"$observation"
+if output="$(CI_STRICT_JSON_PYTHON=/bin/true bash ops/ci/artifact-check.sh observation-test 2>&1)" \
+  || [[ "$output" != *CI_JSON_STRICT_INVALID* ]]; then
+  refuse OBSERVATION_DUPLICATE_JSON_GUARD_FAILED "$output"; exit 1
+fi
+{
+  printf '%s\n' '{' '  "non_finite": NaN,'
+  sed '1d' "$valid_observation"
+} >"$observation"
+if output="$(bash ops/ci/artifact-check.sh observation-test 2>&1)" \
+  || [[ "$output" != *CI_JSON_STRICT_INVALID* ]]; then
+  refuse OBSERVATION_NONFINITE_JSON_GUARD_FAILED "$output"; exit 1
+fi
+cp "$valid_observation" "$observation"
 for mutation in \
   '.outcomes[0].raw_detail="forbidden"' \
   '.artifact_hashes[0].raw_detail="forbidden"' \
@@ -33,6 +162,37 @@ for mutation in \
     refuse OBSERVATION_NESTED_SCHEMA_GUARD_FAILED "$mutation: $output"; exit 1
   fi
 done
+cp "$valid_observation" "$observation"
+for mutation in \
+  '.tool_versions.python="Python 3.12.3\ncredential_ghp_1234567890abcdef"' \
+  '.tool_versions.python="Python 3.12.3\n"' \
+  '.tool_versions.python="Python 3.12.3\t"' \
+  '.tool_versions.python="Python 3.12.3\u007f"' \
+  '.tool_versions.python=("Python 3.12.3" + ("x" * 161))'; do
+  jq "$mutation" "$valid_observation" >"$observation"
+  if output="$(bash ops/ci/artifact-check.sh observation-test 2>&1)" \
+    || [[ "$output" != *CI_OBSERVATION_INVALID* ]]; then
+    refuse OBSERVATION_TOOL_METADATA_SCHEMA_GUARD_FAILED "$mutation: $output"; exit 1
+  fi
+done
+for mutation in \
+  '.tool_versions.exfiltration="credential_ghp_1234567890abcdef"' \
+  '.tool_versions.python_token="Python 3.12.3"' \
+  '.tool_versions["credential_ghp_1234567890abcdef"]="Python 3.12.3"'; do
+  jq "$mutation" "$valid_observation" >"$observation"
+  if output="$(bash ops/ci/artifact-check.sh observation-test 2>&1)" \
+    || [[ "$output" != *CI_OBSERVATION_INVALID* ]] \
+    || [[ "$output" == *credential_ghp_1234567890abcdef* ]]; then
+    refuse OBSERVATION_TOOL_KEY_GUARD_FAILED "$mutation: $output"; exit 1
+  fi
+done
+jq '.tool_versions.python="Python 3.12.3 credential_ghp_1234567890abcdef"' \
+  "$valid_observation" >"$observation"
+if output="$(bash ops/ci/artifact-check.sh observation-test 2>&1)" \
+  || [[ "$output" != *CI_TOOL_VERSION_INVALID* ]] \
+  || [[ "$output" == *credential_ghp_1234567890abcdef* ]]; then
+  refuse OBSERVATION_TOOL_METADATA_GRAMMAR_GUARD_FAILED "$output"; exit 1
+fi
 cp "$valid_observation" "$observation"
 schema_pattern="$(jq -r '.properties.artifact_hashes.items.properties.path.pattern' \
   docs/schemas/bullet.ci-observation.v1.schema.json)"
@@ -94,6 +254,55 @@ if output="$(bash ops/ci/artifact-check.sh history 2>&1)" \
 fi
 rm -f .ci-artifacts/observations/history.json
 
+jq '.commands=["bash scripts/ci-doctor.sh audit","bash ops/ci/audit.sh"] |
+  .outcomes=[{lane:"audit",status:"PASS",exit_code:0}] | .artifact_hashes=[] |
+  .tool_versions.jankurai="jankurai 1.6.11"' "$valid_observation" \
+  >.ci-artifacts/observations/audit.json
+bash ops/ci/artifact-check.sh audit >/dev/null
+for mutation in \
+  'del(.tool_versions.jankurai)' \
+  '.tool_versions.jankurai="jankurai 0.0.0"'; do
+  jq "$mutation" .ci-artifacts/observations/audit.json >"$test_root/audit-hostile.json"
+  mv "$test_root/audit-hostile.json" .ci-artifacts/observations/audit-hostile.json
+  mv .ci-artifacts/observations/audit.json "$test_root/audit-valid.json"
+  mv .ci-artifacts/observations/audit-hostile.json .ci-artifacts/observations/audit.json
+  if output="$(bash ops/ci/artifact-check.sh audit 2>&1)" \
+    || [[ "$output" != *CI_TOOL_VERSION_* ]]; then
+    refuse OBSERVATION_AUDIT_TOOL_GUARD_FAILED "$mutation: $output"; exit 1
+  fi
+  mv "$test_root/audit-valid.json" .ci-artifacts/observations/audit.json
+done
+rm -f .ci-artifacts/observations/audit.json
+
+jq '.commands=["bash scripts/ci-doctor.sh toolchain-pinned","bash ops/ci/toolchain-pinned.sh"] |
+  .outcomes=[{lane:"toolchain-pinned",status:"PASS",exit_code:0}] | .artifact_hashes=[] |
+  .tool_versions += {
+    rustup:"rustup 1.29.0 (123456789 2026-01-01)",b3sum:"b3sum 1.8.2",
+    rustc_pinned:"rustc 1.97.1 (123456789 2026-01-01)",
+    cargo_pinned:"cargo 1.97.1 (123456789 2026-01-01)"
+  }' "$valid_observation" >.ci-artifacts/observations/toolchain-pinned.json
+bash ops/ci/artifact-check.sh toolchain-pinned >/dev/null
+for key in rustup b3sum rustc_pinned cargo_pinned; do
+  jq --arg key "$key" 'del(.tool_versions[$key])' \
+    .ci-artifacts/observations/toolchain-pinned.json >"$test_root/toolchain-hostile.json"
+  mv .ci-artifacts/observations/toolchain-pinned.json "$test_root/toolchain-valid.json"
+  mv "$test_root/toolchain-hostile.json" .ci-artifacts/observations/toolchain-pinned.json
+  if output="$(bash ops/ci/artifact-check.sh toolchain-pinned 2>&1)" \
+    || [[ "$output" != *CI_TOOL_VERSION_MISSING* ]]; then
+    refuse OBSERVATION_TOOLCHAIN_TOOL_GUARD_FAILED "$key: $output"; exit 1
+  fi
+  mv "$test_root/toolchain-valid.json" .ci-artifacts/observations/toolchain-pinned.json
+done
+jq '.tool_versions.rustc_pinned="rustc 1.95.0 hostile"' \
+  .ci-artifacts/observations/toolchain-pinned.json >"$test_root/toolchain-hostile.json"
+mv .ci-artifacts/observations/toolchain-pinned.json "$test_root/toolchain-valid.json"
+mv "$test_root/toolchain-hostile.json" .ci-artifacts/observations/toolchain-pinned.json
+if output="$(bash ops/ci/artifact-check.sh toolchain-pinned 2>&1)" \
+  || [[ "$output" != *CI_TOOL_VERSION_INVALID* ]]; then
+  refuse OBSERVATION_TOOLCHAIN_TOOL_GUARD_FAILED "wrong pinned rustc: $output"; exit 1
+fi
+rm -f .ci-artifacts/observations/toolchain-pinned.json "$test_root/toolchain-valid.json"
+
 mkdir -p .ci-artifacts/family
 printf '{"schema_version":"bullet.family-ci-observation.v1"}\n' \
   >.ci-artifacts/family/subjects.json
@@ -101,11 +310,28 @@ CI_COMMAND_COUNT=2 bash scripts/ci-observation.sh family-contract 0 \
   'bash scripts/ci-doctor.sh family-contract' 'bash ops/ci/family-contract.sh' \
   .ci-artifacts/family/subjects.json >/dev/null
 jq '.tool_versions += {
-  git:"git version 2.43.0",rustc:"rustc 1.95.0 fixture",cargo:"cargo 1.95.0 fixture",
-  cargo_nextest:"cargo-nextest 0.9.137 fixture",node:"v22.23.2",npm:"10.9.8"
+  git:"git version 2.43.0",rustc:"rustc 1.95.0 (123456789 2026-01-01)",
+  cargo:"cargo 1.95.0 (123456789 2026-01-01)",
+  cargo_nextest:"cargo-nextest 0.9.137 (123456789 2026-01-01)",
+  node:"v22.23.2",npm:"10.9.8"
 }' .ci-artifacts/observations/family-contract.json >"$test_root/family-contract.json"
 mv "$test_root/family-contract.json" .ci-artifacts/observations/family-contract.json
 bash ops/ci/artifact-check.sh family-contract >/dev/null
+valid_subjects="$test_root/family-subjects.json"
+cp .ci-artifacts/family/subjects.json "$valid_subjects"
+{
+  printf '%s\n' '{' '  "schema_version": "hostile-duplicate",'
+  sed '1d' "$valid_subjects"
+} >.ci-artifacts/family/subjects.json
+subjects_digest="$(sha256_file .ci-artifacts/family/subjects.json)"
+jq --arg digest "$subjects_digest" \
+  '(.artifact_hashes[] | select(.path == ".ci-artifacts/family/subjects.json").sha256) = $digest' \
+  .ci-artifacts/observations/family-contract.json >"$test_root/family-contract.json"
+mv "$test_root/family-contract.json" .ci-artifacts/observations/family-contract.json
+if output="$(bash ops/ci/artifact-check.sh family-contract 2>&1)" \
+  || [[ "$output" != *CI_JSON_STRICT_INVALID* ]]; then
+  refuse OBSERVATION_TYPED_JSON_GUARD_FAILED "$output"; exit 1
+fi
 rm -rf .ci-artifacts/family
 rm -f .ci-artifacts/observations/family-contract.json
 
@@ -127,8 +353,16 @@ saved_observation="$observation.saved"
 cp "$observation" "$saved_observation"
 jq '.artifact_hashes[0].path=".ci-artifacts/../escape"' "$saved_observation" >"$observation"
 if output="$(bash ops/ci/artifact-check.sh observation-test 2>&1)" \
-  || [[ "$output" != *CI_ARTIFACT_PATH_INVALID* ]]; then
+  || [[ "$output" != *CI_OBSERVATION_INVALID* ]]; then
   refuse OBSERVATION_VALIDATOR_GUARD_FAILED "validator accepted traversal: $output"; exit 1
+fi
+secret_path=".ci-artifacts/test/credential_ghp_1234567890abcdef"
+jq --arg path "$secret_path" '.artifact_hashes[0].path=$path' \
+  "$saved_observation" >"$observation"
+if output="$(bash ops/ci/artifact-check.sh observation-test 2>&1)" \
+  || [[ "$output" != *CI_ARTIFACT_PATH_INVALID* ]] \
+  || [[ "$output" == *credential_ghp_1234567890abcdef* ]]; then
+  refuse OBSERVATION_PATH_REDACTION_GUARD_FAILED "$output"; exit 1
 fi
 mv "$saved_observation" "$observation"
 

@@ -22,11 +22,29 @@ reconciled effect can advance repository truth.
 | Effect broker | Intent reservation, Jeryu/GitHub dispatch, read-back and reconciliation | Provider execution or Candidate authorship |
 | `bullet-portal` | Sequence-bound projections and pending/unknown operator state | Authority inference or optimistic success |
 
-Jeryu is the V1 source authority and preferred localhost forge, consumed as an
+Jeryu is the source authority and preferred localhost forge, consumed as an
 independently versioned, signed external component. It is not copied into the
-four-repository Bullet family. GitHub is a mandatory independent V1 effect
-proof and optional destination; GitLab is an optional future adapter and cannot
-replace either required gate.
+four-repository Bullet family. The first GA profile, `self-hosted-v1`, binds
+Ubuntu 24.04 x86_64/systemd, Claude, and local Jeryu. GitHub, GitLab.com, and
+self-managed GitLab are separately certified effect profiles; the later
+`universal-v1` composition requires all of them, all four providers, and all
+five platform profiles.
+
+Baseline V1 is a scope description, not a CLI profile—there is no executable
+`v1-ga` profile. Release decisions must name an implemented profile and an
+absolute admitted receipt registry; today every such decision remains blocked.
+
+## Seven functions and five authorities
+
+The seven functional planes map onto five authority domains; adding a function
+does not add a completion vote. Control maps to Control. Cognitive Execution,
+Repository Execution, and Session Supervision map to Execution while keeping
+provider sessions, Runner, and BulletGit as distinct principals. Independent
+Verification maps to Verification. Effect and Delivery maps to
+Delivery/integration with separate broker, attestor, and integrator identities.
+Evidence and Audit maps to Evidence/audit; Portal remains a non-authoritative
+reader. The exact responsibility and credential mapping is tabulated in the
+[`assurance/closure-roadmap.md`](assurance/closure-roadmap.md).
 
 ## One engineering transaction
 
@@ -62,10 +80,14 @@ projection, and deterministic child-process demo have substantial component
 proof. Production online authority, durable Runner transport, full BulletGit
 generation semantics, independent verifier custody, protected Jeryu/GitHub
 effects, all four providers, signed packages, and installer evidence remain
-blocked. The executable authority is `bullet-family check release --json`, not
-this summary.
+blocked. The first-GA executable decision is `bullet-family check release
+--profile self-hosted-v1 --receipts <admitted-absolute-registry> --json`; the
+later maximum-scope decision uses `universal-v1`. Neither is replaced by this
+summary.
 
 Continue with [`boundaries.md`](boundaries.md),
-[`architecture/overview.md`](architecture/overview.md), the
-[`assurance/v1-closure-plan.md`](assurance/v1-closure-plan.md), and the
-generated [`assurance/release-truth.generated.md`](assurance/release-truth.generated.md).
+[`architecture/overview.md`](architecture/overview.md), the current
+[`assurance/closure-roadmap.md`](assurance/closure-roadmap.md), and the generated
+[`assurance/release-truth.generated.md`](assurance/release-truth.generated.md).
+The [`assurance/v1-closure-plan.md`](assurance/v1-closure-plan.md) is preserved
+only as superseded planning provenance.

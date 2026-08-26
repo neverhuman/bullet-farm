@@ -8,7 +8,7 @@ use super::{
 };
 use crate::coord::CoordError;
 
-const SUBJECT_MANIFEST_SCHEMA_VERSION: &str = "1";
+const SUBJECT_MANIFEST_SCHEMA_VERSION: &str = "2";
 const MAX_SUBJECT_MANIFEST_BYTES: u64 = 1024 * 1024;
 const MAX_SUBJECTS_PER_CLASS: usize = 64;
 const MAX_SAFE_INTEGER: u64 = 9_007_199_254_740_991;
@@ -38,6 +38,7 @@ pub struct ToolchainSubject {
     pub version: String,
     pub install_path: String,
     pub binary_digest: String,
+    pub manifest_path: String,
     pub manifest_digest: String,
     pub size_bytes: u64,
 }
@@ -169,7 +170,7 @@ impl ExternalSubjectManifest {
     fn validate(&self) -> Result<(), CoordError> {
         if self.schema_version != SUBJECT_MANIFEST_SCHEMA_VERSION {
             return Err(subject_error(
-                "external subject manifest schema_version must be 1",
+                "external subject manifest schema_version must be 2",
             ));
         }
         self.external.validate().map_err(|error| {
@@ -185,13 +186,30 @@ impl ExternalSubjects {
         validate_cardinality("sandbox", self.sandbox.len())?;
 
         let mut ids = BTreeSet::new();
+        let mut tool_paths = BTreeSet::new();
         for subject in &self.toolchain {
             validate_subject_id(&mut ids, &subject.id)?;
             validate_version("toolchain version", &subject.version)?;
             validate_absolute_path("toolchain install_path", &subject.install_path)?;
             validate_digest("toolchain binary_digest", &subject.binary_digest)?;
+            validate_absolute_path("toolchain manifest_path", &subject.manifest_path)?;
+            if !tool_paths.insert(subject.install_path.clone())
+                || !tool_paths.insert(subject.manifest_path.clone())
+            {
+                return Err(invalid(
+                    "toolchain executable and manifest paths must be pairwise distinct",
+                ));
+            }
+            validate_required_tool_version(subject)?;
             validate_digest("toolchain manifest_digest", &subject.manifest_digest)?;
             validate_size("toolchain size_bytes", subject.size_bytes)?;
+        }
+        for required in ["cargo", "node", "npm-cli"] {
+            if !self.toolchain.iter().any(|subject| subject.id == required) {
+                return Err(invalid(format!(
+                    "family.lock external toolchain is missing required {required} subject"
+                )));
+            }
         }
         for subject in &self.provider {
             validate_subject_id(&mut ids, &subject.id)?;
@@ -285,6 +303,34 @@ impl ExternalSubjects {
         }
         Ok(())
     }
+}
+
+fn validate_required_tool_version(subject: &ToolchainSubject) -> Result<(), CoordError> {
+    match subject.id.as_str() {
+        "cargo" if !numeric_triplet(&subject.version) => Err(invalid(
+            "cargo toolchain version must be exactly three numeric components",
+        )),
+        "node" if subject.version != crate::toolchain_pins::node() => Err(invalid(format!(
+            "node toolchain version must be exactly {}",
+            crate::toolchain_pins::node()
+        ))),
+        "npm-cli" if subject.version != crate::toolchain_pins::npm() => Err(invalid(format!(
+            "npm-cli toolchain version must be exactly {}",
+            crate::toolchain_pins::npm()
+        ))),
+        _ => Ok(()),
+    }
+}
+
+fn numeric_triplet(value: &str) -> bool {
+    let mut parts = value.split('.');
+    matches!(
+        (parts.next(), parts.next(), parts.next(), parts.next()),
+        (Some(major), Some(minor), Some(patch), None)
+            if [major, minor, patch].into_iter().all(|part| {
+                !part.is_empty() && part.bytes().all(|byte| byte.is_ascii_digit())
+            })
+    )
 }
 
 fn validate_cardinality(class: &str, count: usize) -> Result<(), CoordError> {

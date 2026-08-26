@@ -1,7 +1,11 @@
-use std::{collections::BTreeMap, fs, path::Path, process::Command};
+use std::{fs, path::Path, process::Command};
 
+use bullet_wire::decode_unique_value;
 use serde_json::Value as JsonValue;
 use toml::Value as TomlValue;
+
+#[path = "assurance_controls/proof_lanes.rs"]
+mod proof_lanes;
 
 fn root() -> &'static Path {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -15,31 +19,14 @@ fn parse_toml(path: &str) -> TomlValue {
     toml::from_str(&read(path)).unwrap_or_else(|error| panic!("parse {path}: {error}"))
 }
 
+fn parse_json(path: &str) -> JsonValue {
+    let bytes = fs::read(root().join(path)).unwrap_or_else(|error| panic!("read {path}: {error}"));
+    decode_unique_value(&bytes).unwrap_or_else(|error| panic!("parse {path}: {error}"))
+}
+
 #[test]
 fn control_manifests_route_to_real_local_proof() {
-    let lanes = parse_toml("agent/proof-lanes.toml");
-    let actual = lanes["lane"]
-        .as_array()
-        .expect("lane array")
-        .iter()
-        .map(|lane| {
-            (
-                lane["name"].as_str().expect("lane name"),
-                lane["command"].as_str().expect("lane command"),
-            )
-        })
-        .collect::<BTreeMap<_, _>>();
-    let expected = BTreeMap::from([
-        ("audit", "just audit"),
-        ("contract", "just contract"),
-        ("contract-drift", "just contract-check"),
-        ("family", "just family"),
-        ("fast", "just fast"),
-        ("required", "just check"),
-        ("security", "just security"),
-    ]);
-    assert_eq!(actual, expected);
-
+    proof_lanes::assert_registry(root());
     let security = parse_toml("agent/security-policy.toml");
     let required = security["required_tools"]
         .as_array()
@@ -157,8 +144,7 @@ fn exception_repairs_and_documented_budgets_are_complete_and_policy_bound() {
         );
     }
 
-    let policy: JsonValue =
-        serde_json::from_str(&read("policy/v1alpha1/policy.json")).expect("policy JSON");
+    let policy = parse_json("policy/v1alpha1/policy.json");
     let budget = &policy["budget_policy"];
     let testing = read("docs/testing.md");
     for (field, label) in [
@@ -185,6 +171,62 @@ fn exception_repairs_and_documented_budgets_are_complete_and_policy_bound() {
     }
     assert!(read("docs/architecture.md").contains("## Current proof boundary"));
     assert!(read("docs/boundaries.md").contains("## Credential custody"));
+    let gaps = read("docs/assurance/product-gaps.md");
+    let registry_docs = read("docs/assurance/invariant-registry.md");
+    let paper = read("docs/paper/bullet_farm_ieee.tex");
+    for text in [&gaps, &registry_docs, &paper] {
+        assert!(
+            text.contains("declared") && text.contains("whole-product"),
+            "invariant completeness must be scoped to declared registry entries"
+        );
+    }
+    assert!(gaps.contains("best-known current gap inventory"));
+    assert!(gaps.contains("may discover additional orphaned requirements"));
+    assert!(!gaps.contains("There is no remaining *undocumented* V1 product gap"));
+    let release = read("docs/release.md");
+    assert!(release.contains("it is not any release authority"));
+    assert!(release.contains("kind-specific semantic verifiers"));
+    assert!(release.contains("reads neither a registry nor a fixed machine descriptor"));
+    let release_build = read("docs/runbooks/release-build.md");
+    assert!(release_build.contains("First-GA `self-hosted-v1` requires one signed"));
+    assert!(release_build.contains("frozen universal-envelope component"));
+    let roadmap = read("docs/assurance/closure-roadmap.md");
+    assert!(roadmap.contains("sign the Hub tag last"));
+    assert!(roadmap.contains("generation reads Hub `HEAD`"));
+    assert!(roadmap.contains("pre-existing Hub tag would make the order circular"));
+    assert!(roadmap.contains("unsigned, non-promotional"));
+    assert!(
+        roadmap.contains("admits a signed\n`BaselineReceiptV1` over that unchanged frozen subject")
+    );
+    let schema_removal = read("docs/runbooks/schema-removal.md");
+    assert!(schema_removal.contains("OD-B is later live-forge mutation"));
+    assert!(!schema_removal.contains("OD-B/OD-D"));
+    let historical_scorecard = read("docs/assurance/path-to-100.md");
+    assert!(historical_scorecard.contains("historical M0–M5 snapshot"));
+    assert!(!historical_scorecard.contains("M0–M5, the V1 contract"));
+    let operator_register = read("docs/decisions/0013-operator-decision-register.md");
+    assert!(operator_register.contains("traffic <=1%"));
+    assert!(operator_register.contains("OD-H → bounded canary"));
+    assert!(operator_register.contains("never closes evolution alone"));
+    assert!(!operator_register.contains("OD-H is terminal after release/evolution evidence"));
+    assert!(
+        !operator_register.contains("OD-H waits on passing self-hosted and evolution receipts")
+    );
+    let registry = parse_json("policy/v1alpha1/invariant-registry.json");
+    for id in ["BF-CTL-0C1", "BF-G0-REGISTRY"] {
+        let entry = registry["entries"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|entry| entry["id"].as_str() == Some(id))
+            .unwrap();
+        assert!(
+            entry["statement"]
+                .as_str()
+                .is_some_and(|statement| statement.contains("declared in this registry")),
+            "{id} overclaims whole-product completeness"
+        );
+    }
 }
 
 #[test]
@@ -235,8 +277,8 @@ fn every_generated_zone_has_source_and_executable_regeneration_route() {
 
 #[test]
 fn ignored_and_top_level_surfaces_have_owner_and_test_routes() {
-    let owners: JsonValue = serde_json::from_str(&read("agent/owner-map.json")).expect("owner map");
-    let tests: JsonValue = serde_json::from_str(&read("agent/test-map.json")).expect("test map");
+    let owners = parse_json("agent/owner-map.json");
+    let tests = parse_json("agent/test-map.json");
     for path in [
         ".fusion/",
         ".gitignore",
@@ -261,17 +303,36 @@ fn ignored_and_top_level_surfaces_have_owner_and_test_routes() {
 fn hosted_workflow_is_pinned_and_delegates_to_local_entrypoints() {
     let workflow = read(".github/workflows/ci.yml");
     for command in [
-        "run: bash ops/ci/fast.sh",
-        "run: bash ops/ci/required.sh",
-        "run: bash ops/ci/contract.sh",
-        "run: bash ops/ci/security.sh",
+        "run: bash scripts/ci-local.sh source-scan",
+        "run: bash scripts/ci-local.sh fast",
+        "run: bash scripts/ci-local.sh lint",
+        "run: bash scripts/ci-local.sh contract",
+        "run: bash scripts/ci-local.sh security",
+        "run: bash scripts/ci-local.sh docs",
     ] {
         assert!(
             workflow.contains(command),
             "missing workflow delegation: {command}"
         );
     }
-    assert!(!workflow.contains("run: bash scripts/ci-local.sh"));
+    assert!(workflow.contains("name: CI"));
+    assert!(workflow.contains("\n  required:\n    name: required\n    if: ${{ always() }}"));
+    let required = workflow
+        .split_once("\n  required:\n")
+        .expect("required job")
+        .1;
+    let checkout_positions: Vec<_> = required
+        .match_indices("bash ops/ci/checkout-subject.sh")
+        .map(|(position, _)| position)
+        .collect();
+    assert_eq!(checkout_positions.len(), 2, "required job must seal twice");
+    let aggregate_position = required
+        .find("bash ops/ci/aggregate.sh")
+        .expect("required job aggregate");
+    assert!(
+        checkout_positions[0] < aggregate_position && aggregate_position < checkout_positions[1],
+        "required job must seal before and after aggregation"
+    );
     for line in workflow
         .lines()
         .filter(|line| line.trim_start().starts_with("- uses:"))
@@ -300,6 +361,22 @@ fn doctor_and_pre_push_gate_are_executable_controls() {
         .status()
         .expect("run CI doctor");
     assert!(doctor.success());
+    assert_eq!(read(".node-version"), "22.23.2\n");
+    assert_eq!(read(".npm-version"), "10.9.8\n");
+    for consumer in [
+        "scripts/ci-doctor.sh",
+        "scripts/dev.sh",
+        "ops/ci/family.sh",
+        "ops/ci/artifact-check.sh",
+    ] {
+        let text = read(consumer);
+        assert!(
+            text.contains("toolchain-pins.sh"),
+            "{consumer} bypasses the canonical Node/npm pins"
+        );
+        assert!(!text.contains("v22.23.2"), "{consumer} duplicates Node pin");
+        assert!(!text.contains("10.9.8"), "{consumer} duplicates npm pin");
+    }
     assert!(read("ops/git-hooks/pre-push").contains("ops/ci/quality-gates.sh"));
     assert!(read("ops/ci/quality-gates.sh").contains("exec bash ops/ci/fast.sh"));
     assert!(read("tools/security-lane.sh").contains("ops/ci/security.sh"));
@@ -308,6 +385,8 @@ fn doctor_and_pre_push_gate_are_executable_controls() {
 #[test]
 fn public_lock_recipe_uses_verify_vocabulary() {
     let justfile = read("Justfile");
+    assert!(justfile.contains("lock-generate tag subjects:"));
+    assert!(justfile.contains("-- lock generate --tag \"$1\" --subjects \"$2\""));
     assert!(justfile.contains("lock-verify tag:"));
     assert!(justfile.contains("-- lock verify --tag \"$1\""));
     assert!(!justfile.contains("--tag {{tag}}"));
@@ -316,216 +395,5 @@ fn public_lock_recipe_uses_verify_vocabulary() {
 }
 
 #[cfg(unix)]
-#[test]
-fn parameterized_recipes_preserve_literal_arguments() {
-    use std::{env, ffi::OsString, os::unix::fs::PermissionsExt};
-
-    let temp = tempfile::tempdir().expect("parameterized recipe fixture");
-    let bin = temp.path().join("bin");
-    fs::create_dir(&bin).expect("create fake bin");
-    let cargo = bin.join("cargo");
-    fs::write(
-        &cargo,
-        "#!/usr/bin/env bash\nset -euo pipefail\nprintf '%s\\0' \"$@\" >\"${BULLET_TEST_CAPTURE:?}\"\n",
-    )
-    .expect("write fake cargo");
-    let mut permissions = fs::metadata(&cargo)
-        .expect("fake cargo metadata")
-        .permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(&cargo, permissions).expect("make fake cargo executable");
-
-    let capture = temp.path().join("argv");
-    let marker = temp.path().join("injected");
-    let injected = format!("invalid; /usr/bin/touch {}", marker.display());
-    let mut path = OsString::from(bin.as_os_str());
-    path.push(":");
-    path.push(env::var_os("PATH").expect("PATH is set"));
-
-    let invoke = |recipe: &str, arguments: &[&str]| {
-        let status = Command::new("just")
-            .arg(recipe)
-            .args(arguments)
-            .current_dir(root())
-            .env("PATH", &path)
-            .env("BULLET_TEST_CAPTURE", &capture)
-            .status()
-            .unwrap_or_else(|error| panic!("run {recipe} recipe: {error}"));
-        assert!(status.success(), "{recipe} recipe failed");
-        assert!(!marker.exists(), "{recipe} executed caller text as shell");
-        fs::read(&capture)
-            .expect("captured Cargo argv")
-            .split(|byte| *byte == 0)
-            .filter(|argument| !argument.is_empty())
-            .map(|argument| String::from_utf8(argument.to_vec()).expect("UTF-8 argument"))
-            .collect::<Vec<_>>()
-    };
-
-    let coord = invoke("coord", &["--agent", &injected]);
-    assert!(
-        coord.ends_with(&["coord".to_owned(), "--agent".to_owned(), injected.clone()]),
-        "coord did not preserve its literal argv tail: {coord:?}"
-    );
-
-    for (recipe, operation) in [("lock-generate", "generate"), ("lock-verify", "verify")] {
-        let arguments = invoke(recipe, &[&injected]);
-        let expected = [
-            "lock".to_owned(),
-            operation.to_owned(),
-            "--tag".to_owned(),
-            injected.clone(),
-        ];
-        assert!(
-            arguments.ends_with(&expected),
-            "{recipe} did not preserve its literal argv tail: {arguments:?}"
-        );
-    }
-
-    let doctor = Command::new("just")
-        .args(["ci-doctor", &injected])
-        .current_dir(root())
-        .env("PATH", path)
-        .status()
-        .expect("run ci-doctor recipe");
-    assert!(!doctor.success(), "invalid doctor lane was accepted");
-    assert!(!marker.exists(), "ci-doctor executed caller text as shell");
-}
-
-#[cfg(unix)]
-#[test]
-fn setup_recipe_preserves_literal_arguments() {
-    use std::{env, ffi::OsString, os::unix::fs::PermissionsExt};
-
-    let temp = tempfile::tempdir().expect("setup recipe fixture");
-    let bin = temp.path().join("bin");
-    fs::create_dir(&bin).expect("create fake bin");
-    let capture = temp.path().join("argv");
-    let marker = temp.path().join("ambient-cargo-executed");
-    let cargo = bin.join("cargo");
-    fs::write(
-        &cargo,
-        format!("#!/bin/bash\nprintf executed > '{}'\n", marker.display()),
-    )
-    .expect("write fake cargo");
-    let mut permissions = fs::metadata(&cargo)
-        .expect("fake cargo metadata")
-        .permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(&cargo, permissions).expect("make fake cargo executable");
-
-    let setup = temp.path().join("bullet-family");
-    fs::write(
-        &setup,
-        format!(
-            "#!/bin/bash\nset -euo pipefail\nprintf '%s\\0' \"$@\" > '{}'\n",
-            capture.display()
-        ),
-    )
-    .expect("write fake setup binary");
-    let mut permissions = fs::metadata(&setup)
-        .expect("fake setup metadata")
-        .permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(&setup, permissions).expect("make fake setup executable");
-
-    let injection_marker = temp.path().join("injected");
-    let spaced = temp.path().join("member root");
-    let injected = format!("; /usr/bin/touch {}", injection_marker.display());
-    let mut path = OsString::from(bin.as_os_str());
-    path.push(":");
-    path.push(env::var_os("PATH").expect("PATH is set"));
-
-    let refused = Command::new("just")
-        .arg("setup")
-        .current_dir(root())
-        .env("PATH", &path)
-        .env_remove("BULLET_SETUP_ADMITTED_BIN")
-        .env("BULLET_SETUP_CARGO_BIN", "/bin/true")
-        .env("BULLET_SETUP_NODE_BIN", "/bin/true")
-        .env("BULLET_SETUP_NPM_CLI", "/bin/true")
-        .output()
-        .expect("run setup without admitted bootstrap");
-    assert!(!refused.status.success());
-    assert!(
-        String::from_utf8_lossy(&refused.stderr)
-            .contains("operator-pre-admitted bootstrap unavailable"),
-        "unexpected refusal: {}",
-        String::from_utf8_lossy(&refused.stderr)
-    );
-    assert!(!marker.exists(), "missing bootstrap executed ambient Cargo");
-
-    let in_family = Command::new("just")
-        .arg("setup")
-        .current_dir(root())
-        .env("PATH", &path)
-        .env(
-            "BULLET_SETUP_ADMITTED_BIN",
-            env!("CARGO_BIN_EXE_bullet-family"),
-        )
-        .env("BULLET_SETUP_CARGO_BIN", "/bin/true")
-        .env("BULLET_SETUP_NODE_BIN", "/bin/true")
-        .env("BULLET_SETUP_NPM_CLI", "/bin/true")
-        .output()
-        .expect("run setup with in-family bootstrap");
-    assert!(!in_family.status.success());
-    assert!(
-        String::from_utf8_lossy(&in_family.stderr).contains("outside the source family"),
-        "unexpected refusal: {}",
-        String::from_utf8_lossy(&in_family.stderr)
-    );
-    assert!(
-        !marker.exists(),
-        "in-family bootstrap executed ambient Cargo"
-    );
-
-    let status = Command::new("just")
-        .args([
-            "setup",
-            "--root",
-            spaced.to_str().expect("UTF-8 fixture path"),
-            &injected,
-        ])
-        .current_dir(root())
-        .env("PATH", path)
-        .env("BULLET_SETUP_ADMITTED_BIN", &setup)
-        .env("BULLET_SETUP_CARGO_BIN", "/bin/true")
-        .env("BULLET_SETUP_NODE_BIN", "/bin/true")
-        .env("BULLET_SETUP_NPM_CLI", "/bin/true")
-        .status()
-        .expect("run setup recipe");
-
-    assert!(status.success());
-    assert!(
-        !injection_marker.exists(),
-        "recipe executed an interpolated shell command"
-    );
-    assert!(
-        !marker.exists(),
-        "external bootstrap executed ambient Cargo"
-    );
-    let captured = fs::read(&capture).expect("captured setup argv");
-    let arguments = captured
-        .split(|byte| *byte == 0)
-        .filter(|argument| !argument.is_empty())
-        .map(|argument| String::from_utf8(argument.to_vec()).expect("UTF-8 argument"))
-        .collect::<Vec<_>>();
-    assert_eq!(
-        arguments,
-        [
-            "setup".to_owned(),
-            "--root".to_owned(),
-            root().parent().unwrap().display().to_string(),
-            "--source".to_owned(),
-            "jeryu".to_owned(),
-            "--cargo-bin".to_owned(),
-            "/bin/true".to_owned(),
-            "--node-bin".to_owned(),
-            "/bin/true".to_owned(),
-            "--npm-cli".to_owned(),
-            "/bin/true".to_owned(),
-            "--root".to_owned(),
-            spaced.display().to_string(),
-            injected,
-        ]
-    );
-}
+#[path = "assurance_controls/recipes.rs"]
+mod recipes;

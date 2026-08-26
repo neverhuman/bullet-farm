@@ -1,13 +1,18 @@
 # Path to 100 — closing every gap, fairly
 
-Status: **ACTIVE planning artifact; not runtime, release, or scoring authority.** Only `bullet-family check
-release --json` can say a gate is green (26/26 BLOCKED today, exit 3), and only the scoring protocol in §8 can
-say a dimension moved. This page names the work, the order, the owners, and the evidence each step must produce.
-Owner: Bullet Farm maintainers (orchestrator: claude-orch). Written 2026-08-25 against hub `5d5001d`,
-kernel `1dcbaa2`, git `b5c3512`, portal `5e4b474`.
-Companion pages: [`launch-plan.md`](launch-plan.md) (M0–M5, the V1 contract), [`product-gaps.md`](product-gaps.md)
-(G1–G15), [`v1-closure-plan.md`](v1-closure-plan.md) (V1-S0…S8),
-[`../decisions/0013-operator-decision-register.md`](../decisions/0013-operator-decision-register.md) (OD-A…OD-G),
+Status: **HISTORICAL SNAPSHOT — frozen at 2026-08-25T12:40:00Z; not current runtime, release, planning, or scoring
+authority.** Commands, claims, scores, holders, and dirty-tree statements below describe that snapshot and must not
+be executed or reported as current. Every executable decision requires an explicitly selected profile and
+absolute receipt registry: `bullet-family check release --profile <profile> --receipts <absolute-registry>
+--json`. The current release projection is [`release-truth.generated.md`](release-truth.generated.md); the active
+dependency order is the [`closure roadmap`](closure-roadmap.md): `self-hosted-v1` first, `evolution-v1` in
+Wave 9, breadth and later `universal-v1` in Wave 10, then `team-v1`/`saga-v1` in Wave 11. The V1 and launch plans
+linked below are snapshot provenance only.
+Owner at snapshot: Bullet Farm maintainers. Written against hub `5d5001d`, kernel `1dcbaa2`, git `b5c3512`, portal
+`5e4b474`.
+Companion pages: [`launch-plan.md`](launch-plan.md) (historical M0–M5 snapshot), [`product-gaps.md`](product-gaps.md)
+(G1–G18), [`v1-closure-plan.md`](v1-closure-plan.md) (historical V1-S0…S8 snapshot),
+[`../decisions/0013-operator-decision-register.md`](../decisions/0013-operator-decision-register.md) (current OD-A…OD-J register),
 the capability study at family-root `.l7-bundle/EVOLUTION-2026-08-25/` (D1 understanding, D2 scorecard,
 D3 beyond-Gas-Town design, D4 forge strategy, D5 lane plan). Lane IDs `L-nn` below are D5's; new lanes continue
 its numbering so the two documents can be read together.
@@ -37,8 +42,9 @@ measured). Today it is **42** (D2), roughly **43** after the 2026-08-25 landings
    lowers the row. Ratchets protect audit floors, not scores.
 
 **What 100 never means.** It is not "better than Gas Town", "faster than Omnigent", or any performance claim.
-`competitor-snapshot.md` forbids every comparison until the matched corpus (L-71) exists, and even then the only
-public claim is the property claim in D3 §5 — every byte on `main` traceable to an exact Candidate, an
+`competitor-snapshot.md` forbids benchmark, performance, and superiority comparisons until the matched corpus
+(L-71) exists; its bounded source-documentation table is not such a comparison. Even after L-71, the only
+performance-independent public property claim is the D3 §5 claim — every byte on `main` traceable to an exact Candidate, an
 independent reproduction, an attestation by a principal that cannot write code, and a read-back receipt, or
 `UNKNOWN` and stop. 100 means: **every capability the design specifies is implemented, proven where it counts,
 installable by a stranger on all five platforms, and re-scored by someone who did not build it.**
@@ -59,7 +65,7 @@ Landed since the D2 snapshot (09:37Z), all path-exact and receipted:
 | `NoNewDispatchAfterStop` checked; STONITH `grace < TTL` in both validators | 1, 11 | hub `3728e798`, kernel `bb420f46` |
 | GC-under-hostile-load proofs mutation-proven | 2 | git `54d1338b`, `b637bd3` |
 | Portal embedded in farmd behind `embedded-portal`; browser suite against the packaged origin | 8, 9 | kernel `d59c5a72`, `0c10cd9e`; portal `f4b8975e` |
-| `bullet-family release build` (Linux x86_64: deterministic bundle, CycloneDX SBOM, checksums, unsigned provenance); archive exec-bit defect fixed; eight-binary completeness ratchet | 9 | hub `a1b7ab38`, `ab1fd8fa` |
+| Quarantined Linux x86_64 builder component (deterministic bundle, CycloneDX SBOM, checksums, unsigned provenance); archive exec-bit defect fixed; eight-binary completeness ratchet; public build still refuses | 9 | hub `a1b7ab38`, `ab1fd8fa` |
 | Jankurai hub 65 / kernel 63–64 / git 69 / portal 68 (was 58/57/54/60) | 10 | hub `0cc0a681`, kernel `1dcbaa21`, git `e1b47ff1`, portal `5e4b474f` |
 | Runner id: exact `run_<32hex>` or `INVALID_RUNNER_ID` exit 2 (in flight, codex-root) | 1 | claim `clm_ad5877…` |
 
@@ -90,7 +96,7 @@ class of proof that is admissible. **I** = today's implemented score.
 | 6 | Multi-agent collaboration and roles (8) | 6 | `crates/roles`: `RoleSpec` runtime, typed artifact edges, conflict graph validated at registration **and** dispatch. T0–T6 topologies as reviewed data with caps. Real router: eligibility filters, deterministic rule routing, abstention to T0 (no `lane_for` constant). Fusion runtime: typed protocols, `FusionReport`, 8-term `diversity_score`, rank-select short-circuit, forced-synthesis penalty; the four "must fail if they pass" tests from D3 C1. **At least two providers dispatching through the router with `LIVE_PROOF` receipts**, and one `TRANSACTION_PROOF` from a real Selection Group producing two exact Candidates. | L-50, L-51, L-52, L-54, L-44 |
 | 7 | Evolutionary optimization (5) | 2 | Everything in D3 C2, in order: feasibility shield (deterministic, before spend, negative-knowledge retention), lexicographic objective over complete `AggregateEvaluationV1`, bounded MOME archive with four frozen axes, B0–B6 promotion service **separate from the optimizer**, ASHA inside B1/B2 only, drift rollback restoring the incumbent. The five falsification tests from D3 C2. Started only after every gate in D3 §3 C2 is green, by operator ADR + policy generation bump (OD-H). `evolutionary_authority=true` stays `UNSAFE_POLICY` until then. | L-70a…e, L-71, OD-H |
 | 8 | Operator truth and UX (7) | 48 | All fifteen surfaces render durable subjects with provenance headers (no refusal strings, no `<pre>` JSON). Two-stage freeze chip (`recorded` → `enforced N/M, k unreachable, leases expire in Ns`) driven by a real freeze table. Saga quarantine of blast radius, not fleet (multi-repo fault test). Shift Brief as the portal's default screen, every line opening to the exact unproved claim. `doctor`, `check release`, and the portal never disagree (drift test). | L-58, L-63, L-60, L-64, L-59 |
-| 9 | Installability and release engineering (8) | 16 | Schema-3 lock generated from signed member tags (OD-D). `release build` for all five targets, signed (OD-E), SBOM + provenance, published by a tag-triggered workflow with `contents: write` scoped to the release job only. `just setup` bootstraps from tagged bytes with no pre-built binary. Two-run install proof on each of the five platforms; systemd lifecycle/recovery on Linux; refusal on unsupported mutation platforms. Five archives pass release smoke; 26/26 gates green. | OD-D, L-40, L-41, L-42, L-43, L-65, L-66, L-49 |
+| 9 | Installability and release engineering (8) | 16 | Schema-3 lock generated from signed member tags (OD-D). A different-identity exact-OID broker builds all five targets; each archive is signed (OD-E), semantically admitted with both SBOM formats and provenance, and published by a tag-triggered workflow whose write permission is scoped to the release job. A signed prebuilt `bullet-family` performs setup twice on each platform; systemd lifecycle/recovery passes on Linux and unsupported mutation platforms refuse. Five archives pass release smoke; the complete `universal-v1` gate set is green. | OD-D, L-40, L-41, L-42, L-43, L-65, L-66, L-49 |
 | 10 | Security posture (7) | 58 | Jankurai ≥ 90 in all four repos with **zero caps and zero hard findings**, floors ratcheted, hosted half running on the pinned portable auditor. Signed tokens on both paths (from dim 1). Chained, anchored audit log (from dim 3). Fuzz in CI nightly. **Independent external security review** with findings closed or accepted by ADR. Secrets never in argv/env/logs (existing tests kept). | L-47 ×4, L-48, L-68, L-06, L-61 |
 | 11 | Test and assurance depth (6) | 57 | Fuzz and mutation thresholds in CI. Liveness/fairness properties checked in both TLC models, state counts re-pinned. Invariant registry **51/51 `enforced`**, each bound to a named test or typed refusal in a CI lane, with a ratchet that fails if the count falls. Egress proofs in CI. Fault suite (R-08) tagged and run: every crash boundary, none may become PASS. Two-process and multi-machine race tests. | L-06, L-16, L-13, L-35 + L-36…L-39, L-33, L-32 |
 | 12 | Documentation honesty (3) | 86 | Symbol-anchored citations checked by a resolver (a cited `path::symbol` must exist at HEAD). Doc-freshness gate: "reviewed against HEAD X" fails when X is not an ancestor within N commits. No false contract claims (the "signed Jeryu tags" wording becomes true only after J-5, and stays corrected until then). `TEAM.md`/`POTENTIAL_DRAFT.md` C8 "two providers" reconciled to the frozen four. | L-69, L-08b, L-02, L-02b |
@@ -140,17 +146,18 @@ release half (L-40…L-43) and its authority half (L-24 onward) both stall — t
 
 ### P1 — M1 + M2: the product exists (weeks 1–6; ≈ 47 → 60)
 
-Goal: `bullet-family check release --json` shows `installable-lock` and `transaction-demo` receipted. The
+Goal: `bullet-family check release --profile universal-v1 --receipts <admitted-absolute-registry> --json`
+shows `installable-lock` and `transaction-demo` receipted. The
 kernel spine is serial by construction (each lane extends the previous lane's tables and types); the hub,
 git, and portal lanes run alongside it.
 
 | Lane | Goal | Repo · paths | Pred | Proof | Size | Class | Dim → |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| **L-20 `KERNEL-SIGNED-LEASE-PROMOTE`** (R-07) | Promote `SignedLeaseService`: durable nonce (L-05), persistent `last_acquire`, `advance_attempt_with_authority` on both ends, full-subject release check in one transaction, `/internal/v1` mount only, bounded client. cursor-grok's WIP is the starting point — coordinate the hand-off. | kernel · `crates/application/src/lease_transport.rs`, `crates/harness-core/src/lease_transport.rs`, `apps/bullet-farmd/src/lease_transport_rpc.rs`, `crates/runner/src/signed_lease_rpc.rs` | L-05 | `bash scripts/ci-local.sh required; echo EXIT=$?` | L | AGENT | 1 → 80 |
+| **L-20 `KERNEL-SIGNED-LEASE-PROMOTE`** (R-07) | Harden and admit the existing signed UDS RPC/client: peer credentials and descriptor-bound identity, durable nonce/recovery state (L-05), persistent `last_acquire`, `advance_attempt_with_authority` on both ends, full-subject release check in one transaction, and product Runner wiring through the bounded client. | kernel · `crates/application/src/lease_transport.rs`, `crates/harness-core/src/lease_transport.rs`, `apps/bullet-farmd/src/lease_transport_rpc.rs`, `crates/runner/src/signed_lease_rpc.rs` | L-05 | `bash scripts/ci-local.sh required; echo EXIT=$?` | L | AGENT | 1 → 80 |
 | **L-21 `KERNEL-AUTHORITY-NORMALIZE`** (V1-S2-a) | Normalized authority rows (graph revision, workspace generation, scope digest, policy/routing generation, authority epoch, freeze generation); no JSON-blob authority; no `INSERT OR REPLACE`; retire the `= 1` / `= 0` constants; `token_for` digests computed from real subjects. | kernel · `crates/adapters/src/sqlite/leases/**`, `db/migrations/0013_normalized_authority.sql` (new), `crates/application/src/leases.rs`, `crates/domain/src/authority.rs` | L-20 | `cargo test --locked -p bullet-adapters; echo EXIT=$?` | L | AGENT | 1 → 86 |
 | **L-22 `KERNEL-BUDGETS`** (WI-07) | `crates/budgets` + `0014_reservations.sql`: reservation → settlement, dual-tree atomicity, unknown-liability retention, conservation property test; `budget_reservation_id` becomes a row. | kernel · `crates/budgets/**` (new), `db/migrations/0014_reservations.sql` (new), `Cargo.toml` (member) | L-21 | `cargo test --locked -p bullet-budgets; echo EXIT=$?` | L | AGENT | 5 → 40 |
 | **L-23 `KERNEL-MUTATION-CAPABILITY`** (V1-S2-b) | Short-lived PASETO mutation permits minted from the durable active lease; `SignedMutationPermitV1` gets its first use site. | kernel · `crates/application/src/mutation_permit/**` (new), `crates/harness-core/src/admission/**` | L-22 | `cargo test --locked -p bullet-application -- permit; echo EXIT=$?` | M | AGENT | 1 → 88 |
-| **L-24 `GIT-PRODUCTION-CHECKER`** (G4) | Replace `AuthorityGateway::unavailable` with `FinalAuthorityCheck` bound to the schema-3 lock's `bullet-wire` tag; close the forgeable unsigned `WireAuthorityToken` in the same change (signed, versioned, private constructor). | git · `crates/bullet-gitd/src/authority_gateway.rs`, `crates/bullet-git-types/src/authority.rs`, `crates/bullet-gitd/tests/authority_live.rs` (new) | L-23, **OD-D**, cursor-grok hand-off | `bash scripts/ci-local.sh required; echo EXIT=$?` | L | AGENT | 1 → 90, 10 → 68 |
+| **L-24 `GIT-PRODUCTION-CHECKER`** (G4) | Replace `AuthorityGateway::unavailable` with `FinalAuthorityCheck` bound to the schema-3 lock's `bullet-wire` tag; close the forgeable unsigned `WireAuthorityToken` in the same change (signed, versioned, private constructor). | git · `crates/bullet-gitd/src/authority_gateway.rs`, `crates/bullet-git-types/src/authority.rs`, `crates/bullet-gitd/tests/authority_live.rs` (new) | L-23, **OD-D** | `bash scripts/ci-local.sh required; echo EXIT=$?` | L | AGENT | 1 → 90, 10 → 68 |
 | **L-25 `GIT-PROOF-ROOT-REAL`** | Populate the proof root over the eight `git_role.md:281` inputs; `bind_proof` reachable via RPC; `verify_proof_root` recomputes on read; a tamper test per input. | git · `crates/bullet-git-types/src/change.rs`, `crates/bullet-gitd/src/lib.rs`, `crates/bullet-git-types/tests/proof_root.rs` (new) | L-24 | `cargo test --locked -p bullet-git-types -- proof_root; echo EXIT=$?` | M | AGENT | 3 → 45 |
 | **L-26 `KERNEL-RUNNER-SAGA`** (V1-S4-a) | The real saga: acquire → read-only provider → `PatchProposal` → gitd apply → admitted gates → ≤ 2 repairs → checkpoint → exact Candidate; heartbeat miss freezes, kills the tree, preserves; successor resumes from the checkpoint. `--provider` accepts the four real adapters (still refused without a grant). | kernel · `crates/runner/src/attempt.rs`, `crates/runner/src/saga/**` (new), `apps/bullet-runner/src/main.rs` (after `RUNNER-ID-REFUSAL-R1` receipts) | L-24 | `cargo test --locked -p bullet-runner -- saga; echo EXIT=$?` | XL | AGENT | 1 → 92, 6 → 12 |
 | **L-32 `KERNEL-FAULT-SUITE`** (R-08) | Tagged crash-boundary suite alongside L-26: provider crash/cancel/timeout, missed heartbeat, surviving grandchild, stale fence, zero admitted tests, writer-modified oracle, lost effect response, conflicting remote OID, cleanup-before-preservation. None may become PASS. | kernel · `crates/runner/tests/faults/**` (new), `ops/ci/faults.sh` (new) | L-26 | `bash ops/ci/faults.sh; echo EXIT=$?` | L | AGENT | 11 → 76 |
@@ -162,7 +169,7 @@ git, and portal lanes run alongside it.
 | **L-36 `INVARIANTS-BATCH-1`** | Move the authority/lease/fence invariants (≈ 14 rows) from `planned` to `enforced`, each bound to a test from L-05/L-13/L-20/L-21/L-32. | farm · registry + crosswalk; kernel tests as named | L-35, L-32 | `cargo test --locked -p bullet-wire --test policy_registry; echo EXIT=$?` | M | AGENT | 11 → 80 |
 | **L-11 `HUB-FORGE-SUBSYSTEM`** | `bullet-family forge probe\|pin\|status` with the `text/html` SPA-fallthrough guard; read-only against 127.0.0.1:8787. | farm · `src/forge/**` (new), `src/cli.rs`, `tests/forge.rs` (new) | L-10 | `cargo test --locked -p bullet-family --test forge; echo EXIT=$?` | M | AGENT | 9 → 35 |
 | **L-40 `HUB-LOCK-GENERATE`** | Schema-3 lock from the signed tags: `jeryu_url`, `jeryu_slug`, `tree_oid`, `lockfile`, `artifact` per member; `required` stops asserting the refusal. | farm · `family.lock`, `src/family_lock/**`, `ops/ci/required.sh` (after hand-off) | OD-D, L-10 | `bullet-family lock verify --tag <tag>; echo EXIT=$?` | M | AGENT | 9 → 40 |
-| **L-42 `HUB-RELEASE-WORKFLOW`** | Tag-triggered `release.yml`: builds the Linux artifact, uploads it as an **unsigned preview** until OD-E, `contents: write` scoped to the release job only, zizmor-clean. | farm · `.github/workflows/release.yml` (new) | L-40 | `zizmor .github/workflows/release.yml; echo EXIT=$?` | M | AGENT | 9 → 43 |
+| **L-42 `HUB-RELEASE-WORKFLOW-PREP`** | Prepare a cache-free, non-publishing build/verification diagnostic for the quarantined Linux component. It has no tag trigger, release creation, package-byte upload, or write permission; signed publication remains L-42b after OD-E and the five-target matrix. | farm · future release workflow source | L-40 | workflow policy, zizmor, and source-bound hostile tests | M | AGENT | 9 → 43 |
 | **L-43 `HUB-SETUP-BOOTSTRAP`** | `just setup` bootstraps from tagged bytes: builds `bullet-family` from the locked source, then admits it — no externally located binary. Two-run proof on this host. | farm · `scripts/setup.sh`, `src/setup/**`, `ops/ci/required.sh` | L-40 | `bash ops/ci/required.sh; echo EXIT=$?` | L | AGENT | 9 → 45, stranger → 25 |
 | **L-14 `GIT-REFLINK`** | Reflink fast path for private clones on reflink-capable filesystems with a byte-identical fallback proof. | git · `crates/bullet-git-workspace/src/clone.rs`, `tests/reflink.rs` (new) | — | `cargo test --locked -p bullet-git-workspace --test reflink; echo EXIT=$?` | M | AGENT | 2 → 90 |
 | **L-34 `KERNEL-GATES-IN-SANDBOX`** (WI-32) | Admitted gates run inside the egress sandbox; a `build.rs` that opens a socket is a failing negative test. | kernel · `crates/harness-egress/src/gate_exec.rs` (new), `crates/runner/src/gates.rs` | L-33, L-26 | `bash ops/ci/egress.sh; echo EXIT=$?` | M | AGENT | 2 → 94 |
@@ -229,9 +236,9 @@ against the new Jeryu. Expected blended ≈ 86 (architecture 100, implemented �
 
 | Lane | Goal | Repo · paths | Pred | Proof | Size | Class | Dim → |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| **L-49 / L-65 `FIVE-TARGET-RELEASE`** | Clean Linux aarch64, macOS x86_64/arm64, Windows x64 hosts (or reproducible cross builders where the target permits); `release build` for all five; signed; mutation-disabled on non-Linux until native containment passes (kept). | farm · `src/release/build/**`; external hosts | OD-F, L-41b | `bullet-family release verify` ×5; `check release --json` | L | EXTERNAL + AGENT | 9 → 95 |
+| **L-49 / L-65 `FIVE-TARGET-RELEASE`** | Clean Linux aarch64, macOS x86_64/arm64, Windows x64 hosts (or reproducible cross builders where the target permits); `release build` for all five; signed; mutation-disabled on non-Linux until native containment passes (kept). | farm · `src/release/build/**`; external hosts | OD-F, L-41b | `bullet-family release verify` ×5; `check release --profile universal-v1 --receipts <admitted-absolute-registry> --json` | L | EXTERNAL + AGENT | 9 → 95 |
 | **L-66 / L-67 ×4** | Install-twice and stranger trials on the remaining four platforms. | farm · runbooks, stranger-trial receipts | L-65 | receipts admitted | M | EXTERNAL (humans) | 9 → 100, stranger → 100 |
-| **L-42b `RELEASE-PUBLISH-SIGNED`** | The workflow publishes the five signed archives with provenance; `release smoke` passes on each. | farm · `.github/workflows/release.yml` | L-65 | `bullet-family release smoke; echo EXIT=$?` | M | AGENT | 9 → 100 |
+| **L-42b `RELEASE-PUBLISH-SIGNED`** | After OD-E and five-target admission, a tag-triggered workflow publishes only the five signed archives with signed provenance; `release smoke` passes on each and the publication is read back. | farm · `.github/workflows/release.yml` | OD-E, L-65 | `bullet-family release smoke; echo EXIT=$?` plus forge API read-back | M | AGENT | 9 → 100 |
 | **OD-H `EVOLUTION-ADR`** | Operator ADR and policy generation bump enabling `evolutionary_authority` only after the seven D3 §3 C2 gates are green. | operator | L-31, L-22, L-53, L-28, L-71 corpus, promotion service | — | a decision | OPERATOR | 7 |
 | **L-70a `EVO-FEASIBILITY-SHIELD`** | Deterministic shield before spend; negative knowledge retained; the "recipe field named `attempt_fence` fails schema" test. | kernel · `crates/recipe/src/shield.rs` (new) | L-50, L-51 | `cargo test --locked -p bullet-recipe -- shield` | M | AGENT | 7 → 20 |
 | **L-70b `EVO-EVALUATION`** (WI-20) | Corpus ingestion, evaluation vectors, matched-compute accounting, complete `AggregateEvaluationV1` with every pre-outcome assignment. | kernel · `crates/evaluation/**` (new) | L-53, L-22 | `cargo test --locked -p bullet-evaluation` | L | AGENT | 7 → 40 |
@@ -243,7 +250,8 @@ against the new Jeryu. Expected blended ≈ 86 (architecture 100, implemented �
 | **L-68 closure** | External review findings closed or accepted by ADR. | per finding | L-68 | signed closure | M | AGENT + EXTERNAL | 10 → 100 |
 | **S-01 `INDEPENDENT-RESCORE-FINAL`** | Two independent re-scores from different families; 100 stands only if both agree within 2 on every dimension. | — | everything | `just scorecard` | S | AGENT (two families) | §8 |
 
-P4 exits when: 26/26 gates green and the unprofiled `check release` returns exit 0; five stranger receipts;
+P4 exits when the complete `universal-v1` dependency closure is green and its explicitly profiled
+`check release` against the admitted absolute registry returns exit 0; five stranger receipts;
 evolution running under B0–B6 with a proven rollback; the final double re-score agrees. **That is 100.**
 
 ---
@@ -304,7 +312,8 @@ Total ≈ 30 weeks if every operator and external act lands the week it is first
 dominate: **OD-D late by N weeks slides everything by N**; the five-platform hosts (OD-F/L-49) bound P4 and
 cannot be compressed by adding agents. Everything else is agent-elastic — more agents shorten P0/P2/P3, not P1.
 
-Weekly cadence, every phase: Monday `coord status` + `check release --json` + `check scorecard --json` posted
+Weekly cadence, every phase: Monday `coord status` + `check release --profile universal-v1 --receipts
+<admitted-absolute-registry> --json` + `check scorecard --json` posted
 to the coordination log; lanes claim path-exactly, heartbeat ≤ 5 min, hand off with per-path hunk attestations;
 orchestrators clear the index → stage exact leaves → verify staged == claim → commit → receipt. Friday: the
 generated scorecard is regenerated and diffed; any row that moved without a new evidence subject is reverted.
@@ -412,7 +421,8 @@ reviewed ADR and re-renders every historical generation under both versions side
 
 100 is declared when **all** of the following are true at once and re-scored independently by two families:
 
-- [ ] `bullet-family check release --json` (unprofiled) returns exit 0 with 26/26 admitted current receipts.
+- [ ] `bullet-family check release --profile universal-v1 --receipts <admitted-absolute-registry> --json`
+      returns exit 0 with every gate in the full dependency closure admitted from current receipts.
 - [ ] Every §2 row has an admitted evidence subject; `scorecard.generated.md` shows I = 100 on all twelve.
 - [ ] Architecture 100: paper and contract agree on four providers; the default forge runs merge groups.
 - [ ] Five stranger-trial receipts, one per platform, from people with no coordination-log entry.
