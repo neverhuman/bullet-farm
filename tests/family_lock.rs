@@ -415,6 +415,108 @@ fn generation_rejects_a_relative_subject_manifest_before_writing() {
 }
 
 #[test]
+fn unsigned_tag_is_refused() {
+    let root = fixture_root("unsigned-tag");
+    let allowed = b"fixture@bullet.invalid namespaces=\"git\" ssh-ed25519 AAAA\n";
+    let mut external = valid_external();
+    external.release_signing.allowed_signers_digest = format!(
+        "blake3:{}",
+        "d76b04d5cb728135bb77b766e2ec46c5c8c9d8da737cc87c5ca40b8ff1847554"
+    );
+
+    for name in [
+        "bullet-farm",
+        "bullet-kernel",
+        "bullet-git",
+        "bullet-portal",
+    ] {
+        let repo = root.join(name);
+        fs::create_dir_all(&repo).unwrap();
+        if name == "bullet-farm" {
+            fs::create_dir_all(repo.join("release")).unwrap();
+            fs::create_dir_all(repo.join("crates/bullet-wire")).unwrap();
+            fs::write(repo.join("release/allowed_signers"), allowed).unwrap();
+            fs::write(
+                repo.join("crates/bullet-wire/lib.rs"),
+                "pub fn fixture() {}\n",
+            )
+            .unwrap();
+        }
+        init_git_with_lightweight_tag(&repo);
+    }
+
+    fs::write(
+        root.join("repos.manifest.toml"),
+        format!(
+            concat!(
+                "family = \"bullet-farm\"\n",
+                "required_repos = [\"bullet-farm\", \"bullet-kernel\", \"bullet-git\", \"bullet-portal\"]\n",
+                "[[repo]]\nname = \"bullet-farm\"\npath = \"{root}/bullet-farm\"\n",
+                "[[repo]]\nname = \"bullet-kernel\"\npath = \"{root}/bullet-kernel\"\n",
+                "jeryu_url = \"https://jeryu.example/git/root/bullet-kernel.git\"\n",
+                "jeryu_slug = \"root/bullet-kernel\"\n",
+                "[[repo]]\nname = \"bullet-git\"\npath = \"{root}/bullet-git\"\n",
+                "jeryu_url = \"https://jeryu.example/git/root/bullet-git.git\"\n",
+                "jeryu_slug = \"root/bullet-git\"\n",
+                "[[repo]]\nname = \"bullet-portal\"\npath = \"{root}/bullet-portal\"\n",
+                "jeryu_url = \"https://jeryu.example/git/root/bullet-portal.git\"\n",
+                "jeryu_slug = \"root/bullet-portal\"\n",
+            ),
+            root = root.display()
+        ),
+    )
+    .unwrap();
+    let subjects = root.join("subjects.toml");
+    fs::write(
+        &subjects,
+        ExternalSubjectManifest::new(external).encode().unwrap(),
+    )
+    .unwrap();
+
+    let error = bullet_family::family_lock::run(
+        &root,
+        &[
+            "generate".into(),
+            "--tag".into(),
+            "v1.0.0".into(),
+            "--subjects".into(),
+            subjects.display().to_string(),
+        ],
+    )
+    .expect_err("lightweight tags cannot mint a lock");
+    assert_eq!(error.code(), "UNSIGNED_OR_LIGHTWEIGHT_TAG");
+    assert!(!root.join("bullet-farm/family.lock").exists());
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn html_content_type_is_never_a_capability() {
+    let mut lock = valid_lock();
+    lock.external.jeryu.capability_digest = "text/html".to_owned();
+    let error = bullet_family::family_lock::encode(&lock)
+        .expect_err("HTML MIME type is not a capability digest");
+    assert_eq!(error.code(), "INVALID_FAMILY_LOCK");
+    assert!(error.to_string().contains("capability_digest"));
+    assert!(error.to_string().contains("BLAKE3"));
+
+    let hostile = String::from_utf8(encoded(&valid_lock()))
+        .unwrap()
+        .replace(&valid_lock().external.jeryu.capability_digest, "text/html");
+    let parsed = parse(hostile.as_bytes()).expect_err("parse refuses HTML capability");
+    assert_eq!(parsed.code(), "INVALID_FAMILY_LOCK");
+
+    let probe = bullet_family::forge::execute(
+        vec!["bullet-family".into(), "forge".into(), "probe".into()],
+        Ok(std::env::temp_dir()),
+    )
+    .expect("diagnostic probe");
+    assert!(
+        !probe.output().to_ascii_lowercase().contains("text/html"),
+        "probe must never treat an HTML SPA body as a capability"
+    );
+}
+
+#[test]
 fn public_cli_admits_only_generate_and_verify() {
     let root = fixture_root("cli-vocabulary");
     let hub = root.join("bullet-farm");
@@ -467,12 +569,41 @@ fn lock_cli(root: &std::path::Path, args: &[&str]) -> std::process::Output {
         .expect("run bullet-family lock command")
 }
 
+fn init_git_with_lightweight_tag(repo: &std::path::Path) {
+    let git = |args: &[&str]| {
+        let output = Command::new("/usr/bin/git")
+            .current_dir(repo)
+            .args(args)
+            .env_clear()
+            .env("LC_ALL", "C")
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "git {args:?} failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    };
+    git(&["init", "--quiet"]);
+    git(&["config", "user.name", "Fixture"]);
+    git(&["config", "user.email", "fixture@bullet.invalid"]);
+    fs::write(repo.join("README"), "unsigned fixture\n").unwrap();
+    git(&["add", "."]);
+    git(&["commit", "-m", "Fixture"]);
+    git(&["tag", "v1.0.0"]);
+}
+
 fn fixture_root(name: &str) -> PathBuf {
-    let root =
-        std::env::temp_dir().join(format!("bullet-family-lock-{name}-{}", std::process::id()));
-    if root.exists() {
-        fs::remove_dir_all(&root).unwrap();
-    }
-    fs::create_dir(&root).unwrap();
+    let root = std::env::temp_dir().join(format!(
+        "bullet-family-lock-{name}-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    fs::create_dir_all(&root).unwrap();
     root
 }
