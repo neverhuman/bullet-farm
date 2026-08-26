@@ -6,6 +6,10 @@ Bullet Farm is building the transaction boundary for coding agents: fenced autho
 
 **Current alpha:** the boundaries are component-proved; public installation, live providers, and the connected transaction remain blocked.
 
+**Public index:** [github.com/neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm)
+
+That is the public URL. The hyphenated slug `neverhuman/bullet-farm` is not. GitHub is a discovery and PR mirror, not source authority, and a clone is not an installer.
+
 [Dated Stage-1 architecture preprint](docs/paper/bullet_farm_ieee.pdf) · [Dated Stage-1 executive brief](docs/paper/executive_brief.pdf) · [Architecture](docs/architecture.md) · [Current release truth](docs/assurance/release-truth.generated.md)
 
 The preprints describe the earlier universal release envelope; the current staged release order is the [closure roadmap](docs/assurance/closure-roadmap.md). Paper regeneration remains blocked under [WP-01](docs/workplan.md).
@@ -15,6 +19,17 @@ The preprints describe the earlier universal release envelope; the current stage
 [Static fallback](docs/readme-media/component-preview/fallback.png) · [Accessible transcript](docs/readme-media/component-preview/transcript.txt) · [Reproduction manifest](docs/readme-media/component-preview/manifest.json)
 
 This is a pre-release engineering system, not an installer announcement. A model saying “done,” a process exiting zero, or a pull request opening has no completion authority.
+
+## Public index
+
+```bash
+git clone https://github.com/neverhuman/bulletfarm.git bullet-farm
+cd bullet-farm
+```
+
+Clone into `bullet-farm` so the checkout name matches the family member. This repository is the hub only. The kernel, BulletGit, and portal members are independent checkouts and are not published under hyphenated `neverhuman/bullet-*` slugs.
+
+Public installation is not available. The checked-in `family.lock` is a diagnostic schema-2 snapshot; it cannot authorize source acquisition or a release install. The [source-setup runbook](docs/runbooks/source-setup.md) explains that boundary.
 
 ## Why Bullet is different
 
@@ -36,8 +51,6 @@ Mission → immutable Plan → fenced Attempt → exact Candidate
 ```
 
 ## Preview an existing family
-
-Public installation is not available. The checked-in `family.lock` is a diagnostic schema-2 snapshot; it cannot authorize source acquisition or a release install. The [source-setup runbook](docs/runbooks/source-setup.md) explains that boundary.
 
 If all four ordinary sibling checkouts already exist as listed in `repos.manifest.toml`, run:
 
@@ -113,7 +126,7 @@ path is required; `preview` and `dev` operate on the four existing sibling check
 | `bullet-git` | sole writer, private clones, journal/CAS, Change and Candidate identity | `crates/bullet-git-*`, `crates/bullet-gitd/` |
 | `bullet-portal` | generated API client and non-authoritative projections | `src/generated/`, `src/pages/`, `src/components/` |
 
-See the [code map and “change X here” guide](docs/code-map.md) before editing a boundary.
+The public GitHub index publishes this hub at [neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm). Local checkout names stay `bullet-farm`, `bullet-kernel`, `bullet-git`, and `bullet-portal`. See the [code map and “change X here” guide](docs/code-map.md) before editing a boundary.
 
 ## What exists, and what is still unproved
 
@@ -167,7 +180,7 @@ just readme-render         # pinned VHS image, network disabled
 just readme-check          # claims, media, hashes, limits, double render
 ```
 
-GitHub is prepared as a secretless PR/discovery mirror; the [workflow](.github/workflows/ci.yml) converges on `CI / required`. It is not authoritative release Evidence, and no badge is published before a hosted run and branch-protection read-back exist. Future Jeryu jobs are described by `ci.toml` but remain inactive pending forge ratification and immutable provisioning.
+The public index is [github.com/neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm). GitHub is a secretless PR/discovery mirror; the [workflow](.github/workflows/ci.yml) converges on `CI / required`. It is not authoritative release Evidence, and no badge is published before a hosted run and branch-protection read-back exist. Future Jeryu jobs are described by `ci.toml` but remain inactive pending forge ratification and immutable provisioning.
 
 Documentation: [index](docs/README.md) · [paper sources](docs/paper/README.md) · [workplan](docs/workplan.md) · [CI policy](docs/testing.md) · [license](LICENSE)
 

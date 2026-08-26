@@ -44,8 +44,10 @@ A newer subject invalidates its receipt until the mapped gate is replayed.
   execute only admitted gate IDs. Verifier reconstructs the exact Candidate in
   an independent clean environment. The effect broker alone holds forge
   credentials. Portal is a sequence-bound projection and never an authority.
-- Initial source distribution is Jeryu-only from immutable signed tags. No
-  `neverhuman/bullet-*` GitHub namespace is assumed. GitHub is not source
+- Initial source distribution is Jeryu-only from immutable signed tags. The
+  public discovery index is `github.com/neverhuman/bulletfarm` (not
+  `neverhuman/bullet-farm`). No hyphenated `neverhuman/bullet-*` member
+  namespace is assumed. GitHub is not source
   authority, but V1 GA still requires its independently reconciled effect
   receipt in addition to Jeryu.
 - The shared wire uses RFC 8785 canonical JSON, domain-separated BLAKE3, full

@@ -4,6 +4,11 @@ Status: **existing-family contributor proof available; trusted public installati
 Owner: Bullet Farm maintainers  
 Last reviewed: 2026-08-25
 
+The public discovery index is
+[`https://github.com/neverhuman/bulletfarm`](https://github.com/neverhuman/bulletfarm)
+(not `neverhuman/bullet-farm`). A hub clone from that URL is not a trusted
+install and does not create the other three family members.
+
 This runbook distinguishes three surfaces that must not be conflated.
 
 | Surface | Current authority |

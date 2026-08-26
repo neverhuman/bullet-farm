@@ -2,7 +2,7 @@
 
 Status: pre-transaction split-family hub; not release-ready
 Owner: Bullet Farm maintainers
-Last reviewed: 2026-08-25
+Last reviewed: 2026-08-26
 Applies to: bullet-farm
 
 ## Role
@@ -18,7 +18,8 @@ historical Centerrail design provenance.
 ## Repositories
 
 - Initial source authority: Jeryu repository `root/bullet-farm`
-- Public GitHub mirror: not configured; no namespace is assumed
+- Public GitHub index: `https://github.com/neverhuman/bulletfarm` (not
+  `neverhuman/bullet-farm`); discovery/PR mirror only, never source authority
 - Release tag pattern: `bullet-farm-v0.1.0-split.0`
 
 ## Split Rules
