@@ -160,4 +160,189 @@ dollar='$'
   echo '[ci] FAMILY_CONTRACT_OBSERVATION_IDENTITY_DRIFT' >&2
   exit 1
 }
+
+lock_fixture="$(mktemp -d)"
+lock_outside="$(mktemp -d)"
+lock_owner_pid=
+lock_child_pid=
+cleanup_lock_fixture() {
+  [[ -z "$lock_owner_pid" ]] || kill -KILL "$lock_owner_pid" 2>/dev/null || true
+  [[ -z "$lock_child_pid" ]] || kill -KILL "$lock_child_pid" 2>/dev/null || true
+  rm -rf -- "$lock_fixture" "$lock_outside"
+}
+trap cleanup_lock_fixture EXIT
+mkdir -p "$lock_fixture/.git" "$lock_fixture/scripts" "$lock_fixture/ops/ci"
+cp "$REPO_ROOT/scripts/ci-local.sh" "$lock_fixture/scripts/ci-local.sh"
+cp "$REPO_ROOT/ops/ci/artifact-path.sh" "$lock_fixture/ops/ci/artifact-path.sh"
+printf '%s\n' '#!/usr/bin/env bash' 'printf "doctor:%s\n" "$$" >> children' \
+  >"$lock_fixture/scripts/ci-doctor.sh"
+printf '%s\n' '#!/usr/bin/env bash' 'set -eu' \
+  'mkdir -p .ci-artifacts/observations' \
+  'printf "observation:%s\n" "$$" >> observation-calls' \
+  "printf observed > \".ci-artifacts/observations/${dollar}1.json\"" \
+  >"$lock_fixture/scripts/ci-observation.sh"
+cat >"$lock_fixture/ops/ci/fast.sh" <<'FIXTURE'
+#!/usr/bin/env bash
+set -eu
+printf 'fast:%s\n' "$$" >> children
+: > child-started
+if [[ "${CI_FIXTURE_NESTED:-0}" == 1 ]]; then
+  set +e
+  CI_FIXTURE_NESTED=0 bash scripts/ci-local.sh fast >nested-output 2>&1
+  printf '%s\n' "$?" >nested-status
+  set -e
+fi
+while [[ "${CI_FIXTURE_HOLD:-0}" == 1 && ! -e release-child ]]; do sleep 0.05; done
+exit "${CI_FIXTURE_STATUS:-0}"
+FIXTURE
+chmod +x "$lock_fixture/scripts/"*.sh "$lock_fixture/ops/ci/fast.sh"
+
+wait_for_lock_fixture() {
+  local path="$1"
+  for _ in {1..200}; do
+    [[ -e "$path" ]] && return 0
+    sleep 0.05
+  done
+  printf '[ci] CI_PROOF_LOCK_TEST_TIMEOUT: %s\n' "$path" >&2
+  return 1
+}
+
+start_lock_owner() {
+  local requested_umask="${1:-}"
+  rm -f -- "$lock_fixture/child-started" "$lock_fixture/release-child" \
+    "$lock_fixture/children" "$lock_fixture/nested-output" "$lock_fixture/nested-status"
+  (
+    [[ -z "$requested_umask" ]] || umask "$requested_umask"
+    cd "$lock_fixture"
+    exec env CI_FIXTURE_HOLD=1 bash scripts/ci-local.sh fast
+  ) >"$lock_fixture/owner-output" 2>&1 &
+  lock_owner_pid=$!
+  wait_for_lock_fixture "$lock_fixture/child-started"
+}
+
+start_lock_owner 000
+[[ "$(find "$lock_fixture/.git/bullet-ci.lock.d" -maxdepth 0 -type d -perm 0700 -print)" \
+    == "$lock_fixture/.git/bullet-ci.lock.d" \
+  && "$(find "$lock_fixture/.git/bullet-ci.lock.d/owner" -maxdepth 0 -type f -perm 0600 -print)" \
+    == "$lock_fixture/.git/bullet-ci.lock.d/owner" ]] \
+  || { echo '[ci] CI_PROOF_LOCK_MODE_INVALID' >&2; exit 1; }
+mkdir -p "$lock_fixture/.ci-artifacts/junit"
+printf preserve >"$lock_fixture/.ci-artifacts/junit/fast.xml"
+set +e
+lock_output="$(cd "$lock_fixture" && bash scripts/ci-local.sh fast 2>&1)"
+lock_status=$?
+set -e
+[[ "$lock_status" -eq 75 && "$lock_output" == *CI_PROOF_LOCKED_OR_STALE* \
+  && "$(<"$lock_fixture/.ci-artifacts/junit/fast.xml")" == preserve \
+  && "$(wc -l <"$lock_fixture/children")" -eq 2 \
+  && ! -e "$lock_fixture/.ci-artifacts/observations/fast.json" ]] || {
+  echo '[ci] CI_PROOF_OVERLAP_REFUSAL_INVALID' >&2
+  exit 1
+}
+: >"$lock_fixture/release-child"
+wait "$lock_owner_pid"
+lock_owner_pid=
+[[ ! -e "$lock_fixture/.git/bullet-ci.lock.d" ]] \
+  || { echo '[ci] CI_PROOF_PASS_LOCK_RETAINED' >&2; exit 1; }
+
+set +e
+(cd "$lock_fixture" && CI_FIXTURE_STATUS=19 bash scripts/ci-local.sh fast >/dev/null 2>&1)
+lock_status=$?
+set -e
+[[ "$lock_status" -eq 19 && ! -e "$lock_fixture/.git/bullet-ci.lock.d" ]] \
+  || { echo '[ci] CI_PROOF_FAIL_LOCK_RETAINED' >&2; exit 1; }
+
+rm -f "$lock_fixture/children"
+mkdir -p "$lock_fixture/.ci-artifacts/junit" "$lock_fixture/.ci-artifacts/observations"
+rm -f "$lock_fixture/.ci-artifacts/junit/fast.xml"
+mkdir "$lock_fixture/.ci-artifacts/junit/fast.xml"
+printf preserve >"$lock_fixture/.ci-artifacts/observations/fast.json"
+set +e
+(cd "$lock_fixture" && bash scripts/ci-local.sh fast >/dev/null 2>&1)
+lock_status=$?
+set -e
+[[ "$lock_status" -eq 1 && ! -e "$lock_fixture/children" \
+  && "$(<"$lock_fixture/.ci-artifacts/observations/fast.json")" == preserve \
+  && ! -e "$lock_fixture/.git/bullet-ci.lock.d" ]] \
+  || { echo '[ci] CI_PROOF_ARTIFACT_TYPE_REFUSAL_INVALID' >&2; exit 1; }
+rmdir "$lock_fixture/.ci-artifacts/junit/fast.xml"
+
+(cd "$lock_fixture" && CI_FIXTURE_NESTED=1 bash scripts/ci-local.sh fast >/dev/null 2>&1)
+[[ "$(<"$lock_fixture/nested-status")" -eq 75 \
+  && "$(<"$lock_fixture/nested-output")" == *CI_PROOF_LOCKED_OR_STALE* ]] \
+  || { echo '[ci] CI_PROOF_NESTED_REFUSAL_INVALID' >&2; exit 1; }
+
+start_lock_owner
+while IFS=: read -r kind pid; do
+  [[ "$kind" != fast ]] || lock_child_pid="$pid"
+done <"$lock_fixture/children"
+kill -KILL "$lock_owner_pid"
+set +e
+wait "$lock_owner_pid" 2>/dev/null
+set -e
+lock_owner_pid=
+kill -TERM "$lock_child_pid" 2>/dev/null || true
+for _ in {1..100}; do
+  kill -0 "$lock_child_pid" 2>/dev/null || break
+  sleep 0.05
+done
+if kill -0 "$lock_child_pid" 2>/dev/null; then
+  kill -KILL "$lock_child_pid" 2>/dev/null || true
+  for _ in {1..100}; do
+    kill -0 "$lock_child_pid" 2>/dev/null || break
+    sleep 0.05
+  done
+fi
+kill -0 "$lock_child_pid" 2>/dev/null \
+  && { echo '[ci] CI_PROOF_CRASH_CHILD_SURVIVED' >&2; exit 1; }
+lock_child_pid=
+set +e
+lock_output="$(cd "$lock_fixture" && bash scripts/ci-local.sh fast 2>&1)"
+lock_status=$?
+set -e
+[[ "$lock_status" -eq 75 && "$lock_output" == *CI_PROOF_LOCKED_OR_STALE* ]] \
+  || { echo '[ci] CI_PROOF_CRASH_STALE_REFUSAL_INVALID' >&2; exit 1; }
+rm -- "$lock_fixture/.git/bullet-ci.lock.d/owner"
+rmdir -- "$lock_fixture/.git/bullet-ci.lock.d"
+
+printf preserve >"$lock_outside/sentinel"
+rmdir "$lock_fixture/.git"
+ln -s "$lock_outside" "$lock_fixture/.git"
+set +e
+(cd "$lock_fixture" && bash scripts/ci-local.sh fast >/dev/null 2>&1)
+lock_status=$?
+set -e
+[[ "$lock_status" -eq 75 && "$(<"$lock_outside/sentinel")" == preserve \
+  && ! -e "$lock_outside/bullet-ci.lock.d" ]] \
+  || { echo '[ci] CI_PROOF_GIT_SYMLINK_REFUSAL_INVALID' >&2; exit 1; }
+rm "$lock_fixture/.git"
+mkdir "$lock_fixture/.git"
+ln -s "$lock_outside" "$lock_fixture/.git/bullet-ci.lock.d"
+set +e
+(cd "$lock_fixture" && bash scripts/ci-local.sh fast >/dev/null 2>&1)
+lock_status=$?
+set -e
+[[ "$lock_status" -eq 75 && "$(<"$lock_outside/sentinel")" == preserve ]] \
+  || { echo '[ci] CI_PROOF_LOCK_SYMLINK_REFUSAL_INVALID' >&2; exit 1; }
+rm "$lock_fixture/.git/bullet-ci.lock.d"
+
+start_lock_owner
+observation_count_before="$(wc -l <"$lock_fixture/observation-calls")"
+rm "$lock_fixture/.git/bullet-ci.lock.d/owner"
+ln -s "$lock_outside/sentinel" "$lock_fixture/.git/bullet-ci.lock.d/owner"
+: >"$lock_fixture/release-child"
+set +e
+wait "$lock_owner_pid"
+lock_status=$?
+set -e
+lock_owner_pid=
+[[ "$lock_status" -eq 75 && "$(<"$lock_outside/sentinel")" == preserve \
+  && "$(wc -l <"$lock_fixture/observation-calls")" -eq "$observation_count_before" \
+  && -L "$lock_fixture/.git/bullet-ci.lock.d/owner" ]] \
+  || { echo '[ci] CI_PROOF_OWNER_SYMLINK_REFUSAL_INVALID' >&2; exit 1; }
+rm "$lock_fixture/.git/bullet-ci.lock.d/owner"
+rmdir "$lock_fixture/.git/bullet-ci.lock.d"
+
+cleanup_lock_fixture
+trap - EXIT
 printf '[ci] ci-doctor all-lane union guards passed\n'

@@ -5,8 +5,63 @@ REPO_ROOT="$PWD"
 # shellcheck source=ops/ci/artifact-path.sh
 source "$REPO_ROOT/ops/ci/artifact-path.sh"
 
-run_observed() {
-  local lane="$1" script="$2" status artifact command_count
+CI_PROOF_LOCK_DIR="$REPO_ROOT/.git/bullet-ci.lock.d"
+CI_PROOF_LOCK_OWNER="$CI_PROOF_LOCK_DIR/owner"
+CI_PROOF_LOCK_RECORD=""
+
+proof_lock_refusal() {
+  printf '%s\n' \
+    "ci-local: CI_PROOF_LOCKED_OR_STALE: $CI_PROOF_LOCK_DIR is occupied or cannot be trusted" \
+    "ci-local: verify that no scripts/ci-local.sh process is using this exact checkout; then inspect and explicitly reconcile only $CI_PROOF_LOCK_DIR" >&2
+  return 75
+}
+
+verify_proof_lock() {
+  [[ -d "$CI_PROOF_LOCK_DIR" && ! -L "$CI_PROOF_LOCK_DIR" \
+    && -f "$CI_PROOF_LOCK_OWNER" && ! -L "$CI_PROOF_LOCK_OWNER" \
+    && "$(<"$CI_PROOF_LOCK_OWNER")" == "$CI_PROOF_LOCK_RECORD" ]] || {
+    proof_lock_refusal
+    return 75
+  }
+}
+
+acquire_proof_lock() {
+  local lane="$1"
+  [[ -d "$REPO_ROOT/.git" && ! -L "$REPO_ROOT/.git" ]] || {
+    proof_lock_refusal
+    return 75
+  }
+  if ! (umask 077; mkdir -- "$CI_PROOF_LOCK_DIR") 2>/dev/null; then
+    proof_lock_refusal
+    return 75
+  fi
+  [[ -d "$CI_PROOF_LOCK_DIR" && ! -L "$CI_PROOF_LOCK_DIR" ]] || {
+    proof_lock_refusal
+    return 75
+  }
+  CI_PROOF_LOCK_RECORD="schema=1 pid=$$ lane=$lane nonce=$$-${BASHPID:-$$}-$RANDOM-$RANDOM"
+  if ! (umask 077; set -o noclobber; printf '%s\n' "$CI_PROOF_LOCK_RECORD" \
+      >"$CI_PROOF_LOCK_OWNER") 2>/dev/null; then
+    proof_lock_refusal
+    return 75
+  fi
+  verify_proof_lock
+}
+
+release_proof_lock() {
+  verify_proof_lock || return $?
+  rm -- "$CI_PROOF_LOCK_OWNER" || {
+    proof_lock_refusal
+    return 75
+  }
+  rmdir -- "$CI_PROOF_LOCK_DIR" || {
+    proof_lock_refusal
+    return 75
+  }
+}
+
+run_observed_locked() {
+  local lane="$1" script="$2" status artifact command_count observation_status
   shift 2
   local -a produced=() commands=("bash scripts/ci-doctor.sh $lane")
   command -v realpath >/dev/null 2>&1 || {
@@ -26,7 +81,14 @@ run_observed() {
       printf 'ci-local: unsafe artifact parent %s\n' "${artifact%/*}" >&2
       return 1
     }
-    rm -f -- "$artifact"
+    if [[ -L "$artifact" || (-e "$artifact" && ! -f "$artifact") ]]; then
+      printf 'ci-local: unsafe artifact subject %s\n' "$artifact" >&2
+      return 1
+    fi
+    rm -f -- "$artifact" || {
+      printf 'ci-local: cannot reset artifact %s\n' "$artifact" >&2
+      return 1
+    }
   done
   set +e
   bash scripts/ci-doctor.sh "$lane"
@@ -43,8 +105,25 @@ run_observed() {
     done
   fi
   command_count="${#commands[@]}"
+  verify_proof_lock || return $?
+  set +e
   CI_COMMAND_COUNT="$command_count" bash scripts/ci-observation.sh "$lane" "$status" \
     "${commands[@]}" "${produced[@]}"
+  observation_status=$?
+  set -e
+  [[ "$observation_status" -eq 0 ]] || return "$observation_status"
+  return "$status"
+}
+
+run_observed() {
+  local lane="$1" status
+  acquire_proof_lock "$lane" || return $?
+  if run_observed_locked "$@"; then
+    status=0
+  else
+    status=$?
+  fi
+  release_proof_lock || return $?
   return "$status"
 }
 
