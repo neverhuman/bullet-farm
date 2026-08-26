@@ -227,11 +227,26 @@ fn mutable_sibling_bytes_cannot_buy_points() {
 }
 
 #[test]
-fn isolated_hub_cannot_buy_sibling_points() {
+fn isolated_hub_and_self_authored_envelopes_cannot_buy_points() {
     let original = std::fs::read(hub().join("policy/scorecard-v1.json")).unwrap();
     let directory = tempfile::tempdir().unwrap();
     std::fs::create_dir(directory.path().join("policy")).unwrap();
     std::fs::write(directory.path().join("policy/scorecard-v1.json"), original).unwrap();
+    let subjects = directory.path().join("policy/scorecard/subjects");
+    std::fs::create_dir_all(&subjects).unwrap();
+    let excerpt = "fn issue(\nfn consume(\nfn state(\nNONCE_CONSUMED\n";
+    let envelope = serde_json::json!({
+        "schema_version": "scorecard-subject-v1",
+        "subject_id": "scorecard.d1.nonce-ledger",
+        "excerpt_blake3": blake3::hash(excerpt.as_bytes()).to_hex().to_string(),
+        "required_tokens": ["fn issue(", "fn consume(", "fn state(", "NONCE_CONSUMED"],
+        "excerpt": excerpt,
+    });
+    std::fs::write(
+        subjects.join("scorecard.d1.nonce-ledger.json"),
+        serde_json::to_vec(&envelope).unwrap(),
+    )
+    .unwrap();
     let report = evaluate(directory.path()).expect("isolated scorecard");
     assert!(
         (report.implemented - 39.7).abs() < 0.15,
