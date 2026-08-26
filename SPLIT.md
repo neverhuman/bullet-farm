@@ -19,7 +19,9 @@ historical Centerrail design provenance.
 
 - Initial source authority: Jeryu repository `root/bullet-farm`
 - Public GitHub index: `https://github.com/neverhuman/bulletfarm` (not
-  `neverhuman/bullet-farm`); discovery/PR mirror only, never source authority
+  `neverhuman/bullet-farm`); discovery/PR mirror only, never source authority.
+  The first public snapshot omits `.github/workflows/*` because the publication
+  credential lacks GitHub `workflow` scope; local Hub main keeps those files.
 - Release tag pattern: `bullet-farm-v0.1.0-split.0`
 
 ## Split Rules
