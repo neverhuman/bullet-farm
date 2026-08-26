@@ -136,10 +136,13 @@ Objective: Kernel becomes the sole durable scheduler and authority issuer.
 - Mint short-lived one-use capabilities only from the current durable lease;
   bind audience, operation, request, subject, fence, runner, workspace, scope,
   policy, expiry, and nonce.
-- Admit peer credentials and descriptor-bound socket/key identity on the Runner
-  UDS transport; enforce bounded frames, deadlines, connection queues, safe
-  socket/key admission, and an atomic `advance`; persist nonce, recovery,
-  last-acquire, advance, and release state.
+- Promote the component-proved Runner UDS transport: its registered Runner
+  ID/epoch ↔ `SO_PEERCRED` UID binding, farmd UID plus socket GID/device/inode
+  pinning, and durable server grant/nonce state are landed. Replace the
+  debug-only peer registry and ephemeral process signing key with
+  operator-admitted durable configuration/custody; persist client
+  acquire/read-back recovery instead of process-local metadata; wire product
+  Runner; and prove bounded lost-response recovery without a second write.
 - Complete CAS retention, orphan-safe GC, audit-root continuity, and verified
   backup/restore with `SAFE_STOPPED` on ambiguity or corruption.
 - Use a single serialized write actor, concurrent read pool, WAL, foreign keys,
