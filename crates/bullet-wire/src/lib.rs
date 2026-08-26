@@ -6,6 +6,7 @@ mod contract_tool;
 mod digest;
 mod error;
 mod event;
+mod forge_profile;
 mod ids;
 mod ipc;
 mod manifest;
@@ -39,6 +40,13 @@ pub use contract_tool::{ContractMode, execute as execute_contract_tool};
 pub use digest::{Blake3Digest, canonical_json, hash_canonical, hash_framed_bytes};
 pub use error::WireError;
 pub use event::{CommandEnvelope, CommandState, EventEnvelope, Snapshot};
+pub use forge_profile::{
+    FORGE_PROFILE_SCHEMA_VERSION, ForgeCapability, ForgeKind, ForgeProfileId, ForgeProfileRegistry,
+    IntegrationSubjectBinding, MAX_FORGE_BASE_URL_BYTES, MAX_REPLICATION_REFS,
+    PRIMARY_FORGE_PROFILE_DIGEST_DOMAIN, PrimaryForgeProfileV1, REPLICATION_INTENT_DIGEST_DOMAIN,
+    ReplicationIntentKind, ReplicationIntentV1, decode_primary_forge_profile,
+    decode_replication_intent,
+};
 pub use ids::*;
 pub use ipc::*;
 pub use manifest::{

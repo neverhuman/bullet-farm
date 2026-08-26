@@ -2232,10 +2232,10 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
-    "path": "crates/adapters/tests/lease_command_atomicity.rs",
-    "symbol": "every_lease_command_boundary_reopens_old_or_complete_and_replays_once"
+    "path": "crates/adapters/tests/cross_process.rs",
+    "symbol": "exactly_one_process_wins_a_concurrent_acquire"
    },
-   "note": "audit 2026-08-26 (PARTIAL): Proves atomic recovery, fence/attempt/lease/outbox creation, and replay, but not concurrent serialization, non-READY refusal, or act"
+   "note": "audit 2026-08-26 (PARTIAL, Codex AGREE): T-9 proves 8-process single winner; recovery/replay proven; no isolated no-active-lease refusal, no READY refusal"
   },
   {
    "id": "spec.s26.4.heartbeat",
@@ -4200,10 +4200,10 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
-    "path": "crates/runner/tests/stonith.rs",
-    "symbol": "runner_deadline_precedes_server_expiry_for_every_admitted_ttl"
+    "path": "crates/adapters/tests/cross_process.rs",
+    "symbol": "expired_lease_is_reclaimed_by_another_process"
    },
-   "note": "audit 2026-08-26 (PARTIAL): It proves the runner's monotonic deadline precedes a MemoryLedger lease window, not that database time is authoritative; bullet-kern"
+   "note": "audit 2026-08-26 (PARTIAL, Codex AGREE): SQLite-clock reclamation across processes proven; runner self-fence proven only vs MemoryLedger; no integrated proof"
   },
   {
    "id": "spec.s4.c1",
@@ -7021,9 +7021,10 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/clone_safety.rs",
-    "symbol": "clone_has_no_remote_and_manifest_lives_outside_the_tree"
-   }
+    "path": "crates/bullet-git-workspace/tests/gc_safety.rs",
+    "symbol": "mirror_gc_prune_and_deletion_after_clone_never_corrupt_private_clones"
+   },
+   "note": "Private clones survive gc/prune with fsck --full --strict clean and no alternates: ordinary Git objects only; forge-side export of a plain ref is W4"
   },
   {
    "id": "git_role.f1.change-id-evolution-graph",
@@ -8198,9 +8199,9 @@
     "kind": "test",
     "repo": "bullet-kernel",
     "path": "crates/effects/tests/broker.rs",
-    "symbol": "refs_outside_candidate_namespace_are_denied_before_any_row"
+    "symbol": "moved_ref_fails_the_lease_and_quarantines"
    },
-   "note": "Candidate namespace enforced; explicit reserved-ref rejection not tested."
+   "note": "Codex audit 2026-08-26: anchor covers only ZERO_OID create CAS (moved target quarantines) + namespace refusal; nonzero CAS, delivery, reserved refs untested"
   },
   {
    "id": "gastown.r17",

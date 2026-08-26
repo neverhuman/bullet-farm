@@ -32,7 +32,7 @@ const CONTRACT_LINKS: &[(&str, &str, &str, &str)] = &[
         "bullet-farm",
         "contracts/generated/rust/schema_bundle.rs",
         "bullet-git",
-        "crates/bullet-git-types/src/schema_bundle.rs",
+        "contracts/generated/rust/schema_bundle.rs",
     ),
     (
         "bullet-farm",
@@ -203,4 +203,129 @@ fn read_bounded(path: &Path) -> Result<Vec<u8>, CoordError> {
         ));
     }
     fs::read(path).map_err(CoordError::io)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{collections::BTreeSet, fs, path::Path};
+
+    use super::CONTRACT_LINKS;
+
+    type Link = (String, String, String, String);
+
+    const SYNC_SCRIPT: &str = "scripts/sync-family-contracts.sh";
+
+    /// The validator and the committed synchronizer must name exactly the same
+    /// (source, destination) pairs; the script is read as text, never executed.
+    #[test]
+    fn contract_links_equal_synchronizer_script_destinations() {
+        let script = fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join(SYNC_SCRIPT))
+            .expect("committed synchronizer script");
+        let written: BTreeSet<Link> = parse_sync_links(&script).into_iter().collect();
+        let validated: BTreeSet<Link> = CONTRACT_LINKS
+            .iter()
+            .map(
+                |&(source_member, source, destination_member, destination)| {
+                    (
+                        source_member.to_owned(),
+                        source.to_owned(),
+                        destination_member.to_owned(),
+                        destination.to_owned(),
+                    )
+                },
+            )
+            .collect();
+        for link in &validated {
+            assert!(
+                written.contains(link),
+                "setup validates {link:?}, which {SYNC_SCRIPT} never writes"
+            );
+        }
+        for link in &written {
+            assert!(
+                validated.contains(link),
+                "{SYNC_SCRIPT} writes {link:?}, which setup never validates"
+            );
+        }
+        assert_eq!(
+            validated.len(),
+            CONTRACT_LINKS.len(),
+            "duplicate contract link"
+        );
+    }
+
+    /// Textual reading of the synchronizer: joins backslash continuations, expands
+    /// `$HUB`/`$FAMILY` roots and one single-variable `for … in …; do` loop, and
+    /// refuses any construct it does not understand rather than guessing.
+    fn parse_sync_links(script: &str) -> Vec<Link> {
+        let mut links = Vec::new();
+        let mut active_loop: Option<(String, Vec<String>)> = None;
+        for logical in script.replace("\\\n", " ").lines() {
+            let line = logical.trim();
+            if let Some(header) = line.strip_prefix("for ") {
+                assert!(active_loop.is_none(), "nested loop is not admitted: {line}");
+                let (variable, values) = header
+                    .split_once(" in ")
+                    .and_then(|(variable, rest)| Some((variable, rest.strip_suffix("; do")?)))
+                    .unwrap_or_else(|| panic!("unrecognized loop header: {line}"));
+                active_loop = Some((
+                    variable.trim().to_owned(),
+                    values.split_whitespace().map(str::to_owned).collect(),
+                ));
+            } else if line == "done" {
+                assert!(active_loop.take().is_some(), "`done` outside a loop");
+            } else if let Some(arguments) = line.strip_prefix("sync_file ") {
+                let arguments: Vec<&str> = arguments.split_whitespace().map(unquote).collect();
+                assert_eq!(
+                    arguments.len(),
+                    2,
+                    "sync_file takes source and destination: {line}"
+                );
+                let (source, destination) = (arguments[0], arguments[1]);
+                match &active_loop {
+                    None => links.push(link(source, destination)),
+                    Some((variable, values)) => {
+                        let pattern = format!("${{{variable}}}");
+                        for value in values {
+                            links.push(link(
+                                &source.replace(&pattern, value),
+                                &destination.replace(&pattern, value),
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        assert!(active_loop.is_none(), "unterminated loop");
+        links
+    }
+
+    fn unquote(token: &str) -> &str {
+        token
+            .strip_prefix('"')
+            .and_then(|inner| inner.strip_suffix('"'))
+            .unwrap_or_else(|| panic!("sync_file arguments must be double-quoted: {token}"))
+    }
+
+    fn link(source: &str, destination: &str) -> Link {
+        let (source_member, source) = split_member(source);
+        let (destination_member, destination) = split_member(destination);
+        (source_member, source, destination_member, destination)
+    }
+
+    fn split_member(path: &str) -> (String, String) {
+        let (member, relative) = if let Some(relative) = path.strip_prefix("$HUB/") {
+            ("bullet-farm", relative)
+        } else if let Some(rest) = path.strip_prefix("$FAMILY/") {
+            rest.split_once('/')
+                .unwrap_or_else(|| panic!("family path names no member: {path}"))
+        } else {
+            panic!("sync_file path is not rooted at $HUB or $FAMILY: {path}");
+        };
+        assert!(
+            !relative.contains('$') && !relative.is_empty(),
+            "unexpanded or empty path: {path}"
+        );
+        (member.to_owned(), relative.to_owned())
+    }
 }
