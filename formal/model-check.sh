@@ -147,11 +147,14 @@ for module in "${modules[@]}"; do
 
   model_run_root="$run_root/$name"
   mkdir -m 0700 -- "$model_run_root"
+  java_tmp_root="$model_run_root/java-tmp"
+  mkdir -m 0700 -- "$java_tmp_root"
   metadata_root="$model_run_root/metadata"
   log="$model_run_root/$name.log"
   (
     cd "$FORMAL"
-    java -XX:+UseParallelGC -cp "$JAR" tlc2.TLC -workers "$WORKERS" \
+    java -Djava.io.tmpdir="$java_tmp_root" -XX:+UseParallelGC \
+      -cp "$JAR" tlc2.TLC -workers "$WORKERS" \
       -metadir "$metadata_root" -seed "$SEED" -fp 0 -config "$config" "$module"
   ) | tee "$log"
   grep -Fq "Model checking completed. No error has been found." "$log" || {

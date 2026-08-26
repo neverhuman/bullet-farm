@@ -93,6 +93,19 @@ for log in "$TEST_ROOT/a.log" "$TEST_ROOT/b.log"; do
     echo "formal-concurrency-test: pinned completion summary missing from $log" >&2
     exit 1
   }
+  for standard_module in Naturals FiniteSets TLC Sequences; do
+    mapfile -t standard_paths < <(grep -F "/java-tmp/$standard_module.tla" "$log")
+    [[ "${#standard_paths[@]}" -eq 2 ]] || {
+      echo "formal-concurrency-test: $standard_module was not extracted once per private model run in $log" >&2
+      exit 1
+    }
+    for standard_path in "${standard_paths[@]}"; do
+      [[ "$standard_path" == "Parsing file $CACHE/run."*"/java-tmp/$standard_module.tla" ]] || {
+        echo "formal-concurrency-test: $standard_module escaped the private JVM temp root in $log" >&2
+        exit 1
+      }
+    done
+  done
   if grep -Fq 'No such file or directory' "$log"; then
     echo "formal-concurrency-test: metadata disappeared during an overlapping check" >&2
     exit 1

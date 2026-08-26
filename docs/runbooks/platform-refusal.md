@@ -2,7 +2,7 @@
 
 Status: **Linux GNU is the only runner that mutates; every other platform fails closed before mutation**  
 Owner: Bullet Farm maintainers  
-Last reviewed: 2026-08-25  
+Last reviewed: 2026-08-26
 Component receipt baselines (minimum; replay current-head lanes before use): bullet-farm `d762f86`, bullet-kernel `0109a90` (harness-egress, launch-grant key custody, farmd
 worker token), bullet-git `236f4ef` (workspace generations/preservation)
 
@@ -64,7 +64,7 @@ refusal; a Linux GNU host never reaches mutation while the lock is schema 2.
 | --- | --- | --- | --- | --- |
 | Provider egress isolation (`bullet-harness-egress`) | Linux with `unshare`, `nsenter`, `slirp4netns`, `nft`, `curl`, `cat`, `kill` and unprivileged user+net namespaces | `Tooling::discover()` refuses, naming the first absent tool; nothing is namespaced or spawned | `EGRESS_TOOL_MISSING` | `crates/harness-egress/src/tools.rs`, `error.rs` |
 | `ops/ci/egress.sh` lane | same | exits `78` (neutral) when a tool or unprivileged namespaces are missing; it never reports green without running the probes | — | `ops/ci/egress.sh` |
-| `bullet provider live-conformance` | same, plus a ratified policy | exit `78` is reserved for the policy refusal `POLICY_LIVE_ADMISSION_DISABLED`; a missing egress tool under a ratified policy is a failing step (`EGRESS_PREPARE`, reason `EGRESS_TOOL_MISSING`, exit `1`), never neutral | `EGRESS_*` | `apps/bullet/src/provider.rs` (`NEUTRAL_REFUSAL = 78`); [`live-conformance.md`](live-conformance.md) §3 |
+| `bullet provider live-conformance` | no production adapter can dispatch today | exit `78` covers exactly two designed refusals: checked-in v1alpha1 returns `POLICY_LIVE_ADMISSION_DISABLED` at `POLICY`; structurally valid v1alpha2 returns `RUNTIME_PROBE_UNAVAILABLE` at `ADMISSION`. Both occur before operator-key read, graph/Mission, lease, or nonce writes, egress preparation, or spawn; the CLI may already have opened `ledger.sqlite`. A missing egress tool remains a future failing `EGRESS_PREPARE`, never a neutral substitute for a real probe | `POLICY_*`, `RUNTIME_PROBE_UNAVAILABLE` | `apps/bullet/src/provider.rs` (`NEUTRAL_REFUSAL = 78`); [`live-conformance.md`](live-conformance.md) §3 |
 | `bullet authority keygen` / key load | Unix | refuses: "operator key custody is certified only on Unix" | `LAUNCH_GRANT_INVALID` | `crates/harness-core/src/launch_grant/keyfile.rs` |
 | `bullet-farmd --worker-token-file` | Unix | daemon exits with failure: "worker token files are unavailable without descriptor-safe admission on this platform" | process exit failure | `apps/bullet-farmd/src/main.rs` |
 
