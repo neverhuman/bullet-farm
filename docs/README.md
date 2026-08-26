@@ -17,6 +17,7 @@ Candidate, Evidence result, effect, or release true.
 | Which gates are still blocked? | [`release.md`](release.md) |
 | What is still missing as a product? | [`assurance/product-gaps.md`](assurance/product-gaps.md) (G1–G18 index; explicit profiled `check release` wins) |
 | What is the current dependency-ordered finish plan? | [`assurance/closure-roadmap.md`](assurance/closure-roadmap.md) (Waves 0–11; first GA is `self-hosted-v1`) |
+| How will Nightshift's operator model be fused without importing its authority model? | [`assurance/nightshift-fusion-plan.md`](assurance/nightshift-fusion-plan.md) (proposed, source-pinned, dependency-ordered) |
 | Which of the 26 `check release` gates is which product gap? | [`assurance/product-gaps.md`](assurance/product-gaps.md#historical-26-gate-catalog-and-release-profiles) |
 | Which controls have executable enforcement? | [`assurance/invariant-registry.md`](assurance/invariant-registry.md) and the generated [`assurance/invariant-crosswalk.generated.md`](assurance/invariant-crosswalk.generated.md) |
 | What is the rendered release decision? | [`assurance/release-truth.generated.md`](assurance/release-truth.generated.md) (generated projection, exit 3; `check release` wins) |
@@ -85,6 +86,10 @@ green through documentation.
   remaining-gap index.
 - [`assurance/closure-roadmap.md`](assurance/closure-roadmap.md) is the current
   dependency-ordered implementation and proof map.
+- [`assurance/nightshift-fusion-plan.md`](assurance/nightshift-fusion-plan.md)
+  translates the source-pinned Nightshift UX and scheduling study into Bullet's
+  existing authority boundaries, Waves 0–11, and executable proof gates. It is
+  proposed planning, not runtime or release authority.
 - [`assurance/v1-closure-plan.md`](assurance/v1-closure-plan.md) is a frozen
   point-in-time component inventory; its old universal-first ordering is not
   current release authority.
