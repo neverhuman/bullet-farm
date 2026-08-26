@@ -1,6 +1,7 @@
 //! Rust-owned, exact-subject local check catalogs.
 
 mod catalog;
+pub mod corpus;
 mod executor;
 mod prerequisites;
 mod profiles;

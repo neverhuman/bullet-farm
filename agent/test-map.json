@@ -14,12 +14,28 @@
       "purpose": "verify the public hub metadata remains complete"
     },
     "Justfile": {
-      "command": "just fast",
+      "command": "just lint",
       "purpose": "verify public proof recipes still route to executable local lanes"
     },
+    "ci.toml": {
+      "command": "bash ops/ci/workflow-policy.sh",
+      "purpose": "verify prepared Jeryu jobs invoke the same five local atomic lanes"
+    },
     ".gitignore": {
-      "command": "just fast",
+      "command": "just lint",
       "purpose": "verify generated local state remains outside source authority"
+    },
+    ".config/": {
+      "command": "bash ops/ci/test-partitions.sh",
+      "purpose": "verify the committed nextest profiles select the exact non-overlapping test inventory"
+    },
+    ".ci-artifacts/": {
+      "command": "bash ops/ci/artifact-check.sh required HEAD",
+      "purpose": "verify locally emitted observations and summaries remain bounded diagnostic artifacts"
+    },
+    ".bullet-family/": {
+      "command": "cargo test --locked --test toolchain_lane",
+      "purpose": "verify ignored family coordination and pinned-toolchain observations remain non-authoritative local state"
     },
     ".fusion/": {
       "command": "just contract-check",
@@ -30,8 +46,8 @@
       "purpose": "recreate ignored audit reports from the pinned local auditor"
     },
     "README.md": {
-      "command": "just fast",
-      "purpose": "verify the public onboarding page stays complete"
+      "command": "just docs",
+      "purpose": "verify public claims, links, and reproducible media stay synchronized"
     },
     "CHANGELOG.md": {
       "command": "just audit",
@@ -54,8 +70,16 @@
       "purpose": "report only Jankurai tools with actual local invocation while keeping missing CI evidence visible"
     },
     "docs/": {
-      "command": "just fast",
+      "command": "just docs",
       "purpose": "verify spec corpus and architecture docs remain routed"
+    },
+    "docs/readme-media/": {
+      "command": "just readme-check",
+      "purpose": "verify exact unsigned media subjects, transcripts, frames, and deterministic rendering"
+    },
+    "docs/schemas/": {
+      "command": "bash ops/ci/observation-test.sh && just readme-check",
+      "purpose": "verify docs-only observation schemas against their emitted documents"
     },
     "docs/README.md": {
       "command": "cargo test --locked --test assurance_controls",
@@ -89,6 +113,14 @@
       "command": "bash scripts/release-truth.sh check",
       "purpose": "reject a committed release-truth page that drifted from the gate inventory and hub inputs"
     },
+    "docs/assurance/corpus-coverage.generated.md": {
+      "command": "bash scripts/corpus-coverage.sh check",
+      "purpose": "reject a committed corpus-coverage page that drifted from the disposition policy"
+    },
+    "policy/corpus-coverage-v1.json": {
+      "command": "cargo test --locked --test corpus_coverage",
+      "purpose": "prove every historical corpus unit carries one disposition whose anchor resolves"
+    },
     "contracts/": {
       "command": "just contract-check",
       "purpose": "reject canonical schema-bundle and generated binding drift"
@@ -106,7 +138,7 @@
       "purpose": "check exactly two pinned bounded models and their locked state counts"
     },
     "ops/": {
-      "command": "just fast",
+      "command": "just lint",
       "purpose": "verify local CI parity scripts"
     },
     "release/": {
@@ -120,6 +152,14 @@
     "scripts/": {
       "command": "just check",
       "purpose": "verify fuse and onboarding scripts"
+    },
+    "scripts/readme-schema-check.sh": {
+      "command": "just readme-check",
+      "purpose": "standards-validate the exact README observations and manifests plus semantic hostiles"
+    },
+    "scripts/readme-input-check.sh": {
+      "command": "just readme-check",
+      "purpose": "refuse executable README inputs before any renderer or provider-shaped process can run"
     },
     "src/": {
       "command": "cargo test --locked",
@@ -154,7 +194,7 @@
       "purpose": "verify licenses, advisories, bans, and sources against the committed policy"
     },
     "rust-toolchain.toml": {
-      "command": "just fast",
+      "command": "just lint",
       "purpose": "verify the pinned MSRV toolchain, rustfmt, and Clippy lane"
     },
     "family.lock": {
@@ -170,7 +210,7 @@
       "purpose": "verify security adapters delegate to the canonical local lane"
     },
     ".github/": {
-      "command": "bash scripts/ci-local.sh required",
+      "command": "bash ops/ci/workflow-policy.sh",
       "purpose": "prove hosted lanes match local scripts"
     }
   }
