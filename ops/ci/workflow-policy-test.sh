@@ -68,5 +68,34 @@ expect_source_failure "$workflow_test_root/workflows/ci.yml" \
 printf '%s\n' '# unbound workflow source is not admitted' \
   >>"$workflow_test_root/workflows/scheduled.yml"
 expect_source_failure "$workflow_test_root/workflows/scheduled.yml" \
-  328a29fb58b76c55f5c315c3b698489b0b6c7c751032f3e8f9e24908e3df93df \
+  e284e768a81d1ff83a5e453c3b81fbd3df0762e172367378af845e87502b422f \
   HOSTED_SCHEDULED_SOURCE_DRIFT
+
+expect_audit_neutral_failure() {
+  local hostile="$1" reason="$2" output code
+  set +e
+  output="$(validate_scheduled_audit_neutral "$workflow_test_root/workflows/scheduled.yml" 2>&1)"
+  code=$?
+  set -e
+  [[ "$code" -ne 0 && "$output" == *"$reason"* ]] \
+    || { refuse SCHEDULED_AUDIT_HOSTILE_FAILED "$hostile code=$code output=$output"; exit 1; }
+  cp .github/workflows/scheduled.yml "$workflow_test_root/workflows/scheduled.yml"
+}
+
+cp .github/workflows/scheduled.yml "$workflow_test_root/workflows/scheduled.yml"
+validate_scheduled_audit_neutral "$workflow_test_root/workflows/scheduled.yml" || exit 1
+sed -i '0,/^            exit 78$/{s//            exit 0/}' "$workflow_test_root/workflows/scheduled.yml"
+expect_audit_neutral_failure green-neutral SCHEDULED_AUDIT_NEUTRAL_DRIFT
+sed -i '/^            echo "::error::AUDITOR_UNAVAILABLE_HOSTED/d' "$workflow_test_root/workflows/scheduled.yml"
+expect_audit_neutral_failure untyped-neutral SCHEDULED_AUDIT_NEUTRAL_DRIFT
+sed -i '/^      - name: Resolve the pinned auditor or refuse neutral$/,/^          }$/d' \
+  "$workflow_test_root/workflows/scheduled.yml"
+expect_audit_neutral_failure missing-neutral-step SCHEDULED_AUDIT_NEUTRAL_DRIFT
+sed -i 's|^        run: bash scripts/ci-local.sh audit$|        run: true # bash scripts/ci-local.sh audit|' \
+  "$workflow_test_root/workflows/scheduled.yml"
+expect_audit_neutral_failure commented-lane SCHEDULED_AUDIT_LANE_EXECUTION_DRIFT
+sed -i 's|^        run: bash scripts/ci-local.sh audit$|        if: ${{ always() }}\n&|' \
+  "$workflow_test_root/workflows/scheduled.yml"
+expect_audit_neutral_failure conditional-lane SCHEDULED_AUDIT_LANE_EXECUTION_DRIFT
+sed -i '/^  audit:$/,$d' "$workflow_test_root/workflows/scheduled.yml"
+expect_audit_neutral_failure missing-job SCHEDULED_JOB_MISSING

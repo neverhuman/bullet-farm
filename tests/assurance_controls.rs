@@ -88,7 +88,8 @@ fn control_manifests_route_to_real_local_proof() {
 
     let audit_lane = read("ops/ci/audit.sh");
     assert!(audit_lane.contains("--policy \"$AUDIT_POLICY\""));
-    assert!(!audit_lane.contains("--fail-under"));
+    assert!(audit_lane.contains("--fail-under \"$minimum_score\""));
+    assert!(!audit_lane.contains("--fail-under 65"));
     assert!(!audit_lane.contains("--fail-on"));
 }
 

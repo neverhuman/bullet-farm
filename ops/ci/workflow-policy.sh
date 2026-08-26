@@ -38,12 +38,53 @@ validate_workflow_source .github/workflows/ci.yml \
   34d0ca2ca91bfc59a9ce7ff6952b8b55ce45827ef02423dc65acdc0ce4c88b74 \
   HOSTED_REQUIRED_SOURCE_DRIFT || exit 1
 validate_workflow_source .github/workflows/scheduled.yml \
-  8930fbb2cfa34090be4f392a4d888169497872b2726a2f998c9f13cdce98248b \
+  e284e768a81d1ff83a5e453c3b81fbd3df0762e172367378af845e87502b422f \
   HOSTED_SCHEDULED_SOURCE_DRIFT || exit 1
 validate_workflow_source ops/ci/platform-refusal.sh \
   b84718b1399d8b86e51c96dd6acc030c45d03c61d0718355b78b2b154d6f5361 \
   PLATFORM_LANE_SOURCE_DRIFT || exit 1
 workflows=(.github/workflows/ci.yml .github/workflows/scheduled.yml)
+
+# The hosted audit job may be neutral only through this exact typed refusal
+# step, and its lane step must be the unconditional atomic lane; a step that
+# exits green or untyped without the pinned auditor is drift.
+audit_step_block() {
+  local block="$1" header="$2"
+  awk -v header="$header" '
+    $0 == header { active=1 }
+    active && $0 ~ /^      - / && $0 != header { exit }
+    active { print }
+  ' <<<"$block"
+}
+
+validate_scheduled_audit_neutral() {
+  local workflow="$1" block step expected
+  block="$(awk '
+    $0 == "  audit:" { active=1 }
+    active && $0 ~ /^  [A-Za-z0-9_-]+:/ && $0 != "  audit:" { exit }
+    active { print }
+  ' "$workflow")"
+  [[ -n "$block" ]] || { refuse SCHEDULED_JOB_MISSING audit; return 1; }
+  step="$(audit_step_block "$block" '      - name: Resolve the pinned auditor or refuse neutral')"
+  expected="$(printf '%s\n' \
+    '      - name: Resolve the pinned auditor or refuse neutral' \
+    '        shell: bash' \
+    '        run: |' \
+    '          command -v jankurai >/dev/null 2>&1 || {' \
+    '            echo "::error::AUDITOR_UNAVAILABLE_HOSTED: jankurai 1.6.11 is a machine-local build with no checksum-pinned hosted artifact; the audit lane did not run"' \
+    '            exit 78' \
+    '          }')"
+  [[ "$step" == "$expected" ]] \
+    || { refuse SCHEDULED_AUDIT_NEUTRAL_DRIFT "$workflow"; return 1; }
+  step="$(audit_step_block "$block" '      - name: Run committed-policy audit')"
+  expected="$(printf '%s\n' \
+    '      - name: Run committed-policy audit' \
+    '        run: bash scripts/ci-local.sh audit')"
+  [[ "$step" == "$expected" ]] \
+    || { refuse SCHEDULED_AUDIT_LANE_EXECUTION_DRIFT "$workflow"; return 1; }
+  [[ "$(grep -Fc 'exit 78' <<<"$block")" -eq 1 && "$(grep -Fc 'scripts/ci-local.sh audit' <<<"$block")" -eq 1 ]] \
+    || { refuse SCHEDULED_AUDIT_NEUTRAL_DRIFT "$workflow"; return 1; }
+}
 
 # shellcheck source=ops/ci/workflow-policy-test.sh
 source "$(dirname "${BASH_SOURCE[0]}")/workflow-policy-test.sh"
@@ -131,7 +172,7 @@ if rg -n 'scripts/ci-local.sh (required|all)|ops/ci/required.sh' .github/workflo
 fi
 
 scheduled=.github/workflows/scheduled.yml
-scheduled_jobs=(source_scan history links advisory coverage macos windows)
+scheduled_jobs=(source_scan history links advisory coverage macos windows audit)
 declare -A scheduled_lanes scheduled_runners scheduled_artifacts
 scheduled_lanes[source_scan]=source-scan
 scheduled_lanes[history]=history
@@ -140,6 +181,7 @@ scheduled_lanes[advisory]=advisory
 scheduled_lanes[coverage]=coverage
 scheduled_lanes[macos]=platform
 scheduled_lanes[windows]=platform
+scheduled_lanes[audit]=audit
 scheduled_runners[source_scan]=ubuntu-24.04
 scheduled_runners[history]=ubuntu-24.04
 scheduled_runners[links]=ubuntu-24.04
@@ -147,6 +189,7 @@ scheduled_runners[advisory]=ubuntu-24.04
 scheduled_runners[coverage]=ubuntu-24.04
 scheduled_runners[macos]=macos-15
 scheduled_runners[windows]=windows-2025
+scheduled_runners[audit]=ubuntu-24.04
 scheduled_artifacts[source_scan]=hub-scheduled-source-scan
 scheduled_artifacts[history]=hub-history
 scheduled_artifacts[links]=hub-links
@@ -154,6 +197,7 @@ scheduled_artifacts[advisory]=hub-advisory
 scheduled_artifacts[coverage]=hub-coverage
 scheduled_artifacts[macos]=hub-macos-refusal
 scheduled_artifacts[windows]=hub-windows-refusal
+scheduled_artifacts[audit]=hub-audit
 for job in "${scheduled_jobs[@]}"; do
   lane="${scheduled_lanes[$job]}"
   block="$(yaml_job_block "$scheduled" "$job")"
@@ -189,6 +233,7 @@ for needle in \
   '-D warnings -D clippy::disallowed_methods'; do
   require_text "$platform_source" "$needle" PLATFORM_DECODER_POLICY_MISSING
 done
+validate_scheduled_audit_neutral "$scheduled" || exit 1
 grep -Fq 'tool: cargo-nextest@0.9.137,cargo-llvm-cov@0.8.7' "$scheduled" \
   || { refuse COVERAGE_TOOL_PIN_MISSING "coverage requires pinned nextest and llvm-cov"; exit 1; }
 

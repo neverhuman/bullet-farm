@@ -18,4 +18,5 @@ cargo llvm-cov report --locked --remap-path-prefix --cobertura --output-path "$r
 bash ops/ci/coverage-sanitize.sh normalize "$raw_report" "$normalized_report"
 bash ops/ci/coverage-sanitize.sh check "$normalized_report"
 mv "$normalized_report" .ci-artifacts/coverage/cobertura.xml
+bash ops/ci/assert-coverage.sh
 log "scheduled coverage report passed"
