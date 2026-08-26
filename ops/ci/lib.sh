@@ -9,9 +9,9 @@ export TZ=UTC
 
 HUB_FILTER='package(bullet-family)'
 WIRE_FILTER='package(bullet-wire)'
-HUB_EXPECTED_TESTS=213
+HUB_EXPECTED_TESTS=218
 WIRE_EXPECTED_TESTS=92
-TOTAL_EXPECTED_TESTS=305
+TOTAL_EXPECTED_TESTS=310
 export HUB_FILTER WIRE_FILTER HUB_EXPECTED_TESTS WIRE_EXPECTED_TESTS TOTAL_EXPECTED_TESTS
 # shellcheck source=ops/ci/artifact-path.sh
 source "$REPO_ROOT/ops/ci/artifact-path.sh"
