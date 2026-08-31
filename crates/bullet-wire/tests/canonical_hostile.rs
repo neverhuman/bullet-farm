@@ -1872,6 +1872,7 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
                 2,
             ),
             (PathBuf::from("src/coord/model/recovery_production.rs"), 1,),
+            (PathBuf::from("src/coord/recovered_wave0.rs"), 1),
             (
                 PathBuf::from("src/coord/recovery_adoption_verify/forensic.rs"),
                 2,
@@ -1986,6 +1987,7 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
                 PathBuf::from("crates/bullet-wire/src/authority/request.rs"),
                 1
             ),
+            (PathBuf::from("crates/bullet-wire/src/dogfood.rs"), 1),
             (PathBuf::from("src/check/model.rs"), 1),
             (PathBuf::from("src/check/release_evidence.rs"), 1),
             (PathBuf::from("src/checkout/git.rs"), 1),
@@ -2007,6 +2009,7 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
                 PathBuf::from("src/coord/model/recovery_manifest/bootstrap_contract.rs"),
                 1,
             ),
+            (PathBuf::from("src/coord/recovered_wave0.rs"), 1),
             (PathBuf::from("src/coord/recovery.rs"), 1),
             (PathBuf::from("src/coord/recovery_manifest/authoring.rs"), 1),
             (
