@@ -75,10 +75,10 @@ pub fn validate_live_admission(policy: &PolicySnapshotV1) -> Result<(), WireErro
 /// # Errors
 ///
 /// `DOGFOOD_REFUSES_LIVE_ADMISSION` when general live admission is enabled;
-/// `UNSUPPORTED_POLICY_SCHEMA` / `LIVE_ADMISSION_REQUIRES_GENERATION` for a
+/// `UNSUPPORTED_POLICY_SCHEMA` / `DOGFOOD_ADMISSION_REQUIRES_GENERATION` for a
 /// Gate 0 snapshot; `INVALID_DOGFOOD_BINDING` for a wrong audience, operation,
-/// or schema; `LIVE_ADMISSION_REQUIRES_RUNNER_KEY` when no overlapping
-/// authority-signing PASETO key exists (launch material, not live enablement).
+/// or schema; `DOGFOOD_ADMISSION_REQUIRES_SIGNER_KEY` when no overlapping
+/// unrevoked dogfood-launch-signing PASETO key exists.
 pub fn validate_dogfood_admission(
     policy: &PolicySnapshotV1,
     binding: &super::DogfoodBindingV1,
@@ -89,6 +89,7 @@ pub fn validate_dogfood_admission(
             "dogfood admission refuses a general live binding",
         ));
     }
+    policy.validate()?;
     let schema = policy.schema()?;
     if schema != super::PolicySchemaVersion::V1Alpha2 {
         return Err(WireError::new(
@@ -98,7 +99,7 @@ pub fn validate_dogfood_admission(
     }
     if policy.policy_generation < LIVE_ADMISSION_MIN_GENERATION {
         return Err(WireError::new(
-            "LIVE_ADMISSION_REQUIRES_GENERATION",
+            "DOGFOOD_ADMISSION_REQUIRES_GENERATION",
             format!(
                 "dogfood admission requires policy generation {LIVE_ADMISSION_MIN_GENERATION} or later; generation {} is refused",
                 policy.policy_generation
@@ -109,11 +110,11 @@ pub fn validate_dogfood_admission(
     if !policy
         .issuer_keys
         .iter()
-        .any(|key| qualifies_for_live_admission(key) && overlaps_policy_window(key, policy))
+        .any(|key| qualifies_for_dogfood_admission(key) && overlaps_policy_window(key, policy))
     {
         return Err(WireError::new(
-            "LIVE_ADMISSION_REQUIRES_RUNNER_KEY",
-            "dogfood admission requires an unrevoked authority-signing PASETO key admitted for the provider-runner audience within the policy window",
+            "DOGFOOD_ADMISSION_REQUIRES_SIGNER_KEY",
+            "dogfood admission requires an unrevoked dogfood-launch-signing PASETO key within the policy window",
         ));
     }
     Ok(())
@@ -154,6 +155,13 @@ fn qualifies_for_live_admission(key: &IssuerKeyV1) -> bool {
     key.key_purpose == KeyPurposeV1::AuthoritySigning
         && key.algorithm == KeyAlgorithmV1::PasetoV4Public
         && key.audiences.contains(&AuthorityAudience::ProviderRunner)
+        && key.revoked_at_unix_ms.is_none()
+}
+
+fn qualifies_for_dogfood_admission(key: &IssuerKeyV1) -> bool {
+    key.key_purpose == KeyPurposeV1::DogfoodLaunchSigning
+        && key.algorithm == KeyAlgorithmV1::PasetoV4Public
+        && key.audiences.is_empty()
         && key.revoked_at_unix_ms.is_none()
 }
 

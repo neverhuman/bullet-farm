@@ -20,6 +20,9 @@ const COMMITTED_POLICY: &str = "policy/v1alpha1/policy.json";
 const ISSUER: &str = "bullet-kernel-local";
 const KEY_ID: &str = "authority-test-1";
 const PUBLIC_KEY_HEX: &str = "1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2";
+const DOGFOOD_PUBLIC_KEY: &str = "1111111111111111111111111111111111111111111111111111111111111111";
+const DOGFOOD_GEN_REQUIRED: &str = "DOGFOOD_ADMISSION_REQUIRES_GENERATION";
+const DOGFOOD_SIGNER_REQUIRED: &str = "DOGFOOD_ADMISSION_REQUIRES_SIGNER_KEY";
 const V1ALPHA1_UNSAFE_REASON: &str =
     "v1alpha1 Gate 0 policy must remain offline, conservative, and T0-anchored";
 
@@ -53,8 +56,25 @@ fn runner_key(policy: &PolicySnapshotV1) -> usize {
         .unwrap()
 }
 
+fn add_dogfood_key(policy: &mut PolicySnapshotV1) -> usize {
+    let mut key = policy.issuer_keys[runner_key(policy)].clone();
+    key.issuer = "dogfood-operator".into();
+    key.key_id = "dogfood-launch-1".into();
+    key.key_purpose = KeyPurposeV1::DogfoodLaunchSigning;
+    key.public_key = DOGFOOD_PUBLIC_KEY.into();
+    key.audiences.clear();
+    policy.issuer_keys.push(key);
+    policy.issuer_keys.len() - 1
+}
+
 fn refusal(policy: &PolicySnapshotV1) -> &'static str {
     policy.validate().unwrap_err().code()
+}
+
+fn dogfood_refusal(policy: &PolicySnapshotV1) -> &'static str {
+    validate_dogfood_admission(policy, &DogfoodBindingV1::read_only_propose())
+        .unwrap_err()
+        .code()
 }
 
 #[test]
@@ -405,27 +425,71 @@ fn general_live_path_refuses_a_dogfood_binding() {
     );
     let mut dogfood_only = fixture();
     dogfood_only.sandbox_policy.live_admission_enabled = false;
+    add_dogfood_key(&mut dogfood_only);
+    dogfood_only
+        .issuer_keys
+        .retain(|key| key.key_purpose == KeyPurposeV1::DogfoodLaunchSigning);
     dogfood_only.validate().unwrap();
     assert_eq!(
         validate_live_admission(&dogfood_only).unwrap_err().code(),
         "LIVE_ADMISSION_DISABLED"
     );
+    dogfood_only.sandbox_policy.live_admission_enabled = true;
+    assert_eq!(
+        validate_live_admission(&dogfood_only).unwrap_err().code(),
+        "LIVE_ADMISSION_REQUIRES_RUNNER_KEY"
+    );
 }
 
 #[test]
 fn dogfood_path_refuses_a_general_live_binding_and_unknown_fields() {
-    let live = fixture();
-    assert!(live.sandbox_policy.live_admission_enabled);
-    assert_eq!(
-        validate_dogfood_admission(&live, &DogfoodBindingV1::read_only_propose())
-            .unwrap_err()
-            .code(),
-        "DOGFOOD_REFUSES_LIVE_ADMISSION"
-    );
+    let mut live = fixture();
+    add_dogfood_key(&mut live);
+    assert_eq!(dogfood_refusal(&live), "DOGFOOD_REFUSES_LIVE_ADMISSION");
+    let mut provider_only = fixture();
+    provider_only.sandbox_policy.live_admission_enabled = false;
+    provider_only
+        .issuer_keys
+        .retain(|key| key.key_purpose == KeyPurposeV1::AuthoritySigning);
+    assert_eq!(dogfood_refusal(&provider_only), DOGFOOD_SIGNER_REQUIRED);
 
-    let mut dogfood = fixture();
-    dogfood.sandbox_policy.live_admission_enabled = false;
+    let mut first_generation = provider_only.clone();
+    first_generation.policy_generation = 1;
+    assert_eq!(dogfood_refusal(&first_generation), DOGFOOD_GEN_REQUIRED);
+
+    let mut dogfood = provider_only;
+    let key = add_dogfood_key(&mut dogfood);
     validate_dogfood_admission(&dogfood, &DogfoodBindingV1::read_only_propose()).unwrap();
+    let mut invalid = DogfoodBindingV1::read_only_propose();
+    invalid.schema_version = "v2".into();
+    let error = validate_dogfood_admission(&dogfood, &invalid).unwrap_err();
+    assert_eq!(error.code(), "INVALID_DOGFOOD_BINDING");
+
+    let mut malformed = dogfood.clone();
+    malformed.issuer_keys[key].public_key = "invalid".into();
+    assert_eq!(dogfood_refusal(&malformed), "INVALID_DOGFOOD_PUBLIC_KEY");
+    let mut lifecycle = dogfood.clone();
+    lifecycle.issuer_keys[key].retain_until_unix_ms = 0;
+    assert_eq!(dogfood_refusal(&lifecycle), "INVALID_ISSUER_KEY_LIFECYCLE");
+    let mut unsafe_policy = dogfood.clone();
+    unsafe_policy.route_policy.evolutionary_authority = true;
+    assert_eq!(dogfood_refusal(&unsafe_policy), "UNSAFE_POLICY");
+    let mut invalid_policy = dogfood.clone();
+    invalid_policy.activation_at_unix_ms = invalid_policy.expires_at_unix_ms;
+    assert_eq!(dogfood_refusal(&invalid_policy), "INVALID_POLICY_WINDOW");
+
+    let mut removed = dogfood.clone();
+    removed.issuer_keys.remove(key);
+    let mut revoked = dogfood.clone();
+    revoked.issuer_keys[key].revoked_at_unix_ms = Some(revoked.activation_at_unix_ms);
+    let mut nonoverlap = dogfood;
+    let expiry = nonoverlap.expires_at_unix_ms;
+    nonoverlap.issuer_keys[key].activates_at_unix_ms = expiry + 100;
+    nonoverlap.issuer_keys[key].expires_at_unix_ms = expiry + 200;
+    nonoverlap.issuer_keys[key].retain_until_unix_ms = expiry + 15_200;
+    for policy in [&removed, &revoked, &nonoverlap] {
+        assert_eq!(dogfood_refusal(policy), DOGFOOD_SIGNER_REQUIRED);
+    }
 
     let unknown = serde_json::from_str::<DogfoodBindingV1>(
         r#"{"schema_version":"v1alpha1","audience":"dogfood-runner","operation":"read-only-propose","extra":true}"#,
