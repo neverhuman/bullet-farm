@@ -115,6 +115,6 @@ farmd_args="$test_root/farmd.args"
 printf '#!/bin/sh\nprintf "%%s\\n" "$*" >"%s"\n' "$farmd_args" >"$fake_bin/cargo"
 chmod 0700 "$fake_bin/cargo"
 PATH="$fake_bin:$PATH" BULLET_DATA_DIR="$test_root/data" bash scripts/farmd.sh
-[[ "$(<"$farmd_args")" == 'run --locked -p bullet-farmd -- --data-dir '*'/data --bind 127.0.0.1:7420' ]] \
+[[ "$(<"$farmd_args")" == 'run --locked -p bullet-farmd -- --data-dir '*'/data --bind 127.0.0.1:7420 --portal-origin http://127.0.0.1:5173' ]] \
   || { refuse DEV_FARMD_LOCKFILE_MISSING "$(<"$farmd_args")"; exit 1; }
 log "dev launchers pin the lockfile and refuse Vite port fallback"

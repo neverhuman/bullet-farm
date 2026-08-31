@@ -13,12 +13,24 @@ for tool in cargo curl node npm setsid; do
     exit 1
   }
 done
+# The pin is deliberate and is enforced, not worked around: a dev server built
+# on the wrong toolchain is not the thing CI proves. When the pinned toolchain
+# is already installed, name it, so the operator fixes PATH instead of guessing.
+pinned_node_hint() {
+  local candidate="$HOME/.nvm/versions/node/v$PINNED_NODE_VERSION/bin"
+  [[ -x "$candidate/node" ]] || return 0
+  printf 'dev: the pinned toolchain is installed; prepend it to PATH:\n' >&2
+  # shellcheck disable=SC2016 # $PATH is literal advice text, not an expansion.
+  printf 'dev:   export PATH="%s:$PATH"\n' "$candidate" >&2
+}
 [[ "$(node --version)" == "v$PINNED_NODE_VERSION" ]] || {
   printf 'dev: expected Node v%s, found %s\n' "$PINNED_NODE_VERSION" "$(node --version)" >&2
+  pinned_node_hint
   exit 1
 }
 [[ "$(npm --version)" == "$PINNED_NPM_VERSION" ]] || {
   printf 'dev: expected npm %s, found %s\n' "$PINNED_NPM_VERSION" "$(npm --version)" >&2
+  pinned_node_hint
   exit 1
 }
 [[ -f "$PORTAL/package-lock.json" ]] || {
