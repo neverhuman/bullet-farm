@@ -6,8 +6,9 @@ use bullet_wire::{
     DogfoodPolicySubjectV1, DogfoodProcessObservationV1, DogfoodProcessStateV1,
     DogfoodProposalObservationV1, DogfoodProviderProtocolV1, DogfoodProviderSubjectV1,
     DogfoodRunArtifactsV1, DogfoodRunId, DogfoodRunSubjectV1, DogfoodRunV1, DogfoodTerminalStateV1,
-    DogfoodUsageSettlementV1, GateId, GitOid, GraphRevisionId, LaunchProvider, MissionId,
-    PrincipalId, ProviderCredentialProjectionId, ProviderEnrollmentId, ProviderProfileId,
+    DogfoodUsageSettlementV1, GateId, GitOid, GraphRevisionId, LaunchProvider,
+    MAX_DOGFOOD_PROPOSAL_ARTIFACT_BYTES, MAX_DOGFOOD_RETAINED_BYTES, MissionId, PrincipalId,
+    ProviderCredentialProjectionId, ProviderEnrollmentId, ProviderProfileId,
     RepositoryContextSnapshotId, RepositoryId, RunnerId, RuntimePassportId, VariantId, WireError,
     WorkPackageId, canonical_json, decode_dogfood_run,
 };
@@ -390,6 +391,19 @@ fn impossible_process_cleanup_and_artifact_shapes_refuse() {
     let mut invalid = run.clone();
     invalid.artifacts.stdout.size_bytes = 1024 * 1024 + 1;
     refusal(invalid.validate(), "DOGFOOD_RUN_INVALID");
+    let mut proposal = run.clone();
+    if let DogfoodProposalObservationV1::Validated { artifact, .. } = &mut proposal.proposal {
+        artifact.size_bytes = MAX_DOGFOOD_PROPOSAL_ARTIFACT_BYTES;
+    }
+    proposal.validate().unwrap();
+    if let DogfoodProposalObservationV1::Validated { artifact, .. } = &mut proposal.proposal {
+        artifact.size_bytes += 1;
+    }
+    refusal(proposal.validate(), "DOGFOOD_RUN_INVALID");
+    proposal.proposal = DogfoodProposalObservationV1::Rejected {
+        artifact: artifact(59, MAX_DOGFOOD_RETAINED_BYTES + 1),
+    };
+    refusal(proposal.validate(), "DOGFOOD_RUN_INVALID");
 
     let mut exact = run.clone();
     exact.artifacts.stdout.size_bytes = 1024 * 1024;

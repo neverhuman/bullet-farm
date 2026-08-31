@@ -15,7 +15,7 @@ pub const MAX_DOGFOOD_RUN_BYTES: usize = 64 * 1024;
 pub const MAX_DOGFOOD_CAPTURE_BYTES: u64 = 1024 * 1024;
 pub const MAX_DOGFOOD_RETAINED_ARTIFACTS: usize = 64;
 pub const MAX_DOGFOOD_RETAINED_BYTES: u64 = 32 * 1024 * 1024;
-
+pub const MAX_DOGFOOD_PROPOSAL_ARTIFACT_BYTES: u64 = 256 * 1024 * 1024;
 const MAX_SAFE_INTEGER: u64 = 9_007_199_254_740_991;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -338,13 +338,13 @@ impl DogfoodProposalObservationV1 {
     fn validate(&self) -> Result<(), WireError> {
         match self {
             Self::Absent => Ok(()),
-            Self::Rejected { artifact } | Self::Validated { artifact, .. } => {
-                artifact.validate(MAX_DOGFOOD_RETAINED_BYTES)
+            Self::Rejected { artifact } => artifact.validate(MAX_DOGFOOD_RETAINED_BYTES),
+            Self::Validated { artifact, .. } => {
+                artifact.validate(MAX_DOGFOOD_PROPOSAL_ARTIFACT_BYTES)
             }
         }
     }
 }
-
 impl DogfoodCleanupObservationV1 {
     fn validate(&self) -> Result<(), WireError> {
         safe_time(self.observed_at())
