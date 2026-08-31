@@ -2,12 +2,22 @@ mod anonymous_link;
 mod fresh_genesis;
 pub(crate) use fresh_genesis::consume_wave0_and_inventory;
 mod generation;
+#[allow(
+    unfulfilled_lint_expectations,
+    reason = "recovered W0 now consumes the formerly component-only Git observer"
+)]
 mod git;
 mod model;
 mod receipt_state;
+mod recovered_wave0;
 mod recovery;
 mod recovery_adoption_verify;
 pub(crate) mod recovery_manifest;
+#[allow(
+    unused_imports,
+    reason = "COMPONENT_ONLY recovered W0 facts await their signed review consumer"
+)]
+pub(crate) use recovered_wave0::{RecoveredWave0FactsV1, observe_recovered_wave0};
 pub(crate) mod sealed;
 mod state;
 mod store;
