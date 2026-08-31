@@ -50,6 +50,17 @@ pub use context::{
     decode_repository_context_post_observation, decode_repository_context_snapshot,
     verify_repository_context_binding, verify_repository_context_post_observation,
 };
+mod provider_observation;
+pub use provider_observation::{
+    MAX_PROVIDER_OBSERVATION_BYTES, MAX_PROVIDER_OBSERVATION_STALENESS_MS,
+    PROVIDER_ENDPOINT_OBSERVATION_DIGEST_DOMAIN, PROVIDER_PROBE_OBSERVATION_DIGEST_DOMAIN,
+    PROVIDER_PROFILE_OBSERVATION_DIGEST_DOMAIN, PROVIDER_VERSION_OBSERVATION_DIGEST_DOMAIN,
+    ProviderEndpointObservationV1, ProviderObservationSubjectV1, ProviderProbeObservationV1,
+    ProviderProfileObservationV1, ProviderVersionObservationV1,
+    decode_provider_endpoint_observation, decode_provider_probe_observation,
+    decode_provider_profile_observation, decode_provider_version_observation,
+    verify_provider_observations,
+};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
