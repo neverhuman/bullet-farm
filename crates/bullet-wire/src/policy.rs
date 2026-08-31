@@ -2,15 +2,17 @@ use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{AuthorityAudience, Blake3Digest, WireError};
+use crate::{Blake3Digest, WireError};
 
 mod keys;
 mod live;
+mod signer;
 
 pub use live::{
     LIVE_ADMISSION_MIN_GENERATION, refuse_dogfood_binding_as_live, validate_dogfood_admission,
     validate_live_admission,
 };
+pub use signer::{IssuerKeyV1, KeyAlgorithmV1, KeyPurposeV1};
 
 pub const POLICY_SCHEMA_VERSION: &str = "v1alpha1";
 pub const POLICY_SCHEMA_VERSION_V1ALPHA2: &str = "v1alpha2";
@@ -237,37 +239,6 @@ fn duplicate(kind: &str, value: &str) -> WireError {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum KeyPurposeV1 {
-    AuthoritySigning,
-    ReleaseSigning,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum KeyAlgorithmV1 {
-    #[serde(rename = "paseto-v4.public")]
-    PasetoV4Public,
-    #[serde(rename = "ssh-ed25519")]
-    SshEd25519,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct IssuerKeyV1 {
-    pub schema_version: String,
-    pub issuer: String,
-    pub key_id: String,
-    pub key_purpose: KeyPurposeV1,
-    pub algorithm: KeyAlgorithmV1,
-    pub public_key: String,
-    pub audiences: Vec<AuthorityAudience>,
-    pub activates_at_unix_ms: u64,
-    pub expires_at_unix_ms: u64,
-    pub revoked_at_unix_ms: Option<u64>,
-    pub retain_until_unix_ms: u64,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RiskPolicyV1 {
     pub schema_version: String,
@@ -294,7 +265,7 @@ pub struct SandboxPolicyV1 {
     pub live_admission_enabled: bool,
 }
 
-/// Purpose-separated dogfood audience. Not an [`AuthorityAudience`] and not a
+/// Purpose-separated dogfood audience. Not an [`crate::AuthorityAudience`] and not a
 /// live-admission key audience.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
