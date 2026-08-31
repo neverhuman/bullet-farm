@@ -16,6 +16,7 @@ mod outcome;
 mod policy;
 mod proposal;
 mod release;
+mod runtime_passport;
 
 pub use authority::{
     AUTHORITY_IMPLICIT_ASSERTION, AUTHORITY_SCHEMA_VERSION, AuthorityAudience, AuthorityClaims,
@@ -92,6 +93,14 @@ pub use release::{
     RELEASE_VERIFICATION_REQUEST_DIGEST_DOMAIN, ReleaseWireRecord, decode_release_record,
     release_bundle_manifest_v2_digest, validate_release_bindings,
     validate_release_bundle_manifest_v2_binding,
+};
+pub use runtime_passport::{
+    MAX_RUNTIME_FILE_BYTES, MAX_RUNTIME_FILES, MAX_RUNTIME_PASSPORT_BYTES,
+    MAX_RUNTIME_RELATIVE_PATH_BYTES, MAX_RUNTIME_TOTAL_BYTES, MAX_RUNTIME_VERSION_BYTES,
+    ProviderRuntimePassportV1, RUNTIME_DEPLOYMENT_PREFIX, RUNTIME_PASSPORT_DOMAIN,
+    RUNTIME_PASSPORT_ID_PREFIX, RUNTIME_PASSPORT_SCHEMA_VERSION, RuntimeExecutionV1,
+    RuntimeFileRoleV1, RuntimeFileV1, RuntimeLoaderV1, RuntimePassportError,
+    decode_expected_runtime_passport,
 };
 
 /// Normative generated wire records. Security-sensitive consumers must decode this namespace.

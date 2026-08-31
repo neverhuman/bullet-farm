@@ -1988,6 +1988,10 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
                 1
             ),
             (PathBuf::from("crates/bullet-wire/src/dogfood.rs"), 1),
+            (
+                PathBuf::from("crates/bullet-wire/src/runtime_passport.rs"),
+                1,
+            ),
             (PathBuf::from("src/check/model.rs"), 1),
             (PathBuf::from("src/check/release_evidence.rs"), 1),
             (PathBuf::from("src/checkout/git.rs"), 1),
