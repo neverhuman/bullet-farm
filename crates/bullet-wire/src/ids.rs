@@ -2,7 +2,7 @@ use std::{fmt, str::FromStr};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
-use crate::{Blake3Digest, WireError, digest::validate_lower_hex};
+use crate::{Blake3Digest, LaunchProvider, WireError, digest::validate_lower_hex};
 
 macro_rules! digest_id {
     ($name:ident, $prefix:literal) => {
@@ -107,6 +107,67 @@ digest_id!(EffectReceiptId, "efr_");
 digest_id!(EventId, "evt_");
 digest_id!(CommandId, "cmd_");
 digest_id!(RpcRequestId, "rpc_");
+digest_id!(DogfoodIntentId, "dfi_");
+digest_id!(DogfoodGrantId, "dfg_");
+digest_id!(ProviderEnrollmentId, "pen_");
+digest_id!(RuntimePassportId, "rtp_");
+digest_id!(ProviderCredentialProjectionId, "pcp_");
+digest_id!(CredentialProjectionProfileId, "cpp_");
+digest_id!(RepositoryContextSnapshotId, "rcs_");
+digest_id!(DogfoodBudgetReservationId, "dbr_");
+digest_id!(DogfoodRunId, "dfr_");
+
+/// Exact structured protocol admitted for each provider's first dogfood path.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DogfoodProviderProtocolV1 {
+    ClaudeStreamJson,
+    CodexAppServerJsonl,
+    CursorAcp,
+    AntigravityHeadlessStructured,
+}
+
+impl DogfoodProviderProtocolV1 {
+    #[must_use]
+    pub const fn required_for(provider: LaunchProvider) -> Self {
+        match provider {
+            LaunchProvider::Claude => Self::ClaudeStreamJson,
+            LaunchProvider::Codex => Self::CodexAppServerJsonl,
+            LaunchProvider::Cursor => Self::CursorAcp,
+            LaunchProvider::Agy => Self::AntigravityHeadlessStructured,
+        }
+    }
+
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::ClaudeStreamJson => "claude_stream_json",
+            Self::CodexAppServerJsonl => "codex_app_server_jsonl",
+            Self::CursorAcp => "cursor_acp",
+            Self::AntigravityHeadlessStructured => "antigravity_headless_structured",
+        }
+    }
+}
+
+pub(crate) fn is_bounded_wire_label(value: &str, max_bytes: usize) -> bool {
+    !value.is_empty()
+        && value.len() <= max_bytes
+        && value.bytes().all(|byte| {
+            byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b':' | b'/' | b'-')
+        })
+}
+
+pub(crate) fn require_exact_wire(
+    name: &str,
+    value: &str,
+    expected: &str,
+    code: &'static str,
+) -> Result<(), WireError> {
+    if value != expected {
+        return Err(WireError::new(code, format!("{name} must be {expected}")));
+    }
+    Ok(())
+}
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum GitOid {

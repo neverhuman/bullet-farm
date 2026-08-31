@@ -5,6 +5,7 @@ mod catalog;
 mod contract_bindings;
 mod contract_tool;
 mod digest;
+mod dogfood;
 mod error;
 mod event;
 mod forge_profile;
@@ -49,6 +50,16 @@ pub use canonical::{
 pub use catalog::*;
 pub use contract_tool::{ContractMode, execute as execute_contract_tool};
 pub use digest::{Blake3Digest, canonical_json, hash_canonical, hash_framed_bytes};
+pub use dogfood::{
+    DOGFOOD_INTENT_DIGEST_DOMAIN, DOGFOOD_LAUNCH_GRANT_CLAIMS_DOMAIN,
+    DOGFOOD_LAUNCH_GRANT_SIGNING_PURPOSE, DOGFOOD_SCHEMA_VERSION, DogfoodExecutionSubjectV1,
+    DogfoodLaunchGrantClaimsV1, DogfoodPolicySubjectV1, DogfoodProviderSubjectV1,
+    DogfoodReadOnlyIntentV1, DogfoodRepositorySubjectV1, DogfoodRunSubjectV1, MAX_DOGFOOD_GATE_IDS,
+    MAX_DOGFOOD_GRANT_TTL_MS, PROVIDER_ENROLLMENT_CLAIMS_DOMAIN,
+    PROVIDER_ENROLLMENT_SIGNING_PURPOSE, ProviderEnrollmentClaimsV2,
+    decode_dogfood_launch_grant_claims, decode_dogfood_read_only_intent,
+    decode_provider_enrollment_claims, verify_dogfood_subjects,
+};
 pub use error::WireError;
 pub use event::{CommandEnvelope, CommandState, EventEnvelope, Snapshot};
 pub use forge_profile::{
