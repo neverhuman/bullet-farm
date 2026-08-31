@@ -6,6 +6,7 @@ use super::Options;
 use crate::coord::recovery_manifest::{
     RecoveryInspectionCommand, RecoveryProvenanceCommand,
     authoring::{self, ObservedRecoveryAuthorizationDraftInput},
+    bootstrap_build::seal_bootstrap_build_observation,
 };
 use crate::coord::{
     CoordError, CoordStore, RecoveryAuthorizationSignatureV1, RecoveryAuthorizationV1,
@@ -15,6 +16,51 @@ use crate::coord::{
 };
 
 const RAW_ED25519_SIGNATURE_BYTES: u64 = 64;
+
+pub(in crate::cli) fn build_observe(options: &Options) -> Result<String, CoordError> {
+    require_platform()?;
+    options.reject_flags()?;
+    options.reject_unknown_values(&[
+        "provenance",
+        "source-archive",
+        "builder-contract",
+        "toolchain-contract",
+        "command-contract",
+        "cache-manifest",
+        "cache-archive",
+        "executable-run-1",
+        "executable-run-2",
+        "output",
+    ])?;
+    let provenance = options.one("provenance")?;
+    let source_archive = options.one("source-archive")?;
+    let builder_contract = options.one("builder-contract")?;
+    let toolchain_contract = options.one("toolchain-contract")?;
+    let command_contract = options.one("command-contract")?;
+    let cache_manifest = options.one("cache-manifest")?;
+    let cache_archive = options.one("cache-archive")?;
+    let executable_run_1 = options.one("executable-run-1")?;
+    let executable_run_2 = options.one("executable-run-2")?;
+    let output = options.one("output")?;
+    let output = normalized_absolute(&output)?;
+    let observation_id = seal_bootstrap_build_observation([
+        normalized_absolute(&provenance)?,
+        normalized_absolute(&source_archive)?,
+        normalized_absolute(&builder_contract)?,
+        normalized_absolute(&toolchain_contract)?,
+        normalized_absolute(&command_contract)?,
+        normalized_absolute(&cache_manifest)?,
+        normalized_absolute(&cache_archive)?,
+        normalized_absolute(&executable_run_1)?,
+        normalized_absolute(&executable_run_2)?,
+        output.clone(),
+    ])?;
+    render_written(
+        "bullet.coord.recovery-bootstrap-build-observation.v1",
+        &output,
+        &observation_id,
+    )
+}
 
 pub(super) fn inspect(store: &CoordStore, options: &Options) -> Result<String, CoordError> {
     require_platform()?;
@@ -353,4 +399,55 @@ fn require_platform() -> Result<(), CoordError> {
 
 fn invalid(reason: impl Into<String>) -> CoordError {
     CoordError::new("INVALID_RECOVERY_PRODUCTION", reason)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::cli::test_recovery_action;
+
+    fn complete_args() -> Vec<String> {
+        [
+            "provenance",
+            "source-archive",
+            "builder-contract",
+            "toolchain-contract",
+            "command-contract",
+            "cache-manifest",
+            "cache-archive",
+            "executable-run-1",
+            "executable-run-2",
+            "output",
+        ]
+        .into_iter()
+        .enumerate()
+        .flat_map(|(index, name)| [format!("--{name}"), format!("/tmp/subject-{index}")])
+        .collect()
+    }
+
+    #[test]
+    fn recovery_build_observe_routes_without_coordinator_state() {
+        let error = test_recovery_action("recovery-build-observe", &[]).unwrap_err();
+        assert_eq!(error.code(), "MISSING_OPTION");
+    }
+
+    #[test]
+    fn recovery_build_observe_rejects_unknown_duplicate_and_relative_options_before_io() {
+        let unknown = test_recovery_action(
+            "recovery-build-observe",
+            &["--untrusted".into(), "/tmp/value".into()],
+        )
+        .unwrap_err();
+        assert_eq!(unknown.code(), "UNKNOWN_OPTION");
+
+        let mut duplicate_args = complete_args();
+        duplicate_args.extend(["--provenance".into(), "/tmp/other".into()]);
+        let duplicate =
+            test_recovery_action("recovery-build-observe", &duplicate_args).unwrap_err();
+        assert_eq!(duplicate.code(), "DUPLICATE_OPTION");
+
+        let mut relative_args = complete_args();
+        relative_args[1] = "relative.json".into();
+        let relative = test_recovery_action("recovery-build-observe", &relative_args).unwrap_err();
+        assert_eq!(relative.code(), "INVALID_RECOVERY_PRODUCTION");
+    }
 }

@@ -1,11 +1,3 @@
-#![cfg_attr(
-    not(test),
-    expect(
-        dead_code,
-        reason = "COMPONENT_ONLY verifier awaits a separately reviewed path-only CLI"
-    )
-)]
-
 use std::{
     collections::BTreeSet,
     io::{Cursor, Read},
@@ -45,9 +37,62 @@ pub(in crate::coord) struct RecoveryBootstrapBuildVerifyCommand {
     pub(in crate::coord) output: PathBuf,
 }
 
-pub(in crate::coord) fn verify_and_seal_bootstrap_build_observation(
+/// Verify and create-once seal the component observation, returning only its
+/// derived identity to the path-only CLI. No caller-selected fact enters the
+/// observation.
+pub(crate) fn seal_bootstrap_build_observation(paths: [PathBuf; 10]) -> Result<String, CoordError> {
+    let [
+        provenance,
+        source_archive,
+        builder_contract,
+        toolchain_contract,
+        command_contract,
+        cache_manifest,
+        cache_archive,
+        executable_run_1,
+        executable_run_2,
+        output,
+    ] = paths;
+    let command = RecoveryBootstrapBuildVerifyCommand {
+        provenance,
+        source_archive,
+        builder_contract,
+        toolchain_contract,
+        command_contract,
+        cache_manifest,
+        cache_archive,
+        executable_run_1,
+        executable_run_2,
+        output,
+    };
+    let (_, observation_id) = verify_and_seal_with_identity(&command)?;
+    Ok(observation_id)
+}
+
+#[cfg(test)]
+fn verify_and_seal_bootstrap_build_observation(
     command: &RecoveryBootstrapBuildVerifyCommand,
 ) -> Result<RecoveryBootstrapBuildObservationV1, CoordError> {
+    let (observation, _) = verify_and_seal_with_identity(command)?;
+    Ok(observation)
+}
+
+fn observation_id(observation: &RecoveryBootstrapBuildObservationV1) -> Result<String, CoordError> {
+    let value = serde_json::to_value(observation).map_err(|error| {
+        invalid(format!(
+            "cannot render bootstrap build observation: {error}"
+        ))
+    })?;
+    value
+        .get("observation_id")
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_owned)
+        .ok_or_else(|| invalid("bootstrap build observation has no derived identity"))
+}
+
+fn verify_and_seal_with_identity(
+    command: &RecoveryBootstrapBuildVerifyCommand,
+) -> Result<(RecoveryBootstrapBuildObservationV1, String), CoordError> {
     validate_paths(command)?;
     let provenance: RecoveryBootstrapProvenanceV1 =
         crate::coord::sealed::read(&command.provenance)?;
@@ -110,6 +155,7 @@ pub(in crate::coord) fn verify_and_seal_bootstrap_build_observation(
             (executable_facts.1, executable_facts.0),
         ],
     )?;
+    let observation_id = observation_id(&observation)?;
     crate::coord::sealed::write(&command.output, &observation)?;
     let persisted: RecoveryBootstrapBuildObservationV1 =
         crate::coord::sealed::read(&command.output)?;
@@ -119,7 +165,7 @@ pub(in crate::coord) fn verify_and_seal_bootstrap_build_observation(
             "sealed bootstrap build observation changed during read-back",
         ));
     }
-    Ok(observation)
+    Ok((observation, observation_id))
 }
 
 fn validate_paths(command: &RecoveryBootstrapBuildVerifyCommand) -> Result<(), CoordError> {

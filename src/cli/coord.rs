@@ -6,13 +6,16 @@ use crate::coord::{
     HeartbeatInput, MutationEnvelope, ReceiptCorrectionInput, RequestId,
 };
 
-mod recovery;
+pub(super) mod recovery;
 
 pub(super) fn run(root: PathBuf, args: &[String], usage: &str) -> Result<String, CoordError> {
     let Some(action) = args.first() else {
         return Err(CoordError::new("USAGE", usage));
     };
     let options = Options::parse(&args[1..])?;
+    if action == "recovery-build-observe" {
+        return recovery::build_observe(&options);
+    }
     let store = CoordStore::new(root);
     match action.as_str() {
         "init" => initialize(&store, &options),

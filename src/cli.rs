@@ -7,7 +7,7 @@ use std::{ffi::OsString, path::PathBuf};
 
 use crate::coord::{CoordError, discover_family_root};
 
-const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release <build|verify|extract|receipt-verify> [options]|checkout verify|hub check|deps check|lock <generate --tag VERSION --subjects ABSOLUTE_PATH|verify --tag VERSION>|fuse --source <local|lock>|check <fast|required|release|scorecard|dogfood> [options]|coord <init|claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|correct-receipt-group|recovery-inspect|recovery-provenance|recovery-authorization-draft|recovery-authorization-message|recovery-authorization-signature-import|recovery-manifest|recover-rollover|recovery-plan|recovery-proof|recovery-review|recovery-request|adopt|status> [options]>";
+const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release <build|verify|extract|receipt-verify> [options]|checkout verify|hub check|deps check|lock <generate --tag VERSION --subjects ABSOLUTE_PATH|verify --tag VERSION>|fuse --source <local|lock>|check <fast|required|release|scorecard|dogfood> [options]|coord <init|claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|correct-receipt-group|recovery-inspect|recovery-provenance|recovery-build-observe|recovery-authorization-draft|recovery-authorization-message|recovery-authorization-signature-import|recovery-manifest|recover-rollover|recovery-plan|recovery-proof|recovery-review|recovery-request|adopt|status> [options]>";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CliOutcome {
@@ -124,6 +124,20 @@ pub fn run(
 ) -> Result<String, CoordError> {
     let mut args = command_args(args.into_iter().collect())?;
     let explicit_root = remove_root(&mut args)?;
+    if args.first().is_some_and(|arg| arg == "coord")
+        && args
+            .get(1)
+            .is_some_and(|arg| arg == "recovery-build-observe")
+    {
+        if explicit_root.is_some() {
+            return Err(CoordError::new(
+                "UNKNOWN_OPTION",
+                "recovery-build-observe accepts only its ten absolute artifact paths",
+            ));
+        }
+        let options = coord::Options::parse(&args[2..])?;
+        return coord::recovery::build_observe(&options);
+    }
     let current_dir = current_dir.map_err(CoordError::io)?;
     if args.first().is_some_and(|arg| arg == "setup") {
         return crate::setup::run(&current_dir, explicit_root.as_deref(), &args[1..]);
@@ -172,4 +186,38 @@ fn remove_root(args: &mut Vec<String>) -> Result<Option<String>, CoordError> {
     let value = args.remove(1);
     args.remove(0);
     Ok(Some(value))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::run;
+    use std::{ffi::OsString, io, path::PathBuf};
+
+    fn args(values: &[&str]) -> Vec<OsString> {
+        values.iter().map(OsString::from).collect()
+    }
+
+    #[test]
+    fn recovery_build_observe_bypasses_cwd_and_refuses_global_root() {
+        let no_cwd = Err(io::Error::new(io::ErrorKind::NotFound, "test cwd absent"));
+        let missing = run(
+            args(&["bullet-family", "coord", "recovery-build-observe"]),
+            no_cwd,
+        )
+        .unwrap_err();
+        assert_eq!(missing.code(), "MISSING_OPTION");
+
+        let rooted = run(
+            args(&[
+                "bullet-family",
+                "--root",
+                "/unused",
+                "coord",
+                "recovery-build-observe",
+            ]),
+            Ok(PathBuf::from("/also-unused")),
+        )
+        .unwrap_err();
+        assert_eq!(rooted.code(), "UNKNOWN_OPTION");
+    }
 }

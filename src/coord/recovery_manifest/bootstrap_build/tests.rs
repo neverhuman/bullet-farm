@@ -1,4 +1,10 @@
-use std::{fs, io::Cursor, os::unix::fs::PermissionsExt, path::Path};
+use std::{
+    ffi::OsString,
+    fs,
+    io::{self, Cursor},
+    os::unix::fs::{MetadataExt, PermissionsExt},
+    path::Path,
+};
 
 use tar::{Builder, EntryType, Header};
 use tempfile::TempDir;
@@ -312,6 +318,50 @@ fn seals_only_one_exact_contract_derived_observation() {
     let before = fs::read(&fixture.command.output).unwrap();
     assert!(verify_and_seal_bootstrap_build_observation(&fixture.command).is_err());
     assert_eq!(fs::read(&fixture.command.output).unwrap(), before);
+}
+
+#[test]
+fn real_cli_is_root_independent_create_once_and_returns_the_persisted_id() {
+    let fixture = Fixture::new();
+    let command = &fixture.command;
+    let mut argv = vec![
+        OsString::from("bullet-family"),
+        OsString::from("coord"),
+        OsString::from("recovery-build-observe"),
+    ];
+    for (name, path) in [
+        ("provenance", &command.provenance),
+        ("source-archive", &command.source_archive),
+        ("builder-contract", &command.builder_contract),
+        ("toolchain-contract", &command.toolchain_contract),
+        ("command-contract", &command.command_contract),
+        ("cache-manifest", &command.cache_manifest),
+        ("cache-archive", &command.cache_archive),
+        ("executable-run-1", &command.executable_run_1),
+        ("executable-run-2", &command.executable_run_2),
+        ("output", &command.output),
+    ] {
+        argv.push(OsString::from(format!("--{name}")));
+        argv.push(path.as_os_str().to_owned());
+    }
+    let absent_cwd = || io::Error::new(io::ErrorKind::NotFound, "test cwd absent");
+
+    let result = crate::cli::execute(argv.clone(), Err(absent_cwd())).unwrap();
+    assert_eq!(result.exit_code(), 0);
+    let summary = bullet_wire::decode_unique_value(result.output().as_bytes()).unwrap();
+    let persisted_bytes = fs::read(&command.output).unwrap();
+    let persisted = bullet_wire::decode_unique_value(&persisted_bytes).unwrap();
+    assert_eq!(summary["id"], persisted["observation_id"]);
+    assert_eq!(summary["path"].as_str(), command.output.to_str());
+    let metadata = fs::metadata(&command.output).unwrap();
+    assert_eq!(metadata.permissions().mode() & 0o7777, 0o400);
+    assert_eq!(metadata.nlink(), 1);
+    assert!(!fixture._root.path().join(".bullet-family").exists());
+
+    let error = crate::cli::execute(argv, Err(absent_cwd())).unwrap_err();
+    assert_eq!(error.code(), "INVALID_RECOVERY_PRODUCTION");
+    assert_eq!(fs::read(&command.output).unwrap(), persisted_bytes);
+    assert!(!fixture._root.path().join(".bullet-family").exists());
 }
 
 #[test]
