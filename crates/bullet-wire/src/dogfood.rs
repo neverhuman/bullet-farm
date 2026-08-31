@@ -14,6 +14,9 @@ use crate::{
     ids::{is_bounded_wire_label, require_exact_wire},
 };
 
+mod runtime_binding;
+pub use runtime_binding::verify_dogfood_runtime_binding;
+
 pub const DOGFOOD_SCHEMA_VERSION: &str = "v1alpha1";
 pub const DOGFOOD_INTENT_DIGEST_DOMAIN: &str = "dogfood.read-only-intent.v1alpha1";
 pub const DOGFOOD_LAUNCH_GRANT_CLAIMS_DOMAIN: &str =

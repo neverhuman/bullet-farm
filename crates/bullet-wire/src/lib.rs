@@ -59,7 +59,7 @@ pub use dogfood::{
     MAX_DOGFOOD_GRANT_TTL_MS, PROVIDER_ENROLLMENT_CLAIMS_DOMAIN,
     PROVIDER_ENROLLMENT_SIGNING_PURPOSE, ProviderEnrollmentClaimsV2,
     decode_dogfood_launch_grant_claims, decode_dogfood_read_only_intent,
-    decode_provider_enrollment_claims, verify_dogfood_subjects,
+    decode_provider_enrollment_claims, verify_dogfood_runtime_binding, verify_dogfood_subjects,
 };
 pub use error::WireError;
 pub use event::{CommandEnvelope, CommandState, EventEnvelope, Snapshot};
