@@ -2,8 +2,10 @@
 
 Status: **Proposed — pending operator ratification (OD-K) AND the engineering predecessors named below.**
 An independent review on 2026-08-28 held this ADR and its runbook on eight findings; the corrections are
-folded in. No dogfood operational record exists yet — `DOGFOOD_RUN` and `dogfood-local-v0` appear in no Rust
-source — every release profile remains `BLOCKED`, and this ADR cannot change that.
+folded in. Component surfaces now exist for the `DOGFOOD_RUN` shape, the `dogfood-local-v0` release
+refusal, the diagnostic `check dogfood` board, and one Claude-only `bullet dogfood read-only` compose.
+No successful operational receipt or admitted provider run exists, every release profile remains
+`BLOCKED`, and this ADR cannot change that.
 Owner: Bullet Farm maintainers
 Related: 0001 (providers propose, they never write), 0003 (five trust planes), 0005 (signed authority and
 key lifecycle), 0011 (signed launch grants; `BULLET_LIVE_ADMISSION` rejected), 0012 (policy v1alpha2 live
@@ -36,21 +38,29 @@ that by inventing a sixth. Corrected: **`DOGFOOD_RUN` is a purpose-separated, no
 observation.** Its future record would describe what an operator's own loop did on one host. It would
 assert no evidence class and could never be an input to one.
 
-The proposed observation would be produced under the operational profile name `dogfood-local-v0`, which
-must **not** implement `ReleaseProfile` and must never be selectable by `check release`.
+The operational profile name is `dogfood-local-v0`. It does **not** implement `ReleaseProfile`:
+`check release --profile dogfood-local-v0` returns typed `NOT_A_RELEASE_PROFILE`.
 
-**Not yet implemented — required before any operator act.** None of the following exists in code today;
-this section is a specification, not a description:
-- `DOGFOOD_RUN` and `dogfood-local-v0` appear in no Rust source.
-- `DOGFOOD_RUN` must **not** be added to the `GateClass` enum in `src/check/model.rs` — that enum is the
-  release-gate vocabulary and a variant there would make a dogfood observation structurally selectable by
-  a release gate, which is exactly the confusion this ADR exists to prevent.
-- Because it also must not extend `bullet-wire`'s release receipt-kind vocabulary, the Kernel→Hub record
-  needs its own **purpose-separated, generated, non-release** wire record with explicit bounds and
-  unknown-field refusal. It must not be signed with the `authority-signing` / `provider-runner` key: that
-  key admits provider launch, not evidence.
-- A hostile fixture test must feed a `DOGFOOD_RUN` operational record to the release receipt registry and require
-  refusal. Until that test exists, the separation is a convention, not a guarantee.
+## Landed component surfaces and remaining gap
+
+The following component boundaries are implemented:
+
+- Hub source defines the hard-false `DOGFOOD_RUN` v0 template and refuses that kind at the semantic
+  release registry. It is not a `GateClass` or a release receipt kind.
+- `bullet-family check dogfood --json` renders a diagnostic, never-authoritative board. It exits 1 while
+  any loop blocker remains and exits 0 only when its coordination loop inputs are operable; a blocked
+  release remains visible but does not become green.
+- Kernel source exposes `bullet dogfood read-only` for Claude. It can emit one create-once
+  `DOGFOOD_READ_ONLY_RECEIPT` and proposal only after a contained turn succeeds. No such successful
+  receipt is admitted today, and Codex, Cursor, and Antigravity compose paths do not exist.
+- The typed `DogfoodBindingV1` scope and its live-path refusal are implemented. Dogfood requires an
+  offline v1alpha2 policy: `live_admission_enabled=true` is refused by the dogfood validator.
+
+The remaining record gap is still material. The Hub template is not a durable operational record, and
+the Kernel receipt is not the generated, cross-repository full-loop `DOGFOOD_RUN` described below. That
+future record needs explicit bounds, recursive unknown-field refusal, exact full-loop subjects, and an
+admitted producer/read-back path. It must not use the `authority-signing` / `provider-runner` key as an
+evidence signer: that key admits provider launch, not evidence.
 
 A future `DOGFOOD_RUN` operational record would be limited to this assertion and nothing more:
 
@@ -89,12 +99,14 @@ The proposed admission would remain the operator's decision. Runtime scope check
 operator provenance remains social on this same-UID host. No admission exists until all of these future
 requirements and the engineering predecessors below are implemented and independently safety-reviewed:
 
-1. A separately typed dogfood audience/operation binding that the general live and release paths refuse.
-   The current global `live_admission_enabled` bit cannot satisfy this requirement.
+1. The landed typed dogfood audience/operation binding, carried by an admitted create-once subject whose
+   custody, signer lifecycle, digest, replay state, and read-back are independently verified. The current
+   environment-selected binding file is structural component machinery, not operator authority. General
+   live and release paths must continue to refuse this binding.
 2. An operator-owned top-level v1alpha2 policy at an absolute path **outside every repository**, mode 0600,
-   with `policy_generation >= 2`, `sandbox_policy.live_admission_enabled = true`, and an
-   `authority-signing` / `paseto-v4.public` issuer key carrying the `provider-runner` audience — exactly
-   the ADR 0012 rule, unchanged and unweakened — plus the separate dogfood binding above. Every nested
+   with `policy_generation >= 2`, `sandbox_policy.live_admission_enabled = false`, and an
+   `authority-signing` / `paseto-v4.public` issuer key carrying the `provider-runner` audience, plus the
+   separate dogfood binding above. Every nested
    policy `schema_version` stays `v1alpha1`. A separately admitted producer must encode the resulting
    `PolicySnapshotV1` as RFC 8785 canonical bytes, install it create-once, reopen it, and require byte-exact
    canonical read-back; pretty or sorted output from plain `jq` is not an admissible policy subject.
@@ -103,25 +115,21 @@ requirements and the engineering predecessors below are implemented and independ
    service identity, credential projection, invocation/spend bounds, validity, revocation, and containment.
 4. The canonical OD-K social witness in the family log, naming every field required by ADR 0013. The line
    itself supplies no runtime authority and cannot mechanically distinguish its same-UID author.
-5. A durable, complete incident-inventory record and a typed W0 subject that binds exactly the Hub, Kernel,
-   BulletGit, and Portal commit and tree OIDs, their clean states, the zero-active-claim high-water, and the
-   independent W0 review. The fresh-Genesis mutation must consume both record digests and re-read every
-   subject inside its locked transition, refusing any path, inventory, claim, commit, tree, index, worktree,
-   or untracked-file drift. Neither record nor that consumer exists today.
+5. Sanctioned recovery of the frozen coordinator generation under an independently reviewed authorization,
+   followed by a typed W0 subject that binds the recovered generation/manifest and replay watermark plus
+   the exact clean Hub, Kernel, BulletGit, and Portal subjects and zero unresolved claim state. No dogfood
+   track may substitute Fresh Genesis, ledger relocation, chmod, or deletion for that recovery.
 
 There is no environment-variable admission. ADR 0011 rejected `BULLET_LIVE_ADMISSION` and this ADR does
 not reintroduce it under another name: a shared token is not custody.
 
 **Two limits of that admission, stated plainly rather than implied away.**
 
-*The policy is not scoped to this profile.* `PolicySnapshotV1` has no profile or audience field for
-dogfood (`crates/bullet-wire/src/policy.rs:286-343`) and `validate_live_admission` checks only a global
-boolean, the generation, and the presence of a provider-runner key (`policy/live.rs:44-64`). Setting
-`live_admission_enabled = true` therefore clears the POLICY step for **every** guarded live route, not
-only a dogfood command. A separately typed dogfood audience/operation binding that the general live and
-release paths refuse is an **engineering predecessor of OD-K**, and OD-K is therefore *not*
-predecessor-free. Until it exists, attempting to ratify this ADR would widen execution authority more than
-its name suggests, and that is the reason the operator kit is marked not-executable.
+*Structural scope is not custody.* `DogfoodBindingV1` now separates the dogfood audience/operation from
+general live admission, and the dogfood validator rejects `live_admission_enabled=true`. The checked-in
+board still discovers its binding through an environment-selected path, however, and no admitted signer,
+create-once publisher, replay ledger, or independent read-back establishes operator custody. The type
+closes the scope-confusion bug; it does not complete OD-K.
 
 *Operator provenance on this host is social, not cryptographic.* An earlier draft claimed a consuming
 command independently rejects an agent-created policy or key. That is false here: Kernel policy loading
@@ -149,39 +157,29 @@ description is custody by convention on a single-UID host.
 ## Coordinator
 
 The dogfood track requires a working coordinator; the 2026-08-26 incident left the live ledger frozen
-(`events.jsonl`, mode 0400, no `CURRENT`), and its sanctioned recovery requires an independent reviewer
-distinct from the operator — which a single-operator host cannot supply honestly. Before any retirement,
-an admitted descriptor-bound producer must persist a create-once canonical inventory of every retained
-relative path, file type, owner, mode, link count, size, and regular-file digest, then read it back and bind
-its domain-separated digest. Console `find` listings and three individual file hashes are not a durable or
-complete inventory and cannot substitute.
+(`events.jsonl`, mode 0400, no `CURRENT`). Current recovery component machinery does not authorize the
+real incident: reviewer policy/custody, trusted clock publication, independent review, and the live
+operator checkpoint remain open.
 
-If the typed predecessors land, a fresh safety review passes, and the operator then ratifies OD-K, that
-decision would permit a **fresh Genesis generation**, with the frozen generation retained, unmodified and
-unreadable-by-accident, as incident evidence. `GenesisManifestBody` currently binds only one bootstrap
-commit, so the fresh-Genesis command must additionally consume the exact four-repository W0 subject above
-and persist its digest in a create-once adjacent authority record (or extend the typed manifest contract)
-before the procedure can become executable. This would not be recovery and could not be mistaken for it:
-`GenesisManifestBody` carries no lineage, parent-generation, or trusted-record-count field — only
-`RecoveryManifestBody` does — so no Genesis generation can represent the frozen claims as recovered, and
-no claim state would carry forward. DF-R7a and DF-R7b remain open packets, owed in full, on their own lane.
+**Operating HOLD:** do not run Fresh Genesis, relocate either ledger, chmod the frozen source, invent
+`CURRENT`, or delete incident bytes. The family plan calls the desired independent recovery amendment
+“OD-L”, but that label is not accepted authority: checked-in ADR 0013 and this proposed ADR have not been
+reviewed and amended to ratify it. Until a reviewed decision amendment and its operator/reviewer acts
+exist, sanctioned recovery remains blocked and manual path-exact coordination remains the only honest
+board. DF-R7a and DF-R7b remain open packets, owed in full, on their own lane.
 
 ## Consequences
 
-- Required future surface: `bullet-family check dogfood --json`, a typed board that would report coordinator
-  state, per-repo head and dirtiness, and policy admission — and **exit non-zero when the loop is broken**.
-  It must never read a release receipt or write an observation. It would replace
-  `scripts/dogfood-board.py`, which always exits 0 and therefore cannot fail an operator.
-- Required future authority inputs: an admitted RFC 8785 policy producer/read-back, a canonical complete
-  incident inventory, and an exact four-repository W0 subject. Fresh Genesis must reject missing records,
-  digest mismatch, an incomplete inventory, a non-clean repository, any changed commit/tree or active-claim
-  high-water, and any drift between admission and its locked append.
-- Required future refusal: `check release --profile dogfood-local-v0` must return typed
-  `NOT_A_RELEASE_PROFILE`, so the mistake this ADR exists to prevent is refused by the tool rather than by
-  a reader's memory.
-- Required future record: `DOGFOOD_RUN` must be a purpose-separated, non-evidence operational observation.
-  `bullet-wire`'s release receipt-kind vocabulary must **not** be extended; adding a dogfood kind there
-  would create exactly the ambiguity this ADR forbids.
+- Landed surface: `bullet-family check dogfood --json` reports coordinator state, repository dirtiness,
+  release status, and dogfood binding state. It is always diagnostic and exits non-zero when a loop
+  blocker remains. `scripts/dogfood-board.py` forwards its bytes and status.
+- Required future authority inputs: an admitted RFC 8785 policy and binding producer/read-back, sanctioned
+  recovery authority, and an exact recovery-bound four-repository W0 subject. Every missing, changed,
+  incomplete, dirty, unresolved-claim, or replay-watermark mismatch must refuse.
+- Landed refusal: `check release --profile dogfood-local-v0` returns typed `NOT_A_RELEASE_PROFILE`.
+- Partial record surface: the hard-false `DOGFOOD_RUN` template and release-registry refusal exist, while
+  the durable generated full-loop record and admitted producer do not. `bullet-wire`'s release
+  receipt-kind vocabulary must **not** gain a dogfood kind.
 - Future dogfood operational observations could cheaply expose faults, costs, and latency that guide the
   W7 chaos campaign and W5 custody-split work. They would be planning inputs, never evidence or substitutes
   for the proof those waves require.
@@ -192,5 +190,6 @@ This decision is wrong, and should be reverted, if any of the following is ever 
 `DOGFOOD_RUN` operational record admitted by a release gate or profile; a dogfood operational observation
 cited as independent or transaction evidence in any document or handoff; a dogfood run performing a
 repository mutation outside `bullet-gitd`; a live provider dispatched without the operator policy and launch
-grant; or the frozen
-coordinator generation being modified, adopted, or described as recovered.
+grant; exit 78 described as PASS; a dogfood path accepting `live_admission_enabled=true`; Fresh Genesis or
+ledger relocation used as incident recovery; or the frozen coordinator generation being modified, adopted,
+or described as recovered without the independently authorized recovery chain.

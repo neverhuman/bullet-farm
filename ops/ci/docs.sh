@@ -9,6 +9,7 @@ readonly rustdoc_config='build.rustdocflags=["-Dwarnings"]'
 cargo --config "$rustdoc_config" doc --locked --workspace --all-features --no-deps
 cargo --config "$rustdoc_config" test --locked --workspace --doc
 bash ops/ci/check-links.sh
+bash ops/ci/dogfood-docs-test.sh
 bash scripts/release-truth.sh check
 
 doctor_report="$(mktemp)"

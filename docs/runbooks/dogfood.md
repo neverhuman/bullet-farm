@@ -2,15 +2,16 @@
 
 Status: Active  
 Owner: Bullet Farm maintainers  
-Last reviewed: 2026-08-27  
+Last reviewed: 2026-08-31
 Applies to: agents working the split family at the outermost `repos.manifest.toml`
 
 ## What is stopping acceleration (honest)
 
-Meaningful dogfood is **N agents using Bullet coord + Shift Brief + farmd
-commands as the board**. It is not four live models in `bullet-runner`.
-Committed policy stays `live_admission_enabled=false`. Score stays an
-instrumented **43.5** (`authoritative: false`). `self-hosted-v1` is `BLOCKED`.
+There are two disjoint dogfood tracks. Coordination dogfood is **N agents using
+Bullet coord + Shift Brief + farmd commands as the board**. Provider dogfood is
+one contained read-only proposal through a provider-specific compose. Neither
+track is release evidence. The current board is **diagnostic and blocked**;
+`self-hosted-v1` remains `BLOCKED`.
 
 The single product loop that would let this family move faster is currently
 **broken at the board**, not missing a fifth repo or a live provider:
@@ -20,14 +21,23 @@ The single product loop that would let this family move faster is currently
    `COORD_RECOVERY_REQUIRED`. Until R4/R5 finish explicit recovery and an
    orchestrator receipts it, workers race in `AGENT_CHAT.md` instead of
    `coord claim` / heartbeat / handoff. Do not chmod the 0400 ledger.
-2. **Machine coord still cannot accept claims.** Use
+2. **The diagnostic board exists, but it is not operable.** Use
    `bullet-family check dogfood --json` as the diagnostic board. The bounded
    compatibility launcher `python3 scripts/dogfood-board.py --json` invokes
    that exact Rust command and forwards its bytes and exit status; it has no
-   projection logic of its own. A valid board exits 0 with
-   `authoritative: false`. Its coordinator view is typed in both safe states:
-   available after recovery, or unavailable with a stable error code before it.
-3. **Public `run_demo` is watchable PENDING → durable UNKNOWN.** An
+   projection logic of its own. The current blocked board exits non-zero and is
+   always `authoritative: false`. Exit 0 is reserved for an operable loop, not
+   for a merely well-formed diagnostic. Its coordinator view is typed in both
+   safe states: available after recovery, or unavailable with a stable error
+   code before it.
+3. **Claude compose exists, but no passing provider run exists.** Kernel exposes
+   `bullet dogfood read-only` and the `dogfood-claude` feature. It is Claude-only,
+   produces no repository mutation, and has no admitted successful receipt.
+   Exit 78 is neutral, never PASS; exit 0 requires one exact proposal and its
+   create-once hard-false receipt. Dogfood explicitly refuses
+   `live_admission_enabled=true`. Codex, Cursor, and Antigravity compose paths
+   remain unimplemented.
+4. **Public `run_demo` is watchable PENDING → durable UNKNOWN.** An
    authenticated exact POST and duplicate replay survive farmd restart; the
    packaged Portal replays and polls the same command/request, a registered
    same-UID Runner claims it over `SO_PEERCRED` UDS, and the bounded exact
@@ -37,7 +47,7 @@ The single product loop that would let this family move faster is currently
    transaction-eligible dispatch, independently admitted executor,
    `APPLIED`, or `VERIFIED`. Agents can watch the loop; they cannot ship work
    through it.
-4. **The retained offline CLI bridge supplies the nested fixture receipt, but
+5. **The retained offline CLI bridge supplies the nested fixture receipt, but
    alone is not farmd command dispatch or transaction evidence.** The public
    wrapper binds it to the exact command/request without upgrading its evidence
    class. The bridge durably admits the ScopeGrant, uses
@@ -58,9 +68,9 @@ The single product loop that would let this family move faster is currently
    false. The public binding still has no trusted key lifecycle, durable nonce
    consumption, distinct UID/credential custody, independently owned artifact
    custody, process-level response-loss hook, or twelve-boundary chaos proof.
-5. **Six Portal surfaces stay UNKNOWN** (Cognitive Router, Fusion Lab, Quota,
+6. **Six Portal surfaces stay UNKNOWN** (Cognitive Router, Fusion Lab, Quota,
    Struggle, Behavior, Hygiene). Do not paint them `verified`.
-6. **100/100 is a different project.** OD-D tags/locks, live admission, L-24
+7. **100/100 is a different project.** OD-D tags/locks, live admission, L-24
    installed Gitd authority/tag closure, L-31 `TRANSACTION_PROOF`, stranger
    receipts, and five platforms are operator/spine work. Inventing them would
    falsify dogfood.
@@ -72,15 +82,15 @@ commits.
 
 | Wave | What to build / test | Paths (if free) | Done when | Not done when |
 | --- | --- | --- | --- | --- |
-| D0 | Coord recovery + schema-2 CURRENT | Hub `src/coord/**` (R4/R5) | `coord status --json --all` exits 0; claim/heartbeat/handoff work | chmod of events.jsonl; invented CURRENT |
+| D0 | Sanctioned coord recovery + schema-2 CURRENT | Hub `src/coord/**` (R4/R5) | independently authorized recovery preserves lineage; `coord status --json --all` exits 0; claim/heartbeat/handoff work | Fresh Genesis, ledger relocation, chmod of events.jsonl, or invented CURRENT |
 | D1 | Browser proof empty hash is Shift Brief | Portal `e2e/shift-brief.spec.ts` | mocked Playwright: `/`, `#`, and `#/` → Shift Brief; unknown hash → explicit `NOT_FOUND_ROUTE`; `#/control-tower` still Control Tower; zero `.verified` | greening UNKNOWN surfaces |
-| D2 | CLI diagnostic board | Hub `src/cli.rs` + `src/check/dogfood.rs` | `bullet-family check dogfood --json` exits 0, `authoritative:false`, BLOCKED self-hosted-v1 | flipping check-release |
+| D2 | CLI diagnostic board (landed, currently blocked) | Hub `src/cli.rs` + `src/check/dogfood.rs` | blocked inputs exit non-zero; after D0 and admitted board inputs it exits 0 with `authoritative:false` while self-hosted-v1 remains BLOCKED | calling diagnostic output authority or flipping check-release |
 | D3 | Leftover producers | L-15 GC (`gc.rs` / `gc_safety.rs`); L-06 cargo-fuzz+nightly only after `ops/ci` free; L-64 after L-32 receipt | focused cargo/playwright proof | inventory steal; L-64 before L-32 receipt |
 | D4 | Watchable command loop | Kernel public component wrapper plus packaged Portal | authenticated exact duplicate POST → PENDING → farmd restart → packaged Portal replay/poll → same-UID UDS worker claim → retained fixture receipt → durable exact-digest UNKNOWN; worker restart reads `NO_COMMAND`; every eligibility flag stays false | emitting APPLIED/VERIFIED, claiming independent custody, or inventing process-level response-loss/chaos evidence |
 | D5 | Retained offline component bridge | Kernel `just proof-transaction-offline` with an absolute digest-pinned production Gitd | exact Candidate grant/final check, one-use Candidate, fixture writer refusal + PASS, purpose-signed fixture intent/evidence/proof with reconstructed ephemeral keys, exact-head delivery/read-back, stale-fence refusal, `UNKNOWN`→`COMMITTED`, exact-SHA check/proof-root read-back, protected expected-old-OID integration, purpose-signed fixture Observation `MATCHED` and reverified, reopen read-back, plus post-exit exact source/Candidate/target Git reads and retained ledger; retained unsigned `COMPONENT_PROOF` keeps every eligibility flag false | calling the fixture-key signed chain/Observation independent or trusted, treating retained private artifacts as independent role custody, or inferring public dispatch from the D5 CLI receipt alone |
 | D6 | Independent custody and evidence admission | W5 verifier, broker, attestor, integrator, observer, and auditor identities | independently registered keys, durable nonce consumption, distinct UID/credential custody, independently owned artifacts, and semantic admission preserve the already signed D5 subjects under durable claim leases | borrowing fixture keys or private harness artifacts, or changing any eligibility flag before semantic admission |
 | D7 | OD-D → complete W5 → L-31 | operator tags/locks after independent verifier and effect closure | signed `TRANSACTION_PROOF` | invented LIVE_PROOF / stranger receipts / borrowed component receipt |
-| D8 | Live four-model dispatch | OD-A + `live_admission_enabled` | four contained conformance receipts | env-var flip of committed policy |
+| D8 | Separate live four-model conformance | OD-A + general live admission | four contained conformance receipts | treating this as dogfood admission; the dogfood validator refuses `live_admission_enabled=true` |
 
 From the `bullet-kernel` checkout, the retained component regression command is:
 
@@ -132,10 +142,13 @@ bullet-family check dogfood --json
 The Rust command composes the internal scorecard, coordinator-status, and
 `self-hosted-v1` release evaluators. Release is always evaluated against a
 fresh empty temporary receipt registry; this command does not accept an
-admitted receipt registry. For a valid board evaluation, a BLOCKED release or
-unavailable coordinator remains diagnostic output with exit 0. An unavailable
-coordinator exposes only its stable typed error code, never its path-bearing
-detail or an ambient host `HOME`. The board never claims `LIVE_PROOF`.
+admitted receipt registry. The current board is diagnostic and blocked, so it
+exits non-zero. A BLOCKED release may remain diagnostic output after the loop
+becomes operable, but an unavailable coordinator, dirty W0 subject, or
+missing/invalid dogfood binding is a loop blocker and therefore cannot exit 0.
+An unavailable coordinator exposes only its stable typed error code, never its
+path-bearing detail or an ambient host `HOME`. The board never claims
+`LIVE_PROOF`.
 
 The POSIX Python script is only a timeout-bounded, byte/exit-transparent
 developer compatibility launcher for that Rust command. It resolves the
@@ -168,6 +181,21 @@ heartbeat / handoff is the board; `AGENT_CHAT.md` stays the human-decision log.
 `BULLET_LIVE_PROVIDERS`, provider OAuth, and forge tokens do not authorize a
 run. Do not flip live admission, invent OD-D tags, remount `/v1/leases`, or
 green an UNKNOWN portal surface without a ledger subject.
+
+The Claude-only compose is implemented, but this runbook does not authorize
+invoking it. `bullet dogfood read-only` exits 0 only after one exact contained
+proposal and create-once receipt; exit 78 means neutral/missing prerequisite and
+is never PASS. Exit 1 is a failure. A policy with
+`live_admission_enabled=true` is refused by the dogfood path, not a shortcut.
+
+## Coordinator recovery hold
+
+Do not run Fresh Genesis, relocate either coordinator ledger, chmod the frozen
+source, invent `CURRENT`, or delete incident bytes. The current operating HOLD
+requires sanctioned independent recovery and a recovery-bound clean W0 before
+coordination dogfood can turn green. The family planning label “OD-L” is a
+proposal pending reviewed amendment and ratification; it is not accepted by
+checked-in ADR 0013 or ADR 0015 and supplies no authority today.
 
 ## Command loop (when farmd is up)
 
