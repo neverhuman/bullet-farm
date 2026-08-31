@@ -41,6 +41,15 @@ pub use budget::{
     MAX_DOGFOOD_BUDGET_CONSUME_WINDOW_MS, decode_dogfood_budget_reservation,
     verify_dogfood_budget_binding,
 };
+mod context;
+pub use context::{
+    MAX_REPOSITORY_CONTEXT_FILES, MAX_REPOSITORY_CONTEXT_SCOPES,
+    MAX_REPOSITORY_CONTEXT_TOTAL_BYTES, REPOSITORY_CONTEXT_POST_OBSERVATION_DIGEST_DOMAIN,
+    REPOSITORY_CONTEXT_SNAPSHOT_DIGEST_DOMAIN, REPOSITORY_CONTEXT_VISIBLE_MANIFEST_DIGEST_DOMAIN,
+    RepositoryContextPostObservationV1, RepositoryContextSnapshotV1, RepositoryVisibleFileV1,
+    decode_repository_context_post_observation, decode_repository_context_snapshot,
+    verify_repository_context_binding, verify_repository_context_post_observation,
+};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

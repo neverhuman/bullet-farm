@@ -58,12 +58,18 @@ pub use dogfood::{
     DogfoodExecutionSubjectV1, DogfoodLaunchGrantClaimsV1, DogfoodPolicySubjectV1,
     DogfoodProviderSubjectV1, DogfoodReadOnlyIntentV1, DogfoodRepositorySubjectV1,
     DogfoodRunSubjectV1, MAX_CREDENTIAL_PROJECTION_TTL_MS, MAX_DOGFOOD_BUDGET_CONSUME_WINDOW_MS,
-    MAX_DOGFOOD_GATE_IDS, MAX_DOGFOOD_GRANT_TTL_MS, PROVIDER_ENROLLMENT_CLAIMS_DOMAIN,
-    PROVIDER_ENROLLMENT_SIGNING_PURPOSE, ProviderCredentialProjectionV1,
-    ProviderEnrollmentClaimsV2, decode_dogfood_budget_reservation,
+    MAX_DOGFOOD_GATE_IDS, MAX_DOGFOOD_GRANT_TTL_MS, MAX_REPOSITORY_CONTEXT_FILES,
+    MAX_REPOSITORY_CONTEXT_SCOPES, MAX_REPOSITORY_CONTEXT_TOTAL_BYTES,
+    PROVIDER_ENROLLMENT_CLAIMS_DOMAIN, PROVIDER_ENROLLMENT_SIGNING_PURPOSE,
+    ProviderCredentialProjectionV1, ProviderEnrollmentClaimsV2,
+    REPOSITORY_CONTEXT_POST_OBSERVATION_DIGEST_DOMAIN, REPOSITORY_CONTEXT_SNAPSHOT_DIGEST_DOMAIN,
+    REPOSITORY_CONTEXT_VISIBLE_MANIFEST_DIGEST_DOMAIN, RepositoryContextPostObservationV1,
+    RepositoryContextSnapshotV1, RepositoryVisibleFileV1, decode_dogfood_budget_reservation,
     decode_dogfood_launch_grant_claims, decode_dogfood_read_only_intent,
     decode_provider_credential_projection, decode_provider_enrollment_claims,
+    decode_repository_context_post_observation, decode_repository_context_snapshot,
     verify_dogfood_budget_binding, verify_dogfood_runtime_binding, verify_dogfood_subjects,
+    verify_repository_context_binding, verify_repository_context_post_observation,
 };
 pub use error::WireError;
 pub use event::{CommandEnvelope, CommandState, EventEnvelope, Snapshot};
