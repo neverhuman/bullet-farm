@@ -7,6 +7,7 @@ use crate::AuthorityAudience;
 pub enum KeyPurposeV1 {
     AuthoritySigning,
     DogfoodLaunchSigning,
+    ProviderEnrollmentSigning,
     ReleaseSigning,
 }
 

@@ -109,6 +109,54 @@ impl PolicySnapshotV1 {
         }
         Ok(key)
     }
+
+    /// Resolve one active key used only for signed provider enrollments.
+    pub fn provider_enrollment_signer_key_at(
+        &self,
+        issuer: &str,
+        key_id: &str,
+        now_unix_ms: u64,
+    ) -> Result<&IssuerKeyV1, WireError> {
+        self.validate()?;
+        if now_unix_ms < self.activation_at_unix_ms || now_unix_ms >= self.expires_at_unix_ms {
+            return Err(WireError::new(
+                "POLICY_NOT_ACTIVE",
+                "provider enrollment signer resolution requires an active policy snapshot",
+            ));
+        }
+        let key = self
+            .issuer_keys
+            .iter()
+            .find(|key| key.issuer == issuer && key.key_id == key_id)
+            .ok_or_else(|| {
+                WireError::new(
+                    "PROVIDER_ENROLLMENT_SIGNER_KEY_UNKNOWN",
+                    "provider enrollment signer issuer and key ID are not registered",
+                )
+            })?;
+        if key.key_purpose != KeyPurposeV1::ProviderEnrollmentSigning
+            || key.algorithm != KeyAlgorithmV1::PasetoV4Public
+            || !key.audiences.is_empty()
+        {
+            return Err(WireError::new(
+                "PROVIDER_ENROLLMENT_SIGNER_KEY_WRONG_PURPOSE",
+                "selected key is not a provider-enrollment-signing PASETO key",
+            ));
+        }
+        if !overlaps_policy_window(key, self)
+            || now_unix_ms < key.activates_at_unix_ms
+            || now_unix_ms >= key.expires_at_unix_ms
+            || key
+                .revoked_at_unix_ms
+                .is_some_and(|revoked| now_unix_ms >= revoked)
+        {
+            return Err(WireError::new(
+                "PROVIDER_ENROLLMENT_SIGNER_KEY_INACTIVE",
+                "selected provider enrollment signer key is not active",
+            ));
+        }
+        Ok(key)
+    }
 }
 
 pub(super) fn validate_issuer_keys(keys: &[IssuerKeyV1]) -> Result<(), WireError> {
@@ -165,6 +213,26 @@ pub(super) fn validate_issuer_keys(keys: &[IssuerKeyV1]) -> Result<(), WireError
                         WireError::new(
                             "INVALID_DOGFOOD_PUBLIC_KEY",
                             "dogfood launch verification key is invalid",
+                        )
+                    },
+                )?;
+            }
+            (KeyPurposeV1::ProviderEnrollmentSigning, algorithm) => {
+                if *algorithm != KeyAlgorithmV1::PasetoV4Public
+                    || !key.audiences.is_empty()
+                    || !is_lower_hex_64(&key.public_key)
+                {
+                    return Err(WireError::new(
+                        "INVALID_PROVIDER_ENROLLMENT_PUBLIC_KEY",
+                        "provider enrollment keys require PASETO, no authority audiences, and a raw 32-byte lowercase-hex public key",
+                    ));
+                }
+                let bytes = decode_key(&key.public_key, "INVALID_PROVIDER_ENROLLMENT_PUBLIC_KEY")?;
+                AuthorityVerificationKey::from_bytes(&key.issuer, &key.key_id, &bytes).map_err(
+                    |_| {
+                        WireError::new(
+                            "INVALID_PROVIDER_ENROLLMENT_PUBLIC_KEY",
+                            "provider enrollment verification key is invalid",
                         )
                     },
                 )?;
