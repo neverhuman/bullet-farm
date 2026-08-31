@@ -103,6 +103,10 @@ jobs:
         with:
           tool: actionlint@1.7.8,shellcheck@0.10.0,cargo-nextest@0.9.137
           fallback: none
+      - name: Install hash-locked Draft 2020-12 validator
+        run: |
+          bash ops/ci/install-readme-jsonschema.sh
+          echo "$GITHUB_WORKSPACE/target/.ci-tools/readme-jsonschema/bin" >> "$GITHUB_PATH"
       - id: lane
         if: ${{ !cancelled() }}
         name: Rust, shell, workflow, and CI policy lint
@@ -221,7 +225,7 @@ jobs:
       - name: Install hash-locked Draft 2020-12 validator
         run: |
           bash ops/ci/install-readme-jsonschema.sh
-          echo "$GITHUB_WORKSPACE/.ci-tools/readme-jsonschema/bin" >> "$GITHUB_PATH"
+          echo "$GITHUB_WORKSPACE/target/.ci-tools/readme-jsonschema/bin" >> "$GITHUB_PATH"
       - id: lane
         if: ${{ !cancelled() }}
         name: Documentation, release truth, and deterministic media

@@ -129,6 +129,9 @@ pub(super) fn check_family_layout(
     let mut wrong_heads = Vec::new();
     let mut dirty = Vec::new();
     let mut unsafe_metadata = Vec::new();
+    // A member whose administrative tree could not be verified is carried into
+    // the OID and cleanliness verdicts, never silently counted clean.
+    let mut unverified = Vec::new();
     if !lock
         .member
         .iter()
@@ -139,7 +142,10 @@ pub(super) fn check_family_layout(
                 Ok(()) => {}
                 Err(error) => dirty.push(format!("bullet-farm ({error})")),
             },
-            Err(error) => unsafe_metadata.push(format!("bullet-farm ({error})")),
+            Err(error) => {
+                unsafe_metadata.push(format!("bullet-farm ({error})"));
+                unverified.push(format!("bullet-farm ({})", error.code()));
+            }
         }
     }
     for member in &lock.member {
@@ -160,6 +166,7 @@ pub(super) fn check_family_layout(
             crate::checkout::admit_repository_metadata(&repo, member.jeryu_url.as_deref())
         {
             unsafe_metadata.push(format!("{} ({error})", member.name));
+            unverified.push(format!("{} ({})", member.name, error.code()));
             continue;
         }
         if member.name != "bullet-farm" {
@@ -180,9 +187,37 @@ pub(super) fn check_family_layout(
         }
     }
     vec![
-        layout_result(&absent, &worktrees, &unsafe_metadata),
-        oid_result(&wrong_heads),
-        cleanliness_result(&dirty),
+        verdict(
+            "family_layout",
+            "all locked members are ordinary sibling checkouts",
+            "create ordinary canonical clones for missing members; never create Git worktrees",
+            &[
+                (Some("missing members"), &absent),
+                (Some("forbidden worktrees"), &worktrees),
+                (Some("unsafe Git metadata"), &unsafe_metadata),
+            ],
+        ),
+        verdict(
+            "member_oids",
+            "every present non-hub member is at its locked commit OID",
+            "recreate each clean canonical clone at the exact locked OID; never reset a dirty shared checkout",
+            &[
+                (None, &wrong_heads),
+                (Some("OID unproved, Git metadata unverifiable"), &unverified),
+            ],
+        ),
+        verdict(
+            "clean_checkouts",
+            "every present family checkout is clean",
+            "finish and hand off active claims; do not clean, reset, or stage another agent's changes",
+            &[
+                (Some("dirty checkouts"), &dirty),
+                (
+                    Some("not provably clean, Git metadata unverifiable"),
+                    &unverified,
+                ),
+            ],
+        ),
     ]
 }
 
@@ -218,55 +253,33 @@ pub(super) fn check_exact_family_authority(
     }
 }
 
-fn layout_result(
-    absent: &[String],
-    worktrees: &[String],
-    unsafe_metadata: &[String],
+/// One per-member verdict: `PASS` with `clean` when no condition occurred,
+/// otherwise `BLOCKED` naming only the conditions that did.
+fn verdict(
+    id: &'static str,
+    clean: &'static str,
+    repair: &'static str,
+    parts: &[(Option<&str>, &[String])],
 ) -> DoctorCheck {
-    if absent.is_empty() && worktrees.is_empty() && unsafe_metadata.is_empty() {
-        DoctorCheck::pass(
-            "family_layout",
-            "all locked members are ordinary sibling checkouts",
-        )
+    if parts.iter().all(|(_, members)| members.is_empty()) {
+        DoctorCheck::pass(id, clean)
     } else {
-        DoctorCheck::blocked(
-            "family_layout",
-            format!(
-                "missing members [{}]; forbidden worktrees [{}]; unsafe Git metadata [{}]",
-                absent.join(", "),
-                worktrees.join(", "),
-                unsafe_metadata.join("; ")
-            ),
-            "create ordinary canonical clones for missing members; never create Git worktrees",
-        )
+        DoctorCheck::blocked(id, clauses(parts), repair)
     }
 }
 
-fn oid_result(wrong_heads: &[String]) -> DoctorCheck {
-    if wrong_heads.is_empty() {
-        DoctorCheck::pass(
-            "member_oids",
-            "every present non-hub member is at its locked commit OID",
-        )
-    } else {
-        DoctorCheck::blocked(
-            "member_oids",
-            wrong_heads.join("; "),
-            "recreate each clean canonical clone at the exact locked OID; never reset a dirty shared checkout",
-        )
-    }
-}
-
-fn cleanliness_result(dirty: &[String]) -> DoctorCheck {
-    if dirty.is_empty() {
-        DoctorCheck::pass("clean_checkouts", "every present family checkout is clean")
-    } else {
-        DoctorCheck::blocked(
-            "clean_checkouts",
-            format!("dirty checkouts: {}", dirty.join(", ")),
-            "finish and hand off active claims; do not clean, reset, or stage another agent's changes",
-        )
-    }
+/// Join only the non-empty clauses of a detail: a condition that did not occur
+/// contributes no stray punctuation and no empty `[]`.
+fn clauses(parts: &[(Option<&str>, &[String])]) -> String {
+    parts
+        .iter()
+        .filter(|(_, members)| !members.is_empty())
+        .map(|(label, members)| {
+            let listed = members.join("; ");
+            label.map_or_else(|| listed.clone(), |label| format!("{label}: [{listed}]"))
+        })
+        .collect::<Vec<_>>()
+        .join("; ")
 }
 
 fn command_version(command: &str, args: &[&str]) -> Result<String, String> {

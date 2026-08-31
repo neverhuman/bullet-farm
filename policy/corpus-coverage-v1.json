@@ -899,9 +899,10 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
-    "path": "crates/budgets/tests/conservation.rs",
-    "symbol": "overspend_is_unknown_liability_not_headroom"
-   }
+    "path": "crates/budgets/tests/dimensions.rs",
+    "symbol": "settle_records_exact_under_over_and_unknown_per_dimension"
+   },
+   "note": "Codex 2026-08-26 AGREE: per-dim settle records exact/under/over/unknown + forecast-error event on 18 dims; no p90/hard-cap forecast, no per-call hook"
   },
   {
    "id": "spec.s15.6.quota-shadow-price",
@@ -923,7 +924,14 @@
    "anchor": {
     "kind": "wave",
     "value": "W2"
-   }
+   },
+   "partial": {
+    "kind": "test",
+    "repo": "bullet-kernel",
+    "path": "crates/budgets/tests/dimensions.rs",
+    "symbol": "speculative_work_cannot_consume_critical_reserve"
+   },
+   "note": "Codex 2026-08-26: proves only Speculative refused after Critical dug into reserve; other six classes and full ladder are constants, not asserted"
   },
   {
    "id": "spec.s15.8.rate-limit-handling",
@@ -1041,7 +1049,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/safety.rs",
     "symbol": "unclassified_untracked_file_outside_scope_blocks_prepare"
    },
    "note": "Fresh authoritative status scan at Candidate prep exists; incremental watcher and process/mount fields do not"
@@ -1541,7 +1549,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/lifecycle.rs",
     "symbol": "full_lifecycle_produces_exact_candidate"
    },
    "note": "audit 2026-08-26 (PARTIAL): Checks base and hash formats, not exact expected head/tree/patch hashes, twelve-step sequencing, or explicit PREPARED state. bullet-"
@@ -1709,7 +1717,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
-    "path": "apps/bullet-verifier/tests/bin.rs",
+    "path": "apps/bullet-verifier/tests/fixture_bin.rs",
     "symbol": "author_overlap_env_refuses_with_typed_reason"
    }
   },
@@ -2011,9 +2019,9 @@
     "kind": "test",
     "repo": "bullet-portal",
     "path": "src/pages/ControlTower.test.tsx",
-    "symbol": "shows APPLIED as non-green until the exact command becomes VERIFIED"
+    "symbol": "refuses a bare durable VERIFIED status without runtime Evidence and Effect receipts"
    },
-   "note": "audit 2026-08-26 (PARTIAL): Shows mocked APPLIED as pending until mocked VERIFIED for one ID, but does not prove backend durability or ledger-only confirmation/"
+   "note": "APPLIED stays amber; bare durable VERIFIED with generic evidence renders local UNKNOWN, digest visible, no green; farmd has no APPLIED/VERIFIED path"
   },
   {
    "id": "spec.s25.2.mission-graph",
@@ -2214,7 +2222,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
-    "path": "crates/adapters/src/sqlite/migrations/tests.rs",
+    "path": "crates/adapters/src/sqlite/migrations/tests/late.rs",
     "symbol": "command_identity_is_unique_and_outbox_correlation_is_foreign_keyed"
    },
    "note": "Lease/attempt/command/effect DDL landed; cognitive, context-node, quota DDL absent"
@@ -2466,8 +2474,8 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
-    "path": "apps/bullet-runner/src/main.rs",
-    "symbol": "runner_identity_is_exact_and_never_derived_from_malformed_text"
+    "path": "apps/bullet-runner/src/main/tests.rs",
+    "symbol": "runner_identity_and_candidate_key_are_required_before_dispatch"
    },
    "note": "Signed lease RPC over UDS replaces mTLS gRPC; capacity/attestation/residency registration absent"
   },
@@ -3128,7 +3136,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/safety.rs",
     "symbol": "hostile_hooks_and_home_config_never_execute"
    },
    "note": "Git hostility and canary tests landed; sandbox escape/fork-bomb matrix is W3"
@@ -3830,7 +3838,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/lifecycle.rs",
     "symbol": "full_lifecycle_produces_exact_candidate"
    },
    "note": "Exact offline candidate lands; online authority gateway still returns unavailable"
@@ -4590,10 +4598,10 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
-    "path": "crates/budgets/tests/conservation.rs",
-    "symbol": "reserve_then_exact_settle_conserves"
+    "path": "crates/budgets/tests/dimensions.rs",
+    "symbol": "settle_records_exact_under_over_and_unknown_per_dimension"
    },
-   "note": "Conservation ledger landed; forecaster feedback absent"
+   "note": "Codex 2026-08-26 AGREE: settle moves reserved to settled and records per-dim forecast error; nothing feeds the record back to a forecaster"
   },
   {
    "id": "spec.s4.q5",
@@ -4622,7 +4630,14 @@
    "anchor": {
     "kind": "wave",
     "value": "W2"
-   }
+   },
+   "partial": {
+    "kind": "test",
+    "repo": "bullet-kernel",
+    "path": "crates/budgets/tests/dimensions.rs",
+    "symbol": "non_emergency_classes_never_cross_the_emergency_floor"
+   },
+   "note": "Codex 2026-08-26: proptest keeps IntegrationRepair..Speculative above the 10% floor on every dim; only Incident exercised as floor consumer"
   },
   {
    "id": "spec.s4.q7",
@@ -4689,7 +4704,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/safety.rs",
     "symbol": "unclassified_untracked_file_outside_scope_blocks_prepare"
    }
   },
@@ -4864,7 +4879,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/safety.rs",
     "symbol": "hostile_hooks_and_home_config_never_execute"
    },
    "note": "audit 2026-08-26 (PARTIAL): It controls hooks and hostile HOME/include configuration, but not filters, credential helpers, protocols, drivers, or submodules; bu"
@@ -4882,7 +4897,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-gitd/src/lib.rs",
+    "path": "crates/bullet-gitd/src/lib/tests.rs",
     "symbol": "worktree_writes_are_blocked"
    },
    "note": "audit 2026-08-26 (PARTIAL): Marks only the in-memory fake as a worktree and rejects its write; no real writable Attempt creation is exercised. lib.rs:450"
@@ -4913,7 +4928,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/safety.rs",
     "symbol": "out_of_scope_patch_is_refused_naming_the_path_and_tree_untouched"
    },
    "note": "audit 2026-08-26 (PARTIAL): An out-of-scope batch is refused with an untouched tree, but the test does not bind all delivered writes to a granted Change Intent;"
@@ -4932,7 +4947,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-gitd/src/lib.rs",
+    "path": "crates/bullet-gitd/src/lib/tests.rs",
     "symbol": "out_of_scope_patch_leaves_tree_untouched"
    }
   },
@@ -4967,7 +4982,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/safety.rs",
     "symbol": "unclassified_untracked_file_outside_scope_blocks_prepare"
    },
    "note": "audit 2026-08-26 (PARTIAL): Only one unclassified untracked file blocks prepare; classified-manifest validity and other dirty states are not asserted. real_repo"
@@ -5145,7 +5160,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/safety.rs",
     "symbol": "unclassified_untracked_file_outside_scope_blocks_prepare"
    },
    "note": "Atomic Prepared persistence with verifier outbox is W4"
@@ -5388,7 +5403,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/safety.rs",
     "symbol": "hostile_hooks_and_home_config_never_execute"
    },
    "note": "Separate-kernel S2 guest for strong workloads is W3"
@@ -5518,12 +5533,12 @@
     "value": "W2"
    },
    "partial": {
-    "kind": "symbol",
+    "kind": "test",
     "repo": "bullet-kernel",
-    "path": "crates/domain/src/schema_bundle.rs",
-    "symbol": "AuditBatchV1"
+    "path": "crates/application/tests/audit_batch.rs",
+    "symbol": "two_batch_continuity_roundtrip"
    },
-   "note": "Contract type only; signed batches and protected Jeryu anchors are W2"
+   "note": "Codex 2026-08-26 AGREE: ordered batches Merkle-rooted, chained via previous_root from genesis, verify_chain ok; signer uninhabited, no export/restore"
   },
   {
    "id": "spec.s44.1.quota-exhaustion",
@@ -5798,9 +5813,9 @@
     "kind": "test",
     "repo": "bullet-portal",
     "path": "src/pages/ControlTower.test.tsx",
-    "symbol": "shows APPLIED as non-green until the exact command becomes VERIFIED"
+    "symbol": "refuses a bare durable VERIFIED status without runtime Evidence and Effect receipts"
    },
-   "note": "audit 2026-08-26 (PARTIAL): Asserts APPLIED stays pending then VERIFIED turns green; FAILED and UNKNOWN visibility occur only in separate tests. ControlTower.te"
+   "note": "APPLIED stays amber; bare durable VERIFIED with generic evidence renders local UNKNOWN, digest visible, no green; farmd has no APPLIED/VERIFIED path"
   },
   {
    "id": "spec.s48.5.graph-rendering",
@@ -5896,7 +5911,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
-    "path": "crates/adapters/src/sqlite/migrations/tests.rs",
+    "path": "crates/adapters/src/sqlite/migrations/tests/late.rs",
     "symbol": "checksum_binds_domain_version_name_and_sql"
    }
   },
@@ -5913,10 +5928,10 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
-    "path": "crates/application/tests/policy_snapshot.rs",
-    "symbol": "the_hub_policy_loads_with_its_pinned_digest_and_refuses_live_admission"
+    "path": "crates/application/tests/config_generation.rs",
+    "symbol": "partial_acknowledgement_never_admits_an_attempt"
    },
-   "note": "Policy snapshot digest-pinned; generation activation workflow absent"
+   "note": "Codex 2026-08-26: admission refused GENERATION_ACTIVATING until kernel/runner/verifier/effects ack; immutability, durable store, drain unproven"
   },
   {
    "id": "spec.s49.3.adapter-upgrades",
@@ -6036,7 +6051,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
-    "path": "apps/bullet-verifier/tests/bin.rs",
+    "path": "apps/bullet-verifier/tests/fixture_bin.rs",
     "symbol": "stdin_round_trip_emits_typed_e2_record"
    },
    "note": "audit 2026-08-26 (PARTIAL): Exercises the verifier executable's stdin/output only; it proves neither monolith modularity nor separate runner and broker boundari"
@@ -6882,7 +6897,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/lifecycle.rs",
     "symbol": "apply_proposal_publishes_only_after_exact_checkpoint_and_preimages_match"
    },
    "note": "audit 2026-08-26 (PARTIAL): Applies one valid exact proposal successfully; this named test never refuses a mismatched checkpoint or preimage. real_repository.rs"
@@ -6918,7 +6933,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/lifecycle.rs",
     "symbol": "full_lifecycle_produces_exact_candidate"
    },
    "note": "audit 2026-08-26 (PARTIAL): It prepares a Candidate and checks base, head, tree, scope, and Attempt, but does not assert immutability or complete strict provena"
@@ -6986,7 +7001,7 @@
    "anchor": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/safety.rs",
     "symbol": "out_of_scope_patch_is_refused_naming_the_path_and_tree_untouched"
    }
   },
@@ -7003,7 +7018,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-gitd/src/daemon.rs",
+    "path": "crates/bullet-gitd/src/daemon/tests.rs",
     "symbol": "prepare_candidate_requires_the_complete_strict_provenance_shape"
    },
    "note": "Daemon and change graph land; online Kernel authority gateway is W4."
@@ -7103,10 +7118,10 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-types/src/change.rs",
-    "symbol": "every_manifest_field_is_candidate_sensitive"
+    "path": "crates/bullet-git-types/tests/proof_root.rs",
+    "symbol": "every_candidate_binding_field_is_identity_sensitive"
    },
-   "note": "environment/toolchain digests bound; runner image and provider version envelope incomplete."
+   "note": "Codex 2026-08-26 AGREE: CandidateBinding id sweeps runner image, provider version, lock, toolchain, environment digests; no envelope from a real run"
   },
   {
    "id": "git_role.f14.patch-algebra",
@@ -7246,7 +7261,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-gitd/src/lib.rs",
+    "path": "crates/bullet-gitd/src/lib/tests.rs",
     "symbol": "wrong_fence_token_is_stale"
    },
    "note": "audit 2026-08-26 (PARTIAL): One read_tree call rejects a wrong fence; the test does not cover every repository call or all token fields; bullet-git/crates/bulle"
@@ -7350,11 +7365,12 @@
     "value": "W5"
    },
    "partial": {
-    "kind": "symbol",
-    "repo": "bullet-kernel",
-    "path": "crates/effects/src/lib.rs",
-    "symbol": "IntegrationSubject"
-   }
+    "kind": "test",
+    "repo": "bullet-git",
+    "path": "crates/bullet-git-types/tests/integration_manifest.rs",
+    "symbol": "every_integration_manifest_field_is_identity_sensitive"
+   },
+   "note": "Codex 2026-08-26 AGREE: IntegrationManifest per-field identity-sensitive (target ref/SHA, candidates, merge-group, proof root, policy); not persisted"
   },
   {
    "id": "git_role.phase1.kernel",
@@ -7369,7 +7385,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/lifecycle.rs",
     "symbol": "full_lifecycle_produces_exact_candidate"
    },
    "note": "audit 2026-08-26 (PARTIAL): Direct repository lifecycle covers read, apply, checkpoint and Candidate; no gitd API, evolution edge or proof-root operation. real_"
@@ -7387,7 +7403,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-gitd/src/authority_gateway_tests.rs",
+    "path": "crates/bullet-gitd/src/authority_gateway_tests/authorization.rs",
     "symbol": "unavailable_production_gateway_never_returns_a_permit"
    },
    "note": "Production gateway still returns AUTHORITY_CONTRACT_UNAVAILABLE."
@@ -7452,7 +7468,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-gitd/src/lib.rs",
+    "path": "crates/bullet-gitd/src/lib/tests.rs",
     "symbol": "worktree_writes_are_blocked"
    },
    "note": "Honoured by construction; only worktree/raw-git and evidence-reuse refusals have tests."
@@ -7579,9 +7595,9 @@
     "kind": "test",
     "repo": "bullet-git",
     "path": "crates/bullet-git-types/tests/proof_root.rs",
-    "symbol": "proof_root_each_of_the_eight_leaves_is_tamper_evident"
+    "symbol": "candidate_binding_refuses_every_hostile_input"
    },
-   "note": "ProofRoot binds eight leaves; forge check publication of proof_root is W5."
+   "note": "Codex 2026-08-26: binding refuses foreign proof-root subject, envelope mismatch, empty gates; no forge required-check, no merge-admission path"
   },
   {
    "id": "git_role.s7.negative-knowledge",
@@ -7642,7 +7658,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/safety.rs",
     "symbol": "hostile_hooks_and_home_config_never_execute"
    },
    "note": "Git env/hooks/config isolated in gitd; provider argv denies worktree/tmux; S1 workcell is W3."
@@ -7695,9 +7711,10 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
-    "path": "crates/harness-core/tests/launch_grant_admission.rs",
-    "symbol": "a_grant_for_another_executable_or_environment_never_clears_the_blocker"
-   }
+    "path": "crates/application/tests/config_generation.rs",
+    "symbol": "activation_supersedes_the_active_generation_and_retains_last_known_good"
+   },
+   "note": "Codex 2026-08-26 AGREE: supersession, retained-not-admitted last-known-good, stale-ack + concurrent-activation refusals; scope ids, per-repo untested"
   },
   {
    "id": "gastown.e11",
@@ -8011,7 +8028,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/lifecycle.rs",
     "symbol": "full_lifecycle_produces_exact_candidate"
    },
    "note": "audit 2026-08-26 (PARTIAL): Checks base, head, tree shape, producing attempt, and scope inclusion, but not exact scope equality or complete lineage. bullet-git/"
@@ -8479,7 +8496,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/lifecycle.rs",
     "symbol": "candidate_subject_mismatches_refuse_before_generation_or_commit"
    },
    "note": "Repository identity bound; organization/partition keys absent."
@@ -8667,7 +8684,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/safety.rs",
     "symbol": "sequencer_state_blocks_checkpoint_and_prepare"
    },
    "note": "audit 2026-08-26 (PARTIAL): MERGE_HEAD blocks checkpoint/prepare, but no maintenance worker staging or commit in a live writer clone is exercised; bullet-git/cr"
@@ -8767,7 +8784,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/lifecycle.rs",
     "symbol": "apply_proposal_publishes_only_after_exact_checkpoint_and_preimages_match"
    }
   },
@@ -8979,7 +8996,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/safety.rs",
     "symbol": "worktree_shaped_directory_is_refused"
    },
    "note": "audit 2026-08-26 (PARTIAL): Apply and checkpoint reject a worktree-shaped .git file; private-clone-per-Attempt construction and the full authority boundary are "
@@ -8997,8 +9014,8 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
-    "path": "crates/runner/src/gitd.rs",
-    "symbol": "missing_candidate_bindings_are_refused_instead_of_synthesized"
+    "path": "crates/runner/src/gitd/protocol_tests.rs",
+    "symbol": "malformed_candidate_subjects_are_refused_instead_of_synthesized"
    },
    "note": "audit 2026-08-26 (PARTIAL): A runner helper refuses missing candidate bindings, but the test does not prove preparation and finalization ownership across truste"
   },
@@ -9115,10 +9132,10 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-portal",
-    "path": "src/App.test.tsx",
-    "symbol": "keeps control tower on the default hash"
+    "path": "src/pages/ShiftBriefPage.test.tsx",
+    "symbol": "lists every surface exactly once with its status"
    },
-   "note": "Portal default is Control Tower; Shift Brief surface absent."
+   "note": "Codex 2026-08-26: component renders 15 rows, summary, RELEASE DECISION unknown; not routed via #/shift-brief; completeness/survival absent"
   },
   {
    "id": "nightshift.shift-brief.drilldown",
@@ -9132,10 +9149,11 @@
    },
    "partial": {
     "kind": "test",
-    "repo": "bullet-farm",
-    "path": "src/check/truth/rows.rs",
-    "symbol": "next_commands_name_surfaces_that_exist"
-   }
+    "repo": "bullet-portal",
+    "path": "src/pages/ShiftBriefPage.test.tsx",
+    "symbol": "renders the six absent-subject surfaces only as non-empty unknown, never another status"
+   },
+   "note": "Codex 2026-08-26: evidence, subject, blocker, freshness, claim, next action asserted only for six absent-subject rows; no gap/why, SHA, proof tier"
   },
   {
    "id": "nightshift.w1.no-mixed-snapshots",
@@ -9167,10 +9185,10 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-portal",
-    "path": "src/components/ProjectionCard.test.tsx",
-    "symbol": "renders a published value with as_of, source, observed_at, and freshness"
+    "path": "src/pages/ShiftBriefPage.test.tsx",
+    "symbol": "carries each durable surface's own provenance and reads the shared missions list once"
    },
-   "note": "audit 2026-08-26 (PARTIAL): One card renders as-of, source, observed time, freshness, and projection state; it omits scope and does not cover every section. bul"
+   "note": "Codex 2026-08-26: full source/as-of/observed-at asserted for Fleet only; Control Tower and Mission Graph as-of only; other durable reads fail in test"
   },
   {
    "id": "nightshift.w2.gate-vs-readiness",
@@ -9862,7 +9880,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/lifecycle.rs",
     "symbol": "full_lifecycle_produces_exact_candidate"
    }
   },
@@ -10022,7 +10040,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-gitd/src/authority_gateway_tests.rs",
+    "path": "crates/bullet-gitd/src/authority_gateway_tests/authorization.rs",
     "symbol": "changed_fields_and_expiry_never_produce_a_consumable_permit"
    },
    "note": "audit 2026-08-26 (PARTIAL): It covers subject mismatch, expiry, and changed consume inputs, but not replay, supersession, outage, or actual mutation absence; bu"
@@ -10070,7 +10088,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-gitd/src/lib.rs",
+    "path": "crates/bullet-gitd/src/lib/tests.rs",
     "symbol": "evolution_produces_new_candidate_and_proof_binds"
    }
   },
@@ -10100,9 +10118,10 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-kernel",
-    "path": "crates/budgets/tests/conservation.rs",
-    "symbol": "reserve_beyond_remaining_is_refused"
-   }
+    "path": "crates/budgets/tests/dimensions.rs",
+    "symbol": "reserve_is_all_or_nothing_and_names_first_exhausted_dimension"
+   },
+   "note": "Codex 2026-08-26: atomic named refusal proven for Memory and Probe only, not provider-quota/verifier-backlog; no quota feed, repair, scheduler stop"
   },
   {
    "id": "evo.accept.v1.8",
@@ -10342,7 +10361,7 @@
    "partial": {
     "kind": "test",
     "repo": "bullet-git",
-    "path": "crates/bullet-git-workspace/tests/real_repository.rs",
+    "path": "crates/bullet-git-workspace/tests/real_repository/lifecycle.rs",
     "symbol": "full_lifecycle_produces_exact_candidate"
    },
    "note": "Offline chain proven; production gitd online authority is W4."

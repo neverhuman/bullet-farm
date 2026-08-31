@@ -35,6 +35,6 @@ Rubric `d2-v1`. Blended **43.5** (architecture 94.5, implemented 40, stranger 3)
 | `d10.jankurai-90` | no | `NO_EVIDENCE_REFERENCE` | release.jankurai-90 admitted |
 | `d11.invariants-51` | no | `NO_EVIDENCE_REFERENCE` | 51/51 invariants enforced |
 | `d12.signed-jeryu-tags` | no | `NO_EVIDENCE_REFERENCE` | Jeryu tags are annotated and signed |
-| `g2.transaction-proof` | no | `NO_EVIDENCE_REFERENCE` | release.transaction-demo admitted |
+| `g2.transaction-proof` | no | `RELEASE_GATE_NOT_ADMITTED` | release.transaction-demo admitted |
 
 A row adds its typed implemented delta only when the kind-specific verifier re-derives the claim from committed Hub bytes or an exact pinned family subject. Mutable sibling checkouts, file presence, unsigned receipts, ignored tests, and `check release` gates do not admit. This page is not release authority.

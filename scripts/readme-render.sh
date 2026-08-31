@@ -3,16 +3,39 @@ set -euo pipefail
 
 HUB="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MEDIA="${README_MEDIA_ROOT:-$HUB/docs/readme-media}"
-SNAPSHOT="$MEDIA/snapshot.json"
+publication_media="$MEDIA"
 VHS_IMAGE='ghcr.io/charmbracelet/vhs@sha256:9d5fc3dc0c160b0fb1d2212baff07e6bdf3fa9438c504a3237484567302fcf93'
 SOURCE_EPOCH=1787616000
 VHS_VERSION_OUTPUT='vhs version v0.11.0 (c6af91a)'
 gif_root=""
 render_tmp="$(mktemp -d)"
+publication_directory_fds=()
+publication_file_fds=()
+publication_temp_records=()
 cleanup() {
+  local record directory_fd temporary_name temporary
+  for record in "${publication_temp_records[@]}"; do
+    directory_fd="${record%%:*}"
+    temporary_name="${record#*:}"
+    temporary="/proc/self/fd/$directory_fd/$temporary_name"
+    [[ ! -e "$temporary" && ! -L "$temporary" ]] || rm -f -- "$temporary"
+  done
   rm -rf "$render_tmp"
 }
 trap cleanup EXIT
+
+stable_media="$render_tmp/media-snapshot"
+if ! cp -a --no-dereference -- "$MEDIA" "$stable_media"; then
+  echo "readme-render: could not take a no-dereference media snapshot" >&2
+  exit 1
+fi
+if [[ ! -d "$stable_media" || -L "$stable_media" ]] ||
+  find "$stable_media" -type l -print -quit | grep -q .; then
+  echo "readme-render: media snapshot must contain only ordinary paths" >&2
+  exit 1
+fi
+MEDIA="$stable_media"
+SNAPSHOT="$MEDIA/snapshot.json"
 
 if [[ "$#" -gt 0 ]]; then
   if [[ "$#" -ne 2 || "$1" != "--gif-root" ]]; then
@@ -55,7 +78,7 @@ if find "$render_input" -type l -print -quit | grep -q .; then
 fi
 bash "$HUB/scripts/readme-input-check.sh" "$render_input/docs/readme-media" >/dev/null
 
-for tool in cmp cp docker find jq sha256sum stat; do
+for tool in cat chmod cmp cp docker find jq mktemp mv sha256sum stat; do
   command -v "$tool" >/dev/null 2>&1 || {
     printf 'readme-render: missing required tool %s\n' "$tool" >&2
     exit 1
@@ -282,19 +305,128 @@ for demo in component-preview provider-safety; do
   done < <(jq -r '.artifact_hashes[] | [.path,.sha256,.bytes] | @tsv' "$directory/manifest.json")
 done
 
-PATH="$HUB/.ci-tools/readme-jsonschema/bin:$PATH" \
+PATH="$HUB/target/.ci-tools/readme-jsonschema/bin:$PATH" \
   bash "$HUB/scripts/readme-check.sh" --staged-root "$stage" >/dev/null
+
+public_directory_subject() {
+  local directory="$1"
+  [[ -d "$directory" && ! -L "$directory" ]] || return 1
+  stat -c '%d:%i:%f:%h:%u:%g' -- "$directory"
+}
+
+descriptor_directory_subject() {
+  local directory_fd="$1"
+  stat -Lc '%d:%i:%f:%h:%u:%g' -- "/proc/self/fd/$directory_fd"
+}
+
+public_regular_file_subject() {
+  local path="$1"
+  [[ -f "$path" && ! -L "$path" && "$(stat -c '%h' "$path")" == 1 ]] || return 1
+  stat -c '%d:%i:%f:%h:%u:%g:%s' -- "$path"
+}
+
+descriptor_regular_file_subject() {
+  local file_fd="$1"
+  stat -Lc '%d:%i:%f:%h:%u:%g:%s' -- "/proc/self/fd/$file_fd"
+}
+
+retain_publication_directory() {
+  local directory="$1" result_fd="$2" result_subject="$3"
+  local before opened_fd retained current
+  if ! before="$(public_directory_subject "$directory")"; then
+    printf 'readme-render: publication directory is not ordinary: %s\n' "$directory" >&2
+    exit 1
+  fi
+  if ! exec {opened_fd}<"$directory"; then
+    printf 'readme-render: could not retain publication directory: %s\n' "$directory" >&2
+    exit 1
+  fi
+  if ! retained="$(descriptor_directory_subject "$opened_fd")" ||
+    ! current="$(public_directory_subject "$directory")" ||
+    [[ "$before" != "$retained" || "$current" != "$retained" ]]; then
+    printf 'readme-render: publication directory changed during retention: %s\n' \
+      "$directory" >&2
+    exit 1
+  fi
+  publication_directory_fds+=("$opened_fd")
+  printf -v "$result_fd" '%s' "$opened_fd"
+  printf -v "$result_subject" '%s' "$retained"
+}
+
+validate_publication_directory() {
+  local directory="$1" directory_fd="$2" expected_subject="$3"
+  local retained current
+  if ! retained="$(descriptor_directory_subject "$directory_fd")" ||
+    ! current="$(public_directory_subject "$directory")" ||
+    [[ "$retained" != "$expected_subject" || "$current" != "$expected_subject" ]]; then
+    printf 'readme-render: publication directory identity changed: %s\n' "$directory" >&2
+    exit 1
+  fi
+}
+
+publish_regular_file() {
+  local source="$1" directory_fd="$2" destination_name="$3"
+  local directory_ref temporary temporary_name temporary_fd
+  local created retained current published
+  [[ -f "$source" && ! -L "$source" ]] || {
+    printf 'readme-render: publication source is not an ordinary file: %s\n' "$source" >&2
+    exit 1
+  }
+  directory_ref="/proc/self/fd/$directory_fd"
+  temporary="$(mktemp --tmpdir="$directory_ref" \
+    ".$destination_name.publish.XXXXXXXXXX")"
+  temporary_name="${temporary##*/}"
+  publication_temp_records+=("$directory_fd:$temporary_name")
+  if ! created="$(public_regular_file_subject "$temporary")"; then
+    printf 'readme-render: publication temporary is not an exclusive regular file: %s\n' \
+      "$temporary" >&2
+    exit 1
+  fi
+  if ! exec {temporary_fd}<>"$temporary"; then
+    printf 'readme-render: could not retain publication temporary: %s\n' "$temporary" >&2
+    exit 1
+  fi
+  if ! retained="$(descriptor_regular_file_subject "$temporary_fd")" ||
+    ! current="$(public_regular_file_subject "$temporary")" ||
+    [[ "$created" != "$retained" || "$current" != "$retained" ]]; then
+    printf 'readme-render: publication temporary lost custody: %s\n' "$temporary" >&2
+    exit 1
+  fi
+  publication_file_fds+=("$temporary_fd")
+  cat -- "$source" >&"$temporary_fd"
+  chmod 0644 "/proc/self/fd/$temporary_fd"
+  if ! retained="$(descriptor_regular_file_subject "$temporary_fd")" ||
+    ! current="$(public_regular_file_subject "$temporary")" ||
+    [[ "$current" != "$retained" ]] ||
+    ! cmp "$source" "/proc/self/fd/$temporary_fd"; then
+    printf 'readme-render: publication temporary lost custody: %s\n' "$temporary" >&2
+    exit 1
+  fi
+  mv -fT -- "$temporary" "$directory_ref/$destination_name"
+  published="$directory_ref/$destination_name"
+  if ! current="$(public_regular_file_subject "$published")" ||
+    [[ "$current" != "$retained" ]] ||
+    [[ "$(descriptor_regular_file_subject "$temporary_fd")" != "$retained" ]] ||
+    ! cmp "$source" "/proc/self/fd/$temporary_fd" ||
+    [[ "$(public_regular_file_subject "$published")" != "$retained" ]]; then
+    printf 'readme-render: published output is not the staged regular file: %s\n' \
+      "$published" >&2
+    exit 1
+  fi
+}
 
 # All generation work completed before publication. Each file replacement is
 # atomic and the manifest is published last, so an interrupted publication is
 # detectably invalid rather than a falsely self-consistent mixed generation.
 for demo in component-preview provider-safety; do
   directory="$stage/$demo"
-  destination="$MEDIA/$demo"
+  destination="$publication_media/$demo"
+  directory_fd=""
+  directory_subject=""
+  retain_publication_directory "$destination" directory_fd directory_subject
   for file in fallback.png "$demo.gif" frames.framemd5 manifest.json; do
-    temporary="$destination/$file.tmp.$$"
-    cp "$directory/$file" "$temporary"
-    mv "$temporary" "$destination/$file"
+    publish_regular_file "$directory/$file" "$directory_fd" "$file"
   done
+  validate_publication_directory "$destination" "$directory_fd" "$directory_subject"
 done
 echo "readme-render: rendered committed media with pinned VHS and network disabled"

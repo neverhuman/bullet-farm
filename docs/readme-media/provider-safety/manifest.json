@@ -43,7 +43,7 @@
       },
       {
         "path": "scripts/readme-check.sh",
-        "sha256": "1d2556351aac4b1f7319d020249e67a21a65eb4e440811570aa2ae37fa9598de"
+        "sha256": "31d947934eba00dad7a645ca6e9737cd1fefcd02c7673df126b61cd1fe8d9db6"
       },
       {
         "path": "scripts/readme-input-check.sh",
@@ -55,7 +55,7 @@
       },
       {
         "path": "scripts/readme-render.sh",
-        "sha256": "010dab8f113bd0c7667ba310f0409d1b615feb3a4ceb8aa64c718634b73e8f5f"
+        "sha256": "1dc70a6135787e3903e815e892dbd2e6d74ed3fb6caaa9153a1ab23dda2a78c6"
       },
       {
         "path": "scripts/readme-schema-check.sh",

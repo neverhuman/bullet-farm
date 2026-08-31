@@ -41,6 +41,6 @@
     {"id": "d10.jankurai-90", "dimension": 10, "kind": "gate", "claim": "release.jankurai-90 admitted", "implemented_delta": 8, "evidence": null},
     {"id": "d11.invariants-51", "dimension": 11, "kind": "ci-test", "claim": "51/51 invariants enforced", "implemented_delta": 8, "evidence": null},
     {"id": "d12.signed-jeryu-tags", "dimension": 12, "kind": "source-receipt", "claim": "Jeryu tags are annotated and signed", "implemented_delta": 4, "evidence": null},
-    {"id": "g2.transaction-proof", "dimension": 1, "kind": "gate", "claim": "release.transaction-demo admitted", "implemented_delta": 8, "evidence": null}
+    {"id": "g2.transaction-proof", "dimension": 1, "kind": "gate", "claim": "release.transaction-demo admitted", "implemented_delta": 8, "evidence": {"source": "release-gate", "gate_id": "release.transaction-demo", "profile_id": "self-hosted-v1", "receipt_id": "transaction-offline-saga"}}
   ]
 }

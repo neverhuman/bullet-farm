@@ -119,7 +119,7 @@ fn rubric_admits_only_rederived_product_rows() {
         .find(|row| row.id == "g2.transaction-proof")
         .expect("g2");
     assert!(!txn.admitted);
-    assert_eq!(txn.refusal_reason, "NO_EVIDENCE_REFERENCE");
+    assert_eq!(txn.refusal_reason, "RELEASE_GATE_NOT_ADMITTED");
     let evolution = report
         .rows
         .iter()

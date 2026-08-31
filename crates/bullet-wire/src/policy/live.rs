@@ -41,7 +41,13 @@ impl PolicySnapshotV1 {
 
 /// Structural rule for a v1alpha2 snapshot whose live admission is enabled.
 /// The caller has already enforced the immutable conservatism set.
-pub(super) fn validate_live_admission(policy: &PolicySnapshotV1) -> Result<(), WireError> {
+pub fn validate_live_admission(policy: &PolicySnapshotV1) -> Result<(), WireError> {
+    if !policy.sandbox_policy.live_admission_enabled {
+        return Err(WireError::new(
+            "LIVE_ADMISSION_DISABLED",
+            "live admission cannot be satisfied by a dogfood-only or offline policy",
+        ));
+    }
     if policy.policy_generation < LIVE_ADMISSION_MIN_GENERATION {
         return Err(WireError::new(
             "LIVE_ADMISSION_REQUIRES_GENERATION",
@@ -59,6 +65,86 @@ pub(super) fn validate_live_admission(policy: &PolicySnapshotV1) -> Result<(), W
         return Err(WireError::new(
             "LIVE_ADMISSION_REQUIRES_RUNNER_KEY",
             "live admission requires an unrevoked authority-signing PASETO key admitted for the provider-runner audience within the policy window",
+        ));
+    }
+    Ok(())
+}
+
+/// Admit one dogfood-scoped binding against a snapshot that stays offline.
+///
+/// # Errors
+///
+/// `DOGFOOD_REFUSES_LIVE_ADMISSION` when general live admission is enabled;
+/// `UNSUPPORTED_POLICY_SCHEMA` / `LIVE_ADMISSION_REQUIRES_GENERATION` for a
+/// Gate 0 snapshot; `INVALID_DOGFOOD_BINDING` for a wrong audience, operation,
+/// or schema; `LIVE_ADMISSION_REQUIRES_RUNNER_KEY` when no overlapping
+/// authority-signing PASETO key exists (launch material, not live enablement).
+pub fn validate_dogfood_admission(
+    policy: &PolicySnapshotV1,
+    binding: &super::DogfoodBindingV1,
+) -> Result<(), WireError> {
+    if policy.sandbox_policy.live_admission_enabled {
+        return Err(WireError::new(
+            "DOGFOOD_REFUSES_LIVE_ADMISSION",
+            "dogfood admission refuses a general live binding",
+        ));
+    }
+    let schema = policy.schema()?;
+    if schema != super::PolicySchemaVersion::V1Alpha2 {
+        return Err(WireError::new(
+            "UNSUPPORTED_POLICY_SCHEMA",
+            "dogfood admission requires policy schema v1alpha2",
+        ));
+    }
+    if policy.policy_generation < LIVE_ADMISSION_MIN_GENERATION {
+        return Err(WireError::new(
+            "LIVE_ADMISSION_REQUIRES_GENERATION",
+            format!(
+                "dogfood admission requires policy generation {LIVE_ADMISSION_MIN_GENERATION} or later; generation {} is refused",
+                policy.policy_generation
+            ),
+        ));
+    }
+    validate_binding(binding)?;
+    if !policy
+        .issuer_keys
+        .iter()
+        .any(|key| qualifies_for_live_admission(key) && overlaps_policy_window(key, policy))
+    {
+        return Err(WireError::new(
+            "LIVE_ADMISSION_REQUIRES_RUNNER_KEY",
+            "dogfood admission requires an unrevoked authority-signing PASETO key admitted for the provider-runner audience within the policy window",
+        ));
+    }
+    Ok(())
+}
+
+/// A dogfood binding can never satisfy the general live path.
+///
+/// # Errors
+///
+/// Always `LIVE_ADMISSION_REFUSES_DOGFOOD_BINDING`.
+pub fn refuse_dogfood_binding_as_live(binding: &super::DogfoodBindingV1) -> Result<(), WireError> {
+    validate_binding(binding)?;
+    Err(WireError::new(
+        "LIVE_ADMISSION_REFUSES_DOGFOOD_BINDING",
+        "a dogfood audience/operation binding cannot satisfy live admission",
+    ))
+}
+
+fn validate_binding(binding: &super::DogfoodBindingV1) -> Result<(), WireError> {
+    if binding.schema_version != super::DogfoodBindingV1::SCHEMA_VERSION {
+        return Err(WireError::new(
+            "INVALID_DOGFOOD_BINDING",
+            "dogfood binding requires schema v1alpha1",
+        ));
+    }
+    if binding.audience != super::DogfoodAudienceV1::DogfoodRunner
+        || binding.operation != super::DogfoodOperationV1::ReadOnlyPropose
+    {
+        return Err(WireError::new(
+            "INVALID_DOGFOOD_BINDING",
+            "dogfood binding must be dogfood-runner / read-only-propose",
         ));
     }
     Ok(())

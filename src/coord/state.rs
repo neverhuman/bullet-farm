@@ -1,23 +1,73 @@
-use std::{
-    collections::BTreeMap,
-    sync::atomic::{AtomicU64, Ordering},
-};
+use std::collections::BTreeMap;
 
 use super::{
-    ClaimInput, CoordError,
+    CoordError,
     model::{ClaimState, ClaimSummary, Record},
     receipt_state, validate_field, validate_path, validate_repo_name,
 };
 
-static CLAIM_SEQUENCE: AtomicU64 = AtomicU64::new(1);
+mod identity;
+mod recovery;
+mod recovery_adoption;
+mod recovery_evidence;
+pub(super) use identity::{claim_id, validate_claim_id};
+use recovery::{apply_recovery_baseline, is_generation_id, is_tagged_blake3};
+use recovery_adoption::{RecoveryAdoptionAuthority, apply as apply_recovery_adoption};
+use recovery_evidence::RecoveryEvidenceState;
 
 pub(super) fn summaries(
     records: &[Record],
     now: u64,
 ) -> Result<BTreeMap<String, ClaimSummary>, CoordError> {
     let mut claims = BTreeMap::new();
+    let mut generation_transition_seen = false;
+    let mut recovery_adoption_authority = None;
+    let mut recovery_evidence = RecoveryEvidenceState::default();
     for record in records {
         match record {
+            Record::GenesisV2 {
+                schema_version,
+                generation_id,
+                manifest_blake3,
+                created_at_unix_ms,
+            } => {
+                if generation_transition_seen || !claims.is_empty() {
+                    return Err(corrupt(
+                        "GENESIS must be the unique first coordination generation transition",
+                    ));
+                }
+                if *schema_version != super::model::GENERATION_SCHEMA_VERSION
+                    || !is_generation_id(generation_id)
+                    || !is_tagged_blake3(manifest_blake3)
+                    || *created_at_unix_ms == 0
+                {
+                    return Err(corrupt("GENESIS identity fields are invalid"));
+                }
+                generation_transition_seen = true;
+            }
+            Record::RecoveryBaselineV2 {
+                schema_version,
+                generation_id,
+                body,
+            } => {
+                if generation_transition_seen {
+                    return Err(corrupt(
+                        "coordination generation has multiple recovery baselines",
+                    ));
+                }
+                if *schema_version != super::model::GENERATION_SCHEMA_VERSION {
+                    return Err(corrupt("recovery baseline uses an unsupported schema"));
+                }
+                if !is_generation_id(generation_id) {
+                    return Err(corrupt("recovery baseline generation identity is invalid"));
+                }
+                apply_recovery_baseline(body, &mut claims)?;
+                recovery_adoption_authority = Some(RecoveryAdoptionAuthority::from_baseline(
+                    generation_id,
+                    body,
+                ));
+                generation_transition_seen = true;
+            }
             Record::Claim {
                 at_unix_ms,
                 claim_id,
@@ -49,10 +99,12 @@ pub(super) fn summaries(
                         commit_oid: None,
                         commit_orchestrator: None,
                         commit_recorded_at_unix_ms: None,
+                        recovery_adoption: None,
                     },
                 );
             }
             Record::Heartbeat {
+                schema_version,
                 at_unix_ms,
                 claim_id,
                 agent,
@@ -60,7 +112,7 @@ pub(super) fn summaries(
                 note,
                 ..
             } => {
-                validate_event_fields(claim_id, agent, *at_unix_ms)?;
+                validate_event_fields(*schema_version, claim_id, agent, *at_unix_ms)?;
                 validate_window(*at_unix_ms, *expires_unix_ms)?;
                 if let Some(note) = note {
                     validate_field("note", note).map_err(as_corrupt)?;
@@ -70,6 +122,7 @@ pub(super) fn summaries(
                 claim.expires_unix_ms = *expires_unix_ms;
             }
             Record::Handoff {
+                schema_version,
                 at_unix_ms,
                 claim_id,
                 agent,
@@ -79,7 +132,7 @@ pub(super) fn summaries(
                 commit_oid,
                 ..
             } => {
-                validate_event_fields(claim_id, agent, *at_unix_ms)?;
+                validate_event_fields(*schema_version, claim_id, agent, *at_unix_ms)?;
                 validate_field("proof_command", proof_command).map_err(as_corrupt)?;
                 if *proof_exit_code != 0 {
                     return Err(corrupt(format!(
@@ -110,6 +163,42 @@ pub(super) fn summaries(
             | Record::CommitReceiptGroup { .. }
             | Record::CommitReceiptGroupCorrection { .. } => {
                 receipt_state::apply(record, &mut claims)?
+            }
+            Record::RecoveryReceiptAdoptionV1 {
+                schema_version,
+                at_unix_ms,
+                body,
+            } => {
+                if *schema_version != super::model::GENERATION_SCHEMA_VERSION {
+                    return Err(corrupt("recovery adoption uses an unsupported schema"));
+                }
+                recovery_evidence.verify_adoption(body)?;
+                apply_recovery_adoption(
+                    *at_unix_ms,
+                    body,
+                    recovery_adoption_authority.as_ref(),
+                    &mut claims,
+                )
+                .map_err(as_corrupt)?;
+            }
+            Record::RecoveryProofReceiptV1 { .. } | Record::RecoveryReviewReceiptV1 { .. } => {
+                recovery_evidence.apply(record, recovery_adoption_authority.as_ref())?
+            }
+        }
+        if !matches!(
+            record,
+            Record::GenesisV2 { .. } | Record::RecoveryBaselineV2 { .. }
+        ) {
+            let expected = if generation_transition_seen {
+                super::model::GENERATION_SCHEMA_VERSION
+            } else {
+                super::model::LEGACY_SCHEMA_VERSION
+            };
+            if record.schema_version() != expected {
+                return Err(corrupt(format!(
+                    "coordination record schema {} is invalid on this side of the recovery transition",
+                    record.schema_version()
+                )));
             }
         }
     }
@@ -260,30 +349,9 @@ pub(super) fn expiry(now: u64, ttl_seconds: u64) -> Result<u64, CoordError> {
         .ok_or_else(|| CoordError::new("INVALID_TTL", "TTL overflows the clock"))
 }
 
-pub(super) fn claim_id(input: &ClaimInput, paths: &[String], now: u64) -> String {
-    let sequence = CLAIM_SEQUENCE.fetch_add(1, Ordering::Relaxed);
-    let mut hash = blake3::Hasher::new();
-    hash.update(b"bullet-family.coord.claim.v1\0");
-    for field in [
-        now.to_string(),
-        std::process::id().to_string(),
-        sequence.to_string(),
-        input.agent.clone(),
-        input.lane.clone(),
-        input.repo.clone(),
-    ] {
-        hash.update(&(field.len() as u64).to_le_bytes());
-        hash.update(field.as_bytes());
-    }
-    for path in paths {
-        hash.update(&(path.len() as u64).to_le_bytes());
-        hash.update(path.as_bytes());
-    }
-    format!("clm_{}", hash.finalize().to_hex())
-}
-
 fn validate_claim_record(record: &Record) -> Result<(), CoordError> {
     let Record::Claim {
+        schema_version,
         at_unix_ms,
         claim_id,
         agent,
@@ -296,7 +364,7 @@ fn validate_claim_record(record: &Record) -> Result<(), CoordError> {
     else {
         return Err(corrupt("expected claim record"));
     };
-    validate_event_fields(claim_id, agent, *at_unix_ms)?;
+    validate_event_fields(*schema_version, claim_id, agent, *at_unix_ms)?;
     validate_field("lane", lane).map_err(as_corrupt)?;
     validate_repo_name(repo).map_err(as_corrupt)?;
     validate_window(*at_unix_ms, *expires_unix_ms)?;
@@ -307,8 +375,17 @@ fn validate_claim_record(record: &Record) -> Result<(), CoordError> {
     Ok(())
 }
 
-fn validate_event_fields(claim_id: &str, agent: &str, at: u64) -> Result<(), CoordError> {
-    validate_field("claim_id", claim_id).map_err(as_corrupt)?;
+fn validate_event_fields(
+    schema_version: u32,
+    claim_id: &str,
+    agent: &str,
+    at: u64,
+) -> Result<(), CoordError> {
+    if schema_version == super::model::GENERATION_SCHEMA_VERSION {
+        validate_claim_id(claim_id).map_err(as_corrupt)?;
+    } else {
+        validate_field("claim_id", claim_id).map_err(as_corrupt)?;
+    }
     validate_field("agent", agent).map_err(as_corrupt)?;
     if at == 0 {
         return Err(corrupt("event timestamp must be nonzero"));
@@ -340,9 +417,9 @@ fn event_claim<'a>(
             "event agent does not own claim {claim_id}"
         )));
     }
-    if claim.state == ClaimState::HandedOff {
+    if claim.state != ClaimState::Active {
         return Err(corrupt(format!(
-            "claim {claim_id} has an event after handoff"
+            "claim {claim_id} has an event after leaving active state"
         )));
     }
     if at < claim.last_event_unix_ms {

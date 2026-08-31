@@ -4,6 +4,8 @@ pub(super) fn conditional_constraints(record_name: &str) -> Option<Value> {
     match record_name {
         "AuthorityClaimsV1" | "MutationPermitClaimsV1" => Some(operation_audience_constraints()),
         "LaunchGrantClaimsV1" => Some(super::launch::launch_grant_claims_constraints()),
+        "CandidatePreparationGrantV1" => Some(candidate_preparation_constraints()),
+        "ExecutionEnvelopeV1" => Some(execution_envelope_constraints()),
         "PatchOperationV1" => Some(json!([
             {
                 "if": {"properties": {"preimage_kind": {"const": "absent"}}},
@@ -131,6 +133,34 @@ pub(super) fn conditional_constraints(record_name: &str) -> Option<Value> {
         ])),
         _ => None,
     }
+}
+
+fn candidate_preparation_constraints() -> Value {
+    json!([
+        {
+            "properties": {
+                "signing_purpose": {"const": "candidate-preparation-grant-signing"},
+                "claims_domain": {"const": "candidate-preparation.grant.v1alpha1"},
+                "envelope_domain": {"const": "candidate-preparation.envelope.v1alpha1"},
+                "attempt_fence": {"minimum": 1},
+                "runner_epoch": {"minimum": 1},
+                "scope_revision": {"minimum": 1},
+                "context_revision": {"minimum": 1}
+            }
+        }
+    ])
+}
+
+fn execution_envelope_constraints() -> Value {
+    json!([
+        {
+            "properties": {
+                "signing_purpose": {"const": "execution-envelope-signing"},
+                "claims_domain": {"const": "execution.envelope.v1alpha1"},
+                "runner_epoch": {"minimum": 1}
+            }
+        }
+    ])
 }
 
 fn operation_audience_constraints() -> Value {

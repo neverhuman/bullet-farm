@@ -2,7 +2,7 @@
 
 Status: **non-authoritative backlog; not release authority**
 Owner: Bullet Farm maintainers
-Last reviewed: 2026-08-25
+Last reviewed: 2026-08-26
 
 This workplan records opportunities exposed by the architecture paper and its
 evidence audit. It does not compete with the authoritative
@@ -11,6 +11,12 @@ contracts, the Kernel ledger, or explicit `bullet-family check release --profile
 <profile> --receipts <admitted-absolute-registry> --json`. If this
 file disagrees with any of them, this file loses. `COMPLETE` here would mean
 only that the named acceptance receipt exists; it cannot promote a family gate.
+The owner-oriented [finish execution plan](assurance/execution-plan.md) serializes
+these rows against Waves 0–11, G1–G18, and OD-A–OD-J without creating a new
+source of runtime or release truth. The
+[full-product dogfood bridge](assurance/full-product-dogfood-plan.md) and
+[coordinator recovery runbook](runbooks/coordinator-recovery.md) route the
+current component-only recovery path without promoting this backlog.
 
 ## Frozen V1 topology and operator-blocked proposals
 

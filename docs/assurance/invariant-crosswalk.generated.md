@@ -11,7 +11,7 @@
 | BF-CTL-0C2 | C2 | T2 gateway | planned | 3 | bullet-kernel | — | wave-3 |
 | BF-CTL-0C3 | C3 | T3 test | planned | 2 | bullet-kernel | — | wave-2 |
 | BF-CTL-0C4 | C4 | T2 gateway | planned | 3 | bullet-kernel | — | wave-3 |
-| BF-CTL-0C5 | C5 | T2 gateway | planned | 2 | bullet-kernel | — | wave-2 |
+| BF-CTL-0C5 | C5 | T2 gateway | enforced | 2 | bullet-kernel | bullet-runner-core::faults::missed_heartbeat_is_not_pass | wave-2 |
 | BF-CTL-0C6 | C6 | T2 gateway | planned | 2 | bullet-kernel | — | wave-2 |
 | BF-CTL-0C7 | C7 | T3 test | enforced | 1 | bullet-farm/formal | formal/model-check.sh | gate-0 |
 | BF-CTL-0C8 | C8 | T2 gateway | planned | 2 | bullet-kernel | — | wave-2 |
@@ -47,14 +47,14 @@
 | BF-EV-18 | EV18 | T2 gateway | planned | 8 | bullet-kernel/research | — | wave-8 |
 | BF-EV-19 | EV19 | T3 test | planned | 7 | bullet-kernel/research | — | wave-7 |
 | BF-EV-20 | EV20 | T2 gateway | planned | 7 | bullet-kernel/research | — | wave-7 |
-| BF-EV-21 | EV21 | T2 gateway | planned | 2 | bullet-kernel | — | wave-2 |
+| BF-EV-21 | EV21 | T2 gateway | enforced | 2 | bullet-kernel | bullet-runner-core::faults::lost_effect_response_is_not_pass | wave-2 |
 | BF-EV-22 | EV22 | T3 test | planned | 7 | bullet-kernel/research | — | wave-7 |
 | BF-EV-23 | EV23 | T2 gateway | planned | 2 | bullet-kernel | — | wave-2 |
 | BF-EV-24 | EV24 | T2 gateway | planned | 9 | bullet-kernel/research | — | wave-9 |
 | BF-EV-25 | EV25 | T3 test | planned | 9 | bullet-kernel/research | — | wave-9 |
 | BF-EV-26 | EV26 | T2 gateway | planned | 8 | bullet-kernel/research | — | wave-8 |
 | BF-EV-27 | EV27 | T2 gateway | planned | 3 | bullet-kernel | — | wave-3 |
-| BF-EV-28 | EV28 | T2 gateway | planned | 2 | bullet-kernel | — | wave-2 |
+| BF-EV-28 | EV28 | T2 gateway | enforced | 2 | bullet-kernel | bullet-runner-core::faults::stale_fence_is_not_pass | wave-2 |
 | BF-EV-29 | EV29 | T3 test | planned | 8 | bullet-kernel/research | — | wave-8 |
 | BF-G0-CANONICAL | — | T2 gateway | enforced | 1 | bullet-farm/bullet-wire | bullet_wire::decode_canonical_value | gate-0-canonical |
 | BF-G0-REGISTRY | — | T2 gateway | enforced | 1 | bullet-farm/policy | bullet_wire::InvariantRegistryV1::validate | gate-0-registry |

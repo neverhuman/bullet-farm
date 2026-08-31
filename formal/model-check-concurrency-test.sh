@@ -101,7 +101,7 @@ for log in "$TEST_ROOT/a.log" "$TEST_ROOT/b.log"; do
     }
     for standard_path in "${standard_paths[@]}"; do
       [[ "$standard_path" == "Parsing file $CACHE/run."*"/java-tmp/$standard_module.tla" ]] || {
-        echo "formal-concurrency-test: $standard_module escaped the private JVM temp root in $log" >&2
+        echo "formal-concurrency-test: $standard_module escaped the private JVM scratch root in $log" >&2
         exit 1
       }
     done

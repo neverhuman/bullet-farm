@@ -29,6 +29,17 @@ write_fixture_junit() {
     '</testsuites>' >"$output"
 }
 
+write_duplicate_string_member_fixture() {
+  local output="$1" key="$2" first="$3" second="$4"
+  printf '{"%s":"%s","%s":"%s"}\n' \
+    "$key" "$first" "$key" "$second" >"$output"
+}
+
+write_nonfinite_number_fixture() {
+  local output="$1"
+  printf '{"record_count":NaN}\n' >"$output"
+}
+
 origin_for() {
   printf '%s/hub-%s-%s-%s\n' "$test_root" "$1" "$run_id" "$run_attempt"
 }
@@ -116,7 +127,7 @@ expect_failure CI_JOB_MISSING "${aggregate_args[@]}" "${green[@]:0:5}"
 
 make_fixtures; rm "$(origin_for lint)/.ci-artifacts/observations/lint.json"
 expect_failure CI_OBSERVATION_MISSING "${aggregate_args[@]}" "${green[@]}"
-make_fixtures; docs_observation="$(origin_for docs)/.ci-artifacts/observations/docs.json"; docs_source="$(<"$docs_observation")"; { printf '%s\n' '{' '  "repository": "hostile-duplicate",' "${docs_source#*$'\n'}"; } >"$docs_observation"
+make_fixtures; docs_observation="$(origin_for docs)/.ci-artifacts/observations/docs.json"; write_duplicate_string_member_fixture "$docs_observation" repository hostile-duplicate bullet-farm
 expect_failure CI_JSON_STRICT_INVALID "${aggregate_args[@]}" "${green[@]}"
 make_fixtures; jq '.clean=false' "$(origin_for docs)/.ci-artifacts/observations/docs.json" >"$test_root/x"; mv "$test_root/x" "$(origin_for docs)/.ci-artifacts/observations/docs.json"
 expect_failure CI_SUBJECT_INVALID "${aggregate_args[@]}" "${green[@]}"
@@ -143,11 +154,11 @@ make_fixtures; rm "$(origin_for lint)/.ci-artifacts/observations/lint.json"; ln 
 expect_failure CI_OBSERVATION_MISSING "${aggregate_args[@]}" "${green[@]}"
 make_fixtures; contract_origin="$(origin_for contract)"; jq '.completed_models=1' "$contract_origin/.ci-artifacts/formal/contract.json" >"$test_root/x"; mv "$test_root/x" "$contract_origin/.ci-artifacts/formal/contract.json"; digest="$(sha256_file "$contract_origin/.ci-artifacts/formal/contract.json")"; jq --arg digest "$digest" '(.artifact_hashes[] | select(.path == ".ci-artifacts/formal/contract.json").sha256) = $digest' "$contract_origin/.ci-artifacts/observations/contract.json" >"$test_root/x"; mv "$test_root/x" "$contract_origin/.ci-artifacts/observations/contract.json"
 expect_failure CI_FORMAL_SUMMARY_INVALID "${aggregate_args[@]}" "${green[@]}"
-make_fixtures; contract_origin="$(origin_for contract)"; formal="$contract_origin/.ci-artifacts/formal/contract.json"; formal_source="$(<"$formal")"; { printf '%s\n' '{' '  "status": "FAIL",' "${formal_source#*$'\n'}"; } >"$formal"; digest="$(sha256_file "$formal")"; jq --arg digest "$digest" '(.artifact_hashes[] | select(.path == ".ci-artifacts/formal/contract.json").sha256) = $digest' "$contract_origin/.ci-artifacts/observations/contract.json" >"$test_root/x"; mv "$test_root/x" "$contract_origin/.ci-artifacts/observations/contract.json"
+make_fixtures; contract_origin="$(origin_for contract)"; formal="$contract_origin/.ci-artifacts/formal/contract.json"; write_duplicate_string_member_fixture "$formal" status FAIL PASS; digest="$(sha256_file "$formal")"; jq --arg digest "$digest" '(.artifact_hashes[] | select(.path == ".ci-artifacts/formal/contract.json").sha256) = $digest' "$contract_origin/.ci-artifacts/observations/contract.json" >"$test_root/x"; mv "$test_root/x" "$contract_origin/.ci-artifacts/observations/contract.json"
 expect_failure CI_JSON_STRICT_INVALID "${aggregate_args[@]}" "${green[@]}"
 make_fixtures; contract_origin="$(origin_for contract)"; jq '.generator="hostile-generator"' "$contract_origin/.ci-artifacts/contracts/bundle-manifest.json" >"$test_root/x"; mv "$test_root/x" "$contract_origin/.ci-artifacts/contracts/bundle-manifest.json"; digest="$(sha256_file "$contract_origin/.ci-artifacts/contracts/bundle-manifest.json")"; jq --arg digest "$digest" '(.artifact_hashes[] | select(.path == ".ci-artifacts/contracts/bundle-manifest.json").sha256) = $digest' "$contract_origin/.ci-artifacts/observations/contract.json" >"$test_root/x"; mv "$test_root/x" "$contract_origin/.ci-artifacts/observations/contract.json"
 expect_failure CI_CONTRACT_MANIFEST_INVALID "${aggregate_args[@]}" "${green[@]}"
-make_fixtures; contract_origin="$(origin_for contract)"; manifest="$contract_origin/.ci-artifacts/contracts/bundle-manifest.json"; sed 's/"record_count":98/"record_count":NaN/' "$manifest" >"$test_root/x"; mv "$test_root/x" "$manifest"; digest="$(sha256_file "$manifest")"; jq --arg digest "$digest" '(.artifact_hashes[] | select(.path == ".ci-artifacts/contracts/bundle-manifest.json").sha256) = $digest' "$contract_origin/.ci-artifacts/observations/contract.json" >"$test_root/x"; mv "$test_root/x" "$contract_origin/.ci-artifacts/observations/contract.json"
+make_fixtures; contract_origin="$(origin_for contract)"; manifest="$contract_origin/.ci-artifacts/contracts/bundle-manifest.json"; write_nonfinite_number_fixture "$manifest"; digest="$(sha256_file "$manifest")"; jq --arg digest "$digest" '(.artifact_hashes[] | select(.path == ".ci-artifacts/contracts/bundle-manifest.json").sha256) = $digest' "$contract_origin/.ci-artifacts/observations/contract.json" >"$test_root/x"; mv "$test_root/x" "$contract_origin/.ci-artifacts/observations/contract.json"
 expect_failure CI_JSON_STRICT_INVALID "${aggregate_args[@]}" "${green[@]}"
 make_fixtures; fast_origin="$(origin_for fast)"; printf '<system-out>credential-shaped raw output</system-out>\n' >>"$fast_origin/.ci-artifacts/junit/fast.xml"; digest="$(sha256_file "$fast_origin/.ci-artifacts/junit/fast.xml")"; jq --arg digest "$digest" '(.artifact_hashes[] | select(.path == ".ci-artifacts/junit/fast.xml").sha256) = $digest' "$fast_origin/.ci-artifacts/observations/fast.json" >"$test_root/x"; mv "$test_root/x" "$fast_origin/.ci-artifacts/observations/fast.json"
 expect_failure CI_JUNIT_SANITIZATION_INVALID "${aggregate_args[@]}" "${green[@]}"

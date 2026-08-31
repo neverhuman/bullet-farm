@@ -2,6 +2,7 @@
 
 mod catalog;
 pub mod corpus;
+mod dogfood;
 mod executor;
 mod prerequisites;
 mod profiles;
@@ -67,7 +68,7 @@ pub fn run(hub: &Path, args: &[String]) -> Result<CheckExecution, CoordError> {
         ));
     }
     let report = match (parsed.profile, parsed.receipts.as_deref()) {
-        (Some(profile), Some(receipts)) => executor::report_profile(profile, receipts)?,
+        (Some(profile), Some(receipts)) => executor::report_profile(hub, profile, receipts)?,
         (None, None) => executor::report(hub, parsed.tier)?,
         _ => return Err(CoordError::new("USAGE", USAGE)),
     };
@@ -80,6 +81,10 @@ pub fn run(hub: &Path, args: &[String]) -> Result<CheckExecution, CoordError> {
         mode: parsed.mode,
         page,
     })
+}
+
+pub(crate) fn dogfood_board(hub: &Path) -> Result<(String, u8), CoordError> {
+    dogfood::board_json(hub)
 }
 
 #[derive(Debug)]
@@ -268,6 +273,18 @@ mod tests {
             .unwrap_err()
             .code(),
             "INVALID_RECEIPT_REGISTRY"
+        );
+        assert_eq!(
+            parse(&[
+                "release".into(),
+                "--profile".into(),
+                "dogfood-local-v0".into(),
+                "--receipts".into(),
+                "/tmp/receipts".into(),
+            ])
+            .unwrap_err()
+            .code(),
+            "NOT_A_RELEASE_PROFILE"
         );
     }
 }

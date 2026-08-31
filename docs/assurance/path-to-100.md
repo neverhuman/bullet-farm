@@ -142,7 +142,8 @@ All lanes are path-disjoint from the claims active at 12:40Z (`README-CI-FAMILY-
 
 P0 exits when: `scorecard.generated.md` exists and is drift-gated; S-01's independent number is recorded;
 every lane above is receipted; OD-D's tags are verifiable. **If OD-D has not landed by the end of P0, P1's
-release half (L-40…L-43) and its authority half (L-24 onward) both stall — there is no agent workaround.**
+release-preparation half (L-40/L-42; L-43 remains P2-blocked) and its authority half (L-24 onward) both stall —
+there is no agent workaround.**
 
 ### P1 — M1 + M2: the product exists (weeks 1–6; ≈ 47 → 60)
 
@@ -170,13 +171,15 @@ git, and portal lanes run alongside it.
 | **L-11 `HUB-FORGE-SUBSYSTEM`** | `bullet-family forge probe\|pin\|status` with the `text/html` SPA-fallthrough guard; read-only against 127.0.0.1:8787. | farm · `src/forge/**` (new), `src/cli.rs`, `tests/forge.rs` (new) | L-10 | `cargo test --locked -p bullet-family --test forge; echo EXIT=$?` | M | AGENT | 9 → 35 |
 | **L-40 `HUB-LOCK-GENERATE`** | Schema-3 lock from the signed tags: `jeryu_url`, `jeryu_slug`, `tree_oid`, `lockfile`, `artifact` per member; `required` stops asserting the refusal. | farm · `family.lock`, `src/family_lock/**`, `ops/ci/required.sh` (after hand-off) | OD-D, L-10 | `bullet-family lock verify --tag <tag>; echo EXIT=$?` | M | AGENT | 9 → 40 |
 | **L-42 `HUB-RELEASE-WORKFLOW-PREP`** | Prepare a cache-free, non-publishing build/verification diagnostic for the quarantined Linux component. It has no tag trigger, release creation, package-byte upload, or write permission; signed publication remains L-42b after OD-E and the five-target matrix. | farm · future release workflow source | L-40 | workflow policy, zizmor, and source-bound hostile tests | M | AGENT | 9 → 43 |
-| **L-43 `HUB-SETUP-BOOTSTRAP`** | `just setup` bootstraps from tagged bytes: builds `bullet-family` from the locked source, then admits it — no externally located binary. Two-run proof on this host. | farm · `scripts/setup.sh`, `src/setup/**`, `ops/ci/required.sh` | L-40 | `bash ops/ci/required.sh; echo EXIT=$?` | L | AGENT | 9 → 45, stranger → 25 |
+| **L-43 `HUB-SETUP-BOOTSTRAP`** | `just setup` runs only a separately admitted signed prebuilt `bullet-family` whose package manifest, checksum, signature, and schema-3 lock were verified outside the source family; source-built bytes never self-admit. Replay the two-run component on this host; clean-host lifecycle and release evidence remain L-66. | farm · `scripts/setup.sh`, `src/setup/**`, `ops/ci/required.sh` | L-40, L-41b | `bash ops/ci/required.sh; echo EXIT=$?` | L | AGENT | 9 → 45, stranger → 25 |
 | **L-14 `GIT-REFLINK`** | Reflink fast path for private clones on reflink-capable filesystems with a byte-identical fallback proof. | git · `crates/bullet-git-workspace/src/clone.rs`, `tests/reflink.rs` (new) | — | `cargo test --locked -p bullet-git-workspace --test reflink; echo EXIT=$?` | M | AGENT | 2 → 90 |
 | **L-34 `KERNEL-GATES-IN-SANDBOX`** (WI-32) | Admitted gates run inside the egress sandbox; a `build.rs` that opens a socket is a failing negative test. | kernel · `crates/harness-egress/src/gate_exec.rs` (new), `crates/runner/src/gates.rs` | L-33, L-26 | `bash ops/ci/egress.sh; echo EXIT=$?` | M | AGENT | 2 → 94 |
 | **S-01 `INDEPENDENT-RESCORE-P1`** | Re-score as in P0. | farm · glossary adjudication rows | all of P1 | `just scorecard` | S | AGENT (other family) | §8 |
 
 P1 exits when: `transaction-demo` and `installable-lock` are admitted; the fault suite runs in CI; the
-independent re-score is recorded. Expected blended ≈ 60 (implemented ≈ 60, stranger ≈ 25).
+independent re-score is recorded. The former blended ≈60 (implemented ≈60, stranger ≈25) P1 projection is not
+admissible: L-43 is dependency-indexed above but cannot start or contribute its projected score in P1 because
+its signed-prebuilt predecessor L-41b is a P2 release-custody lane. Re-score only from completed receipts.
 
 ### P2 — M3 + M4: live and packaged (weeks 6–10; ≈ 60 → 73)
 
@@ -266,7 +269,7 @@ P0  S-00 scorecard ─► S-01 rescore              (runs again at the end of ev
     L-10 lock validation ──┐    │         │
     OD-D ◄── THE PIVOT ────┼────┼─────────┼──────────────────────────────────────────┐
                            ▼    │         ▼                                          │
-P1  L-40 lock ─► L-42 wf ─► L-43 setup     L-20 ─► L-21 ─► L-22 budgets ─► L-23 ─► L-24 gitd checker
+P1  L-40 lock ─► L-42 wf                    L-20 ─► L-21 ─► L-22 budgets ─► L-23 ─► L-24 gitd checker
     L-11 hub forge                                              │                      │
                                                                 │          L-25 proof root ─► L-27 verifier ─► L-28 attestor ─► L-29 readback
                                                                 │                      │                                           │
@@ -275,7 +278,7 @@ P1  L-40 lock ─► L-42 wf ─► L-43 setup     L-20 ─► L-21 ─► L-22 
                                                                 │                                                 ▼
                                                                 │                                     L-31 TRANSACTION_PROOF  [M2]
 P2  OD-A ─► L-44 live providers ◄────────────────────────────────┘                                                 │
-    OD-B ─► L-45 Jeryu live      OD-C ─► L-46 GitHub      OD-E ─► L-41b sign ─► L-66 install×2 ─► L-67 stranger   │
+    OD-B ─► L-45 Jeryu live      OD-C ─► L-46 GitHub      OD-E ─► L-41b sign ─► L-43 setup ─► L-66 install×2 ─► L-67 stranger   │
     L-61 audit chain   L-60 freeze   L-64 quarantine   L-15 GC retention   L-16b mutation   L-47b Jankurai 90      │
                                                                                                                   │
 P3  L-50 roles ─► L-51 topologies ─► L-52 router ─┐        L-53 holdout ─► L-54 fusion ─► L-58/63 surfaces        │
@@ -331,7 +334,7 @@ Register of record: [ADR 0013](../decisions/0013-operator-decision-register.md).
 | **OD-A** | `bullet authority keygen`; generation-2 v1alpha2 policy outside the repositories; ratify the provider-runner key, budgets, four provider profiles, expiry, rollback in the coordination log (`docs/runbooks/live-conformance.md` §2) | start of P2 | all four `release.provider.*`; L-44; L-55's live half; dimension 6's "two providers dispatching" | minutes + bounded spend |
 | **OD-B** | `jeryu gh-setup --host http://127.0.0.1:8787 --token-file <0600 file>`; separate broker/attestor/integrator credentials; one exact protected test repository | start of P2 | `release.forge.jeryu`; L-45 | minutes–hours |
 | **OD-C** | GitHub App on one branch-protected test repo; delivery and attestation credentials separated | start of P2 | `release.forge.github-app`; L-46; merge-group verification against GitHub | hours |
-| **OD-E** | Ed25519 release-signing key under protected custody; signer policy; `release/allowed_signers`; root-owned `/etc/bullet-farm/release-msrv-1-95-admission.toml` with three distinct roots | start of P2 | `signatures`, `receipt-contracts`, `rust-msrv-1-95`, `provenance`; L-41b; every stranger trial | hours |
+| **OD-E** | Ed25519 release-signing key under protected custody; signer policy; `release/allowed_signers`; root-owned `/etc/bullet-farm/release-msrv-1-95-admission.toml` with three distinct roots | start of P2 | `signatures`, `receipt-contracts`, `rust-msrv-1-95`, `provenance`; L-41b; L-43; every stranger trial | hours |
 | **OD-F** | Linux preview outside the release gate **or** amend the five-archive rule by reviewed ADR; then provision the four non-Linux build hosts | decision in P2; hosts by start of P4 | L-49/L-65; dimension 9 above 65; stranger above 60 | a decision + hosts |
 | **OD-G** | Ratify public names/endpoints (`git.neverhuman.org`, GitHub org), Jeryu deployment identity, backup, TLS | before J-6 (P3) | the Jeryu release deployment; hosted CI provisioning; public mirror | a decision + ops |
 | **OD-H** | Operator ADR + policy generation bump enabling `evolutionary_authority` after the seven D3 §3 C2 gates are green | P4 | L-70d/e activation (the code can be built and tested with the flag off) | a decision |

@@ -185,7 +185,7 @@ const fn rust_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::ReleaseRepositoryName => "ReleaseRepositoryNameV1",
         FieldTypeV1::KeyPurpose => "KeyPurposeV1",
         FieldTypeV1::KeyAlgorithm => "KeyAlgorithmV1",
-        FieldTypeV1::U64 | FieldTypeV1::Timestamp => "u64",
+        FieldTypeV1::SafeU64 | FieldTypeV1::U64 | FieldTypeV1::Timestamp => "u64",
         FieldTypeV1::OptionalTimestamp => "Option<u64>",
         FieldTypeV1::OptionalDigest | FieldTypeV1::OptionalString => "Option<String>",
         FieldTypeV1::OptionalMutationReservationId => "Option<String>",
@@ -209,6 +209,7 @@ const fn rust_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::PatchProposal => "PatchProposalV1",
         FieldTypeV1::PatchOperationArray => "Vec<PatchOperationV1>",
         FieldTypeV1::CandidateIdArray
+        | FieldTypeV1::OrderedCandidateIdArray
         | FieldTypeV1::GateIdArray
         | FieldTypeV1::ReleaseGateIdArray
         | FieldTypeV1::ReleaseProfileIdArray
@@ -223,6 +224,7 @@ const fn rust_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::ReleaseRegistryEntryArray => "Vec<ReleaseRegistryEntryV1>",
         FieldTypeV1::ReleaseRegistryObjectArray => "Vec<ReleaseRegistryObjectV1>",
         FieldTypeV1::ReleaseReplayBindingArray => "Vec<ReleaseReplayBindingV1>",
+        FieldTypeV1::ExecutionToolArray => "Vec<ExecutionToolV1>",
     }
 }
 
@@ -288,7 +290,7 @@ const fn typescript_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::ReleaseRepositoryName => "ReleaseRepositoryNameV1",
         FieldTypeV1::KeyPurpose => "KeyPurposeV1",
         FieldTypeV1::KeyAlgorithm => "KeyAlgorithmV1",
-        FieldTypeV1::U64 | FieldTypeV1::Timestamp => "number",
+        FieldTypeV1::SafeU64 | FieldTypeV1::U64 | FieldTypeV1::Timestamp => "number",
         FieldTypeV1::OptionalTimestamp => "number | null",
         FieldTypeV1::OptionalDigest
         | FieldTypeV1::OptionalString
@@ -313,6 +315,7 @@ const fn typescript_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::PatchProposal => "PatchProposalV1",
         FieldTypeV1::PatchOperationArray => "PatchOperationV1[]",
         FieldTypeV1::CandidateIdArray
+        | FieldTypeV1::OrderedCandidateIdArray
         | FieldTypeV1::GateIdArray
         | FieldTypeV1::ReleaseGateIdArray
         | FieldTypeV1::ReleaseProfileIdArray
@@ -327,5 +330,6 @@ const fn typescript_type(field_type: FieldTypeV1) -> &'static str {
         FieldTypeV1::ReleaseRegistryEntryArray => "ReleaseRegistryEntryV1[]",
         FieldTypeV1::ReleaseRegistryObjectArray => "ReleaseRegistryObjectV1[]",
         FieldTypeV1::ReleaseReplayBindingArray => "ReleaseReplayBindingV1[]",
+        FieldTypeV1::ExecutionToolArray => "ExecutionToolV1[]",
     }
 }

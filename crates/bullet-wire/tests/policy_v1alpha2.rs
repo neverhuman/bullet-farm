@@ -6,10 +6,12 @@
 use std::{fs, path::PathBuf};
 
 use bullet_wire::{
-    AuthorityAudience, ContractCatalogV1, KeyAlgorithmV1, KeyPurposeV1,
+    AuthorityAudience, ContractCatalogV1, DogfoodBindingV1, KeyAlgorithmV1, KeyPurposeV1,
     LIVE_ADMISSION_MIN_GENERATION, POLICY_SCHEMA_VERSION, POLICY_SCHEMA_VERSION_V1ALPHA2,
     PolicySchemaVersion, PolicySnapshotV1, canonical_json, decode_canonical,
+    refuse_dogfood_binding_as_live,
     v1alpha1::{INVARIANT_REGISTRY_HASH, SCHEMA_BUNDLE_HASH},
+    validate_dogfood_admission, validate_live_admission,
 };
 use serde_json::{Value, json};
 
@@ -375,4 +377,58 @@ fn schema_bundle_admits_v1alpha2_only_for_the_policy_snapshot() {
         committed_bundle["schemas"]["PolicySnapshotV1"]["properties"]["schema_version"]["enum"],
         json!(["v1alpha1", "v1alpha2"])
     );
+}
+
+#[test]
+fn committed_policy_stays_offline_and_cannot_satisfy_live_or_dogfood() {
+    let policy = committed();
+    assert!(!policy.sandbox_policy.live_admission_enabled);
+    policy.validate().unwrap();
+    assert_eq!(
+        validate_live_admission(&policy).unwrap_err().code(),
+        "LIVE_ADMISSION_DISABLED"
+    );
+    assert_eq!(
+        validate_dogfood_admission(&policy, &DogfoodBindingV1::read_only_propose())
+            .unwrap_err()
+            .code(),
+        "UNSUPPORTED_POLICY_SCHEMA"
+    );
+}
+
+#[test]
+fn general_live_path_refuses_a_dogfood_binding() {
+    let binding = DogfoodBindingV1::read_only_propose();
+    assert_eq!(
+        refuse_dogfood_binding_as_live(&binding).unwrap_err().code(),
+        "LIVE_ADMISSION_REFUSES_DOGFOOD_BINDING"
+    );
+    let mut dogfood_only = fixture();
+    dogfood_only.sandbox_policy.live_admission_enabled = false;
+    dogfood_only.validate().unwrap();
+    assert_eq!(
+        validate_live_admission(&dogfood_only).unwrap_err().code(),
+        "LIVE_ADMISSION_DISABLED"
+    );
+}
+
+#[test]
+fn dogfood_path_refuses_a_general_live_binding_and_unknown_fields() {
+    let live = fixture();
+    assert!(live.sandbox_policy.live_admission_enabled);
+    assert_eq!(
+        validate_dogfood_admission(&live, &DogfoodBindingV1::read_only_propose())
+            .unwrap_err()
+            .code(),
+        "DOGFOOD_REFUSES_LIVE_ADMISSION"
+    );
+
+    let mut dogfood = fixture();
+    dogfood.sandbox_policy.live_admission_enabled = false;
+    validate_dogfood_admission(&dogfood, &DogfoodBindingV1::read_only_propose()).unwrap();
+
+    let unknown = serde_json::from_str::<DogfoodBindingV1>(
+        r#"{"schema_version":"v1alpha1","audience":"dogfood-runner","operation":"read-only-propose","extra":true}"#,
+    );
+    assert!(unknown.is_err());
 }

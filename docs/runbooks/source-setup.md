@@ -2,7 +2,7 @@
 
 Status: **existing-family contributor proof available; trusted public installation blocked**
 Owner: Bullet Farm maintainers  
-Last reviewed: 2026-08-25
+Last reviewed: 2026-08-26
 
 The public discovery index is
 [`https://github.com/neverhuman/bulletfarm`](https://github.com/neverhuman/bulletfarm)
@@ -46,7 +46,9 @@ must never contain sibling `path = "../..."` dependencies.
 
 `scripts/setup.sh` refuses unless `BULLET_SETUP_ADMITTED_BIN` names an external,
 canonical regular executable and Cargo/Node/npm are supplied as explicit
-absolute paths. It then invokes:
+absolute paths. Its closed argument surface accepts no wrapper arguments or
+exactly one `--offline`; unknown, repeated, or additional arguments refuse
+before selecting or executing the external bootstrap. It then invokes:
 
 ```text
 bullet-family setup --root <family-root> --source jeryu \
@@ -61,6 +63,22 @@ dependency tools. The checked-in alpha lock is schema 2, so a hub-only clone
 currently returns `UNSUPPORTED_SCHEMA` with regeneration guidance before
 creating member directories or running dependency tools. `--offline` narrows
 dependency/network behavior; it cannot supply missing signed source authority.
+
+Before the Rust CLI can run, wrapper refusals use `setup: CODE: reason` and exit
+4. Automation may branch on `SETUP_ARGUMENT_INVALID`,
+`SETUP_BOOTSTRAP_UNAVAILABLE`,
+`SETUP_BOOTSTRAP_INVALID`, `SETUP_TOOL_PATH_INVALID`,
+`SETUP_HUB_UNAVAILABLE`, or `FAMILY_ROOT_NOT_FOUND`; it must never branch on the
+prose reason. These codes do not promote the wrapper into an authenticated
+installer. Run `doctor --json` and follow [`setup-recovery.md`](setup-recovery.md)
+after recording the exact code and subject.
+
+The source wrapper and its public `just setup` recipe select `/bin/bash`
+directly, so a poisoned or absent `PATH` cannot substitute their launcher.
+That is a Linux-V1 bootstrap property, not a portable installer claim; the
+platform refusal and signed-package requirements below remain authoritative.
+Pass the optional wrapper flag through Just as `just -- setup --offline`; the
+separator belongs to Just and is not forwarded to the wrapper.
 
 ## Future trusted installation
 

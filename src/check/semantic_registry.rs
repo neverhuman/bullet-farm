@@ -3,6 +3,8 @@
 #[cfg(target_os = "linux")]
 #[path = "semantic_registry/admission.rs"]
 mod admission;
+#[cfg(target_os = "linux")]
+mod family_anchor;
 mod kinds;
 #[cfg(not(target_os = "linux"))]
 #[path = "semantic_registry/unsupported.rs"]
@@ -16,8 +18,8 @@ use bullet_wire::{
     RELEASE_GATE_RECEIPT_DIGEST_DOMAIN, RELEASE_GATE_SPEC_DIGEST_DOMAIN,
     RELEASE_PROFILE_GRAPH_DIGEST_DOMAIN, RELEASE_REGISTRY_OBJECT_DIGEST_DOMAIN,
     RELEASE_SIGNER_POLICY_DIGEST_DOMAIN, RELEASE_TRUSTED_TIME_DIGEST_DOMAIN,
-    RELEASE_VERIFICATION_REQUEST_DIGEST_DOMAIN, decode_release_record, hash_canonical,
-    hash_framed_bytes, release_bundle_manifest_v2_digest,
+    RELEASE_VERIFICATION_REQUEST_DIGEST_DOMAIN, decode_release_record, decode_unique_value,
+    hash_canonical, hash_framed_bytes, release_bundle_manifest_v2_digest,
     v1alpha1::{
         GateReceiptV1, ReleaseGateSpecV1, ReleaseGateVerificationRequestV1, ReleaseProfileGraphV1,
         ReleaseReceiptKindV1, ReleaseRegistryManifestV1, ReleaseRegistryObjectKindV1,
@@ -70,13 +72,14 @@ impl RequestedProfile {
 }
 
 pub(super) fn evaluate(
+    hub: &Path,
     registry: &Path,
     selected_profile: &str,
     requested_profiles: &[RequestedProfile],
 ) -> Evaluation {
     #[cfg(target_os = "linux")]
     {
-        match evaluate_unix(registry, selected_profile, requested_profiles) {
+        match evaluate_unix(hub, registry, selected_profile, requested_profiles) {
             Ok(None) => Evaluation::Absent,
             Ok(Some(selected_bindings)) => {
                 Evaluation::StructurallyValidButUntrusted { selected_bindings }
@@ -86,7 +89,7 @@ pub(super) fn evaluate(
     }
     #[cfg(not(target_os = "linux"))]
     {
-        let _ = (selected_profile, requested_profiles);
+        let _ = (hub, selected_profile, requested_profiles);
         unsupported::evaluate(registry, MANIFEST_PATH)
     }
 }
@@ -104,6 +107,7 @@ pub(super) fn reject(detail: impl Into<String>) -> Reject {
 
 #[cfg(target_os = "linux")]
 fn evaluate_unix(
+    hub: &Path,
     path: &Path,
     selected_profile: &str,
     requested_profiles: &[RequestedProfile],
@@ -116,6 +120,7 @@ fn evaluate_unix(
         return Ok(None);
     };
     let manifest: ReleaseRegistryManifestV1 = decode(&manifest_input.bytes, "registry manifest")?;
+    family_anchor::validate(hub, &manifest)?;
     let mut identities = BTreeSet::from([manifest_input.identity_key()]);
     let mut loaded = Vec::with_capacity(manifest.objects.len());
     let mut unique_contents = BTreeSet::new();
@@ -199,6 +204,7 @@ enum DecodedObject {
 
 impl DecodedObject {
     fn decode(kind: ReleaseRegistryObjectKindV1, bytes: &[u8]) -> Result<Self, Reject> {
+        refuse_dogfood_run(bytes)?;
         Ok(match kind {
             ReleaseRegistryObjectKindV1::GateReceipt => {
                 Self::Receipt(decode(bytes, "gate receipt")?)
@@ -304,6 +310,18 @@ fn decode<T: bullet_wire::ReleaseWireRecord>(bytes: &[u8], label: &str) -> Resul
     decode_release_record(bytes).map_err(|error| reject(format!("invalid {label}: {error}")))
 }
 
+fn refuse_dogfood_run(bytes: &[u8]) -> Result<(), Reject> {
+    let Ok(value) = decode_unique_value(bytes) else {
+        return Ok(());
+    };
+    if value.get("kind").and_then(serde_json::Value::as_str) == Some("DOGFOOD_RUN") {
+        return Err(reject(
+            "DOGFOOD_RUN_NOT_RELEASE_EVIDENCE: a dogfood operational observation cannot enter the release receipt registry",
+        ));
+    }
+    Ok(())
+}
+
 fn kind_name(kind: ReleaseRegistryObjectKindV1) -> &'static str {
     match kind {
         ReleaseRegistryObjectKindV1::GateReceipt => "gate-receipt",
@@ -315,5 +333,18 @@ fn kind_name(kind: ReleaseRegistryObjectKindV1) -> &'static str {
         ReleaseRegistryObjectKindV1::TrustedTimeSignature => "trusted-time-signature",
         ReleaseRegistryObjectKindV1::VerificationRequest => "verification-request",
         ReleaseRegistryObjectKindV1::ReleaseBundleManifestV2 => "release-bundle-manifest-v2",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::refuse_dogfood_run;
+
+    #[test]
+    fn dogfood_run_observation_is_refused_as_release_evidence() {
+        let bytes = br#"{"kind":"DOGFOOD_RUN","schema_version":"v0","release_eligible":false}"#;
+        let error = refuse_dogfood_run(bytes).expect_err("DOGFOOD_RUN must be refused");
+        assert!(error.detail.starts_with("DOGFOOD_RUN_NOT_RELEASE_EVIDENCE"));
+        refuse_dogfood_run(br#"{"kind":"gate-receipt"}"#).unwrap();
     }
 }

@@ -14,9 +14,7 @@ pub(super) fn admit_row(hub: &Path, row: &CriterionRow) -> RowScore {
         (EvidenceKind::CiTest, EvidenceReference::CiObservation { subject_id }) => {
             admit_ci_test(hub, row, subject_id)
         }
-        (EvidenceKind::Gate, EvidenceReference::ReleaseGate { .. }) => {
-            refused(row, "RELEASE_GATE_NOT_ADMITTED")
-        }
+        (EvidenceKind::Gate, EvidenceReference::ReleaseGate { .. }) => admit_release_gate(hub, row),
         (EvidenceKind::Receipt, EvidenceReference::SignedReceipt { .. }) => {
             refused(row, "SIGNED_RECEIPT_UNAVAILABLE")
         }
@@ -28,6 +26,10 @@ pub(super) fn admit_row(hub: &Path, row: &CriterionRow) -> RowScore {
         }
         _ => refused(row, "EVIDENCE_KIND_MISMATCH"),
     }
+}
+
+fn admit_release_gate(_hub: &Path, row: &CriterionRow) -> RowScore {
+    refused(row, "RELEASE_GATE_NOT_ADMITTED")
 }
 
 fn admit_ci_test(hub: &Path, row: &CriterionRow, subject_id: &str) -> RowScore {

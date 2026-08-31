@@ -56,6 +56,34 @@ test_root="$(mktemp -d "${TMPDIR:-/tmp}/bullet-rust-boundary.XXXXXX")"
 cleanup() { rm -rf -- "$test_root"; }
 trap cleanup EXIT HUP INT TERM
 
+python_cache_fixture="$test_root/python-cache-fixture"
+mkdir "$python_cache_fixture"
+cat >"$python_cache_fixture/helper.py" <<'PY'
+VALUE = "no-bytecode"
+PY
+cat >"$python_cache_fixture/main.py" <<'PY'
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from helper import VALUE
+
+print(VALUE)
+PY
+# shellcheck source=ops/ci/lib.sh
+source "$lib_path"
+python_cache_output="$(run_python_312 "$python_cache_fixture/main.py")"
+[[ "$python_cache_output" == no-bytecode ]] || {
+  echo "PYTHON_BYTECODE_SUPPRESSION_INVALID: imported fixture output drifted" >&2
+  exit 1
+}
+if find "$python_cache_fixture" \
+  \( -type d -name __pycache__ -o -type f -name '*.pyc' \) -print -quit \
+  | grep -q .; then
+  echo "PYTHON_BYTECODE_SUPPRESSION_FAILED: run_python_312 created a cache" >&2
+  exit 1
+fi
+
 # shellcheck disable=SC2317 # executed after export by the isolated child shell
 python3() { : >"${BULLET_PYTHON_SPOOF_MARKER:?}"; printf 'Python 3.12.99 hostile-function\n'; }
 # shellcheck disable=SC2317 # executed after export by the isolated child shell

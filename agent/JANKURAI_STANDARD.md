@@ -15,6 +15,14 @@ machine-local auditor checkout path as public project authority.
 ## Hard rules for this repository
 
 - Keep files small. Split before 500 LOC; prefer under 300.
+- Keep lanes small. Claim at most four files per lane — three source plus one
+  test — because a claim is the unit of exclusivity and of recovery: a wider
+  claim blocks more agents and cannot be restated honestly in one HOLD line.
+  Need a fifth path? That is a second lane, or a `BLOCKED` line naming the exact
+  path. `--path` is repeatable and the coordinator only requires at least one
+  (`PATH_REQUIRED`, `src/coord/state.rs:328-334`); the cap itself is enforced by
+  discipline, and product enforcement is `bullet-family check dogfood --json`
+  (ADR 0015), which is not built.
 - Do not hand-edit generated zones. Every zone in `agent/generated-zones.toml`
   records the command that regenerates it; repair from the source, never the
   output.

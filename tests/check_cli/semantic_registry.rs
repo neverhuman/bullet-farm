@@ -8,8 +8,8 @@ use std::fs;
 
 use super::command;
 use fixture::{
-    assert_registry_rejected, mutate_registry_manifest, profiled_registry_output, release_id,
-    write_canonical, write_structural_registry,
+    assert_registry_rejected, cleanup_registry_fixture, mutate_registry_manifest,
+    profiled_registry_output, release_id, write_canonical, write_structural_registry,
 };
 
 #[test]
@@ -255,5 +255,5 @@ fn release_profiles_are_named_independent_and_fail_closed() {
         fs::remove_file(&registry_path).unwrap();
         fs::rename(&admitted, &registry_path).unwrap();
     }
-    fs::remove_dir_all(&registry_path).unwrap();
+    cleanup_registry_fixture(&registry_path);
 }

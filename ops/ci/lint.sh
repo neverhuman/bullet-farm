@@ -22,6 +22,8 @@ if cargo tree --locked --offline -e features -i serde_json \
   exit 1
 fi
 bash ops/ci/disallowed-methods-test.sh
+bash ops/ci/readme-jsonschema-custody.sh
+bash ops/ci/install-readme-jsonschema-test.sh
 mapfile -t workflow_files < <(
   find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) | LC_ALL=C sort
 )

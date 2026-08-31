@@ -21,13 +21,37 @@
       "command": "bash ops/ci/workflow-policy.sh",
       "purpose": "verify prepared Jeryu jobs invoke the same five local atomic lanes"
     },
+    ".gitattributes": {
+      "command": "just lint",
+      "purpose": "verify repository text and binary attribute boundaries remain explicit"
+    },
     ".gitignore": {
       "command": "just lint",
       "purpose": "verify generated local state remains outside source authority"
     },
+    ".node-version": {
+      "command": "bash ops/ci/dev-supervision-test.sh",
+      "purpose": "verify the canonical Node pin and malformed-subject refusal"
+    },
+    ".npm-version": {
+      "command": "bash ops/ci/dev-supervision-test.sh",
+      "purpose": "verify the canonical npm pin and malformed-subject refusal"
+    },
+    "clippy.toml": {
+      "command": "bash ops/ci/disallowed-methods-test.sh",
+      "purpose": "verify the production JSON-decoding policy remains warning-fatal"
+    },
     ".config/": {
       "command": "bash ops/ci/test-partitions.sh",
       "purpose": "verify the committed nextest profiles select the exact non-overlapping test inventory"
+    },
+    ".config/readme-jsonschema-requirements.txt": {
+      "command": "bash ops/ci/readme-jsonschema-custody.sh",
+      "purpose": "verify the exact offline Draft 2020-12 dependency closure remains hash locked"
+    },
+    ".config/readme-jsonschema-wheelhouse/": {
+      "command": "bash ops/ci/install-readme-jsonschema-test.sh",
+      "purpose": "prove the complete local wheel inventory, custody, offline installation, and installed RECORD closure"
     },
     ".ci-artifacts/": {
       "command": "bash ops/ci/artifact-check.sh required HEAD",
@@ -85,6 +109,22 @@
       "command": "bash ops/ci/family-observation-test.sh",
       "purpose": "prove the clean-family diagnostic has closed semantics, a stable framed identity, and no release authority"
     },
+    "ops/ci/readme-jsonschema-custody.sh": {
+      "command": "bash ops/ci/install-readme-jsonschema-test.sh",
+      "purpose": "refuse substituted wheel, interpreter, platform, manifest, report, or installed-file subjects"
+    },
+    "ops/ci/install-readme-jsonschema.sh": {
+      "command": "bash ops/ci/install-readme-jsonschema-test.sh",
+      "purpose": "prove a poisoned ambient environment cannot escape the exact offline installer closure"
+    },
+    "ops/ci/install-readme-jsonschema-test.sh": {
+      "command": "bash ops/ci/install-readme-jsonschema-test.sh",
+      "purpose": "replay the offline installer custody and atomic replacement hostile matrix"
+    },
+    "ops/ci/test-partitions.sh": {
+      "command": "bash ops/ci/test-partitions.sh",
+      "purpose": "prove exact package ownership, counts, identity digests, disjointness, and count-neutral substitution refusal"
+    },
     "docs/README.md": {
       "command": "cargo test --locked --test assurance_controls",
       "purpose": "verify the canonical documentation entrypoints remain routed"
@@ -132,6 +172,10 @@
     "crates/": {
       "command": "cargo test --locked -p bullet-wire",
       "purpose": "prove canonical cross-repository wire identities and encodings"
+    },
+    "crates/bullet-wire/tests/properties.rs": {
+      "command": "cargo test --locked -p bullet-wire --test properties",
+      "purpose": "replay deterministic canonical, digest, duplicate-key, safe-integer, and record-identity properties"
     },
     "fixtures/": {
       "command": "cargo test --locked -p bullet-wire --test canonical_hostile --test policy_registry",

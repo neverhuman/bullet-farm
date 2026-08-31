@@ -17,13 +17,22 @@ pub(super) fn report_release_with_evidence(hub: &Path) -> Result<CheckReport, Ch
     CheckReport::new(CheckTier::Release, evaluated_release_gates(hub)?)
 }
 
+#[cfg(test)]
 pub(super) fn report_release_profile(
+    profile: ReleaseProfile,
+    receipts: &Path,
+) -> Result<CheckReport, CheckModelError> {
+    report_release_profile_for_hub(Path::new("."), profile, receipts)
+}
+
+pub(super) fn report_release_profile_for_hub(
+    hub: &Path,
     profile: ReleaseProfile,
     receipts: &Path,
 ) -> Result<CheckReport, CheckModelError> {
     // Profiled reports admit evidence only from the selected registry. The
     // legacy fixed MSRV descriptor is deliberately not consulted here.
-    let gates = profiles::select(profile, release_gates()?, receipts)?;
+    let gates = profiles::select(hub, profile, release_gates()?, receipts)?;
     CheckReport::for_profile(profile.as_str(), gates)
 }
 

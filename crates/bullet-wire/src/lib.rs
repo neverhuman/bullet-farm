@@ -1,4 +1,5 @@
 mod authority;
+mod candidate_preparation;
 mod canonical;
 mod catalog;
 mod contract_bindings;
@@ -30,6 +31,16 @@ pub use authority::{
     MutationSettlementResult, PreservationDecision, ReplayDisposition, SettlementStatus,
     SignedAuthorityEnvelope, SignedLaunchGrant, SignedMutationPermit, authority_request_digest,
     environment_digest, policy_snapshot_digest, workspace_nonce_digest,
+};
+pub use candidate_preparation::{
+    CANDIDATE_PREPARATION_CLAIMS_DOMAIN, CANDIDATE_PREPARATION_DIGEST_DOMAIN,
+    CANDIDATE_PREPARATION_ENVELOPE_DOMAIN, CANDIDATE_PREPARATION_SIGNING_PURPOSE,
+    EXECUTION_ENVELOPE_CLAIMS_DOMAIN, EXECUTION_ENVELOPE_DIGEST_DOMAIN,
+    EXECUTION_ENVELOPE_SIGNING_PURPOSE, EXECUTION_TOOLCHAIN_DIGEST_DOMAIN, MAX_SAFE_INTEGER,
+    candidate_preparation_digest, decode_candidate_preparation_grant, decode_execution_envelope,
+    decode_signed_candidate_preparation_grant, execution_envelope_digest,
+    execution_toolchain_digest, validate_candidate_preparation_binding,
+    validate_candidate_preparation_grant, validate_execution_envelope,
 };
 pub use canonical::{
     MAX_CANONICAL_DOCUMENT_BYTES, MAX_UNIQUE_DOCUMENT_BYTES, decode_canonical,

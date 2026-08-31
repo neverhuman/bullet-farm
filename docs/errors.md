@@ -2,13 +2,24 @@
 
 Status: **normative for the Hub CLI; product API Problem Details remain Kernel-owned**  
 Owner: Bullet Farm maintainers  
-Last reviewed: 2026-08-25
+Last reviewed: 2026-08-26
 
 `bullet-family` writes errors as `CODE: reason` and exits nonzero. The stable
 uppercase code is the machine-facing classification; prose gives the exact
 subject-specific reason. Never parse or branch on prose. A command exit or an
 HTTP response is not evidence that the requested engineering outcome was
 verified.
+
+The build-free `scripts/setup.sh` wrapper follows the same rule before the Rust
+CLI can run: it writes `setup: CODE: reason` and exits 4. Its stable classes are
+`SETUP_ARGUMENT_INVALID` for any argument tail other than no arguments or
+exactly one `--offline`,
+`SETUP_BOOTSTRAP_UNAVAILABLE` for an absent operator-selected executable,
+`SETUP_BOOTSTRAP_INVALID` for a noncanonical, in-family, or non-executable
+selection, `SETUP_TOOL_PATH_INVALID` for an omitted or relative explicit tool
+path, and the root-discovery codes `SETUP_HUB_UNAVAILABLE` and
+`FAMILY_ROOT_NOT_FOUND`. These codes diagnose bootstrap admission only; they do
+not authenticate a binary or make the schema-2 lock installable.
 
 This document is the repair index consumed by `agent/exceptions.toml`. The
 Kernel public API separately owns RFC 9457 Problem Details, request IDs, and
@@ -18,7 +29,9 @@ status codes; this Hub document does not invent or override that contract.
 
 Representative codes are `USAGE`, `INVALID_ARGUMENT`, `MISSING_OPTION`,
 `INVALID_PATH`, `INVALID_FAMILY_LOCK`, `INVALID_RELEASE_BUNDLE`, and
-`INVALID_GENERATED_CONTRACT`.
+`INVALID_GENERATED_CONTRACT`. The pre-Rust setup wrapper uses
+`SETUP_ARGUMENT_INVALID`, `SETUP_BOOTSTRAP_INVALID`, and
+`SETUP_TOOL_PATH_INVALID` for the same class.
 
 - Purpose: reject malformed or noncanonical input before mutation.
 - Repair: use the command usage, strict schema, generated-zone command, or
@@ -56,7 +69,9 @@ Representative codes are `UNSUPPORTED_SCHEMA`, `CORRUPT_COORD_LOG`,
 
 Representative codes are `FAMILY_ROOT_NOT_FOUND`, `FAMILY_MEMBER_MISSING`,
 `SETUP_TOOL_UNAVAILABLE`, `SOURCE_METADATA_UNAVAILABLE`,
-`RELEASE_VERIFIER_UNAVAILABLE`, and `CAPABILITY_UNPROBED`.
+`RELEASE_VERIFIER_UNAVAILABLE`, and `CAPABILITY_UNPROBED`. The pre-Rust setup
+wrapper reports `SETUP_HUB_UNAVAILABLE` or `SETUP_BOOTSTRAP_UNAVAILABLE` before
+the Rust CLI is available.
 
 - Purpose: prevent ambient tools, credentials, services, or unsigned artifacts
   from being substituted for exact prerequisites.

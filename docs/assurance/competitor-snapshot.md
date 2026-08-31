@@ -1,8 +1,13 @@
 # Competitor comparison snapshot
 
 Status: **RESEARCH INPUT — not release evidence**
-Observed: 2026-08-25 UTC
+Observed: 2026-08-25 UTC; Gas City parity correction verified 2026-08-26 UTC
 Owner: Bullet Farm maintainers
+
+Revision 2026-08-26: Gas City v1.4.1 was already pinned in the paper evidence
+lock but was accidentally absent from this shorter README snapshot. This
+append-only research correction adds that exact subject and does not change any
+previous rating or make a benchmark or superiority claim.
 
 This bounded snapshot prevents the design comparison from silently tracking a
 moving branch. It records public upstream subjects and extracts mechanisms to
@@ -13,10 +18,11 @@ test. It is not a benchmark result and makes no superiority claim.
 | Project | Subject observed | Source |
 | --- | --- | --- |
 | Gas Town | release `v1.2.1`, peeled commit `319d33a91b2deca59bba6dd26be6b9daf8eaacf6`, observed 2026-08-25 | [release](https://github.com/gastownhall/gastown/releases/tag/v1.2.1), [commit](https://github.com/gastownhall/gastown/commit/319d33a91b2deca59bba6dd26be6b9daf8eaacf6) |
+| Gas City | release `v1.4.1`, peeled commit `58ef17e3bd685fd5cf7f21286277b208d3324590`, observed 2026-08-25 and reverified 2026-08-26 | [release](https://github.com/gastownhall/gascity/releases/tag/v1.4.1), [commit](https://github.com/gastownhall/gascity/commit/58ef17e3bd685fd5cf7f21286277b208d3324590) |
 | DeepSeek Harness | developer-preview tag `dsh-v0.1.1-rc.2`, commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e` (2026-08-21) | [tag](https://github.com/deepseek-ai/DeepSeek-Harness/releases/tag/dsh-v0.1.1-rc.2), [commit](https://github.com/deepseek-ai/DeepSeek-Harness/commit/b150a551b8d465e31e418e1b2eaf5e79bbb7d28e) |
 | Omnigent | release `v0.10.0` (2026-08-19), commit `40755dd8dddb07e1eb6e4055d1d9936e184ceb9b` | [release](https://github.com/omnigent-ai/omnigent/releases/tag/v0.10.0), [commit](https://github.com/omnigent-ai/omnigent/commit/40755dd8dddb07e1eb6e4055d1d9936e184ceb9b) |
 
-These three tags are the only subjects adjudicated below. DeepSeek Harness
+These four tags are the only subjects adjudicated below. DeepSeek Harness
 labels rc.2 a developer preview; that is a scope fact, not a stability promise.
 No different product, upstream development branch, or post-tag commit
 contributes to a rating. A later comparison must create a new dated snapshot
@@ -38,6 +44,12 @@ not own that integration role.
 | Gas Town — effect read-back | Partial/configuration-dependent | Git operations include [post-operation repository inspection](https://github.com/gastownhall/gastown/blob/319d33a91b2deca59bba6dd26be6b9daf8eaacf6/internal/git/git.go#L1902-L1934) and the refinery [rechecks head state](https://github.com/gastownhall/gastown/blob/319d33a91b2deca59bba6dd26be6b9daf8eaacf6/internal/refinery/engineer.go#L718-L738); this is not a universal idempotency-keyed effect-reconciliation contract. |
 | Gas Town — protected integration | Partial/configuration-dependent | A designated [refinery merge actor](https://github.com/gastownhall/gastown/blob/319d33a91b2deca59bba6dd26be6b9daf8eaacf6/internal/refinery/engineer.go#L163-L175) applies [merge and verification gates](https://github.com/gastownhall/gastown/blob/319d33a91b2deca59bba6dd26be6b9daf8eaacf6/internal/refinery/engineer.go#L750-L835), subject to deployment and repository configuration. |
 | Gas Town — truthful uncertainty | Partial/configuration-dependent | The refinery preserves [non-success and recovery paths](https://github.com/gastownhall/gastown/blob/319d33a91b2deca59bba6dd26be6b9daf8eaacf6/internal/refinery/engineer.go#L1317-L1330) and typed [merge-request outcomes](https://github.com/gastownhall/gastown/blob/319d33a91b2deca59bba6dd26be6b9daf8eaacf6/internal/refinery/types.go#L64-L103), but not Bullet's durable `UNKNOWN` effect state. |
+| Gas City — writer identity | Partial/configuration-dependent | The pinned contract documents [multiple runtime providers, Beads-backed work, a controller, packs, and rig-scoped orchestration](https://github.com/gastownhall/gascity/blob/58ef17e3bd685fd5cf7f21286277b208d3324590/README.md#L12-L36), but not one universally exclusive repository-writer principal. |
+| Gas City — incarnation fence | Not documented | The pinned [controller/session/runtime map](https://github.com/gastownhall/gascity/blob/58ef17e3bd685fd5cf7f21286277b208d3324590/README.md#L145-L167) documents supervision and session identity utilities, but not a monotonically advancing fence carried by every repository or effect mutation. |
+| Gas City — exact verification subject | Not documented | The pinned contract lists [optional GitHub gates](https://github.com/gastownhall/gascity/blob/58ef17e3bd685fd5cf7f21286277b208d3324590/README.md#L43-L56) and convergence gate handling, but does not document a complete Candidate-style base/head/tree/Attempt subject for independent verification. |
+| Gas City — effect read-back | Not documented | The pinned contract has a [controller that reconciles desired and running process state](https://github.com/gastownhall/gascity/blob/58ef17e3bd685fd5cf7f21286277b208d3324590/README.md#L30-L36), but does not document idempotency-keyed remote-effect read-back or adoption. |
+| Gas City — protected integration | Partial/configuration-dependent | The pinned prerequisites expose [optional GitHub gates](https://github.com/gastownhall/gascity/blob/58ef17e3bd685fd5cf7f21286277b208d3324590/README.md#L43-L56) and the repository map names convergence gate handling, but protected integration depends on the configured workflow and forge. |
+| Gas City — truthful uncertainty | Not documented | The pinned contract documents a [controller/supervisor and health patrol](https://github.com/gastownhall/gascity/blob/58ef17e3bd685fd5cf7f21286277b208d3324590/README.md#L12-L36), but does not document a durable ambiguous-effect state or its reconciliation rules. |
 | DeepSeek Harness — writer identity | Not documented | The experimental agent-team package exposes [team tools](https://github.com/deepseek-ai/DeepSeek-Harness/blob/b150a551b8d465e31e418e1b2eaf5e79bbb7d28e/packages/experimental/tool-agent-team/src/index.ts#L30-L37) and a [delegation contract](https://github.com/deepseek-ai/DeepSeek-Harness/blob/b150a551b8d465e31e418e1b2eaf5e79bbb7d28e/packages/experimental/tool-agent-team/README.md#L45-L48), but no sole repository-writer identity is documented. |
 | DeepSeek Harness — incarnation fence | Not documented | [Subagent lifecycle controls](https://github.com/deepseek-ai/DeepSeek-Harness/blob/b150a551b8d465e31e418e1b2eaf5e79bbb7d28e/docs/subsystems/subagent.md#L145-L159) and [job lifecycle controls](https://github.com/deepseek-ai/DeepSeek-Harness/blob/b150a551b8d465e31e418e1b2eaf5e79bbb7d28e/docs/subsystems/jobs.md#L173-L178) do not document a monotonically advancing mutation-authority fence. |
 | DeepSeek Harness — exact verification subject | Not documented | The pinned [filesystem tool contract](https://github.com/deepseek-ai/DeepSeek-Harness/blob/b150a551b8d465e31e418e1b2eaf5e79bbb7d28e/docs/subsystems/filesystem.md#L114-L151) and [kernel architecture](https://github.com/deepseek-ai/DeepSeek-Harness/blob/b150a551b8d465e31e418e1b2eaf5e79bbb7d28e/docs/architecture.md#L92-L104) do not specify an immutable Candidate-like verification subject. |
@@ -114,7 +126,7 @@ source-documentation status table above is not a benchmark or superiority claim.
 
 ## Refresh procedure
 
-1. Resolve the released Gas Town, DeepSeek Harness, and Omnigent tags,
+1. Resolve the released Gas Town, Gas City, DeepSeek Harness, and Omnigent tags,
    including annotated tag objects and peeled commits. Do not mix a different
    product, development branch, or post-tag commit into the same rating snapshot.
 2. Record observation date, immutable URLs, configurations, and benchmark

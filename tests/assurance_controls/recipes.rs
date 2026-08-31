@@ -95,66 +95,108 @@ fn parameterized_recipes_preserve_literal_arguments() {
 
 #[cfg(unix)]
 #[test]
-fn setup_recipe_preserves_literal_arguments() {
-    use std::{env, ffi::OsString, os::unix::fs::PermissionsExt};
+fn setup_recipe_has_a_closed_argument_and_launcher_surface() {
+    use std::{env, os::unix::fs::PermissionsExt};
 
     let temp = tempfile::tempdir().expect("setup recipe fixture");
     let bin = temp.path().join("bin");
     fs::create_dir(&bin).expect("create fake bin");
     let capture = temp.path().join("argv");
-    let marker = temp.path().join("ambient-cargo-executed");
-    let cargo = bin.join("cargo");
-    fs::write(
-        &cargo,
-        format!("#!/bin/bash\nprintf executed > '{}'\n", marker.display()),
-    )
-    .expect("write fake cargo");
-    let mut permissions = fs::metadata(&cargo)
-        .expect("fake cargo metadata")
-        .permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(&cargo, permissions).expect("make fake cargo executable");
+    let cargo_marker = temp.path().join("ambient-cargo-executed");
+    let launcher_marker = temp.path().join("ambient-shell-executed");
+    let injection_marker = temp.path().join("injected");
+
+    let make_executable = |path: &std::path::Path, body: &str| {
+        fs::write(path, body).expect("write executable fixture");
+        let mut permissions = fs::metadata(path).expect("fixture metadata").permissions();
+        permissions.set_mode(0o755);
+        fs::set_permissions(path, permissions).expect("make fixture executable");
+    };
+
+    make_executable(
+        &bin.join("cargo"),
+        &format!(
+            "#!/bin/bash\nprintf executed > '{}'\n",
+            cargo_marker.display()
+        ),
+    );
+    for name in ["bash", "sh"] {
+        make_executable(
+            &bin.join(name),
+            &format!(
+                "#!/bin/sh\nprintf executed > '{}'\nexit 97\n",
+                launcher_marker.display()
+            ),
+        );
+    }
 
     let setup = temp.path().join("bullet-family");
-    fs::write(
+    make_executable(
         &setup,
-        format!(
+        &format!(
             "#!/bin/bash\nset -euo pipefail\nprintf '%s\\0' \"$@\" > '{}'\n",
             capture.display()
         ),
-    )
-    .expect("write fake setup binary");
-    let mut permissions = fs::metadata(&setup)
-        .expect("fake setup metadata")
-        .permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(&setup, permissions).expect("make fake setup executable");
+    );
 
-    let injection_marker = temp.path().join("injected");
-    let spaced = temp.path().join("member root");
-    let injected = format!("; /usr/bin/touch {}", injection_marker.display());
-    let mut path = OsString::from(bin.as_os_str());
-    path.push(":");
-    path.push(env::var_os("PATH").expect("PATH is set"));
+    let just = env::split_paths(&env::var_os("PATH").expect("PATH is set"))
+        .map(|directory| directory.join("just"))
+        .find(|candidate| candidate.is_file())
+        .expect("just is installed at an absolute PATH entry");
+    assert!(just.is_absolute(), "just fixture path must be absolute");
 
-    let refused = Command::new("just")
+    let assert_bootstrap_unavailable = |output: std::process::Output| {
+        assert_eq!(
+            output.status.code(),
+            Some(4),
+            "unexpected refusal status; stderr: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(
+            String::from_utf8_lossy(&output.stderr).contains("setup: SETUP_BOOTSTRAP_UNAVAILABLE:"),
+            "unexpected refusal: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    };
+
+    let direct_without_path = Command::new(root().join("scripts/setup.sh"))
+        .arg("--offline")
+        .env_clear()
+        .env("PATH", "/definitely-missing")
+        .env("LC_ALL", "C")
+        .output()
+        .expect("run direct setup wrapper without PATH");
+    assert_bootstrap_unavailable(direct_without_path);
+
+    let just_without_path = Command::new(&just)
         .arg("setup")
         .current_dir(root())
-        .env("PATH", &path)
+        .env_clear()
+        .env("PATH", "/definitely-missing")
+        .env("LC_ALL", "C")
+        .output()
+        .expect("run just setup without PATH");
+    assert_bootstrap_unavailable(just_without_path);
+
+    let refused = Command::new(&just)
+        .arg("setup")
+        .current_dir(root())
+        .env("PATH", &bin)
         .env_remove("BULLET_SETUP_ADMITTED_BIN")
         .env("BULLET_SETUP_CARGO_BIN", "/bin/true")
         .env("BULLET_SETUP_NODE_BIN", "/bin/true")
         .env("BULLET_SETUP_NPM_CLI", "/bin/true")
         .output()
         .expect("run setup without admitted bootstrap");
-    assert!(!refused.status.success());
+    assert_bootstrap_unavailable(refused);
     assert!(
-        String::from_utf8_lossy(&refused.stderr)
-            .contains("operator-pre-admitted bootstrap unavailable"),
-        "unexpected refusal: {}",
-        String::from_utf8_lossy(&refused.stderr)
+        !cargo_marker.exists(),
+        "missing bootstrap executed ambient Cargo"
     );
-    assert!(!marker.exists(), "missing bootstrap executed ambient Cargo");
+    assert!(
+        !launcher_marker.exists(),
+        "setup selected an ambient shell launcher"
+    );
 
     // A regular executable placed directly under the family root: invariant under
     // external target directories, removed on drop even when an assertion fails.
@@ -164,36 +206,83 @@ fn setup_recipe_preserves_literal_arguments() {
         .canonicalize()
         .expect("canonical family root");
     let in_family_bin = InFamilyExecutable::create(&family_root);
-    let in_family = Command::new("just")
+    let in_family = Command::new(&just)
         .arg("setup")
         .current_dir(root())
-        .env("PATH", &path)
+        .env("PATH", &bin)
         .env("BULLET_SETUP_ADMITTED_BIN", &in_family_bin.path)
         .env("BULLET_SETUP_CARGO_BIN", "/bin/true")
         .env("BULLET_SETUP_NODE_BIN", "/bin/true")
         .env("BULLET_SETUP_NPM_CLI", "/bin/true")
         .output()
         .expect("run setup with in-family bootstrap");
-    assert!(!in_family.status.success());
+    assert_eq!(in_family.status.code(), Some(4));
     assert!(
-        String::from_utf8_lossy(&in_family.stderr).contains("outside the source family"),
+        String::from_utf8_lossy(&in_family.stderr).contains("setup: SETUP_BOOTSTRAP_INVALID:"),
         "unexpected refusal: {}",
         String::from_utf8_lossy(&in_family.stderr)
     );
     assert!(
-        !marker.exists(),
-        "in-family bootstrap executed ambient Cargo"
+        String::from_utf8_lossy(&in_family.stderr).contains("outside the source family"),
+        "unexpected refusal detail: {}",
+        String::from_utf8_lossy(&in_family.stderr)
     );
 
-    let status = Command::new("just")
-        .args([
-            "setup",
-            "--root",
-            spaced.to_str().expect("UTF-8 fixture path"),
-            &injected,
-        ])
+    let missing_tool = Command::new(&just)
+        .arg("setup")
         .current_dir(root())
-        .env("PATH", path)
+        .env("PATH", &bin)
+        .env("BULLET_SETUP_ADMITTED_BIN", &setup)
+        .env("BULLET_SETUP_CARGO_BIN", "/bin/true")
+        .env("BULLET_SETUP_NODE_BIN", "/bin/true")
+        .env_remove("BULLET_SETUP_NPM_CLI")
+        .output()
+        .expect("run setup without explicit npm authority");
+    assert_eq!(missing_tool.status.code(), Some(4));
+    assert!(
+        String::from_utf8_lossy(&missing_tool.stderr).contains("setup: SETUP_TOOL_PATH_INVALID:"),
+        "unexpected refusal: {}",
+        String::from_utf8_lossy(&missing_tool.stderr)
+    );
+    assert!(
+        !capture.exists(),
+        "tool-path refusal executed the selected bootstrap"
+    );
+
+    let injected = format!("; /usr/bin/touch {}", injection_marker.display());
+    for arguments in [
+        vec!["--root"],
+        vec!["--offline", "--offline"],
+        vec![injected.as_str()],
+    ] {
+        let refused = Command::new(&just)
+            .arg("--")
+            .arg("setup")
+            .args(arguments)
+            .current_dir(root())
+            .env("PATH", &bin)
+            .env("BULLET_SETUP_ADMITTED_BIN", &setup)
+            .env("BULLET_SETUP_CARGO_BIN", "/bin/true")
+            .env("BULLET_SETUP_NODE_BIN", "/bin/true")
+            .env("BULLET_SETUP_NPM_CLI", "/bin/true")
+            .output()
+            .expect("run setup with invalid argument tail");
+        assert_eq!(refused.status.code(), Some(4));
+        assert!(
+            String::from_utf8_lossy(&refused.stderr).contains("setup: SETUP_ARGUMENT_INVALID:"),
+            "unexpected refusal: {}",
+            String::from_utf8_lossy(&refused.stderr)
+        );
+        assert!(
+            !capture.exists(),
+            "argument refusal executed the selected bootstrap"
+        );
+    }
+
+    let status = Command::new(&just)
+        .args(["--", "setup", "--offline"])
+        .current_dir(root())
+        .env("PATH", &bin)
         .env("BULLET_SETUP_ADMITTED_BIN", &setup)
         .env("BULLET_SETUP_CARGO_BIN", "/bin/true")
         .env("BULLET_SETUP_NODE_BIN", "/bin/true")
@@ -207,8 +296,12 @@ fn setup_recipe_preserves_literal_arguments() {
         "recipe executed an interpolated shell command"
     );
     assert!(
-        !marker.exists(),
+        !cargo_marker.exists(),
         "external bootstrap executed ambient Cargo"
+    );
+    assert!(
+        !launcher_marker.exists(),
+        "setup selected an ambient shell launcher"
     );
     let captured = fs::read(&capture).expect("captured setup argv");
     let arguments = captured
@@ -230,9 +323,7 @@ fn setup_recipe_preserves_literal_arguments() {
             "/bin/true".to_owned(),
             "--npm-cli".to_owned(),
             "/bin/true".to_owned(),
-            "--root".to_owned(),
-            spaced.display().to_string(),
-            injected,
+            "--offline".to_owned(),
         ]
     );
 }

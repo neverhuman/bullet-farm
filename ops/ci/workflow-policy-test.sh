@@ -63,7 +63,7 @@ expect_source_failure() {
 printf '%s\n' '# unbound workflow source is not admitted' \
   >>"$workflow_test_root/workflows/ci.yml"
 expect_source_failure "$workflow_test_root/workflows/ci.yml" \
-  34d0ca2ca91bfc59a9ce7ff6952b8b55ce45827ef02423dc65acdc0ce4c88b74 \
+  52c7841a5a4c6ab4a2321fce6b18755552da49d5b0e065c7be4925ad0880a1fb \
   HOSTED_REQUIRED_SOURCE_DRIFT
 printf '%s\n' '# unbound workflow source is not admitted' \
   >>"$workflow_test_root/workflows/scheduled.yml"

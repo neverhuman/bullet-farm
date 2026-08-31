@@ -50,17 +50,28 @@ name = "bullet-family"
 version = "0.1.0"
 dependencies = [
  "blake3",
+ "bullet-linux-lease",
  "bullet-wire",
+ "ed25519-compact",
  "fs2",
  "nix",
  "rustix",
  "serde",
  "serde_json",
+ "sha2",
  "tar",
  "tempfile",
  "toml",
  "zip",
  "zstd",
+]
+
+[[package]]
+name = "bullet-linux-lease"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "tempfile",
 ]
 
 [[package]]

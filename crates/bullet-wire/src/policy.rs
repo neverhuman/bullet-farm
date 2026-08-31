@@ -7,7 +7,10 @@ use crate::{AuthorityAudience, Blake3Digest, WireError};
 mod keys;
 mod live;
 
-pub use live::LIVE_ADMISSION_MIN_GENERATION;
+pub use live::{
+    LIVE_ADMISSION_MIN_GENERATION, refuse_dogfood_binding_as_live, validate_dogfood_admission,
+    validate_live_admission,
+};
 
 pub const POLICY_SCHEMA_VERSION: &str = "v1alpha1";
 pub const POLICY_SCHEMA_VERSION_V1ALPHA2: &str = "v1alpha2";
@@ -289,6 +292,44 @@ pub struct SandboxPolicyV1 {
     pub arbitrary_shell_gates: bool,
     pub network_default: String,
     pub live_admission_enabled: bool,
+}
+
+/// Purpose-separated dogfood audience. Not an [`AuthorityAudience`] and not a
+/// live-admission key audience.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum DogfoodAudienceV1 {
+    DogfoodRunner,
+}
+
+/// Purpose-separated dogfood operation. Not a [`crate::MutationOperation`].
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum DogfoodOperationV1 {
+    ReadOnlyPropose,
+}
+
+/// Typed dogfood scope. Validated independently of [`SandboxPolicyV1`].
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DogfoodBindingV1 {
+    pub schema_version: String,
+    pub audience: DogfoodAudienceV1,
+    pub operation: DogfoodOperationV1,
+}
+
+impl DogfoodBindingV1 {
+    pub const SCHEMA_VERSION: &'static str = "v1alpha1";
+
+    /// The only admitted dogfood binding.
+    #[must_use]
+    pub fn read_only_propose() -> Self {
+        Self {
+            schema_version: Self::SCHEMA_VERSION.to_owned(),
+            audience: DogfoodAudienceV1::DogfoodRunner,
+            operation: DogfoodOperationV1::ReadOnlyPropose,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

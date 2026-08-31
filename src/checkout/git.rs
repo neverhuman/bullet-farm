@@ -190,8 +190,17 @@ pub(crate) fn verify_exact_worktree(_repo: &Path) -> Result<(), CoordError> {
     ))
 }
 
+/// Walk one member's Git administrative tree.
+///
+/// Every I/O failure here is a refusal that NAMES the exact offending path, not
+/// a bare `COORD_IO_FAILED`. A node this walk cannot read (mode-000 CI
+/// quarantine directories are the observed case) could hide a symlink that
+/// redirects administrative authority, so the member's admission stops
+/// fail-closed at that node with `UNREADABLE_GIT_METADATA`. The caller reports
+/// the member by name and keeps walking every other member; nothing about this
+/// member is thereafter reported as safe or clean.
 fn reject_admin_symlinks(root: &Path) -> Result<(), CoordError> {
-    let metadata = fs::symlink_metadata(root).map_err(CoordError::io)?;
+    let metadata = fs::symlink_metadata(root).map_err(|error| unreadable_git(root, &error))?;
     if metadata.file_type().is_symlink() || !metadata.file_type().is_dir() {
         return Err(unsafe_git(format!(
             "{} is not a regular Git administrative directory",
@@ -201,23 +210,27 @@ fn reject_admin_symlinks(root: &Path) -> Result<(), CoordError> {
     let mut stack = vec![PathBuf::from(root)];
     let mut seen = 0usize;
     while let Some(directory) = stack.pop() {
-        for entry in fs::read_dir(&directory).map_err(CoordError::io)? {
-            let entry = entry.map_err(CoordError::io)?;
+        let listing =
+            fs::read_dir(&directory).map_err(|error| unreadable_git(&directory, &error))?;
+        for entry in listing {
+            let entry = entry.map_err(|error| unreadable_git(&directory, &error))?;
             seen = seen.saturating_add(1);
             if seen > MAX_ADMIN_ENTRIES {
                 return Err(unsafe_git(
                     "Git administrative tree exceeds 1,000,000 entries",
                 ));
             }
-            let metadata = fs::symlink_metadata(entry.path()).map_err(CoordError::io)?;
+            let path = entry.path();
+            let metadata =
+                fs::symlink_metadata(&path).map_err(|error| unreadable_git(&path, &error))?;
             if metadata.file_type().is_symlink() {
                 return Err(unsafe_git(format!(
                     "{} redirects Git administrative authority",
-                    entry.path().display()
+                    path.display()
                 )));
             }
             if metadata.file_type().is_dir() {
-                stack.push(entry.path());
+                stack.push(path);
             }
         }
     }
@@ -349,6 +362,21 @@ fn run_after_verify(
 
 fn unsafe_git(reason: impl Into<String>) -> CoordError {
     CoordError::new("UNSAFE_GIT_METADATA", reason)
+}
+
+/// A node of a Git administrative tree that could not be read. Distinct from
+/// `UNSAFE_GIT_METADATA` (proven hostile) and from `COORD_IO_FAILED` (an
+/// anonymous I/O failure): this code says which member path defeated the walk,
+/// and it is never success.
+fn unreadable_git(path: &Path, error: &std::io::Error) -> CoordError {
+    CoordError::new(
+        "UNREADABLE_GIT_METADATA",
+        format!(
+            "{} could not be read while verifying Git administrative metadata ({error}); \
+             an unreadable node is never treated as clean or safe",
+            path.display()
+        ),
+    )
 }
 
 fn dirty(reason: impl Into<String>) -> CoordError {

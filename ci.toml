@@ -33,7 +33,7 @@ id = "lint"
 name = "prepared lint"
 runner_class = "native-rust-clean"
 needs = ["source_scan"]
-run = ["bash ops/ci/jeryu-activation-gate.sh", "bash scripts/ci-local.sh lint"]
+run = ["bash ops/ci/jeryu-activation-gate.sh", "bash ops/ci/install-readme-jsonschema.sh", "PATH=\"$PWD/target/.ci-tools/readme-jsonschema/bin:$PATH\" bash scripts/ci-local.sh lint"]
 cache_mounts = []
 artifact_paths = [".ci-artifacts/observations/lint.json"]
 
@@ -60,7 +60,7 @@ id = "docs"
 name = "prepared docs"
 runner_class = "native-rust-clean"
 needs = ["source_scan"]
-run = ["bash ops/ci/jeryu-activation-gate.sh", "bash ops/ci/install-readme-jsonschema.sh", "PATH=\"$PWD/.ci-tools/readme-jsonschema/bin:$PATH\" bash scripts/ci-local.sh docs"]
+run = ["bash ops/ci/jeryu-activation-gate.sh", "bash ops/ci/install-readme-jsonschema.sh", "PATH=\"$PWD/target/.ci-tools/readme-jsonschema/bin:$PATH\" bash scripts/ci-local.sh docs"]
 cache_mounts = []
 artifact_paths = [".ci-artifacts/observations/docs.json"]
 

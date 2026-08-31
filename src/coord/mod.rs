@@ -1,6 +1,14 @@
+mod anonymous_link;
+mod fresh_genesis;
+pub(crate) use fresh_genesis::consume_wave0_and_inventory;
+mod generation;
 mod git;
 mod model;
 mod receipt_state;
+mod recovery;
+mod recovery_adoption_verify;
+pub(crate) mod recovery_manifest;
+pub(crate) mod sealed;
 mod state;
 mod store;
 
@@ -11,7 +19,27 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-pub use model::{ClaimState, ClaimSummary, DEFAULT_TTL_SECONDS, Status};
+pub use model::{
+    Applied, COORD_SCHEMA_VERSION, ClaimState, ClaimSummary, CommandReceipt, DEFAULT_TTL_SECONDS,
+    ForensicRecordRefV1, GenerationId, GenesisInput, MutationEnvelope,
+    RECOVERY_ADOPTION_REQUEST_SCHEMA_VERSION, RECOVERY_PRODUCTION_SCHEMA_VERSION,
+    RecoveryAdoptionAuthorityClassV1, RecoveryAdoptionClaimV1, RecoveryAdoptionRequestKindV1,
+    RecoveryAdoptionSummaryV1, RecoveryAdoptionWatermarkV1, RecoveryForensicArtifactKindV1,
+    RecoveryForensicRecordKindV1, RecoveryGenerationRecordKindV1, RecoveryGenerationRecordRefV1,
+    RecoveryGitExpectationV1, RecoveryGitLeafStatusV1, RecoveryGitLeafTransitionV1,
+    RecoveryGitObjectFormatV1, RecoveryProductionPlanKindV1, RecoveryProductionPlanV1,
+    RecoveryProductionSubjectV1, RecoveryProductionWatermarkV1, RecoveryProofObservationV1,
+    RecoveryProofRequestKindV1, RecoveryProofRequestV1, RecoveryProofRoleV1,
+    RecoveryReceiptAdoptionRequestV1, RecoveryReceiptAdoptionSubjectV1,
+    RecoveryReviewApprovalKindV1, RecoveryReviewApprovalV1, RecoveryReviewDecisionV1,
+    RecoveryReviewObservationV1, RecoveryReviewRequestKindV1, RecoveryReviewRequestV1,
+    RecoveryReviewRoleV1, RequestId, Status, StatusOrigin, Watermark,
+};
+pub(crate) use model::{
+    RecoveryAuthorizationSignatureV1, RecoveryAuthorizationV1, RecoveryBootstrapProvenanceV1,
+    RecoveryInspectionV1,
+};
+pub(crate) use recovery::{RecoveryCommand, RecoveryExecution};
 pub use store::CoordStore;
 
 #[derive(Debug)]
@@ -71,7 +99,10 @@ impl CoordError {
 
     pub fn exit_code(&self) -> u8 {
         match self.code {
-            "CLAIM_OVERLAP" | "CLAIM_NOT_ACTIVE" | "CLAIM_OWNER_MISMATCH" => 3,
+            "CLAIM_OVERLAP"
+            | "CLAIM_NOT_ACTIVE"
+            | "CLAIM_OWNER_MISMATCH"
+            | "COORD_RECOVERY_WRITER_WAIT" => 3,
             "CORRUPT_COORD_LOG" | "UNSUPPORTED_SCHEMA" | "PARTIAL_COORD_WRITE" => 4,
             _ => 2,
         }
@@ -86,6 +117,17 @@ struct RepairMetadata {
 }
 
 fn repair_metadata(code: &str) -> RepairMetadata {
+    if code == "COORD_RECOVERY_WRITER_WAIT" {
+        return RepairMetadata {
+            purpose: "preserve a live legacy writer fence",
+            common_fixes: &[
+                "stop the exact legacy writer without replacing the recovery subject",
+                "retry the same supervised recovery command after descriptor read-back",
+            ],
+            docs_url: "docs/errors.md#outcome-unknown",
+            repair_hint: "keep recovery frozen and inspect legacy writable descriptors",
+        };
+    }
     if code.contains("TIMEOUT") || code.ends_with("_UNKNOWN") {
         return RepairMetadata {
             purpose: "preserve an ambiguous mutation outcome",
@@ -198,7 +240,8 @@ impl fmt::Display for CoordError {
 
 impl std::error::Error for CoordError {}
 
-#[derive(Debug)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct ClaimInput {
     pub agent: String,
     pub lane: String,
@@ -207,7 +250,8 @@ pub struct ClaimInput {
     pub ttl_seconds: u64,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct HeartbeatInput {
     pub claim_id: String,
     pub agent: String,
@@ -215,7 +259,8 @@ pub struct HeartbeatInput {
     pub note: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct HandoffInput {
     pub claim_id: String,
     pub agent: String,
@@ -225,7 +270,8 @@ pub struct HandoffInput {
     pub commit_oid: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct CommitReceiptInput {
     pub claim_id: String,
     pub orchestrator: String,
@@ -233,7 +279,8 @@ pub struct CommitReceiptInput {
     pub committed_paths: Vec<String>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct ReceiptCorrectionInput {
     pub claim_id: String,
     pub orchestrator: String,
@@ -243,14 +290,16 @@ pub struct ReceiptCorrectionInput {
     pub reason: String,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct CommitReceiptGroupInput {
     pub claim_ids: Vec<String>,
     pub orchestrator: String,
     pub commit_oid: String,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug, serde::Deserialize, Eq, PartialEq, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct GroupReceiptCorrectionInput {
     pub claim_ids: Vec<String>,
     pub orchestrator: String,

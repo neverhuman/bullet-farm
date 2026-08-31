@@ -17,7 +17,7 @@ VHS_IMAGE='ghcr.io/charmbracelet/vhs@sha256:9d5fc3dc0c160b0fb1d2212baff07e6bdf3f
 SOURCE_EPOCH=1787616000
 VHS_VERSION_OUTPUT='vhs version v0.11.0 (c6af91a)'
 
-for tool in docker file jq sha256sum stat; do
+for tool in cmp cp diff docker file find jq sha256sum stat; do
   command -v "$tool" >/dev/null 2>&1 || {
     printf 'readme-check: missing required tool %s\n' "$tool" >&2
     exit 1
@@ -29,6 +29,20 @@ cleanup() {
   rm -rf "$tmp"
 }
 trap cleanup EXIT
+
+# All validation reads a private no-dereference snapshot. A second snapshot at
+# completion proves the caller-visible tree was not substituted mid-check.
+source_media="$MEDIA"
+stable_media="$tmp/media-snapshot"
+if ! cp -a --no-dereference -- "$source_media" "$stable_media"; then
+  echo "readme-check: could not take a no-dereference media snapshot" >&2
+  exit 1
+fi
+if [[ ! -d "$stable_media" || -L "$stable_media" ]]; then
+  echo "readme-check: media root must remain an ordinary directory" >&2
+  exit 1
+fi
+MEDIA="$stable_media"
 
 expected_media_inventory="$tmp/expected-media-inventory"
 actual_media_inventory="$tmp/actual-media-inventory"
@@ -219,8 +233,9 @@ required_claims=(
   'Bullet Farm is building the transaction boundary for coding agents: fenced authority, one repository writer, exact Candidates, independent Evidence, durable effect reconciliation, and protected integration.'
   '**Current alpha:** the boundaries are component-proved; public installation, live providers, and the connected transaction remain blocked.'
   'Public installation is not available.'
-  "\`TRANSACTION_PROOF\` is absent, so transaction-ready and production-ready remain false."
+  "The offline local bridge is component evidence only; \`TRANSACTION_PROOF\`, transaction-ready, and production-ready remain false."
   'https://github.com/gastownhall/gastown/releases/tag/v1.2.1'
+  'https://github.com/gastownhall/gascity/releases/tag/v1.4.1'
   'https://github.com/deepseek-ai/DeepSeek-Harness/releases/tag/dsh-v0.1.1-rc.2'
   'https://github.com/omnigent-ai/omnigent/releases/tag/v0.10.0'
 )
@@ -271,9 +286,9 @@ awk -F'|' '
           value != "Not documented" && value != "Unknown" && value != "N/A") exit 1
     }
   }
-  END { if (rows != 4) exit 1 }
+  END { if (rows != 5) exit 1 }
 ' "$HUB/README.md" || {
-  echo "readme-check: comparison table escaped its five-value vocabulary or four-subject inventory" >&2
+  echo "readme-check: comparison table escaped its five-value vocabulary or five-row inventory" >&2
   exit 1
 }
 bash "$HUB/ops/ci/check-links.sh"
@@ -313,7 +328,7 @@ if LC_ALL=C grep -anEi "$redaction_pattern" "${text_media[@]}"; then
   echo "readme-check: media contains a forbidden path or credential-shaped value" >&2
   exit 1
 fi
-promotion_pattern="(TRANSACTION[_ \`-]*PROOF.{0,48}(EXISTS?|PRESENT|PASS(ED)?|VERIFIED|AVAILABLE|READY|COMPLETE(D)?|SUCCEEDED?)|(EXISTS?|PRESENT|PASS(ED)?|VERIFIED|AVAILABLE|READY|COMPLETE(D)?|SUCCEEDED?).{0,24}TRANSACTION[_ \`-]*PROOF|PUBLIC[ -]+INSTALLATION.{0,48}(AVAILABLE|READY|SUPPORTED|COMPLETE(D)?|PRESENT|ENABLED|WORKS)|LIVE[ -]+PROVIDERS?.{0,48}(SUPPORTED|READY|AVAILABLE|ENABLED|EXECUTED|RUNNING|COMPLETE(D)?|PASS(ED)?|VERIFIED|PRESENT|SUCCEEDED?)|LIVE[ -]+PROVIDER[ -]+(EXECUTION|READINESS|SUPPORT|PROOF).{0,32}(SUPPORTED|READY|AVAILABLE|ENABLED|COMPLETE(D)?|PASS(ED)?|VERIFIED|PRESENT|SUCCEEDED?)|CONNECTED[ -]+TRANSACTION.{0,48}(EXISTS?|PRESENT|PASS(ED)?|VERIFIED|AVAILABLE|READY|COMPLETE(D)?|SUCCEEDED?)|(TRANSACTION|PRODUCTION|RELEASE)[ -]+(IS[ -]+)?(READY|READINESS|AVAILABLE|SUPPORTED|COMPLETE(D)?))"
+promotion_pattern="(TRANSACTION[_ \`-]*PROOF.{0,48}(EXISTS?|PRESENT|PASS(ED)?|VERIFIED|AVAILABLE|READY|COMPLETE(D)?|SUCCEEDED?|SCORECARD-ADMITTED)|(EXISTS?|PRESENT|PASS(ED)?|VERIFIED|AVAILABLE|READY|COMPLETE(D)?|SUCCEEDED?).{0,24}TRANSACTION[_ \`-]*PROOF|PUBLIC[ -]+INSTALLATION.{0,48}(AVAILABLE|READY|SUPPORTED|COMPLETE(D)?|PRESENT|ENABLED|WORKS)|LIVE[ -]+PROVIDERS?.{0,48}(SUPPORTED|READY|AVAILABLE|ENABLED|EXECUTED|RUNNING|COMPLETE(D)?|PASS(ED)?|VERIFIED|PRESENT|SUCCEEDED?)|LIVE[ -]+PROVIDER[ -]+(EXECUTION|READINESS|SUPPORT|PROOF).{0,32}(SUPPORTED|READY|AVAILABLE|ENABLED|COMPLETE(D)?|PASS(ED)?|VERIFIED|PRESENT|SUCCEEDED?)|CONNECTED[ -]+TRANSACTION.{0,48}(EXISTS?|PRESENT|PASS(ED)?|VERIFIED|AVAILABLE|READY|COMPLETE(D)?|SUCCEEDED?)|(TRANSACTION|PRODUCTION|RELEASE)[ -]+(IS[ -]+)?(READY|READINESS|AVAILABLE|SUPPORTED|COMPLETE(D)?))"
 promotion_matches() {
   {
     LC_ALL=C grep -aRhEi "$promotion_pattern" "$@" || true
@@ -322,7 +337,7 @@ promotion_matches() {
     -e 's/PUBLIC[ -]+INSTALLATION[[:space:]]+IS[[:space:]]+NOT[[:space:]]+AVAILABLE//Ig' \
     -e 's/LIVE[ -]+PROVIDERS?[[:space:]]+REMAINS?[[:space:]]+BLOCKED//Ig' \
     -e 's/CONNECTED[ -]+TRANSACTION[[:space:]]+IS[[:space:]]+UNAVAILABLE//Ig' \
-    -e 's/TRANSACTION-READY[[:space:]]+AND[[:space:]]+PRODUCTION-READY[[:space:]]+REMAINS?[[:space:]]+FALSE//Ig' \
+    -e 's/TRANSACTION-READY,?[[:space:]]+AND[[:space:]]+PRODUCTION-READY[[:space:]]+REMAINS?[[:space:]]+FALSE//Ig' \
     -e 's/(TRANSACTION|PRODUCTION|RELEASE)[ -]+READY[[:space:]]+REMAINS?[[:space:]]+FALSE//Ig' \
     -e "s/LIVE-AGENT TASK[[:space:]]+MEDIA[[:space:]]+STAYS[[:space:]]+ABSENT[[:space:]]+UNTIL[^.]*TRANSACTION[_ \`-]*PROOF\`?[[:space:]]+EXISTS?//Ig" \
     -e "s/INSTALL[[:space:]]+MEDIA[[:space:]]+STAYS[[:space:]]+ABSENT[[:space:]]+UNTIL[^.]*TRANSACTION[_ \`-]*PROOF\`?[[:space:]]+EXISTS?//Ig" \
@@ -338,6 +353,7 @@ for canary in 'TRANSACTION_PROOF:VERIFIED' 'transaction_proof=pass' \
   'live providers are supported' 'live provider execution succeeded' \
   'connected transaction is complete' 'release-READY' 'release is READY' \
   'production is ready' 'live provider proof: PRESENT' \
+  'TRANSACTION_PROOF for the offline local saga is scorecard-admitted' \
   'live provider proof is PRESENT'; do
   printf '%s\n' "$canary" | LC_ALL=C grep -Eiq "$promotion_pattern" || {
     echo "readme-check: promotion canary escaped the forbidden-claim pattern" >&2
@@ -350,6 +366,7 @@ for canary in 'TRANSACTION_PROOF:VERIFIED' 'transaction_proof=pass' \
   fi
 done
 for allowed in 'TRANSACTION_PROOF is absent' \
+  "The offline local bridge is component evidence only; \`TRANSACTION_PROOF\`, transaction-ready, and production-ready remain false." \
   'public installation is not available' 'live providers remain blocked' \
   'connected transaction is unavailable' 'production-ready remains false' \
   'Install media stays absent until a connected TRANSACTION_PROOF exists'; do
@@ -365,7 +382,7 @@ if ! promotion_is_absent "${public_truth_roots[@]}"; then
   exit 1
 fi
 # shellcheck disable=SC2016 # Backticks are literal Markdown delimiters in the hostile input.
-sed 's/`TRANSACTION_PROOF` is absent/`TRANSACTION_PROOF` is PRESENT/' \
+sed 's/The offline local bridge is component evidence only; `TRANSACTION_PROOF`, transaction-ready, and production-ready remain false./The offline local saga has `TRANSACTION_PROOF` scorecard-admitted; transaction-ready and production-ready remain false./' \
   "$HUB/README.md" >"$tmp/hostile-readme.md"
 cmp -s "$HUB/README.md" "$tmp/hostile-readme.md" && {
   echo "readme-check: exact public README hostile mutation did not apply" >&2
@@ -385,6 +402,21 @@ if [[ "$staged" == false ]]; then
     cmp "$tmp/render-a/$demo.gif" "$tmp/render-b/$demo.gif"
     cmp "$tmp/render-a/$demo.gif" "$MEDIA/$demo/$demo.gif"
   done
+fi
+
+source_recheck="$tmp/source-recheck"
+if ! cp -a --no-dereference -- "$source_media" "$source_recheck"; then
+  echo "readme-check: media source changed during validation" >&2
+  exit 1
+fi
+if [[ ! -d "$source_recheck" || -L "$source_recheck" ]] ||
+  find "$source_recheck" -type l -print -quit | grep -q .; then
+  echo "readme-check: media source gained a symlink during validation" >&2
+  exit 1
+fi
+if ! diff -qr --no-dereference -- "$MEDIA" "$source_recheck" >/dev/null; then
+  echo "readme-check: media source changed during validation" >&2
+  exit 1
 fi
 
 echo "readme-check: PASS (unsigned component media; no release authority)"

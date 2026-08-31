@@ -11,6 +11,9 @@ use super::fixture::{
     write_canonical, write_structural_registry,
 };
 
+#[path = "hostile/family_anchor.rs"]
+mod family_anchor;
+
 const TRANSACTION_CORE_KINDS: [ReleaseEvidenceKindV1; 8] = [
     ReleaseEvidenceKindV1::Candidate,
     ReleaseEvidenceKindV1::Evidence,
@@ -71,6 +74,7 @@ fn kind_framed_digest(kind: &[u8], bytes: &[u8]) -> String {
 }
 
 pub(super) fn assert_hostile_registries(registry: &Path) {
+    family_anchor::assert_refusals(registry);
     manifest_binding_refusals(registry);
     transaction_kind_refusals(registry);
     kind_and_policy_refusals(registry);

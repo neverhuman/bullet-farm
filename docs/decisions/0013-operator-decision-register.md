@@ -189,6 +189,40 @@ revocation, and rollback. This act unblocks only `release.profile.gitlab-self-ma
 nor OD-I's receipt certifies the other. Ratification line:
 `## <UTC> — operator — OD-J — RATIFIED: endpoint/version <facts>; deployment/capability <digests>; project/protection <facts>; broker/attestor/integrator/observer <distinct ids/handles>; budget/expiry/revocation <facts>; rollback <owner>.`
 
+### OD-K — Dogfood track admission (internal use only)
+
+- Proposed decision: after every engineering predecessor and a fresh safety review pass, accept
+  purpose-separated, non-evidence `DOGFOOD_RUN` operational observations under `dogfood-local-v0` for the
+  family's own development on this host ([ADR 0015](0015-dogfood-track.md)); bind an operator-owned
+  generation-2 v1alpha2 policy and its `provider-runner` launch key to one separately typed dogfood
+  audience/operation, exact enrollment, credential projection, containment and budgets; and retain the
+  frozen 2026-08-26 coordinator generation as **incident evidence, not recovered** under one complete
+  canonical inventory before permitting one fresh schema-2 Genesis. Because the current manifest binds only
+  its Hub bootstrap commit, a separate typed W0 subject consumed and revalidated by the init transition must
+  bind the exact Hub, Kernel, BulletGit, and Portal commit/tree subjects and clean state.
+- Trust boundary: this act admits nothing to the release program. It clears no gate, satisfies no
+  profile condition, raises no scorecard floor, and creates no independent or transaction evidence.
+  It does not consume OD-A: a future dogfood provider run would not be `release.provider.claude`. Today's
+  global `live_admission_enabled` bit authorizes no dogfood-only scope; it clears the POLICY step for every
+  guarded live route. Only the required separately typed dogfood audience/operation could scope this path,
+  and the general live and release paths must refuse that binding. It does not consume OD-B, OD-C, OD-I or
+  OD-J: the proposed first merge target would be a local bare mirror and no forge credential would be
+  minted. DF-R7a and DF-R7b remain OPEN and owed.
+- Why not code: only the operator can accept this bounded internal-use risk and provide its social custody
+  witness. Code must still enforce every typed scope, enrollment, credential, containment, budget, validity,
+  revocation, and refusal predecessor; it cannot mechanically infer operator identity from a same-UID line.
+- Unblocks: nothing in the release catalog. If ratified after its predecessors, it would enable the first
+  coordinated Bullet-on-Bullet change.
+- Procedure: [`../runbooks/dogfood-admission-kit.md`](../runbooks/dogfood-admission-kit.md).
+- Ratification line:
+  `## <UTC> — operator — OD-K — RATIFIED: dogfood-local-v0 admitted for internal use per ADR 0015; policy <absolute path> owner/mode 0600 digest <digest> generation <n> canonical read-back <producer/subject> scoped by <dogfood audience/operation binding>; provider-runner key <fingerprint> custody <path>; provider claude enrollment <path> digest <digest> executable <path/digest> protocol <exact> version <exact> model <exact> profile <exact> service identity <id> credential handle <handle> invocation/spend limits <limits> valid <interval> revocation <handle> rollback <owner>; frozen generation <path> retained mode 0400 complete inventory <absolute path/digest/entry count>, NOT recovered, DF-R7a/R7b remain OPEN; W0 subject <absolute path/digest> hub <commit/tree> kernel <commit/tree> git <commit/tree> portal <commit/tree> clean/zero-claim/review <facts>; Genesis operator <id> bootstrap commit <hub oid> W0 read-back <digest> (the current manifest binds only the Hub commit; the separately typed W0 subject binds all four); release/independent/transaction eligibility remain false; providers read-only per ADR 0001; Jeryu unmodified.`
+- Negative acceptance: an agent-created policy or key, a forged operator-looking line, or a dogfood
+  operational record of any age can never qualify a release gate, a profile condition, or an independence
+  claim. The social witness alone must never authorize the dogfood runtime either.
+- Status: `OPEN` — no ratification line exists, and the engineering predecessors in the dependency
+  DAG below are unbuilt. Ratifying before they land would widen live-execution authority globally on a
+  single-UID host where operator provenance is social rather than cryptographic.
+
 ## Dependency DAG
 
 - OD-D is a read-only source/tag/passport act with no dependency on OD-B. Schema-3 generation and the two-install
@@ -204,6 +238,17 @@ The graph is acyclic: `OD-D → OD-E → OD-A`; the live forge acts branch only 
 their offline contracts; and `self-hosted PASS → offline study → no-effect
 shadow → rollback readiness → OD-H → bounded canary → promotion/drift receipts
 → evolution PASS`. In particular there is no `OD-D → OD-B` edge.
+- A future ratified OD-K would grant only internal-use admission; forge/provider/signing/release authority
+  would remain exactly where OD-A through OD-J place them. It is **not** predecessor-free, contrary to an earlier draft: because
+  `PolicySnapshotV1` has no dogfood profile/audience field and `validate_live_admission` checks only a
+  global boolean, admitting it today would clear the POLICY step for every guarded live route. Its
+  engineering predecessors are (i) a separately typed dogfood audience/operation binding the general
+  live and release paths refuse, (ii) a dogfood provider enrollment binding the exact Claude model with
+  explicit credential projection and a filesystem boundary for the same-UID child, (iii) the `check dogfood` /
+  `NOT_A_RELEASE_PROFILE` / operational-record-refusal surfaces, (iv) an admitted RFC 8785 policy producer and
+  byte-exact read-back, and (v) a durable complete incident inventory plus an exact four-repository W0 subject
+  consumed and drift-refused by fresh Genesis. Until those land and a fresh safety review passes, OD-K must not
+  be ratified.
 
 ## Reverse crosswalk
 
@@ -219,6 +264,7 @@ shadow → rollback readiness → OD-H → bounded canary → promotion/drift re
 | OD-H | bounded R0/R1 canary predecessor of `release.profile.evolution-v1` | G11 | 9 | study/shadow/rollback-readiness before; canary/promotion/drift receipts after | never R2+, self-hosted, or universal; never closes evolution alone |
 | OD-I | `release.profile.gitlab-adapter-v1` | G16 | 10 | GitLab.com LIVE_PROOF | never self-managed GitLab |
 | OD-J | `release.profile.gitlab-self-managed-v1` | G16 | 10 | self-managed GitLab LIVE_PROOF | never GitLab.com |
+| OD-K | none (internal dogfood admission, ADR 0015) | N/A | N/A | `DOGFOOD_RUN` operational observations; `check dogfood`; dogfood admission kit | clears no gate; consumes no other decision; not `release.provider.claude` |
 
 ## Consequence
 
@@ -227,5 +273,6 @@ shadow → rollback readiness → OD-H → bounded canary → promotion/drift re
 - Adding a decision means adding an entry, dependency edge, reverse-crosswalk row, exact gate id, and ratification
   format here in the same reviewed change as its consuming procedure. Ratified entries are retained with their
   timestamp and log reference; they are not deleted.
-- No agent creates an operator fact. An operator-authored line is an audit witness only, and a separate machine
-  verifier must reject forged lines, self-selected trust roots, role substitution, expiry, revocation, or drift.
+- No agent creates an operator fact. An operator-authored line is an audit witness only, never machine
+  authorization; a runtime must admit separately protected inputs and refuse self-selected trust roots, role
+  substitution, expiry, revocation, or drift. On a same-UID host it cannot infer the line author's identity.

@@ -18,4 +18,10 @@ selected="$(cargo test --locked --test ci_controls -- --list \
 [[ "$selected" -eq 1 ]] \
   || { refuse TYPED_REFUSAL_TEST_DRIFT "selected $selected tests; expected 1"; exit 1; }
 cargo test --locked --test ci_controls non_linux_setup_refuses_before_mutation -- --exact
+recovery_selected="$(cargo test --locked -p bullet-family --test coord_rollover -- --list \
+  | grep -Ec '^unsupported_platform_refuses_before_subject_io_or_coord_creation: test$' || true)"
+[[ "$recovery_selected" -eq 1 ]] \
+  || { refuse TYPED_RECOVERY_REFUSAL_TEST_DRIFT "selected $recovery_selected tests; expected 1"; exit 1; }
+cargo test --locked -p bullet-family --test coord_rollover \
+  unsupported_platform_refuses_before_subject_io_or_coord_creation -- --exact
 log "non-Linux compile, strict decoder policy, and typed mutation refusal passed"

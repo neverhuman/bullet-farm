@@ -2,7 +2,7 @@
 
 Status: **drill runnable on Linux GNU; the positive setup path is refused by design (schema 2), so recovery today is diagnosis, not repair**  
 Owner: Bullet Farm maintainers  
-Last reviewed: 2026-08-25  
+Last reviewed: 2026-08-26
 Component receipt baseline (minimum; replay current-head lanes before use): bullet-farm `d762f86` (`src/setup.rs`, `src/setup/transaction.rs`, `src/doctor`, `src/checkout`);
 transaction rules in [`source-setup.md`](source-setup.md)
 
@@ -87,12 +87,18 @@ local binary when compiler-cache writes would interfere with evidence preservati
    (cd /tmp && /abs/path/to/bullet-farm/scripts/setup.sh --offline); echo EXIT=$?
    ```
 
-   Observed: `operator-pre-admitted bootstrap unavailable`, `EXIT=4`, no staging directory created, and no ambient
-   Cargo shim executed. This is exactly what `ops/ci/setup-refusal.sh` asserts. It is intentionally earlier than
+   Observed: `setup: SETUP_BOOTSTRAP_UNAVAILABLE: operator-pre-admitted bootstrap unavailable`, `EXIT=4`, no
+   staging directory created, and no ambient Cargo shim executed. This is exactly what
+   `ops/ci/setup-refusal.sh` asserts. Automation branches on the stable code, not the prose detail. It is
+   intentionally earlier than
    the Rust schema check: the wrapper requires `BULLET_SETUP_ADMITTED_BIN` to name an absolute canonical,
    non-symlink executable outside the source family and also requires explicit absolute
    `BULLET_SETUP_CARGO_BIN`, `BULLET_SETUP_NODE_BIN`, and `BULLET_SETUP_NPM_CLI` values. It does not discover,
    authenticate, or resolve those subjects, and no signed prebuilt installer is published.
+   The wrapper accepts only no arguments or exactly one `--offline`; every
+   other tail returns `SETUP_ARGUMENT_INVALID`, `EXIT=4`, before external
+   bootstrap selection. Its Linux launcher is the fixed `/bin/bash`, including
+   through `just setup`, so an absent or hostile `PATH` cannot select a shell.
 
    The source-built binary's direct refusal is the separate schema check:
 

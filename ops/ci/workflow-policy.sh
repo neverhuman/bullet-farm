@@ -35,13 +35,13 @@ validate_workflow_source() {
 
 validate_workflow_inventory .github/workflows || exit 1
 validate_workflow_source .github/workflows/ci.yml \
-  34d0ca2ca91bfc59a9ce7ff6952b8b55ce45827ef02423dc65acdc0ce4c88b74 \
+  52c7841a5a4c6ab4a2321fce6b18755552da49d5b0e065c7be4925ad0880a1fb \
   HOSTED_REQUIRED_SOURCE_DRIFT || exit 1
 validate_workflow_source .github/workflows/scheduled.yml \
   e284e768a81d1ff83a5e453c3b81fbd3df0762e172367378af845e87502b422f \
   HOSTED_SCHEDULED_SOURCE_DRIFT || exit 1
 validate_workflow_source ops/ci/platform-refusal.sh \
-  b84718b1399d8b86e51c96dd6acc030c45d03c61d0718355b78b2b154d6f5361 \
+  ec629aaa37a6a6bde8553a171c411f3829971bc1179fa282992d75b5da945266 \
   PLATFORM_LANE_SOURCE_DRIFT || exit 1
 workflows=(.github/workflows/ci.yml .github/workflows/scheduled.yml)
 
@@ -144,9 +144,11 @@ for job in "${main_jobs[@]}"; do
     require_text "$block" 'needs: source_scan' HOSTED_SOURCE_SCAN_DEPENDENCY_MISSING
   fi
 done
-docs_block="$(yaml_job_block "$ci" docs)"
-require_text "$docs_block" 'bash ops/ci/install-readme-jsonschema.sh' HOSTED_JSONSCHEMA_INSTALL_MISSING
-require_text "$docs_block" '.ci-tools/readme-jsonschema/bin' HOSTED_JSONSCHEMA_PATH_MISSING
+for job in lint docs; do
+  jsonschema_block="$(yaml_job_block "$ci" "$job")"
+  require_text "$jsonschema_block" 'bash ops/ci/install-readme-jsonschema.sh' HOSTED_JSONSCHEMA_INSTALL_MISSING
+  require_text "$jsonschema_block" 'target/.ci-tools/readme-jsonschema/bin' HOSTED_JSONSCHEMA_PATH_MISSING
+done
 
 required_block="$(yaml_job_block "$ci" required)"
 dollar='$'
@@ -227,6 +229,8 @@ done
 platform_source="$(<ops/ci/platform-refusal.sh)"
 for needle in \
   'cargo test --locked -p bullet-wire --test canonical_hostile' \
+  'cargo test --locked -p bullet-family --test coord_rollover' \
+  'unsupported_platform_refuses_before_subject_io_or_coord_creation' \
   'cargo clippy --locked -p bullet-family --lib --bins --no-deps --' \
   '-D warnings -F clippy::disallowed_methods' \
   'cargo clippy --locked -p bullet-wire --lib --bins --no-deps --' \
@@ -276,15 +280,17 @@ require_text "$source_block" 'needs = ["activation"]' JERYU_DEPENDENCY_DRIFT
 for lane in fast lint contract security docs; do
   block="$(toml_job_block "$lane")"
   require_text "$block" 'needs = ["source_scan"]' JERYU_DEPENDENCY_DRIFT
-  if [[ "$lane" == docs ]]; then
-    require_text "$block" 'bash scripts/ci-local.sh docs' JERYU_COMMAND_DRIFT
+  if [[ "$lane" == lint || "$lane" == docs ]]; then
+    require_text "$block" "bash scripts/ci-local.sh $lane" JERYU_COMMAND_DRIFT
   else
     require_text "$block" "\"bash scripts/ci-local.sh $lane\"" JERYU_COMMAND_DRIFT
   fi
 done
-docs_jeryu="$(toml_job_block docs)"
-require_text "$docs_jeryu" '"bash ops/ci/install-readme-jsonschema.sh"' JERYU_JSONSCHEMA_INSTALL_MISSING
-require_text "$docs_jeryu" '.ci-tools/readme-jsonschema/bin' JERYU_JSONSCHEMA_PATH_MISSING
+for job in lint docs; do
+  jsonschema_jeryu="$(toml_job_block "$job")"
+  require_text "$jsonschema_jeryu" '"bash ops/ci/install-readme-jsonschema.sh"' JERYU_JSONSCHEMA_INSTALL_MISSING
+  require_text "$jsonschema_jeryu" 'target/.ci-tools/readme-jsonschema/bin' JERYU_JSONSCHEMA_PATH_MISSING
+done
 required_jeryu="$(toml_job_block required)"
 require_text "$required_jeryu" 'needs = ["source_scan", "fast", "lint", "contract", "security", "docs"]' JERYU_DEPENDENCY_DRIFT
 if rg -n 'path = "\.\./|artifact_paths = \["\.ci-artifacts"\]|artifact_paths = \[[^]]*"/|artifact_paths = \[[^]]*"[^" ]*/\.\.?(/|\")' ci.toml; then

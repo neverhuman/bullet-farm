@@ -6,11 +6,27 @@ REPO_ROOT="$PWD"
 source "$REPO_ROOT/ops/ci/artifact-path.sh"
 # shellcheck source=ops/ci/family-custody.sh
 source "$REPO_ROOT/ops/ci/family-custody.sh"
+# shellcheck source=ops/ci/scratch-floor.sh
+source "$REPO_ROOT/ops/ci/scratch-floor.sh"
 
 CI_PROOF_LOCK_RECORD=""
 CI_PROOF_LOCK_SCOPE=""
 CI_PROOF_LOCK_LANE=""
 CI_PROOF_LOCK_OWNS=false
+
+# Proof custody must survive an interrupted or killed session. Without these
+# handlers the exclusive lock taken below is released only on the normal exit
+# path, so a Ctrl-C, a SIGTERM or a killed session leaks
+# .git/bullet-ci.lock.d and blocks every later hub proof until a human
+# reconciles it. The handlers release ONLY the per-repo lock this process
+# itself created, never another agent's; an interrupted family-wide custody
+# window is a different object and stays reserved for explicit reconciliation
+# in ops/ci/family.sh.
+CI_PROOF_OWN_ON_ACQUIRE=1
+trap ci_proof_custody_exit EXIT
+trap 'ci_proof_custody_signal 129' HUP
+trap 'ci_proof_custody_signal 130' INT
+trap 'ci_proof_custody_signal 143' TERM
 
 if [[ ${BULLET_CI_PROOF_CUSTODY+x} ]]; then
   unset BULLET_CI_PROOF_CUSTODY
@@ -45,8 +61,7 @@ acquire_proof_lock() {
 
 release_proof_lock() {
   verify_proof_lock || return $?
-  ci_proof_release "$REPO_ROOT" bullet-farm "$CI_PROOF_LOCK_RECORD" \
-    "$CI_PROOF_LOCK_SCOPE" || {
+  ci_proof_release_owned || {
     ci_proof_refusal "$REPO_ROOT"
     return 75
   }
@@ -113,6 +128,13 @@ run_observed_locked() {
 
 run_observed() {
   local lane="$1" status
+  # A lane that begins with little free space can exhaust the filesystem
+  # mid-write and leave a partial artifact behind: a truncated observation or an
+  # incomplete lock record. The floor is therefore checked before this lane may
+  # acquire anything or run the doctor, so a refusal costs nothing and leaves
+  # nothing to reconcile. This asserts no cause for any past incident, and it
+  # reclaims no space. A non-zero status here is returned unchanged.
+  ci_scratch_floor_check "$REPO_ROOT/target" "${TMPDIR:-/tmp}" || return $?
   acquire_proof_lock "$lane" || return $?
   if run_observed_locked "$@"; then
     status=0

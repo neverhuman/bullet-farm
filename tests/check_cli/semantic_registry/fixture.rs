@@ -30,6 +30,13 @@ fn tagged_digest(character: char) -> String {
     format!("blake3:{}", release_hex(character, 64))
 }
 
+#[path = "fixture/family_anchor.rs"]
+mod family_anchor;
+pub(super) use family_anchor::{
+    fixture_family_lock_path, fixture_hub, rewrite_family_anchor_policy,
+    write_matching_family_anchor,
+};
+
 fn canonical_digest<T: serde::Serialize>(domain: &str, value: &T) -> String {
     format!("blake3:{}", hash_canonical(domain, value).unwrap().to_hex())
 }
@@ -152,6 +159,14 @@ pub(super) struct RegistryMutation {
 }
 
 pub(super) fn rewrite_registry(root: &Path, mutation: impl FnOnce(&mut RegistryMutation)) {
+    rewrite_registry_inner(root, mutation, true);
+}
+
+fn rewrite_registry_inner(
+    root: &Path,
+    mutation: impl FnOnce(&mut RegistryMutation),
+    refresh_family_anchor: bool,
+) {
     fn load<T: serde::de::DeserializeOwned>(root: &Path, path: &str) -> T {
         serde_json::from_slice(&fs::read(root.join(path)).unwrap()).unwrap()
     }
@@ -170,6 +185,32 @@ pub(super) fn rewrite_registry(root: &Path, mutation: impl FnOnce(&mut RegistryM
         manifest: load(root, "registry-manifest.json"),
     };
     mutation(&mut records);
+
+    let policy_digest = canonical_digest(RELEASE_SIGNER_POLICY_DIGEST_DOMAIN, &records.policy);
+    if refresh_family_anchor {
+        let lock_digest = write_matching_family_anchor(&policy_digest);
+        records
+            .request
+            .family_subject
+            .family_lock_digest
+            .clone_from(&lock_digest);
+        records
+            .closure_request
+            .family_subject
+            .family_lock_digest
+            .clone_from(&lock_digest);
+        records
+            .receipt
+            .family_subject
+            .family_lock_digest
+            .clone_from(&lock_digest);
+        records
+            .closure_receipt
+            .family_subject
+            .family_lock_digest
+            .clone_from(&lock_digest);
+        records.manifest.family_lock_digest.clone_from(&lock_digest);
+    }
 
     let graph_digest = canonical_digest(RELEASE_PROFILE_GRAPH_DIGEST_DOMAIN, &records.graph);
     let spec_digest = canonical_digest(RELEASE_GATE_SPEC_DIGEST_DOMAIN, &records.spec);
@@ -215,7 +256,6 @@ pub(super) fn rewrite_registry(root: &Path, mutation: impl FnOnce(&mut RegistryM
         .clone_from(&closure_spec_digest);
     let closure_receipt_digest =
         canonical_digest(RELEASE_GATE_RECEIPT_DIGEST_DOMAIN, &records.closure_receipt);
-    let policy_digest = canonical_digest(RELEASE_SIGNER_POLICY_DIGEST_DOMAIN, &records.policy);
     records.time.receipt_digest.clone_from(&receipt_digest);
     records.time.signer_policy_digest.clone_from(&policy_digest);
     let time_digest = canonical_digest(RELEASE_TRUSTED_TIME_DIGEST_DOMAIN, &records.time);
@@ -314,7 +354,17 @@ pub(super) fn rewrite_registry(root: &Path, mutation: impl FnOnce(&mut RegistryM
 }
 
 pub(super) fn profiled_registry_output(registry: &Path, profile: &str) -> Output {
+    profiled_registry_output_for_hub(&fixture_hub(), registry, profile)
+}
+
+pub(super) fn profiled_registry_output_for_hub(
+    hub: &Path,
+    registry: &Path,
+    profile: &str,
+) -> Output {
     command(&[
+        "--root",
+        hub.to_str().unwrap(),
         "check",
         "release",
         "--profile",
@@ -323,6 +373,16 @@ pub(super) fn profiled_registry_output(registry: &Path, profile: &str) -> Output
         registry.to_str().unwrap(),
         "--json",
     ])
+}
+
+pub(super) fn cleanup_registry_fixture(registry: &Path) {
+    if registry.exists() {
+        fs::remove_dir_all(registry).unwrap();
+    }
+    let hub = fixture_hub();
+    if hub.exists() {
+        fs::remove_dir_all(hub).unwrap();
+    }
 }
 
 pub(super) fn assert_registry_rejected(registry: &Path, profile: &str) {

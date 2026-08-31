@@ -130,10 +130,11 @@ pub(super) fn report(hub: &Path, tier: CheckTier) -> Result<CheckReport, CoordEr
 }
 
 pub(super) fn report_profile(
+    hub: &Path,
     profile: ReleaseProfile,
     receipts: &Path,
 ) -> Result<CheckReport, CoordError> {
-    prerequisites::report_release_profile(profile, receipts).map_err(model_error)
+    prerequisites::report_release_profile_for_hub(hub, profile, receipts).map_err(model_error)
 }
 
 fn execute(

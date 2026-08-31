@@ -91,8 +91,8 @@ run_python_312() {
   local status
   if "$ENV_EXECUTABLE" -i HOME="${HOME:-/}" \
     PATH="${PYTHON_312_EXECUTABLE%/*}:/usr/bin:/bin" \
-    LC_ALL=C TZ=UTC PYTHONIOENCODING=utf-8 \
-    "$PYTHON_312_EXECUTABLE" -I -S "$@"; then
+    LC_ALL=C TZ=UTC PYTHONIOENCODING=utf-8 PYTHONDONTWRITEBYTECODE=1 \
+    "$PYTHON_312_EXECUTABLE" -I -B -S "$@"; then
     status=0
   else
     status=$?

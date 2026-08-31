@@ -7,12 +7,17 @@ export GIT_TERMINAL_PROMPT=0
 export LC_ALL=C
 export TZ=UTC
 
-HUB_FILTER='package(bullet-family)'
+HUB_FILTER='package(bullet-family) | package(bullet-linux-lease)'
 WIRE_FILTER='package(bullet-wire)'
-HUB_EXPECTED_TESTS=219
-WIRE_EXPECTED_TESTS=104
-TOTAL_EXPECTED_TESTS=323
+HUB_EXPECTED_TESTS=492
+WIRE_EXPECTED_TESTS=127
+TOTAL_EXPECTED_TESTS=619
+HUB_EXPECTED_IDENTITIES_SHA256='253b0d4919da8db17d409349df7f175f643b77b89d4dabe00652fe52ae17b2e3'
+WIRE_EXPECTED_IDENTITIES_SHA256='198de5ee3792b4f150d7a99194991d03682983d59d384d30c8e912b0775fb724'
+TOTAL_EXPECTED_IDENTITIES_SHA256='9568c839b70e3ebfcd5abafe4fd6e6fe2dbca34a16a1207f452a902ad13bb7f9'
 export HUB_FILTER WIRE_FILTER HUB_EXPECTED_TESTS WIRE_EXPECTED_TESTS TOTAL_EXPECTED_TESTS
+export HUB_EXPECTED_IDENTITIES_SHA256 WIRE_EXPECTED_IDENTITIES_SHA256
+export TOTAL_EXPECTED_IDENTITIES_SHA256
 # shellcheck source=ops/ci/artifact-path.sh
 source "$REPO_ROOT/ops/ci/artifact-path.sh"
 
@@ -301,7 +306,11 @@ enforce_rust_build_subject() {
   initialize_rust_toolchain_tools || return 1
   verify_resolved_tool "$FIND_EXECUTABLE" "$FIND_EXECUTABLE_SHA256" find || return 1
   verify_resolved_tool "$SORT_EXECUTABLE" "$SORT_EXECUTABLE_SHA256" sort || return 1
-  expected_manifests="$(printf '%s\n' ./Cargo.toml ./crates/bullet-wire/Cargo.toml)"
+  expected_manifests="$(printf '%s\n' \
+    ./Cargo.toml \
+    ./crates/bullet-linux-lease/Cargo.toml \
+    ./crates/bullet-wire/Cargo.toml \
+    ./crates/bullet-wire/fuzz/Cargo.toml)"
   manifests="$(
     cd "$subject_root"
     "$FIND_EXECUTABLE" . \
@@ -315,20 +324,37 @@ enforce_rust_build_subject() {
     return 1
   }
 
-  for relative in Cargo.toml crates/bullet-wire/Cargo.toml Cargo.lock rust-toolchain.toml; do
+  for relative in \
+    Cargo.toml \
+    crates/bullet-linux-lease/Cargo.toml \
+    crates/bullet-wire/Cargo.toml \
+    crates/bullet-wire/fuzz/Cargo.toml \
+    Cargo.lock \
+    crates/bullet-wire/fuzz/Cargo.lock \
+    rust-toolchain.toml
+  do
     [[ -f "$subject_root/$relative" && ! -L "$subject_root/$relative" ]] || {
       refuse RUST_BUILD_SUBJECT_INVALID "$relative is missing, not regular, or a symlink"
       return 1
     }
     case "$relative" in
       Cargo.toml)
-        expected=de114a4096cd51a8e33287b0e1b8d96c8a06c271466b123b1341b912a0eb8855
+        expected=ef397dddbf0ff57e918730ae419b9ff84d5ef5a9bcca45ef73ed0920622a9259
+        ;;
+      crates/bullet-linux-lease/Cargo.toml)
+        expected=1ad8d192d3dc8772ea837712466f709e5e473f46a3b937069dd5bda70494442e
         ;;
       crates/bullet-wire/Cargo.toml)
         expected=1f7442c92c1e155a79237c55406cae300cb494d87a4b5dfa2595939a63fc9047
         ;;
+      crates/bullet-wire/fuzz/Cargo.toml)
+        expected=42c4f8b0669805be326820000361041ba8812b6ee1862a4375b608b144ce847e
+        ;;
       Cargo.lock)
-        expected=e283e3210b0d02b18b67462dcb697eeb2e5a5bd11baddd7c426162d268cb1b18
+        expected=e26db8c20b9b24f17193ad9b9adcbabdbb082a3ae655a5014a6f6497a3363fd9
+        ;;
+      crates/bullet-wire/fuzz/Cargo.lock)
+        expected=04f4a3c2b99220efece093a817cc055a170b92534666625126a8b375c4cb7d90
         ;;
       rust-toolchain.toml)
         expected=e3a213e0d222e94d213cafbc20932eb3f76c643b4dd63756acf95192df2aa310

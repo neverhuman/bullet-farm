@@ -192,6 +192,7 @@ cp "$REPO_ROOT/ops/ci/artifact-path.sh" "$lock_fixture/ops/ci/artifact-path.sh"
 cp "$REPO_ROOT/ops/ci/family-custody.sh" "$lock_fixture/ops/ci/family-custody.sh"
 cp "$REPO_ROOT/ops/ci/family-contract.sh" "$lock_fixture/ops/ci/family-contract.sh"
 cp "$REPO_ROOT/ops/ci/lib.sh" "$lock_fixture/ops/ci/lib.sh"
+cp "$REPO_ROOT/ops/ci/scratch-floor.sh" "$lock_fixture/ops/ci/scratch-floor.sh"
 cp "$REPO_ROOT/ops/ci/rust-toolchain-boundary.sh" \
   "$lock_fixture/ops/ci/rust-toolchain-boundary.sh"
 # These are literal fixture program lines.

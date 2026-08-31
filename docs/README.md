@@ -17,6 +17,8 @@ Candidate, Evidence result, effect, or release true.
 | Which gates are still blocked? | [`release.md`](release.md) |
 | What is still missing as a product? | [`assurance/product-gaps.md`](assurance/product-gaps.md) (G1–G18 index; explicit profiled `check release` wins) |
 | What is the current dependency-ordered finish plan? | [`assurance/closure-roadmap.md`](assurance/closure-roadmap.md) (Waves 0–11; first GA is `self-hosted-v1`) |
+| What should owners execute next, and when can self-dogfood begin? | [`assurance/execution-plan.md`](assurance/execution-plan.md) (D0–D6 operational queue; planning only) |
+| What exact packets bridge coordination, offline transaction, live self-hosting, and the complete target? | [`assurance/full-product-dogfood-plan.md`](assurance/full-product-dogfood-plan.md) (implementation/proof bridge; planning only) |
 | How will Nightshift's operator model be fused without importing its authority model? | [`assurance/nightshift-fusion-plan.md`](assurance/nightshift-fusion-plan.md) (proposed, source-pinned, dependency-ordered) |
 | Which of the 26 `check release` gates is which product gap? | [`assurance/product-gaps.md`](assurance/product-gaps.md#historical-26-gate-catalog-and-release-profiles) |
 | Which controls have executable enforcement? | [`assurance/invariant-registry.md`](assurance/invariant-registry.md) and the generated [`assurance/invariant-crosswalk.generated.md`](assurance/invariant-crosswalk.generated.md) |

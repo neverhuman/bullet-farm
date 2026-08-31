@@ -5,7 +5,8 @@ default:
 
 [positional-arguments]
 setup *args:
-    exec bash scripts/setup.sh "$@"
+    #!/bin/bash
+    exec /bin/bash scripts/setup.sh "$@"
 
 [positional-arguments]
 coord *args:
@@ -13,6 +14,9 @@ coord *args:
 
 demo:
     bash scripts/demo.sh
+
+proof-transaction-offline:
+    bash scripts/proof-transaction-offline.sh
 
 preview:
     bash scripts/preview.sh

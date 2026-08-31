@@ -161,6 +161,12 @@ impl ReleaseProfile {
     ];
 
     pub(in crate::check) fn parse(value: &str) -> Result<Self, CoordError> {
+        if value == "dogfood-local-v0" {
+            return Err(CoordError::new(
+                "NOT_A_RELEASE_PROFILE",
+                "dogfood-local-v0 is an operational observation profile, not a release profile",
+            ));
+        }
         Self::NAMES
             .iter()
             .position(|name| *name == value)

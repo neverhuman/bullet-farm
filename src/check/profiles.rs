@@ -15,6 +15,7 @@ use super::{
 pub(super) use graph::ReleaseProfile;
 
 pub(super) fn select(
+    hub: &Path,
     profile: ReleaseProfile,
     gates: Vec<GateResult>,
     registry: &Path,
@@ -55,7 +56,7 @@ pub(super) fn select(
             .collect::<Result<Vec<_>, _>>()?;
         replace_receipt_registry_gate(
             &mut selected,
-            semantic_registry::evaluate(registry, profile.as_str(), &requested_profiles),
+            semantic_registry::evaluate(hub, registry, profile.as_str(), &requested_profiles),
         )?;
     }
     for item in closure {
@@ -201,9 +202,9 @@ fn replace_receipt_registry_gate(
             "release.receipt-contracts",
             GateClass::Release,
             &format!(
-                "the selected registry has {selected_bindings} structurally bound gate/profile bindings, but self-selected signer policy and detached signatures are untrusted and external trust-root, trusted-time, replay/high-water, exact-family, and kind-specific semantic verification are absent"
+                "the selected registry has {selected_bindings} structurally bound gate/profile bindings and matches the local schema-3 family.lock bytes plus its locked signer-policy digest, but detached signatures remain untrusted and external trust-root, trusted-time, replay/high-water, authenticated signed-tag current-family, and kind-specific semantic verification are absent"
             ),
-            "admit signer policy from the schema-3 family lock, verify role-separated signatures and trusted time, enforce replay/high-water state and exact-family binding, then run each gate's kind-specific semantic verifier; structural JSON alone never clears a gate",
+            "verify the schema-3 family lock from authenticated signed tags, admit its signer policy through external trust, verify role-separated signatures and trusted time, enforce replay/high-water state, then run each gate's kind-specific semantic verifier; structural JSON and local digest agreement never clear a gate",
         )?,
     };
     Ok(())

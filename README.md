@@ -140,16 +140,17 @@ The public GitHub index publishes this hub at [neverhuman/bulletfarm](https://gi
 | Operator UI | farmd projections and Portal component/browser proofs | Authority-bearing commands or complete designed product surfaces |
 | Distribution | Signed bundle verification/extraction components | Authenticated schema-3 sources, package production, activation, and two clean installs |
 
-The exhaustive inventories are [product gaps](docs/assurance/product-gaps.md), the active [closure roadmap](docs/assurance/closure-roadmap.md), and generated [release truth](docs/assurance/release-truth.generated.md). `TRANSACTION_PROOF` is absent, so transaction-ready and production-ready remain false.
+The exhaustive inventories are [product gaps](docs/assurance/product-gaps.md), the active [closure roadmap](docs/assurance/closure-roadmap.md), and generated [release truth](docs/assurance/release-truth.generated.md). The offline local bridge is component evidence only; `TRANSACTION_PROOF`, transaction-ready, and production-ready remain false.
 
 ## Pinned public comparison
 
-This table compares documented contracts, not benchmark results or product quality. The three external subjects are pinned to [Gas Town v1.2.1](https://github.com/gastownhall/gastown/releases/tag/v1.2.1), [DeepSeek Harness dsh-v0.1.1-rc.2](https://github.com/deepseek-ai/DeepSeek-Harness/releases/tag/dsh-v0.1.1-rc.2), and [Omnigent v0.10.0](https://github.com/omnigent-ai/omnigent/releases/tag/v0.10.0); their immutable per-dimension sources and adjudication notes live in the [dated comparison snapshot](docs/assurance/competitor-snapshot.md#pinned-dimension-notes). The Bullet row summarizes this local checkout's component evidence and explicit unproved boundary; it is not a pinned external benchmark result.
+This table compares documented contracts, not benchmark results or product quality. The four external subjects are pinned to [Gas Town v1.2.1](https://github.com/gastownhall/gastown/releases/tag/v1.2.1), its [Gas City v1.4.1 successor](https://github.com/gastownhall/gascity/releases/tag/v1.4.1), [DeepSeek Harness dsh-v0.1.1-rc.2](https://github.com/deepseek-ai/DeepSeek-Harness/releases/tag/dsh-v0.1.1-rc.2), and [Omnigent v0.10.0](https://github.com/omnigent-ai/omnigent/releases/tag/v0.10.0); their immutable per-dimension sources and adjudication notes live in the [dated comparison snapshot](docs/assurance/competitor-snapshot.md#pinned-dimension-notes). The Bullet row summarizes this local checkout's component evidence and explicit unproved boundary; it is not a pinned external benchmark result.
 
 | Pinned subject | Writer identity | Incarnation fence | Exact verification subject | Effect read-back | Protected integration | Truthful uncertainty |
 | --- | --- | --- | --- | --- | --- | --- |
 | Bullet Farm current alpha | Partial/configuration-dependent | Partial/configuration-dependent | Partial/configuration-dependent | Partial/configuration-dependent | Partial/configuration-dependent | Documented |
 | Gas Town v1.2.1 | Partial/configuration-dependent | Not documented | Partial/configuration-dependent | Partial/configuration-dependent | Partial/configuration-dependent | Partial/configuration-dependent |
+| Gas City v1.4.1 | Partial/configuration-dependent | Not documented | Not documented | Not documented | Partial/configuration-dependent | Not documented |
 | DeepSeek Harness dsh-v0.1.1-rc.2 | Not documented | Not documented | Not documented | N/A | N/A | Partial/configuration-dependent |
 | Omnigent v0.10.0 | Partial/configuration-dependent | Partial/configuration-dependent | Not documented | Partial/configuration-dependent | Partial/configuration-dependent | Partial/configuration-dependent |
 

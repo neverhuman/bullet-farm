@@ -306,7 +306,7 @@ pub(crate) fn write_structural_registry(root: &Path) {
             registry_object(
                 ReleaseRegistryObjectKindV1::SignerPolicy,
                 '5',
-                policy_digest,
+                policy_digest.clone(),
                 "policy/signers.json",
             ),
             registry_object(
@@ -394,4 +394,5 @@ pub(crate) fn write_structural_registry(root: &Path) {
     )
     .unwrap();
     write_canonical(&root.join("registry-manifest.json"), &manifest);
+    rewrite_registry(root, |_| {});
 }

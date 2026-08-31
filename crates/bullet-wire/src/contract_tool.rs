@@ -9,8 +9,10 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
 use crate::{
-    ContractCatalogV1, EnforcementTier, InvariantLifecycle, InvariantRegistryV1, PolicySnapshotV1,
-    PolicyTemplateV1, WireError, canonical_json,
+    AuthorityAudience, ContractCatalogV1, EnforcementTier, InvariantLifecycle, InvariantRegistryV1,
+    IssuerKeyV1, KeyAlgorithmV1, KeyPurposeV1, LIVE_ADMISSION_MIN_GENERATION,
+    POLICY_SCHEMA_VERSION, POLICY_SCHEMA_VERSION_V1ALPHA2, PolicySnapshotV1, PolicyTemplateV1,
+    WireError, canonical_json,
     contract_bindings::{BindingInputs, rust_constants, typescript_constants},
     decode_canonical, hash_canonical, hash_framed_bytes,
 };
@@ -58,6 +60,8 @@ fn render(root: &Path) -> Result<BTreeMap<PathBuf, Vec<u8>>, WireError> {
     policy.validate()?;
     let policy_bytes = canonical_json(&policy)?;
     let policy_hash = hash_canonical("policy.snapshot", &policy)?;
+    let live_policy = live_policy_snapshot(policy.clone())?;
+    let live_policy_bytes = canonical_json(&live_policy)?;
 
     let team = read(root, HOSTILE_TEAM)?;
     let fixture_manifest = fixture_manifest(&team)?;
@@ -115,6 +119,10 @@ fn render(root: &Path) -> Result<BTreeMap<PathBuf, Vec<u8>>, WireError> {
         typescript_binding.into_bytes(),
     );
     outputs.insert("policy/v1alpha1/policy.json".into(), policy_bytes);
+    outputs.insert(
+        "crates/bullet-wire/tests/fixtures/policy-v1alpha2-live-enabled.json".into(),
+        live_policy_bytes,
+    );
     outputs.insert(
         "fixtures/hostile/fixture-manifest.json".into(),
         canonical_json(&fixture_manifest)?,
@@ -228,6 +236,37 @@ fn policy_snapshot(
         budget_policy: template.budget_policy,
         route_policy: template.route_policy,
     }
+}
+
+fn live_policy_snapshot(mut policy: PolicySnapshotV1) -> Result<PolicySnapshotV1, WireError> {
+    let release_key = policy.issuer_keys.first().ok_or_else(|| {
+        WireError::new(
+            "INVALID_POLICY_WINDOW",
+            "generated live-policy fixture requires the release-signing key lifecycle",
+        )
+    })?;
+    let activates_at_unix_ms = release_key.activates_at_unix_ms;
+    let expires_at_unix_ms = release_key.expires_at_unix_ms;
+    let retain_until_unix_ms = release_key.retain_until_unix_ms;
+
+    policy.schema_version = POLICY_SCHEMA_VERSION_V1ALPHA2.to_owned();
+    policy.policy_generation = LIVE_ADMISSION_MIN_GENERATION;
+    policy.sandbox_policy.live_admission_enabled = true;
+    policy.issuer_keys.push(IssuerKeyV1 {
+        schema_version: POLICY_SCHEMA_VERSION.to_owned(),
+        issuer: "bullet-kernel-local".to_owned(),
+        key_id: "authority-test-1".to_owned(),
+        key_purpose: KeyPurposeV1::AuthoritySigning,
+        algorithm: KeyAlgorithmV1::PasetoV4Public,
+        public_key: "1eb9dbbbbc047c03fd70604e0071f0987e16b28b757225c11f00415d0e20b1a2".to_owned(),
+        audiences: vec![AuthorityAudience::ProviderRunner],
+        activates_at_unix_ms,
+        expires_at_unix_ms,
+        revoked_at_unix_ms: None,
+        retain_until_unix_ms,
+    });
+    policy.validate()?;
+    Ok(policy)
 }
 
 fn fixture_manifest(team: &[u8]) -> Result<Value, WireError> {

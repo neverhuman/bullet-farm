@@ -1679,11 +1679,11 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
         assert!(decode_unique_value(ordinary).is_ok(), "{ordinary:?}");
     }
 
-    let secret = "credential_ghp_1234567890abcdef";
-    let hostile = format!(r#"{{"{secret}":"first","{secret}":"second"}}"#);
+    let duplicate_member = "credential_ghp_1234567890abcdef";
+    let hostile = format!(r#"{{"{duplicate_member}":"first","{duplicate_member}":"second"}}"#);
     let error = decode_unique_value(hostile.as_bytes()).unwrap_err();
     assert_eq!(error.code(), "DUPLICATE_JSON_KEY");
-    assert!(!error.to_string().contains(secret));
+    assert!(!error.to_string().contains(duplicate_member));
 
     let family = root();
     let mut sources = Vec::new();
@@ -1815,7 +1815,11 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
     );
     assert_eq!(
         include_identifier_sites,
-        BTreeMap::from([(PathBuf::from("crates/bullet-wire/src/lib.rs"), 1)])
+        BTreeMap::from([
+            (PathBuf::from("crates/bullet-wire/src/lib.rs"), 1),
+            (PathBuf::from("src/check/truth/render.rs"), 1),
+            (PathBuf::from("src/release/archive.rs"), 1),
+        ])
     );
     assert_eq!(
         parse_id_sites,
@@ -1837,6 +1841,65 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
             (PathBuf::from("src/check/profiles.rs"), 1),
             (PathBuf::from("src/check/release_evidence.rs"), 1),
             (PathBuf::from("src/check/semantic_registry.rs"), 3),
+            (PathBuf::from("src/coord/generation/manifest.rs"), 1),
+            (
+                PathBuf::from("src/coord/generation/recovery/authority/metadata.rs"),
+                1,
+            ),
+            (
+                PathBuf::from("src/coord/generation/recovery/authority.rs"),
+                1
+            ),
+            (
+                PathBuf::from("src/coord/generation/recovery/exchange.rs"),
+                1
+            ),
+            (PathBuf::from("src/coord/generation/recovery/tree.rs"), 1),
+            (PathBuf::from("src/coord/generation/recovery/verify.rs"), 2),
+            (PathBuf::from("src/coord/generation/recovery.rs"), 13),
+            (PathBuf::from("src/coord/git.rs"), 1),
+            (
+                PathBuf::from("src/coord/model/recovery_adoption/evidence.rs"),
+                1,
+            ),
+            (PathBuf::from("src/coord/model/recovery_adoption.rs"), 3),
+            (
+                PathBuf::from("src/coord/model/recovery_manifest/bootstrap_build.rs"),
+                2,
+            ),
+            (
+                PathBuf::from("src/coord/model/recovery_manifest/bootstrap_contract.rs"),
+                2,
+            ),
+            (PathBuf::from("src/coord/model/recovery_production.rs"), 1,),
+            (
+                PathBuf::from("src/coord/recovery_adoption_verify/forensic.rs"),
+                2,
+            ),
+            (
+                PathBuf::from("src/coord/recovery_adoption_verify/generation.rs"),
+                1,
+            ),
+            (
+                PathBuf::from("src/coord/recovery_adoption_verify/git.rs"),
+                4,
+            ),
+            (PathBuf::from("src/coord/recovery_manifest/authoring.rs"), 1),
+            (
+                PathBuf::from("src/coord/recovery_manifest/bootstrap_build.rs"),
+                1,
+            ),
+            (PathBuf::from("src/coord/recovery_manifest/linux.rs"), 1),
+            (PathBuf::from("src/coord/recovery_manifest/trust.rs"), 3),
+            (PathBuf::from("src/coord/sealed.rs"), 3),
+            (PathBuf::from("src/coord/state/recovery_adoption.rs"), 1),
+            (PathBuf::from("src/coord/state/recovery_evidence.rs"), 1),
+            (PathBuf::from("src/coord/store/ledger/adoption.rs"), 1),
+            (
+                PathBuf::from("src/coord/store/ledger/recovery_production.rs"),
+                1,
+            ),
+            (PathBuf::from("src/coord/store/ledger.rs"), 2),
             (PathBuf::from("src/fuse.rs"), 1),
             (PathBuf::from("src/process.rs"), 1),
             (PathBuf::from("src/release/receipt.rs"), 1),
@@ -1848,13 +1911,63 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
             (
                 PathBuf::from("contracts/generated/rust/schema_bundle.rs"),
                 BTreeMap::from([
-                    ("serde::Deserialize".to_owned(), 114),
-                    ("serde::Serialize".to_owned(), 114),
+                    ("serde::Deserialize".to_owned(), 118),
+                    ("serde::Serialize".to_owned(), 118),
                 ]),
             ),
             (
                 PathBuf::from("crates/bullet-wire/src/canonical.rs"),
                 BTreeMap::from([("clippy::disallowed_methods".to_owned(), 2)]),
+            ),
+            (
+                PathBuf::from("src/coord/generation/manifest/types.rs"),
+                BTreeMap::from([
+                    ("clippy::large_enum_variant".to_owned(), 1),
+                    ("clippy::too_many_arguments".to_owned(), 1),
+                ]),
+            ),
+            (
+                PathBuf::from("src/coord/generation/recovery/authority/metadata.rs"),
+                BTreeMap::from([("clippy::too_many_arguments".to_owned(), 1)]),
+            ),
+            (
+                PathBuf::from("src/coord/generation/recovery/authority.rs"),
+                BTreeMap::from([("clippy::too_many_arguments".to_owned(), 1)]),
+            ),
+            (
+                PathBuf::from("src/coord/generation/recovery/exchange/evidence.rs"),
+                BTreeMap::from([("clippy::too_many_arguments".to_owned(), 2)]),
+            ),
+            (
+                PathBuf::from("src/coord/generation/recovery/exchange.rs"),
+                BTreeMap::from([("clippy::too_many_arguments".to_owned(), 2)]),
+            ),
+            (
+                PathBuf::from("src/coord/generation/recovery/finalize.rs"),
+                BTreeMap::from([("clippy::too_many_arguments".to_owned(), 1)]),
+            ),
+            (
+                PathBuf::from("src/coord/generation/recovery/tests/adoption_fixture.rs"),
+                BTreeMap::from([("clippy::too_many_arguments".to_owned(), 1)]),
+            ),
+            (
+                PathBuf::from("src/coord/mod.rs"),
+                BTreeMap::from([
+                    ("serde::Deserialize".to_owned(), 7),
+                    ("serde::Serialize".to_owned(), 7),
+                ]),
+            ),
+            (
+                PathBuf::from("src/coord/model/recovery_adoption/validate.rs"),
+                BTreeMap::from([("clippy::too_many_arguments".to_owned(), 1)]),
+            ),
+            (
+                PathBuf::from("src/coord/model.rs"),
+                BTreeMap::from([("clippy::large_enum_variant".to_owned(), 1)]),
+            ),
+            (
+                PathBuf::from("src/coord/recovery.rs"),
+                BTreeMap::from([("clippy::too_many_arguments".to_owned(), 1)]),
             ),
             (
                 PathBuf::from("src/release/receipt/verify.rs"),
@@ -1876,6 +1989,58 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
             (PathBuf::from("src/check/model.rs"), 1),
             (PathBuf::from("src/check/release_evidence.rs"), 1),
             (PathBuf::from("src/checkout/git.rs"), 1),
+            (PathBuf::from("src/coord/fresh_genesis.rs"), 1),
+            (PathBuf::from("src/coord/generation/manifest.rs"), 1),
+            (
+                PathBuf::from("src/coord/generation/recovery/authority/metadata.rs"),
+                1,
+            ),
+            (PathBuf::from("src/coord/generation/recovery.rs"), 1),
+            (PathBuf::from("src/coord/generation/segment.rs"), 1),
+            (PathBuf::from("src/coord/git/wave0.rs"), 1),
+            (PathBuf::from("src/coord/model/fresh_genesis.rs"), 1),
+            (
+                PathBuf::from("src/coord/model/recovery_manifest/bootstrap_build.rs"),
+                1,
+            ),
+            (
+                PathBuf::from("src/coord/model/recovery_manifest/bootstrap_contract.rs"),
+                1,
+            ),
+            (PathBuf::from("src/coord/recovery.rs"), 1),
+            (PathBuf::from("src/coord/recovery_manifest/authoring.rs"), 1),
+            (
+                PathBuf::from("src/coord/recovery_manifest/bootstrap_build.rs"),
+                1,
+            ),
+            (PathBuf::from("src/coord/recovery_manifest/trust.rs"), 1),
+            (PathBuf::from("src/coord/sealed.rs"), 1),
+            (PathBuf::from("src/coord/model/recovery_adoption.rs"), 1),
+            (PathBuf::from("src/coord/model/recovery_production.rs"), 1,),
+            (
+                PathBuf::from("src/coord/model/recovery_adoption/evidence.rs"),
+                1,
+            ),
+            (
+                PathBuf::from("src/coord/recovery_adoption_verify/forensic.rs"),
+                1,
+            ),
+            (
+                PathBuf::from("src/coord/recovery_adoption_verify/generation.rs"),
+                1,
+            ),
+            (
+                PathBuf::from("src/coord/recovery_adoption_verify/git.rs"),
+                1,
+            ),
+            (PathBuf::from("src/coord/state/recovery_adoption.rs"), 1),
+            (PathBuf::from("src/coord/state/recovery_evidence.rs"), 1),
+            (PathBuf::from("src/coord/store/ledger.rs"), 1),
+            (PathBuf::from("src/coord/store/ledger/adoption.rs"), 1),
+            (
+                PathBuf::from("src/coord/store/ledger/recovery_production.rs"),
+                1,
+            ),
             (PathBuf::from("src/family_lock.rs"), 1),
             (PathBuf::from("src/family_lock/git/command.rs"), 1),
             (PathBuf::from("src/family_lock/schema.rs"), 1),
@@ -1906,6 +2071,156 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
                 "#[path = \"semantic_registry/admission.rs\"]",
                 "#[path = \"semantic_registry/unsupported.rs\"]",
                 "#[path = \"semantic_registry/validation.rs\"]",
+            ][..],
+        ),
+        (
+            "src/coord/generation/manifest.rs",
+            &["#[path = \"manifest/tests.rs\"]"][..],
+        ),
+        (
+            "src/coord/generation/recovery/authority/metadata.rs",
+            &["#[path = \"metadata/tests.rs\"]"][..],
+        ),
+        (
+            "src/coord/generation/recovery/authority.rs",
+            &["#[path = \"authority/metadata.rs\"]"][..],
+        ),
+        (
+            "src/coord/generation/recovery/exchange.rs",
+            &["#[path = \"exchange/evidence.rs\"]"][..],
+        ),
+        (
+            "src/coord/generation/recovery/tree.rs",
+            &["#[path = \"tree/io.rs\"]"][..],
+        ),
+        (
+            "src/coord/generation/recovery/verify.rs",
+            &[
+                "#[path = \"verify/process.rs\"]",
+                "#[path = \"verify/lease.rs\"]",
+            ][..],
+        ),
+        (
+            "src/coord/generation/recovery.rs",
+            &[
+                "#[path = \"recovery/api.rs\"]",
+                "#[path = \"recovery/fs.rs\"]",
+                "#[path = \"recovery/authority.rs\"]",
+                "#[path = \"recovery/verify.rs\"]",
+                "#[path = \"recovery/projection.rs\"]",
+                "#[path = \"recovery/exchange.rs\"]",
+                "#[path = \"recovery/tree.rs\"]",
+                "#[path = \"recovery/finalize.rs\"]",
+                "#[path = \"recovery/transition.rs\"]",
+                "#[path = \"recovery/published.rs\"]",
+                "#[path = \"recovery/published_api.rs\"]",
+                "#[path = \"recovery/support.rs\"]",
+                "#[path = \"recovery/tests.rs\"]",
+            ][..],
+        ),
+        (
+            "src/coord/git.rs",
+            &["#[path = \"recovery_adoption_verify/git.rs\"]"][..],
+        ),
+        (
+            "src/coord/model/recovery_adoption/evidence.rs",
+            &["#[path = \"evidence/tests.rs\"]"][..],
+        ),
+        (
+            "src/coord/model/recovery_adoption.rs",
+            &[
+                "#[path = \"recovery_adoption/evidence.rs\"]",
+                "#[path = \"recovery_adoption/validate.rs\"]",
+                "#[path = \"recovery_adoption/tests.rs\"]",
+            ][..],
+        ),
+        (
+            "src/coord/model/recovery_manifest/bootstrap_build.rs",
+            &[
+                "#[path = \"bootstrap_contract.rs\"]",
+                "#[path = \"build/tests.rs\"]",
+            ][..],
+        ),
+        (
+            "src/coord/model/recovery_manifest/bootstrap_contract.rs",
+            &[
+                "#[path = \"bootstrap_contract/toolchain.rs\"]",
+                "#[path = \"bootstrap_contract/tests.rs\"]",
+            ][..],
+        ),
+        (
+            "src/coord/model/recovery_production.rs",
+            &["#[path = \"recovery_production/tests.rs\"]"][..],
+        ),
+        (
+            "src/coord/recovery_adoption_verify/forensic.rs",
+            &[
+                "#[path = \"forensic/derive.rs\"]",
+                "#[path = \"forensic/tests.rs\"]",
+            ][..],
+        ),
+        (
+            "src/coord/recovery_adoption_verify/generation.rs",
+            &["#[path = \"generation/tests.rs\"]"][..],
+        ),
+        (
+            "src/coord/recovery_adoption_verify/git.rs",
+            &[
+                "#[path = \"git/derive.rs\"]",
+                "#[path = \"git/manifest.rs\"]",
+                "#[path = \"git/object_store.rs\"]",
+                "#[path = \"git/tests.rs\"]",
+            ][..],
+        ),
+        (
+            "src/coord/recovery_manifest/authoring.rs",
+            &["#[path = \"authoring/tests.rs\"]"][..],
+        ),
+        (
+            "src/coord/recovery_manifest/bootstrap_build.rs",
+            &["#[path = \"bootstrap_build/tests.rs\"]"][..],
+        ),
+        (
+            "src/coord/recovery_manifest/linux.rs",
+            &["#[path = \"linux/source.rs\"]"][..],
+        ),
+        (
+            "src/coord/recovery_manifest/trust.rs",
+            &[
+                "#[path = \"trust/policy.rs\"]",
+                "#[path = \"trust/window.rs\"]",
+                "#[path = \"trust/tests.rs\"]",
+            ][..],
+        ),
+        (
+            "src/coord/sealed.rs",
+            &[
+                "#[path = \"sealed/raw.rs\"]",
+                "#[path = \"sealed/runtime.rs\"]",
+                "#[path = \"sealed/tests.rs\"]",
+            ][..],
+        ),
+        (
+            "src/coord/state/recovery_adoption.rs",
+            &["#[path = \"recovery_adoption/tests.rs\"]"][..],
+        ),
+        (
+            "src/coord/state/recovery_evidence.rs",
+            &["#[path = \"recovery_evidence/tests.rs\"]"][..],
+        ),
+        (
+            "src/coord/store/ledger/adoption.rs",
+            &["#[path = \"adoption/tests.rs\"]"][..],
+        ),
+        (
+            "src/coord/store/ledger/recovery_production.rs",
+            &["#[path = \"recovery_production/tests.rs\"]"][..],
+        ),
+        (
+            "src/coord/store/ledger.rs",
+            &[
+                "#[path = \"ledger/adoption/tests/git_fixture.rs\"]",
+                "#[path = \"ledger/tests.rs\"]",
             ][..],
         ),
         ("src/fuse.rs", &["#[path = \"fuse/tests.rs\"]"][..]),
@@ -1944,21 +2259,44 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
         }
     }
     assert!(production.contains(&PathBuf::from("contracts/generated/rust/schema_bundle.rs")));
-    let include_sites = production
+    let include_shapes = production
         .iter()
         .filter_map(|relative| {
             let source = fs::read_to_string(family.join(relative)).expect("UTF-8 Rust source");
-            (!include_macro_ranges(&source)
-                .expect("well-formed include macro inventory")
-                .is_empty())
-            .then(|| relative.clone())
+            let ranges =
+                include_macro_ranges(&source).expect("well-formed include macro inventory");
+            (!ranges.is_empty()).then(|| {
+                let shapes = ranges
+                    .into_iter()
+                    .map(|range| {
+                        source[range]
+                            .chars()
+                            .filter(|character| !character.is_whitespace())
+                            .collect::<String>()
+                    })
+                    .collect::<Vec<_>>();
+                (relative.clone(), shapes)
+            })
         })
-        .collect::<Vec<_>>();
+        .collect::<BTreeMap<_, _>>();
     assert_eq!(
-        include_sites,
-        [PathBuf::from("crates/bullet-wire/src/lib.rs")]
+        include_shapes,
+        BTreeMap::from([
+            (
+                PathBuf::from("crates/bullet-wire/src/lib.rs"),
+                vec![CANONICAL_INCLUDE.to_owned()],
+            ),
+            (
+                PathBuf::from("src/check/truth/render.rs"),
+                vec![r#"include!("render/closing_sections.rs")"#.to_owned()],
+            ),
+            (
+                PathBuf::from("src/release/archive.rs"),
+                vec![r#"include!("archive/snapshot.rs")"#.to_owned()],
+            ),
+        ])
     );
-    let include_source = fs::read_to_string(family.join(&include_sites[0])).unwrap();
+    let include_source = fs::read_to_string(family.join("crates/bullet-wire/src/lib.rs")).unwrap();
     assert!(has_only_canonical_include(&include_source));
 
     let overrides = sources
@@ -1987,6 +2325,12 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
             "bullet_family".to_owned(),
             vec!["lib".to_owned()],
             "src/lib.rs".to_owned(),
+        ),
+        (
+            "bullet-linux-lease".to_owned(),
+            "bullet_linux_lease".to_owned(),
+            vec!["lib".to_owned()],
+            "crates/bullet-linux-lease/src/lib.rs".to_owned(),
         ),
         (
             "bullet-wire".to_owned(),
@@ -2076,8 +2420,8 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
     assert_eq!(
         dependency_inventory,
         (
-            20,
-            "46afbafef6e6b1275183a974164f57f3b217b725f26edc04834fba94b348f171".to_owned()
+            25,
+            "a179f9a0e543229f7461caa42fb34f9380858806313dfd39a7b99c01ce162838".to_owned()
         )
     );
     let mut hostile_direct_edge = full_metadata.clone();

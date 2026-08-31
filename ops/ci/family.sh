@@ -97,6 +97,11 @@ kernel_family_expected="$(read_inventory_constant "$KERNEL_ROOT/ops/ci/inventory
 portal_vitest_expected="$(bash ops/ci/family-report-check.sh vitest-source-pair \
   "$PORTAL_ROOT/ops/ci/fast.sh" "$PORTAL_ROOT/ops/ci/coverage.sh")"
 portal_real_farmd_expected="$(grep -Ec '^[[:space:]]*test\(' "$PORTAL_ROOT/e2e/real-farmd.spec.ts")"
+# shellcheck disable=SC2016 # $reports is literal text inside the portal script being matched.
+portal_playwright_expected="$(sed -n 's|.*assert-report\.mjs junit "$reports/playwright\.xml" \([0-9][0-9]*\).*|\1|p' \
+  "$PORTAL_ROOT/ops/ci/contract.sh")"
+[[ "$portal_playwright_expected" =~ ^[1-9][0-9]*$ ]] \
+  || { refuse FAMILY_INVENTORY_INVALID "bullet-portal:ops/ci/contract.sh playwright count"; exit 1; }
 [[ "$portal_real_farmd_expected" =~ ^[1-9][0-9]*$ ]] \
   || { refuse FAMILY_INVENTORY_INVALID "bullet-portal:e2e/real-farmd.spec.ts"; exit 1; }
 
@@ -107,7 +112,7 @@ report_specs=(
   "bullet-kernel|.ci-artifacts/junit/contract.xml|junit|$kernel_contract_expected|0"
   "bullet-kernel|.ci-artifacts/junit/family.xml|junit|$kernel_family_expected|0"
   "bullet-portal|.ci-artifacts/reports/vitest.json|vitest|$portal_vitest_expected|0"
-  'bullet-portal|.ci-artifacts/reports/playwright.xml|junit|10|0'
+  "bullet-portal|.ci-artifacts/reports/playwright.xml|junit|$portal_playwright_expected|0"
   "bullet-portal|.ci-artifacts/reports/real-farmd.xml|junit|$portal_real_farmd_expected|0"
   "bullet-farm|.ci-artifacts/junit/contract.xml|junit|$WIRE_EXPECTED_TESTS|0"
   'bullet-farm|.ci-artifacts/formal/contract.json|formal-json|0|0'
