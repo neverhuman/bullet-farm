@@ -14,7 +14,12 @@ use crate::{
     ids::{is_bounded_wire_label, require_exact_wire},
 };
 
+mod credential_projection;
 mod runtime_binding;
+pub use credential_projection::{
+    CREDENTIAL_PROJECTION_DIGEST_DOMAIN, MAX_CREDENTIAL_PROJECTION_TTL_MS,
+    ProviderCredentialProjectionV1, decode_provider_credential_projection,
+};
 pub use runtime_binding::verify_dogfood_runtime_binding;
 
 pub const DOGFOOD_SCHEMA_VERSION: &str = "v1alpha1";
