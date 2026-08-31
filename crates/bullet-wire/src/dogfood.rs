@@ -35,6 +35,13 @@ pub const MAX_DOGFOOD_GRANT_TTL_MS: u64 = 15_000;
 const MAX_SAFE_INTEGER: u64 = 9_007_199_254_740_991;
 const MAX_LABEL_BYTES: usize = 128;
 
+mod budget;
+pub use budget::{
+    DOGFOOD_BUDGET_RESERVATION_DIGEST_DOMAIN, DogfoodBudgetReservationV1,
+    MAX_DOGFOOD_BUDGET_CONSUME_WINDOW_MS, decode_dogfood_budget_reservation,
+    verify_dogfood_budget_binding,
+};
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DogfoodExecutionSubjectV1 {
