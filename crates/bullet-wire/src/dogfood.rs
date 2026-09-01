@@ -15,6 +15,7 @@ use crate::{
 };
 
 mod credential_projection;
+pub(crate) mod grant_signing;
 mod runtime_binding;
 pub use credential_projection::{
     CREDENTIAL_PROJECTION_DIGEST_DOMAIN, MAX_CREDENTIAL_PROJECTION_TTL_MS,

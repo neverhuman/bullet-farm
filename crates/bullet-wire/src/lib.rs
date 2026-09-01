@@ -51,6 +51,11 @@ pub use canonical::{
 pub use catalog::*;
 pub use contract_tool::{ContractMode, execute as execute_contract_tool};
 pub use digest::{Blake3Digest, canonical_json, hash_canonical, hash_framed_bytes};
+pub use dogfood::grant_signing::{
+    DOGFOOD_LAUNCH_GRANT_ENVELOPE_DOMAIN, DOGFOOD_LAUNCH_GRANT_IMPLICIT_ASSERTION,
+    DogfoodLaunchSigningKey, DogfoodLaunchVerificationKey, MAX_DOGFOOD_LAUNCH_GRANT_TOKEN_BYTES,
+    SignedDogfoodLaunchGrantV1,
+};
 pub use dogfood::{
     CREDENTIAL_PROJECTION_DIGEST_DOMAIN, DOGFOOD_BUDGET_RESERVATION_DIGEST_DOMAIN,
     DOGFOOD_BUDGET_SETTLEMENT_DIGEST_DOMAIN, DOGFOOD_INTENT_DIGEST_DOMAIN,
