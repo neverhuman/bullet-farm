@@ -1997,6 +1997,10 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
                 1,
             ),
             (
+                PathBuf::from("crates/bullet-wire/src/dogfood/run_signing.rs"),
+                1,
+            ),
+            (
                 PathBuf::from("crates/bullet-wire/src/runtime_passport.rs"),
                 1,
             ),
