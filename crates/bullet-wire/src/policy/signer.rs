@@ -2,11 +2,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::AuthorityAudience;
 
+pub const DOGFOOD_RUN_ATTESTATION_SIGNING_PURPOSE: &str = "dogfood-run-attestation-signing";
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum KeyPurposeV1 {
     AuthoritySigning,
     DogfoodLaunchSigning,
+    DogfoodRunAttestationSigning,
     ProviderEnrollmentSigning,
     ReleaseSigning,
 }

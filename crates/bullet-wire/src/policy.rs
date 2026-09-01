@@ -12,7 +12,9 @@ pub use live::{
     LIVE_ADMISSION_MIN_GENERATION, refuse_dogfood_binding_as_live, validate_dogfood_admission,
     validate_live_admission,
 };
-pub use signer::{IssuerKeyV1, KeyAlgorithmV1, KeyPurposeV1};
+pub use signer::{
+    DOGFOOD_RUN_ATTESTATION_SIGNING_PURPOSE, IssuerKeyV1, KeyAlgorithmV1, KeyPurposeV1,
+};
 
 pub const POLICY_SCHEMA_VERSION: &str = "v1alpha1";
 pub const POLICY_SCHEMA_VERSION_V1ALPHA2: &str = "v1alpha2";
