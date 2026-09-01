@@ -5,21 +5,31 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    AttemptId, Blake3Digest, CheckpointId, CommandId, CredentialProjectionProfileId,
-    DogfoodAudienceV1, DogfoodBudgetReservationId, DogfoodGrantId, DogfoodIntentId,
-    DogfoodOperationV1, DogfoodProviderProtocolV1, DogfoodRunId, GateId, GitOid, GraphRevisionId,
-    LaunchProvider, MissionId, PrincipalId, ProviderCredentialProjectionId, ProviderEnrollmentId,
-    ProviderProfileId, RepositoryContextSnapshotId, RepositoryId, RunnerId, RuntimePassportId,
-    VariantId, WireError, WorkPackageId, decode_canonical, hash_canonical,
+    AttemptId, Blake3Digest, CheckpointId, CommandId, DogfoodAudienceV1,
+    DogfoodBudgetReservationId, DogfoodGrantId, DogfoodIntentId, DogfoodOperationV1,
+    DogfoodProviderProtocolV1, DogfoodRunId, GateId, GitOid, GraphRevisionId, LaunchProvider,
+    MissionId, ProviderCredentialProjectionId, ProviderEnrollmentId, ProviderProfileId,
+    RepositoryContextSnapshotId, RepositoryId, RunnerId, RuntimePassportId, VariantId, WireError,
+    WorkPackageId, decode_canonical, hash_canonical,
     ids::{is_bounded_wire_label, require_exact_wire},
 };
 
+#[cfg(test)]
+use crate::PrincipalId;
+
 mod credential_projection;
+mod enrollment_signing;
 pub(crate) mod grant_signing;
 mod runtime_binding;
 pub use credential_projection::{
     CREDENTIAL_PROJECTION_DIGEST_DOMAIN, MAX_CREDENTIAL_PROJECTION_TTL_MS,
     ProviderCredentialProjectionV1, decode_provider_credential_projection,
+};
+pub use enrollment_signing::{
+    PROVIDER_ENROLLMENT_CLAIMS_DOMAIN, PROVIDER_ENROLLMENT_ENVELOPE_DOMAIN,
+    PROVIDER_ENROLLMENT_IMPLICIT_ASSERTION, PROVIDER_ENROLLMENT_SIGNING_PURPOSE,
+    ProviderEnrollmentClaimsV2, ProviderEnrollmentExpectationV2, ProviderEnrollmentSigningKey,
+    SignedProviderEnrollmentV2, decode_provider_enrollment_claims,
 };
 pub use runtime_binding::verify_dogfood_runtime_binding;
 
@@ -28,8 +38,6 @@ pub const DOGFOOD_INTENT_DIGEST_DOMAIN: &str = "dogfood.read-only-intent.v1alpha
 pub const DOGFOOD_LAUNCH_GRANT_CLAIMS_DOMAIN: &str =
     "authority.dogfood-launch-grant-claims.v1alpha1";
 pub const DOGFOOD_LAUNCH_GRANT_SIGNING_PURPOSE: &str = "dogfood-launch-signing";
-pub const PROVIDER_ENROLLMENT_CLAIMS_DOMAIN: &str = "provider.enrollment-claims.v2";
-pub const PROVIDER_ENROLLMENT_SIGNING_PURPOSE: &str = "provider-enrollment-signing";
 pub const MAX_DOGFOOD_GATE_IDS: usize = 16;
 pub const MAX_DOGFOOD_GRANT_TTL_MS: u64 = 15_000;
 
@@ -157,35 +165,6 @@ pub struct DogfoodLaunchGrantClaimsV1 {
     pub subject: DogfoodRunSubjectV1,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ProviderEnrollmentClaimsV2 {
-    pub schema_version: String,
-    pub issuer: String,
-    pub key_id: String,
-    pub signing_purpose: String,
-    pub claims_domain: String,
-    pub provider: LaunchProvider,
-    pub protocol: DogfoodProviderProtocolV1,
-    pub runtime_passport_id: RuntimePassportId,
-    pub provider_profile_id: ProviderProfileId,
-    pub service_identity_id: PrincipalId,
-    pub credential_projection_profile_id: CredentialProjectionProfileId,
-    pub runtime_version: String,
-    pub enrollment_generation: u64,
-    pub activates_at_unix_ms: u64,
-    pub expires_at_unix_ms: u64,
-    pub revoked_at_unix_ms: Option<u64>,
-    pub egress_policy_digest: Blake3Digest,
-    pub tool_policy_digest: Blake3Digest,
-    pub budget_policy_digest: Blake3Digest,
-    pub endpoint_observation_digest: Blake3Digest,
-    pub version_observation_digest: Blake3Digest,
-    pub profile_observation_digest: Blake3Digest,
-    pub policy_snapshot_digest: Blake3Digest,
-    pub policy_generation: u64,
-}
-
 pub fn decode_dogfood_read_only_intent(bytes: &[u8]) -> Result<DogfoodReadOnlyIntentV1, WireError> {
     let intent: DogfoodReadOnlyIntentV1 = decode_canonical(bytes)?;
     intent.validate()?;
@@ -198,14 +177,6 @@ pub fn decode_dogfood_launch_grant_claims(
     let grant: DogfoodLaunchGrantClaimsV1 = decode_canonical(bytes)?;
     grant.validate()?;
     Ok(grant)
-}
-
-pub fn decode_provider_enrollment_claims(
-    bytes: &[u8],
-) -> Result<ProviderEnrollmentClaimsV2, WireError> {
-    let enrollment: ProviderEnrollmentClaimsV2 = decode_canonical(bytes)?;
-    enrollment.validate()?;
-    Ok(enrollment)
 }
 
 impl DogfoodReadOnlyIntentV1 {
@@ -305,92 +276,6 @@ impl DogfoodLaunchGrantClaimsV1 {
 
     pub fn grant_id(&self) -> Result<DogfoodGrantId, WireError> {
         self.digest().map(DogfoodGrantId::from_digest)
-    }
-}
-
-impl ProviderEnrollmentClaimsV2 {
-    pub fn validate(&self) -> Result<(), WireError> {
-        let code = "PROVIDER_ENROLLMENT_INVALID";
-        require_exact_wire(
-            "schema_version",
-            &self.schema_version,
-            DOGFOOD_SCHEMA_VERSION,
-            code,
-        )?;
-        require_exact_wire(
-            "signing_purpose",
-            &self.signing_purpose,
-            PROVIDER_ENROLLMENT_SIGNING_PURPOSE,
-            code,
-        )?;
-        require_exact_wire(
-            "claims_domain",
-            &self.claims_domain,
-            PROVIDER_ENROLLMENT_CLAIMS_DOMAIN,
-            code,
-        )?;
-        for (name, value) in [
-            ("issuer", self.issuer.as_str()),
-            ("key_id", self.key_id.as_str()),
-            ("runtime_version", self.runtime_version.as_str()),
-        ] {
-            if !is_bounded_wire_label(value, MAX_LABEL_BYTES) {
-                return Err(invalid(
-                    code,
-                    format!("{name} must be bounded identifier text"),
-                ));
-            }
-        }
-        validate_provider_pair(self.provider, self.protocol)?;
-        for (name, value) in [
-            ("enrollment_generation", self.enrollment_generation),
-            ("policy_generation", self.policy_generation),
-        ] {
-            if value == 0 || value > MAX_SAFE_INTEGER {
-                return Err(invalid(
-                    code,
-                    format!("{name} must be a positive safe integer"),
-                ));
-            }
-        }
-        for (name, value) in [
-            ("activates_at_unix_ms", self.activates_at_unix_ms),
-            ("expires_at_unix_ms", self.expires_at_unix_ms),
-        ] {
-            if value > MAX_SAFE_INTEGER {
-                return Err(invalid(
-                    code,
-                    format!("{name} exceeds the safe integer range"),
-                ));
-            }
-        }
-        if self.activates_at_unix_ms >= self.expires_at_unix_ms {
-            return Err(invalid(code, "enrollment activation must precede expiry"));
-        }
-        if let Some(revoked) = self.revoked_at_unix_ms {
-            if revoked > MAX_SAFE_INTEGER {
-                return Err(invalid(
-                    code,
-                    "revoked_at_unix_ms exceeds the safe integer range",
-                ));
-            }
-            if revoked < self.activates_at_unix_ms || revoked > self.expires_at_unix_ms {
-                return Err(invalid(
-                    code,
-                    "enrollment revocation is outside its validity window",
-                ));
-            }
-        }
-        Ok(())
-    }
-
-    pub fn digest(&self) -> Result<Blake3Digest, WireError> {
-        self.validate()?;
-        hash_canonical(PROVIDER_ENROLLMENT_CLAIMS_DOMAIN, self)
-    }
-
-    pub fn enrollment_id(&self) -> Result<ProviderEnrollmentId, WireError> {
-        self.digest().map(ProviderEnrollmentId::from_digest)
     }
 }
 
