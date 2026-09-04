@@ -10,6 +10,9 @@ use bullet_wire::{
 };
 use serde_json::{Value, json};
 
+/// Decoder under test; aliased so the per-field tables stay readable.
+type DecodeFn = fn(&[u8]) -> Result<(), WireError>;
+
 const MAX_SAFE_INTEGER: u64 = 9_007_199_254_740_991;
 const PROVIDERS: [LaunchProvider; 4] = [
     LaunchProvider::Claude,
@@ -256,7 +259,7 @@ fn decoders_are_bounded_recursively_closed_and_hostile_to_aliases() {
             "PROVIDER_PROFILE_OBSERVATION_INVALID",
         ),
     ] {
-        let (object, decode): (Value, fn(&[u8]) -> Result<(), WireError>) = match field {
+        let (object, decode): (Value, DecodeFn) = match field {
             "probe_grant_digest" => (serde_json::to_value(&value.probe).unwrap(), |bytes| {
                 decode_provider_probe_observation(bytes).map(|_| ())
             }),
@@ -311,7 +314,7 @@ fn decoders_are_bounded_recursively_closed_and_hostile_to_aliases() {
         );
     }
     let oversized = vec![b' '; 8_193];
-    let decoders: [(fn(&[u8]) -> Result<(), WireError>, &str); 4] = [
+    let decoders: [(DecodeFn, &str); 4] = [
         (
             |b| decode_provider_probe_observation(b).map(|_| ()),
             "PROVIDER_PROBE_OBSERVATION_INVALID",

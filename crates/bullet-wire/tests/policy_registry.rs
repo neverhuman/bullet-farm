@@ -94,8 +94,7 @@ fn policy_and_catalog_are_strict_complete_and_offline() {
         &fs::read(root().join("contracts/v1alpha1/contract-catalog.json")).unwrap(),
     )
     .unwrap();
-    catalog.validate().unwrap();
-    let bundle = catalog.json_schema_bundle();
+    let bundle = catalog.json_schema_bundle().unwrap();
     assert_eq!(
         bundle["schemas"]["SignedAuthorityEnvelopeV1"]["additionalProperties"],
         false

@@ -1,56 +1,101 @@
 use serde_json::{Map, Value, json};
 
-use crate::policy::PolicySchemaVersion;
+use crate::{WireError, policy::PolicySchemaVersion};
 
 use super::{
-    ContractCatalogV1, ContractFieldV1, ContractRecordV1, FieldTypeV1,
-    constraints::conditional_constraints,
+    ContractFieldV1, FieldTypeV1, ResolvedCatalogV1, ResolvedFieldKindV1, ResolvedFieldV1,
+    ResolvedRecordV1, constraints::conditional_constraints,
 };
 
-pub(super) fn json_schema_bundle(catalog: &ContractCatalogV1) -> Value {
-    let schemas = catalog
-        .records
-        .iter()
-        .map(|record| (record.name.clone(), record_schema(record)))
-        .collect::<Map<_, _>>();
-    json!({
+mod strict;
+
+#[cfg(test)]
+mod tests;
+
+pub(super) fn json_schema_bundle(resolved: &ResolvedCatalogV1<'_>) -> Result<Value, WireError> {
+    let mut schemas = Map::new();
+    for scalar in resolved.scalar_types() {
+        schemas.insert(scalar.name.clone(), strict::scalar_schema(scalar));
+    }
+    for record in resolved.records() {
+        schemas.insert(record.definition().name.clone(), record_schema(record)?);
+    }
+    for tagged_union in resolved.tagged_unions() {
+        schemas.insert(
+            tagged_union.definition().name.clone(),
+            strict::tagged_union_schema(tagged_union)?,
+        );
+    }
+    Ok(json!({
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "bundle_version": catalog.catalog_version,
-        "schema_version": catalog.schema_version,
+        "bundle_version": resolved.catalog_version(),
+        "schema_version": resolved.schema_version(),
         "schemas": schemas,
-    })
+    }))
 }
 
-fn record_schema(record: &ContractRecordV1) -> Value {
-    let properties = record
-        .fields
-        .iter()
-        .map(|field| (field.name.clone(), field_schema(field)))
-        .collect::<Map<_, _>>();
+fn record_schema(record: &ResolvedRecordV1<'_>) -> Result<Value, WireError> {
+    let definition = record.definition();
+    let mut properties = Map::new();
+    for field in record.fields() {
+        properties.insert(field.definition().name.clone(), field_schema(field)?);
+    }
     let required = record
-        .fields
+        .fields()
         .iter()
-        .map(|field| Value::String(field.name.clone()))
+        .map(|field| Value::String(field.definition().name.clone()))
         .collect::<Vec<_>>();
     let mut schema = json!({
-        "$id": format!("https://schemas.bullet.farm/v1alpha1/{}.json", record.name),
+        "$id": format!("https://schemas.bullet.farm/v1alpha1/{}.json", definition.name),
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": properties,
         "required": required,
-        "title": record.name,
+        "title": definition.name,
         "type": "object",
-        "x-bullet-security-class": record.security_class,
-        "x-bullet-unknown-fields": record.unknown_fields,
+        "x-bullet-security-class": definition.security_class,
+        "x-bullet-unknown-fields": definition.unknown_fields,
     });
-    if let Some(constraints) = conditional_constraints(&record.name) {
+    if let Some(constraints) = conditional_constraints(&definition.name) {
         schema["allOf"] = constraints;
     }
-    schema
+    Ok(schema)
 }
 
-fn field_schema(field: &ContractFieldV1) -> Value {
-    match field.field_type {
+fn field_schema(field: &ResolvedFieldV1<'_>) -> Result<Value, WireError> {
+    let definition = field.definition();
+    match field.kind() {
+        ResolvedFieldKindV1::LegacyValue => legacy_value_schema(definition),
+        ResolvedFieldKindV1::LegacyReference { shape, target } => {
+            strict::legacy_reference_schema(definition, shape, target)
+        }
+        ResolvedFieldKindV1::Named(target) if definition.field_type == FieldTypeV1::NamedRef => {
+            Ok(strict::named_reference(target))
+        }
+        ResolvedFieldKindV1::OptionalNamed(target)
+            if definition.field_type == FieldTypeV1::OptionalNamedRef =>
+        {
+            Ok(strict::optional_named_reference(target))
+        }
+        ResolvedFieldKindV1::BoundedArray { target, bounds }
+            if definition.field_type == FieldTypeV1::BoundedArray =>
+        {
+            Ok(strict::bounded_array(target, bounds))
+        }
+        ResolvedFieldKindV1::BoundedSet { target, bounds }
+            if definition.field_type == FieldTypeV1::BoundedSet =>
+        {
+            Ok(strict::bounded_set(target, bounds))
+        }
+        ResolvedFieldKindV1::Named(_)
+        | ResolvedFieldKindV1::OptionalNamed(_)
+        | ResolvedFieldKindV1::BoundedArray { .. }
+        | ResolvedFieldKindV1::BoundedSet { .. } => Err(mismatch(definition)),
+    }
+}
+
+fn legacy_value_schema(field: &ContractFieldV1) -> Result<Value, WireError> {
+    let schema = match field.field_type {
         FieldTypeV1::String => json!({"type": "string", "minLength": 1}),
         FieldTypeV1::SchemaVersion => json!({"type": "string", "const": "v1alpha1"}),
         FieldTypeV1::PolicySchemaVersion => json!({
@@ -227,20 +272,6 @@ fn field_schema(field: &ContractFieldV1) -> Value {
                 "type": "string", "enum": ["bullet-gitd", "effect-broker", "provider-runner"]
             }
         }),
-        FieldTypeV1::IssuerKeyArray => ref_array("IssuerKeyV1"),
-        FieldTypeV1::RiskPolicy => schema_ref("RiskPolicyV1"),
-        FieldTypeV1::EvidencePolicy => schema_ref("EvidencePolicyV1"),
-        FieldTypeV1::SandboxPolicy => schema_ref("SandboxPolicyV1"),
-        FieldTypeV1::BudgetPolicy => schema_ref("BudgetPolicyV1"),
-        FieldTypeV1::RoutePolicy => schema_ref("RoutePolicyV1"),
-        FieldTypeV1::SignedAuthorityEnvelope => schema_ref("SignedAuthorityEnvelopeV1"),
-        FieldTypeV1::SignedMutationPermit => schema_ref("SignedMutationPermitV1"),
-        FieldTypeV1::OptionalSignedMutationPermit => optional_schema_ref("SignedMutationPermitV1"),
-        FieldTypeV1::MutationReplayResult => schema_ref("MutationReplayResultV1"),
-        FieldTypeV1::OptionalMutationReplayResult => optional_schema_ref("MutationReplayResultV1"),
-        FieldTypeV1::ScopeGrant => schema_ref("ScopeGrantV1"),
-        FieldTypeV1::PatchProposal => schema_ref("PatchProposalV1"),
-        FieldTypeV1::PatchOperationArray => ref_array("PatchOperationV1"),
         FieldTypeV1::CandidateIdArray => typed_string_array("^can_[0-9a-f]{64}$"),
         FieldTypeV1::OrderedCandidateIdArray => json!({
             "type": "array",
@@ -255,33 +286,57 @@ fn field_schema(field: &ContractFieldV1) -> Value {
         FieldTypeV1::ReleaseProfileIdArray => typed_string_array("^[a-z][a-z0-9-]{0,62}[a-z0-9]$"),
         FieldTypeV1::ReleaseEvidenceKindArray => json!({
             "type": "array",
-            "items": field_schema(&ContractFieldV1 {
+            "items": legacy_value_schema(&ContractFieldV1 {
                 name: "evidence_kind".to_owned(),
                 field_type: FieldTypeV1::ReleaseEvidenceKind,
-            })
+                target: None,
+                bounds: None,
+            })?
         }),
         FieldTypeV1::RepoPathArray => json!({
-            "type": "array", "items": field_schema(&ContractFieldV1 {
-                name: "path".to_owned(), field_type: FieldTypeV1::RepoPath
-            })
+            "type": "array", "items": legacy_value_schema(&ContractFieldV1 {
+                name: "path".to_owned(), field_type: FieldTypeV1::RepoPath,
+                target: None,
+                bounds: None,
+            })?
         }),
-        FieldTypeV1::CleanupAuthorization => schema_ref("CleanupAuthorizationV1"),
-        FieldTypeV1::ReleaseFamilySubject => schema_ref("ReleaseFamilySubjectV1"),
-        FieldTypeV1::ReleaseRepositorySubjectArray => ref_array("ReleaseRepositorySubjectV1"),
-        FieldTypeV1::ReleaseEvidenceSubjectArray => ref_array("ReleaseEvidenceSubjectV1"),
-        FieldTypeV1::ReleaseProfileNodeArray => ref_array("ReleaseProfileNodeV1"),
-        FieldTypeV1::ReleaseSignerKeyArray => ref_array("ReleaseSignerKeyV1"),
-        FieldTypeV1::ReleaseRegistryEntryArray => ref_array("ReleaseRegistryEntryV1"),
-        FieldTypeV1::ReleaseRegistryObjectArray => ref_array("ReleaseRegistryObjectV1"),
-        FieldTypeV1::ReleaseReplayBindingArray => ref_array("ReleaseReplayBindingV1"),
-        FieldTypeV1::ExecutionToolArray => json!({
-            "type": "array",
-            "minItems": 1,
-            "maxItems": 64,
-            "uniqueItems": true,
-            "items": {"$ref": "#/schemas/ExecutionToolV1"}
-        }),
-    }
+        FieldTypeV1::IssuerKeyArray
+        | FieldTypeV1::RiskPolicy
+        | FieldTypeV1::EvidencePolicy
+        | FieldTypeV1::SandboxPolicy
+        | FieldTypeV1::BudgetPolicy
+        | FieldTypeV1::RoutePolicy
+        | FieldTypeV1::SignedAuthorityEnvelope
+        | FieldTypeV1::SignedMutationPermit
+        | FieldTypeV1::OptionalSignedMutationPermit
+        | FieldTypeV1::MutationReplayResult
+        | FieldTypeV1::OptionalMutationReplayResult
+        | FieldTypeV1::ScopeGrant
+        | FieldTypeV1::PatchProposal
+        | FieldTypeV1::PatchOperationArray
+        | FieldTypeV1::CleanupAuthorization
+        | FieldTypeV1::ReleaseFamilySubject
+        | FieldTypeV1::ReleaseRepositorySubjectArray
+        | FieldTypeV1::ReleaseEvidenceSubjectArray
+        | FieldTypeV1::ReleaseProfileNodeArray
+        | FieldTypeV1::ReleaseSignerKeyArray
+        | FieldTypeV1::ReleaseRegistryEntryArray
+        | FieldTypeV1::ReleaseRegistryObjectArray
+        | FieldTypeV1::ReleaseReplayBindingArray
+        | FieldTypeV1::ExecutionToolArray
+        | FieldTypeV1::NamedRef
+        | FieldTypeV1::OptionalNamedRef
+        | FieldTypeV1::BoundedArray
+        | FieldTypeV1::BoundedSet => return Err(mismatch(field)),
+    };
+    Ok(schema)
+}
+
+pub(super) fn mismatch(field: &ContractFieldV1) -> WireError {
+    WireError::new(
+        "INVALID_CONTRACT_FIELD_REFERENCE",
+        format!("resolved field kind disagrees with {}", field.name),
+    )
 }
 
 fn digest_id_schema(prefix: &str) -> Value {
@@ -290,18 +345,6 @@ fn digest_id_schema(prefix: &str) -> Value {
 
 fn optional_digest_id_schema(prefix: &str) -> Value {
     json!({"type": ["string", "null"], "pattern": format!("^{prefix}_[0-9a-f]{{64}}$")})
-}
-
-fn schema_ref(name: &str) -> Value {
-    json!({"$ref": format!("#/schemas/{name}")})
-}
-
-fn ref_array(name: &str) -> Value {
-    json!({"type": "array", "items": {"$ref": format!("#/schemas/{name}")}})
-}
-
-fn optional_schema_ref(name: &str) -> Value {
-    json!({"anyOf": [{"$ref": format!("#/schemas/{name}")}, {"type": "null"}]})
 }
 
 fn typed_string_array(pattern: &str) -> Value {

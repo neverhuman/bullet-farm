@@ -373,8 +373,7 @@ fn schema_bundle_admits_v1alpha2_only_for_the_policy_snapshot() {
     let catalog =
         decode_canonical::<ContractCatalogV1>(&read("contracts/v1alpha1/contract-catalog.json"))
             .unwrap();
-    catalog.validate().unwrap();
-    let bundle = catalog.json_schema_bundle();
+    let bundle = catalog.json_schema_bundle().unwrap();
     assert_eq!(
         bundle["schemas"]["PolicySnapshotV1"]["properties"]["schema_version"],
         json!({"type": "string", "enum": ["v1alpha1", "v1alpha2"]})

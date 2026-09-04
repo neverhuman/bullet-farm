@@ -39,6 +39,12 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
                 PathBuf::from("crates/bullet-wire/src/authority/request.rs"),
                 1
             ),
+            (PathBuf::from("crates/bullet-wire/src/catalog/schema.rs"), 1),
+            (
+                PathBuf::from("crates/bullet-wire/src/catalog/validation.rs"),
+                1,
+            ),
+            (PathBuf::from("crates/bullet-wire/src/contract_bindings.rs"), 1),
             (PathBuf::from("crates/bullet-wire/src/dogfood.rs"), 1),
             (
                 PathBuf::from("crates/bullet-wire/src/dogfood/enrollment_signing.rs"),

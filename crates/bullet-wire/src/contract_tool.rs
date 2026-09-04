@@ -44,8 +44,8 @@ pub fn execute(root: &Path, mode: ContractMode) -> Result<(), WireError> {
 fn render(root: &Path) -> Result<BTreeMap<PathBuf, Vec<u8>>, WireError> {
     let catalog_bytes = read(root, CATALOG)?;
     let catalog = decode_canonical::<ContractCatalogV1>(&catalog_bytes)?;
-    catalog.validate()?;
-    let schema_bundle = catalog.json_schema_bundle();
+    let resolved = catalog.resolve()?;
+    let schema_bundle = resolved.json_schema_bundle()?;
     let schema_bundle_bytes = canonical_json(&schema_bundle)?;
     let schema_bundle_hash = hash_canonical("schema.bundle", &schema_bundle)?;
 
@@ -76,10 +76,10 @@ fn render(root: &Path) -> Result<BTreeMap<PathBuf, Vec<u8>>, WireError> {
         golden_hash,
         authority_golden_hash,
         launch_grant_golden_hash,
-        catalog: &catalog,
+        resolved: &resolved,
     };
-    let rust_binding = rust_constants(&binding_inputs);
-    let typescript_binding = typescript_constants(&binding_inputs);
+    let rust_binding = rust_constants(&binding_inputs)?;
+    let typescript_binding = typescript_constants(&binding_inputs)?;
     let generated_clients = json!({
         "rust": hash_framed_bytes("generated.client.rust", rust_binding.as_bytes())?,
         "typescript": hash_framed_bytes(
@@ -97,7 +97,7 @@ fn render(root: &Path) -> Result<BTreeMap<PathBuf, Vec<u8>>, WireError> {
         "invariant_registry_hash": registry_hash,
         "launch_grant_golden_hash": launch_grant_golden_hash,
         "policy_snapshot_hash": policy_hash,
-        "record_count": catalog.records.len(),
+        "record_count": resolved.records().len(),
         "schema_version": "v1alpha1"
     });
 

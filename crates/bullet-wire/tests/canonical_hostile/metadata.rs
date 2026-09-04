@@ -235,6 +235,22 @@
                 BTreeMap::from([("clippy::disallowed_methods".to_owned(), 2)]),
             ),
             (
+                PathBuf::from("crates/bullet-wire/src/catalog.rs"),
+                BTreeMap::from([("rustfmt::skip".to_owned(), 5)]),
+            ),
+            (
+                PathBuf::from("crates/bullet-wire/src/catalog/validation.rs"),
+                BTreeMap::from([("rustfmt::skip".to_owned(), 22)]),
+            ),
+            (
+                PathBuf::from("crates/bullet-wire/src/contract_bindings.rs"),
+                BTreeMap::from([("rustfmt::skip".to_owned(), 17)]),
+            ),
+            (
+                PathBuf::from("crates/bullet-wire/src/contract_bindings/strict.rs"),
+                BTreeMap::from([("rustfmt::skip".to_owned(), 22)]),
+            ),
+            (
                 PathBuf::from("src/coord/generation/manifest/types.rs"),
                 BTreeMap::from([
                     ("clippy::large_enum_variant".to_owned(), 1),
