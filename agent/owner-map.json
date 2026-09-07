@@ -51,6 +51,7 @@
     "tests/": "ops",
     "tools/": "ops",
     ".github/": "ops",
-    ".github/workflows/": "ops"
+    ".github/workflows/": "ops",
+    "publication/": "ops"
   }
 }

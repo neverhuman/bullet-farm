@@ -1,0 +1,13 @@
+# Scan every exact reachable object, including metadata and binary text hunks.
+# Repository-local ignore files and inline allow directives are not admitted.
+[extend]
+useDefault = true
+
+# Public BLAKE3 test commitment, independently traced to projection_digest().
+# Historical findings: Hub 9a5def68d367a27bf4f3d452bbbaf45982648b00 and
+# 5683c49298cfa7c393285e81497f80a4c71673a8, dogfood signing fixtures.
+# Match only this field and exact public value; never all digests or test paths.
+[allowlist]
+description = "Reviewed public dogfood projection commitment"
+regexTarget = "match"
+regexes = ['''credential_projection_digest":"add2d0ddbd69262533f950dc6374b7f28917e39d8b7aa4ff64caf5df3d5fb9dd''']

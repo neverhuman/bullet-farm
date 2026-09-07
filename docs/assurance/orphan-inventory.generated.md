@@ -98,7 +98,7 @@ A green inventory closes only the declared graph; it completes no wave or gate.
 | WP-19 | W1, W7, W8 | none | hub-jeryu | ACTIVE | DESIGNED |
 | WP-20 | W0 | none | hub-documentation-ci | ACTIVE | COMPONENT |
 | WP-21 | W3, W8, W10 | none | runner-providers-hub | ACTIVE | DESIGNED |
-| WP-22 | W0, W1, W7, W8 | none | ci-release-operations | ACTIVE | DESIGNED |
+| WP-22 | W0, W1, W7, W8 | none | ci-release-operations | ACTIVE | COMPONENT |
 | WP-23 | W7, W8, W10 | none | hub-release-providers | ACTIVE | DESIGNED |
 
 ## Typed source closure
@@ -129,8 +129,8 @@ Receipt-kind reverse edges: `artifact` 8, `containment` 1, `forge` 2, `operation
 | ../repos.manifest.toml | f201a2d8293db09aacfe10ad276b7f7792fd956a9d34136f02155bcbfb43de4f |
 | contracts/v1alpha1/schema-bundle.json | 5b47756bcab8bc88aa24c42a5bcf535e6cbcf95241151b5ebfc50055e7d0b167 |
 | docs/schemas/bullet.assurance-inventory.v1.schema.json | fb00a7e88263db61a8c00c241eeceb822ac718b285e91c37078805acbf467c4e |
-| policy/assurance-inventory-v1.json | b0cb9d56a9142861d17c56c1435a33e47c5418cc36164fabcfc6b95ccfc883a7 |
-| policy/corpus-coverage-v1.json | e930c9abcacce46198b8b46953f1f82f35be1de62b7756b98678575d12183e41 |
+| policy/assurance-inventory-v1.json | 1551fefa323c8cdd18b42dbfc5cb8d6e6aa638f1a4112c79d76e40a08c81e200 |
+| policy/corpus-coverage-v1.json | 04a40bdde0f212a37243da973c26ed938394dd5621030878416bd3d001ff28f7 |
 | policy/v1alpha1/invariant-registry.json | 5b9c57329de0e812fdc441455ab7467e20b52f89f36c67d5787d562c5a7d67e5 |
 
 ## Boundary

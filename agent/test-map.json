@@ -260,6 +260,10 @@
     ".github/": {
       "command": "bash ops/ci/workflow-policy.sh",
       "purpose": "prove hosted lanes match local scripts"
+    },
+    "publication/": {
+      "command": "bash publication/ci-tests.sh",
+      "purpose": "verify disposable aggregate bootstrap and fail-closed source/final-check behavior; Rust publication consumers run in the Hub fast partition"
     }
   }
 }

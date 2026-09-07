@@ -2,7 +2,7 @@
 
 Status: **ACTIVE implementation plan; all release profiles remain `BLOCKED`**  
 Owner: Bullet Farm maintainers  
-Last reconciled: 2026-08-27
+Last reconciled: 2026-09-07
 
 This is the execution bridge from the frozen local family to Bullet developing
 Bullet through its own complete transaction. It refines the
@@ -11,6 +11,15 @@ Bullet through its own complete transaction. It refines the
 [WP-01–WP-23](../workplan.md), or [OD-A–OD-J](../decisions/0013-operator-decision-register.md).
 The executable profile check and admitted receipts always win over this page.
 
+The September 7 order starts with exact-source publication and operational
+hosted CI, then a usable Codex–Claude–Cursor subscription loop. All three
+providers are required initially; Antigravity follows. Four canonical source
+repositories retain their authority, publishing exact reviewed objects/trees to
+`neverhuman/bulletfarm` through App-authored review branches and human-approved
+PRs. The [publication runbook](../runbooks/publication.md) records the component
+implementation and remaining hosted prerequisites. Every ordinary, family,
+scheduled, and independent certification campaign must execute on final subjects.
+
 ## 1. Finish lines
 
 “Dogfood” has three non-substitutable finish lines. Work is planned against the
@@ -18,7 +27,7 @@ earliest honest one, while preserving the path to the complete target.
 
 | Finish line | Meaning | Earliest gate | Current fact |
 | --- | --- | --- | --- |
-| Coordination dogfood | Bullet uses the recovered schema-2 coordinator for its own claims, handoffs, sole-writer commits, receipts, exact retries, and restart read-back | Phase R + W0 | **BLOCKED** by the frozen incident and dirty subjects |
+| Coordination dogfood | Bullet uses a distinct preserved development generation for claims, handoffs, commits, receipts, exact retries, and restart; historical recovery stays separate | Complete two-location admission, independent review, operator checkpoint, W0 | **BLOCKED**; Operating HOLD remains effective |
 | Full-product offline dogfood | One Bullet change crosses Control, Execution/BulletGit, Verification, Delivery/integration, and Evidence/audit with all twelve fault boundaries | W7 `TRANSACTION_PROOF` | **BLOCKED**; a retained component bridge reaches purpose-signed fixture intent/evidence/proof and `MATCHED` Observation, exact Candidate delivery, local check, protected integration, reopen read-back, and post-exit retained-artifact reads, but its executor/keys/roles are harness-process fixtures, its outer receipt is unsigned/ineligible, and independent custody plus the twelve-boundary campaign are absent |
 | Live self-hosted dogfood | The same product path adds admitted Claude execution and protected Jeryu integration on the signed Ubuntu family | W8 `self-hosted-v1` | **BLOCKED** by W7 and OD-A/B/D/E |
 | Complete documented target | Independent evolution, provider, forge, platform, team, and saga profiles also pass | W9–W11 and all eight finish conditions | **BLOCKED**; no narrower receipt may be borrowed |
@@ -30,13 +39,13 @@ checkbox, local simulation, or chat line promotes an evidence class.
 ## 2. Critical path and stop rules
 
 ```text
-R4 replay P1 and exact recovery subject
-→ R5 supervised rollover facade
-→ R6 PASS/APPROVE/request/adopt transactions
-→ R7 fresh 0700 rehearsal
-→ independently reviewed real incident recovery
+exact-source publication, review PRs, and operational hosted CI
+→ complete two-location preservation/admission and durable Genesis consumers
+→ independent review and operator fresh-generation checkpoint
+→ distinct development generation initialization and restart read-back
 → W0 four clean heads and family observation
-→ first schema-2 coordinated Bullet-on-Bullet change
+→ first reviewed coordinated Bullet-on-Bullet change
+→ durable Codex–Claude–Cursor loop and twelve-task acceptance campaign
 → W1 immutable contracts and schema-3 subjects
 → W2 durable authority
 → W3 service/isolation boundary
@@ -56,8 +65,14 @@ because a response was lost.
 
 ## 3. Phase R and W0: start useful dogfood safely
 
-These packets are serialized. They are the only route to unfreezing normal
-family coordination.
+These packets are serialized. R4–R7 remain historical recovery obligations;
+they do not initialize the selected distinct development generation. That
+proposed route needs complete incident-derived admission from both locations,
+final locked validation and Genesis persistence, independent review, and the
+operator checkpoint under ADR 0015. The user-authorized source-maintenance
+exception permits the sole integration owner to prepare review branches and
+prove bootstrap subjects while the coordinator remains on HOLD. It grants no
+coordinator, enrollment, provider, signing, or integration authority.
 
 | Packet | Work and owner surface | Exit evidence | Active hold |
 | --- | --- | --- | --- |

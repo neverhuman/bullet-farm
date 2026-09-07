@@ -1,7 +1,7 @@
 # Product gap register
 
 Status: **operator index; not runtime or release authority**  
-Last reviewed: 2026-08-27
+Last reviewed: 2026-09-07
 Owner: Bullet Farm maintainers
 
 This page answers “what is still missing before Bullet Farm is a product?”
@@ -10,6 +10,16 @@ It does not make a gate green. Authoritative status remains
 generated [`release-truth.generated.md`](release-truth.generated.md). The active
 dependency order is [`closure-roadmap.md`](closure-roadmap.md). A newer commit
 invalidates a row until those sources are replayed.
+
+September 7 publication component (W0/WP-22; G1/G8/G12): the Hub now owns exact
+source capture, deterministic aggregate templates, durable publication requests,
+whole-history object scanning, atomic immutable-source/review refs, portable
+split reconstruction, and an unsigned exact-event CI observation. Focused local
+proof is component evidence only. Public App identity, PR publication, complete
+hosted member/family/scheduled inventories, portable audit, protected integration,
+and independent release campaigns remain required. No G-gap or product profile
+is closed by the narrow publication bootstrap; see the
+[runbook](../runbooks/publication.md).
 
 This is the best-known current gap inventory, not a completeness proof. Every
 blocked capability listed below has an owner document, a fail-closed checker,
