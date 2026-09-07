@@ -189,7 +189,38 @@ fn publication_refuses_dirty_hidden_flags_and_symlinked_checkouts() {
 fn publication_refuses_history_and_endpoint_substitution() {
     let fixture = Fixture::new();
     let repo = fixture.root.join("bullet-git");
+    let original = capture(&fixture.root).unwrap();
+    git::bytes(
+        &repo,
+        &["config", "--local", "protocol.blocked-push.allow", "never"],
+    )
+    .unwrap();
+    assert_eq!(capture(&fixture.root).unwrap(), original);
+    git::bytes(
+        &repo,
+        &[
+            "config",
+            "--local",
+            "--add",
+            "protocol.blocked-push.allow",
+            "always",
+        ],
+    )
+    .unwrap();
+    assert!(capture(&fixture.root).is_err());
+    git::bytes(
+        &repo,
+        &[
+            "config",
+            "--local",
+            "--unset-all",
+            "protocol.blocked-push.allow",
+        ],
+    )
+    .unwrap();
     for (key, value) in [
+        ("protocol.blocked-push.allow", "always"),
+        ("protocol.https.allow", "always"),
         ("url.https://elsewhere.invalid/.insteadOf", DESTINATION),
         ("include.path", "/tmp/config"),
         ("filter.hostile.clean", "false"),

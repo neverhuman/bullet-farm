@@ -154,6 +154,11 @@ pub(super) fn metadata_admission(path: &Path, metadata: &Path) -> Result<()> {
     let config = text(path, &["config", "--local", "--no-includes", "--list"])?;
     require(
         !config.lines().any(|line| {
+            // Canonical source checkouts disable their retired push transport.
+            // Preserve this exact denial; no protocol enablement is admitted.
+            if line == "protocol.blocked-push.allow=never" {
+                return false;
+            }
             let key = line
                 .split('=')
                 .next()
