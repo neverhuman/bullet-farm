@@ -49,12 +49,16 @@ an object above 8 MiB, or more than 512 MiB total refuse. Private attempts retai
 the inventory and execution reports. These finite scanner checks cannot promise
 that every possible secret is detectable.
 
-The default-extended policy excludes one exact public BLAKE3 fixture commitment
+The default-extended policy excludes the exact public BLAKE3 fixture commitment
 in `credential_projection_digest`, independently traced to `projection_digest()`
 and historical Hub commits `9a5def68d367a27bf4f3d452bbbaf45982648b00` and
 `5683c49298cfa7c393285e81497f80a4c71673a8`. No entire test path or arbitrary
-digest is excluded. Repository ignore files and inline allow directives are
-disabled.
+digest is excluded. An independently reviewed exact match also excludes the public
+Portal storage label `bullet-farm.csrf.v1` in historical `CSRF_STORAGE_KEY`
+assignments; the separately returned CSRF token remains a storage value. The
+scanner conformance test uses the committed policy, accepts that exact label,
+and detects a different value in the same field. Repository ignore files and
+inline allow directives are disabled.
 
 Run history admission before any publication credentials are needed:
 

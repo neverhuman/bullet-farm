@@ -164,7 +164,7 @@ fn actual_pinned_scanner_detects_binary_and_chunk_boundary_canaries() {
         synthetic(&repo, &objects, Instant::now() + Duration::from_secs(30)).unwrap();
     let temp = tempfile::tempdir().unwrap();
     let config = temp.path().join("gitleaks.toml");
-    fs::write(&config, b"[extend]\nuseDefault = true\n").unwrap();
+    fs::write(&config, include_bytes!("../../publication/gitleaks.toml")).unwrap();
     let report = temp.path().join("report.json");
     let mut command = scanner_command(&scanner, &repo, &subject, &config, &report, temp.path());
     assert!(
@@ -197,40 +197,53 @@ fn actual_pinned_scanner_detects_binary_and_chunk_boundary_canaries() {
         objects.len(),
         "every binary/root-addition canary must be detected"
     );
-    let clean = b"ordinary public documentation\n";
-    let clean_oid = hash_blob(&repo, clean).unwrap();
-    let clean_objects = [Object {
-        oid: clean_oid,
-        kind: "blob".into(),
-        size: clean.len() as u64,
-    }];
-    let (clean_subject, _) = synthetic(
-        &repo,
-        &clean_objects,
-        Instant::now() + Duration::from_secs(30),
-    )
-    .unwrap();
-    let clean_report = temp.path().join("clean-report.json");
-    let mut command = scanner_command(
-        &scanner,
-        &repo,
-        &clean_subject,
-        &config,
-        &clean_report,
-        temp.path(),
-    );
-    let output = process::run_bounded(
-        &mut command,
-        "pinned clean scanner conformance",
-        process::Limits {
-            timeout: Duration::from_secs(30),
-            stdout_bytes: 1024 * 1024,
-            stderr_bytes: 1024 * 1024,
-        },
-    )
-    .unwrap();
-    assert!(output.status.success());
-    empty_report(&bounded_file(&clean_report, 1024 * 1024).unwrap()).unwrap();
+    for (name, content, expected_status) in [
+        (
+            "public-storage-label",
+            b"const CSRF_STORAGE_KEY = \"bullet-farm.csrf.v1\";\n".to_vec(),
+            0,
+        ),
+        (
+            "changed-storage-value",
+            format!(
+                "const CSRF_STORAGE_KEY = \"{}\";\n",
+                digest(b"generated noncredential scanner canary")
+            )
+            .into_bytes(),
+            1,
+        ),
+    ] {
+        let oid = hash_blob(&repo, &content).unwrap();
+        let objects = [Object {
+            oid,
+            kind: "blob".into(),
+            size: content.len() as u64,
+        }];
+        let (subject, _) =
+            synthetic(&repo, &objects, Instant::now() + Duration::from_secs(30)).unwrap();
+        let report = temp.path().join(format!("{name}.json"));
+        let mut command = scanner_command(&scanner, &repo, &subject, &config, &report, temp.path());
+        let output = process::run_bounded(
+            &mut command,
+            "pinned policy scanner conformance",
+            process::Limits {
+                timeout: Duration::from_secs(30),
+                stdout_bytes: 1024 * 1024,
+                stderr_bytes: 1024 * 1024,
+            },
+        )
+        .unwrap();
+        assert_eq!(output.status.code(), Some(expected_status), "{name}");
+        let report = bounded_file(&report, 1024 * 1024).unwrap();
+        if expected_status == 0 {
+            empty_report(&report).unwrap();
+        } else {
+            let findings: serde_json::Value = serde_json::from_slice(&report).unwrap();
+            let findings = findings.as_array().unwrap();
+            assert_eq!(findings.len(), 1);
+            assert_eq!(findings[0]["RuleID"], "generic-api-key");
+        }
+    }
 }
 
 #[cfg(target_os = "linux")]
