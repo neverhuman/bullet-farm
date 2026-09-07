@@ -7,6 +7,33 @@ refuse() {
   exit 1
 }
 
+test_inventory() {
+  local log="$1" names digest bytes
+  [[ -f "$log" && ! -L "$log" ]] || refuse PUBLICATION_TEST_INVENTORY_INVALID
+  bytes="$(wc -c <"$log")"
+  [[ "$bytes" -gt 0 && "$bytes" -le 16777216 ]] || refuse PUBLICATION_TEST_INVENTORY_INVALID
+  # Compare completed identities, including duplicates, against the independently
+  # reviewed publication subset of the Hub inventory. Count changes require review.
+  if ! names="$(LC_ALL=C awk '
+    /^test result:/ {
+      summaries++
+      if ($0 !~ /^test result: ok\. 29 passed; 0 failed; 0 ignored; 0 measured; [0-9]+ filtered out; finished in [0-9]+([.][0-9]+)?s$/) bad = 1
+      next
+    }
+    /^test / {
+      tests++
+      if ($0 !~ /^test publication::[A-Za-z0-9_:]+ \.\.\. ok$/) bad = 1
+      else print $2
+    }
+    END { if (bad || tests != 29 || summaries != 1) exit 1 }
+  ' "$log" | LC_ALL=C sort)"; then
+    refuse PUBLICATION_TEST_INVENTORY_INVALID
+  fi
+  digest="$(printf '%s\n' "$names" | sha256sum | cut -d ' ' -f 1)"
+  [[ "$digest" == 780f50866d60997ebbaddc737c4361df70aeed226d1200652643246c4d9381bd ]] \
+    || refuse PUBLICATION_TEST_INVENTORY_INVALID
+}
+
 admit_runner() {
   [[ "${GITHUB_ACTIONS:-}" == true ]] || refuse PUBLICATION_DISPOSABLE_CI_REQUIRED
   [[ "${RUNNER_TEMP:-}" == /* && -d "$RUNNER_TEMP" && ! -L "$RUNNER_TEMP" ]] \
@@ -109,10 +136,10 @@ prove() {
   printf 'publication tests started; bootstrap incomplete\n' >"$report/status.txt"
   "${cargo_env[@]}" "$cargo_bin" test --locked \
     --manifest-path "$GITHUB_WORKSPACE/bullet-farm/Cargo.toml" -p bullet-family \
-    --lib publication:: -- --test-threads=1 >"$private/publication-tests.log" 2>&1 \
+    --lib publication:: -- --test-threads=1 --format=pretty --color=never \
+    >"$private/publication-tests.log" 2>&1 \
     || refuse PUBLICATION_TESTS_FAILED
-  [[ "$(grep -Ec '^test result: ok\. [1-9][0-9]* passed; 0 failed; 0 ignored; 0 measured; [0-9]+ filtered out; finished in [0-9.]+s$' \
-    "$private/publication-tests.log")" == 1 ]] || refuse PUBLICATION_TEST_INVENTORY_INVALID
+  test_inventory "$private/publication-tests.log"
   cp "$private/publication-tests.log" "$report/publication-tests.log"
   bash "$GITHUB_WORKSPACE/bullet-farm/publication/ci-tests.sh" \
     >"$report/wrapper-tests.log" 2>&1
@@ -127,6 +154,7 @@ prove() {
 }
 
 case "${1:-}" in
+  test-inventory) [[ "$#" == 2 ]] || refuse PUBLICATION_CI_USAGE; test_inventory "$2" ;;
   source-scan) [[ "$#" == 1 ]] || refuse PUBLICATION_CI_USAGE; source_scan ;;
   prove) [[ "$#" == 1 ]] || refuse PUBLICATION_CI_USAGE; prove ;;
   *) refuse PUBLICATION_CI_USAGE ;;
