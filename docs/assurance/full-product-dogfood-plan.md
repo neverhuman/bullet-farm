@@ -11,9 +11,14 @@ Bullet through its own complete transaction. It refines the
 [WP-01–WP-23](../workplan.md), or [OD-A–OD-J](../decisions/0013-operator-decision-register.md).
 The executable profile check and admitted receipts always win over this page.
 
-The September 8 execution order continues local engineering while the publication
-App is unavailable. Exact-source publication and operational hosted CI remain a
-parallel required track alongside the Codex–Claude–Cursor subscription loop. All three
+The September 8 execution order is health first: finish the preserved packets,
+qualify the canonical Jankurai auditor, repair and verify the findings, synchronize
+accepted source refs, and activate complete CI before production dogfood. Auditor
+findings require source inspection and reproducing evidence; the acceptance floor
+is 90 with zero caps and zero hard findings for each member. Publication and
+operator dependencies do not stop unrelated engineering. Exact-source publication
+and operational hosted CI remain required alongside the Codex–Claude–Cursor
+subscription loop. All three
 providers are required initially; Antigravity follows. Four canonical source
 repositories retain their authority, publishing exact reviewed objects/trees to
 `neverhuman/bulletfarm` through App-authored review branches and human-approved
@@ -29,7 +34,10 @@ subjects, executed checks, failed attempts, and each component's limits.
 Backups and verified restores support authentic schema-22 prefixes and current
 schema-23 databases through private snapshots. Restores preserve the schema and
 authority state, advance the restore epoch, and remain quarantined after final
-read-back. Durable retry, exclusive supervised upgrade and activation remain open.
+read-back. The staged backup producer now explicitly closes both output connections and
+shares retained-close-failure handling with restore. Its 16 focused tests and
+strict adapter Clippy passed; final complete member/family proof remains pending.
+Durable retry, exclusive supervised upgrade and activation remain open.
 The sealed replay reader reconstructs complete retained facts and rereads every
 input before returning `REPLAY_FACTS_READBACK_ONLY`; this grants no admission.
 

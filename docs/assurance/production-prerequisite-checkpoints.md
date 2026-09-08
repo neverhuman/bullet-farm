@@ -394,3 +394,47 @@ Only its three newly generated artifacts and exact run log receive new credit;
 or complete family result. The typed inventory was read and reconciled without
 byte changes: all G1–G18 remain `DESIGNED`, all 20 profiles remain `BLOCKED`,
 and active post-V1 plus retained retired dispositions remain unchanged.
+
+
+## September 8 health-first staged backup checkpoint
+
+The four preserved Kernel files were retained byte-for-byte, independently
+reviewed by the `codex-health-review` lane, and committed as
+`3efe25ec5d74fffb895b60dbb789e80e1a8a8636`, tree
+`17f4e24d60b4c247c8c5fb70bd7118b67ba44472`. Both the output-copy and output-verify
+SQLite connections now close explicitly before cleanup/publication. A failed
+close retains the live connection and staging file, sets the process poison,
+and still finalizes the source after dependent backup objects are gone. Restore
+consumes the same staged lifecycle. Collision and cleanup errors preserve the
+peer and primary error.
+
+`cargo test --locked -p bullet-adapters --lib sqlite::backup::` passed all 16
+selected tests with zero ignored. The new pairs exercise current schema 23 and
+authentic prefix 22, copy/verify close failure with and without a primary error,
+source shared custody and release, retained output handles, cleanup substitution,
+publication collision, and process exit followed by retry. This does not prove
+interruption during copy/publication or durable supervised upgrade recovery.
+Strict all-targets adapter Clippy, targeted formatting and diff checks passed.
+The cold focused command took 69.05 seconds, including 43.75 seconds compilation,
+with peak RSS 658,068 KiB at two Cargo jobs; this is one local sample, not a hosted
+capacity recommendation. Test log SHA256
+`c19779de24d16cfa0099f90bb926ab8d89c1f2715e5ac2f41d32202060d94655`;
+Clippy log SHA256
+`6a46bf3e8fa434ef2daff19a0531dd89d9436f2948d203607dab3a4e5a875a32`.
+
+The separately reviewed inventory commit
+`b6a105b1ed12fd84d9abc1cc0554c6d052391c6b`, tree
+`7d6da8a9d9d4a43fe0f18ab610db1f7519882d45`, declares 1,120 total and 1,074
+standalone tests. The two new identities were measured from actual Nextest
+output; retained complete JUnit and existing family/egress identities reproduce
+every prior partition digest before the additions. The 34 contract, nine family
+and three egress identities are unchanged. Full current workspace enumeration,
+complete member checks and dependency-ordered family proof remain pending on the
+final clean integration subjects. The earlier documentation-freshness failure
+remains historical evidence.
+
+The typed assurance inventory was reread and reconciled without byte changes:
+all G1–G18 remain `DESIGNED`, all 18 product and two diagnostic profiles remain
+`BLOCKED`, and active post-V1 plus retired dispositions remain present. This
+checkpoint grants no coordinator admission, provider enrollment, hosted CI,
+transaction, installation or release credit. The Operating HOLD remains effective.
