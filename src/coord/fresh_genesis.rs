@@ -7,7 +7,7 @@ use super::{
     CoordError,
     model::{
         FreshGenesisAdmissionReferencesV1, FreshGenesisRecordKindV1, FreshGenesisSealedRecordRefV1,
-        IncidentInventoryV1, Wave0SubjectV1,
+        FreshPreservationSubjectV1, IncidentInventoryV1, Wave0SubjectV1,
     },
     recovery_manifest::require_normalized_absolute,
     sealed,
@@ -18,7 +18,8 @@ pub(in crate::coord) mod incident;
 
 const MAX_RECORD_BYTES: u64 = bullet_wire::MAX_CANONICAL_DOCUMENT_BYTES as u64 + 1;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub(crate) enum FreshGenesisPublicationOutcome {
     Created,
     AdoptedExactExisting,
@@ -30,6 +31,49 @@ pub(crate) struct FreshGenesisPublication {
     pub(crate) references_subject_blake3: String,
     pub(crate) inventory_outcome: FreshGenesisPublicationOutcome,
     pub(crate) wave0_outcome: FreshGenesisPublicationOutcome,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct FreshPreservationPublication {
+    pub(crate) subject: FreshPreservationSubjectV1,
+    pub(crate) sealed_sha256: String,
+    pub(crate) byte_length: u64,
+    pub(crate) outcome: FreshGenesisPublicationOutcome,
+}
+
+/// Bind supplied inventory observations without observing or moving either incident.
+pub(crate) fn publish_preservation_record(
+    family_root: &Path,
+    output: &Path,
+    outer_inventory: &IncidentInventoryV1,
+    hub_inventory: &IncidentInventoryV1,
+) -> Result<FreshPreservationPublication, CoordError> {
+    require_normalized_absolute(family_root, "preservation family root")?;
+    require_normalized_absolute(output, "preservation output")?;
+    if output.starts_with(family_root) {
+        return Err(invalid(
+            "preservation output must remain outside the family root",
+        ));
+    }
+    let subject = FreshPreservationSubjectV1::from_inventories(
+        path_hex(family_root),
+        outer_inventory.clone(),
+        hub_inventory.clone(),
+    )?;
+    let bytes = canonical_lf(&subject)?;
+    let outcome = publish_one(
+        output,
+        &subject,
+        &bytes,
+        FreshPreservationSubjectV1::validate,
+        "two-location preservation subject",
+    )?;
+    Ok(FreshPreservationPublication {
+        subject,
+        sealed_sha256: sha256(&bytes),
+        byte_length: bytes.len() as u64,
+        outcome,
+    })
 }
 
 /// Refuse legacy single-location inputs before reading or publishing records.
@@ -206,7 +250,7 @@ fn verify_exact<T>(
 where
     T: DeserializeOwned + Eq + Serialize,
 {
-    let observed = sealed::read_raw(path, MAX_RECORD_BYTES)
+    let observed = sealed::read_synced_raw(path, MAX_RECORD_BYTES)
         .map_err(|error| changed(format!("cannot read back sealed {label}: {error}")))?;
     if observed != expected_bytes {
         return Err(changed(format!(
