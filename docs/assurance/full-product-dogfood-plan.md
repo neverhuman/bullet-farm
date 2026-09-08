@@ -36,6 +36,9 @@ completion and diagnostic validation records, and checks exact artifacts in its
 stable final job. Local wrapper fixtures passed; no hosted run is credited.
 Execution of the complete 53-job inventory, admitted hosted tools and workers,
 and additional assurance campaigns remain required.
+The BulletGit artifact uploader now creates its private stage before copying
+validated diagnostics, and corpus replay respects the selected private Cargo
+target. Their mapped shell fixtures passed; hosted execution remains unproved.
 
 Complete coordinator admission, supervised upgrades, hosted CI qualification,
 and all subsequent production work remain open. All G1–G18 remain `DESIGNED`,

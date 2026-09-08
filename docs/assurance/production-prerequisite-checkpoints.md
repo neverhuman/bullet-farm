@@ -297,3 +297,43 @@ at this checkpoint; earlier full checks do not transfer to later source trees.
 The typed inventory was read and reconciled without changing its bytes: all
 G1–G18 remain `DESIGNED`; all 18 product and two diagnostic profiles remain
 `BLOCKED`, including the active post-V1 and retained retired dispositions.
+
+
+Complete checks subsequently passed on the integrated prerequisite subjects:
+
+- Kernel `e26398d4302f66e36e3eb2feb6bff221463cc77a`, tree
+  `2aa8391d3ce33323d2c40d43bdaad80b8ecde80b`: 1,070 standalone and 34
+  contract tests, plus mapped lint, security and documentation checks. Log SHA256
+  `3d5256246746ebd0d83963f41648a336269886d8f4ef2648b1f7bbf00e6a7003`.
+- Hub `43335886a9e6058038a93540df942fa2d9148f0a`, tree
+  `f8216911e221f3ca1f2a2a8226f21e7a2dbb3e93`: 570 Hub and 219 wire
+  tests, both formal models, lint, security, documentation and component media.
+  Log SHA256 `7b5831572ceede079b51c52cae0a79b8d2ea220d5d62b5735cc089a9fe778624`.
+
+Only newly generated reports and exact completed-run logs receive current
+credit. Inherited coverage, family, fault and older observations are excluded.
+Neither complete member check establishes hosted CI or a complete family run.
+Later source changes require their own mapped verification and exact read-back.
+
+BulletGit's actual staging entrypoint previously removed its upload directory
+and then attempted to create `observations` without the parent. Commit
+`c9a7b4aa8cdc6930837c3542536a1aec8e78ad51`, tree
+`2dea0b26b06a5fe8fd78a7b64e41156258a1c3f2`, creates both private directories
+before copying validated files. A real script fixture first reproduced the
+failure, then passed source-only and report staging, exact bytes and modes,
+retry cleanup, invalid inputs and parent-symlink refusal. It binds a retained
+commit through read-only Git metadata; all fixture artifacts remain private.
+Mapped artifact checks, ShellCheck and diff checks passed.
+
+A subsequent BulletGit corpus-target repair was accepted on commit
+`7c999f545a419d03fc94cdce2d804172bc3f0574`, tree
+`61f9cf31409ae95d918f10c58a0a71f5b4fe18e7`. The actual replay helper now
+uses the selected Cargo target as its parent, preserving the ordinary default,
+both locked/offline commands and all six corpus checks. The mapped parity test
+first reproduced private-target drift and then passed default and private paths,
+including spaces, exact arguments and stop-on-failure behavior. This fixture
+uses an explicit Cargo trace and claims no real corpus execution. Complete
+BulletGit `required` on the accepted subject is pending at this checkpoint.
+Both repairs remove concrete CI blockers; full root workflow activation and
+hosted tool/worker admission remain open. The typed inventory was reconciled
+without byte changes: all G1–G18 remain `DESIGNED` and all 20 profiles `BLOCKED`.
