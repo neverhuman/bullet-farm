@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Hub target inheritance proof using its unchanged driver and fixture receivers.
+# Hub target and Gitd inheritance proof using its exact driver and fixture receivers.
 set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 fixture="$(mktemp -d)"
@@ -43,6 +43,27 @@ set -euo pipefail
 member="${PWD##*/}"
 [[ "${CARGO_TARGET_DIR:-}" == "$HUB_TARGET" ]] || exit 90
 printf '%s %s\n' "$member" "$1" >>"$TARGET_TRACE"
+case "$member:$1" in
+  bullet-portal:required)
+    [[ ! ${BULLET_GITD_BIN+x} && ! ${BULLET_GITD_SHA256+x} ]] || exit 98
+    if [[ "$TARGET_MODE" == portal-before-change ]]; then
+      IFS= read -r gitd_bin <"$TARGET_GITD_SUBJECT"
+      printf '\n# changed before Portal family\n' >>"$gitd_bin"
+    fi
+    ;;
+  bullet-portal:family)
+    mapfile -t expected <"$TARGET_GITD_SUBJECT"
+    [[ "${BULLET_GITD_BIN:-}" == "${expected[0]}" \
+      && "${BULLET_GITD_SHA256:-}" == "${expected[1]}" \
+      && "$BULLET_GITD_BIN" == /* && -f "$BULLET_GITD_BIN" \
+      && -x "$BULLET_GITD_BIN" && ! -L "$BULLET_GITD_BIN" \
+      && "$(sha256sum "$BULLET_GITD_BIN" | cut -d ' ' -f 1)" == "$BULLET_GITD_SHA256" ]] || exit 98
+    printf 'portal received exact Gitd\n' >>"$TARGET_TRACE"
+    if [[ "$TARGET_MODE" == portal-after-change ]]; then
+      printf '\n# changed during Portal family\n' >>"$BULLET_GITD_BIN"
+    fi
+    ;;
+esac
 MEMBER
 cp "$fixture/member-lane.sh" "$fixture/bullet-git/scripts/ci-local.sh"
 cp "$fixture/member-lane.sh" "$fixture/bullet-portal/scripts/ci-local.sh"
@@ -66,12 +87,16 @@ case "$TARGET_MODE:$1" in
   *) [[ ! ${BULLET_CI_CARGO_TARGET_DIR+x} && ! ${BULLET_CI_CARGO_TARGET_ID+x} ]] || exit 96 ;;
 esac
 printf 'kernel %s\n' "$1" >>"$TARGET_TRACE"
+if [[ "$1" == family ]]; then
+  printf '%s\n%s\n' "$BULLET_GITD_BIN" "$BULLET_GITD_SHA256" >"$TARGET_GITD_SUBJECT"
+fi
 KERNEL
 cat >"$farm/scripts/sync-family-contracts.sh" <<'SYNC'
 [[ "$CARGO_TARGET_DIR" == "$HUB_TARGET" ]] || exit 92
 SYNC
 cat >"$farm/ops/ci/contract.sh" <<'CONTRACT'
 [[ "$CARGO_TARGET_DIR" == "$HUB_TARGET" ]] || exit 93
+[[ ! ${BULLET_GITD_BIN+x} && ! ${BULLET_GITD_SHA256+x} ]] || exit 98
 printf 'hub complete\n' >>"$TARGET_TRACE"
 exit 97
 CONTRACT
@@ -113,8 +138,9 @@ done
 # shellcheck source=ops/ci/family-custody.sh
 source "$REPO_ROOT/ops/ci/family-custody.sh"
 marker=$'spoofed marker\nwith spaces : data'
-for mode in normal required-dir required-id family-dir family-id; do
+for mode in normal required-dir required-id family-dir family-id portal-before-change portal-after-change; do
   : >"$fixture/trace"
+  : >"$fixture/gitd-subject"
   record=''
   ci_proof_acquire "$farm" bullet-farm family family record
   extra=()
@@ -124,7 +150,9 @@ for mode in normal required-dir required-id family-dir family-id; do
   esac
   set +e
   env -u BULLET_CI_CARGO_TARGET_DIR -u BULLET_CI_CARGO_TARGET_ID \
+    -u BULLET_GITD_BIN -u BULLET_GITD_SHA256 \
     PATH="$fixture/tools:$PATH" TARGET_MODE="$mode" TARGET_TRACE="$fixture/trace" TARGET_MARKER="$marker" \
+    TARGET_GITD_SUBJECT="$fixture/gitd-subject" \
     HUB_TARGET="$fixture/hub-target" CARGO_TARGET_DIR="$fixture/hub-target" \
     BULLET_CI_PROOF_CUSTODY="$record" "${extra[@]}" \
     bash "$farm/ops/ci/family.sh" >"$fixture/run.log" 2>&1
@@ -140,6 +168,7 @@ for mode in normal required-dir required-id family-dir family-id; do
       grep -Fxq 'kernel family' "$fixture/trace"
       grep -Fxq 'bullet-portal required' "$fixture/trace"
       grep -Fxq 'bullet-portal family' "$fixture/trace"
+      grep -Fxq 'portal received exact Gitd' "$fixture/trace"
       grep -Fxq 'hub complete' "$fixture/trace"
       ;;
     required-*)
@@ -152,7 +181,19 @@ for mode in normal required-dir required-id family-dir family-id; do
       [[ "$(grep -c '^kernel ' "$fixture/trace")" == 1 ]]
       grep -Eq '^fixture receiver preserved (DIR|ID) bytes$' "$fixture/run.log"
       ;;
+    portal-*)
+      [[ "$status" == 1 ]]
+      grep -Fxq 'bullet-portal required' "$fixture/trace"
+      if grep -Fxq 'hub complete' "$fixture/trace"; then exit 1; fi
+      if [[ "$mode" == portal-before-change ]]; then
+        if grep -Fxq 'bullet-portal family' "$fixture/trace"; then exit 1; fi
+        grep -Fxq 'BULLET_GITD_BIN_CHANGED before-portal-family' "$fixture/run.log"
+      else
+        grep -Fxq 'portal received exact Gitd' "$fixture/trace"
+        grep -Fxq 'BULLET_GITD_BIN_CHANGED after-portal-family' "$fixture/run.log"
+      fi
+      ;;
   esac
   [[ -z "$(find "$fixture" -type d -name bullet-ci.lock.d -print)" ]]
 done
-echo '[ci] family Kernel target boundaries: 5 fixture scenarios passed'
+echo '[ci] family Kernel target and Portal Gitd boundaries: 7 fixture scenarios passed'

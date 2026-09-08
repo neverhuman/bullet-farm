@@ -233,7 +233,12 @@ run_member_ci bullet-portal required
 assert_family_subjects after-stage-5
 assert_family_subjects before-stage-6
 log "6/7 Portal real-farmd browser proof"
-run_member_ci bullet-portal family
+[[ "$(sha256_file "$gitd_bin")" == "$gitd_sha256" ]] \
+  || { refuse BULLET_GITD_BIN_CHANGED before-portal-family; exit 1; }
+BULLET_GITD_BIN="$gitd_bin" BULLET_GITD_SHA256="$gitd_sha256" \
+  run_member_ci bullet-portal family
+[[ "$(sha256_file "$gitd_bin")" == "$gitd_sha256" ]] \
+  || { refuse BULLET_GITD_BIN_CHANGED after-portal-family; exit 1; }
 assert_family_subjects after-stage-6
 
 assert_family_subjects before-stage-7
