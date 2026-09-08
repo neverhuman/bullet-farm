@@ -64,52 +64,65 @@ subscription providers and twelve tasks, publication/CI, and every later profile
 The typed inventory was revalidated together with this entry: all G1–G18 remain
 `DESIGNED`, and all 18 product plus two diagnostic profiles remain `BLOCKED`.
 
-September 8 schema prerequisite: authentic schema-22 migration prefixes now
-return `UPGRADE_REQUIRED` before writable source SQLite startup. A private
-preflight preserves source WAL and rollback journals, rejects external
-super-journal recovery, and bounds snapshot input and recovered size to 1 GiB.
-Focused adapter library (40), cross-process startup (5), and lease transaction
-(13) tests and all-target Clippy passed after independent hostile review.
-The supervised upgrade command, maintenance custody, prefix-aware verified
-backup, high-water enforcement, and rollback remain open; this startup
-preflight supplies none of their authority.
+September 8 schema prerequisite: authentic schema-22 migration prefixes now return `UPGRADE_REQUIRED` before writable source SQLite startup.
+A private preflight preserves source WAL and rollback journals, rejects external super-journal recovery, and bounds snapshot input and
+recovered size to 1 GiB. Focused adapter library (40), cross-process startup (5), and lease transaction (13) tests and all-target Clippy
+passed after independent hostile review. The supervised upgrade command, maintenance custody, prefix-aware verified backup, high-water
+enforcement, and rollback remain open; this startup preflight supplies none of their authority.
 
-A subsequent serving-custody component retains a shared lock on the admitted
-main descriptor before preflight and throughout the ledger lifetime. It supports
-the ext filesystem family and refuses unsupported filesystems or contention.
-Tests prove independent SQLite close, duplicate descriptors, process death, and
-a forced creation-to-lock race; busy refusal preserves the exact inode. The
-focused custody identity, 40 adapter, five cross-process, and 13 lease tests and
-Clippy passed with independent review. Online backups now use the same shared
-custody and read-only SQLite, retaining the source guard through publication
-and bounded receipt read-back. Exclusive-owner and missing-source refusal tests
-preserve the complete source/destination inventory. Prefix-aware upgrade backup,
-exclusive maintenance, and generation replacement custody remain open.
+A subsequent serving-custody component retains a shared lock on the admitted main descriptor before preflight and throughout the ledger
+lifetime. It supports the ext filesystem family and refuses unsupported filesystems or contention. Tests prove independent SQLite close,
+duplicate descriptors, process death, and a forced creation-to-lock race; busy refusal preserves the exact inode. The focused custody
+identity, 40 adapter, five cross-process, and 13 lease tests and Clippy passed with independent review. Online backups now use the same
+shared custody and read-only SQLite, retaining the source guard through publication and bounded receipt read-back. Exclusive-owner and
+missing-source refusal tests preserve the complete source/destination inventory. Prefix-aware upgrade backup, exclusive maintenance, and
+generation replacement custody remain open.
 
-A two-location preservation component now binds the complete outer and Hub
-inventories to one purpose-specific record. `bullet-family preservation-bind`
-accepts supplied canonical mode-0600 observations in private mode-0700 parents
-and publishes a sealed mode-0400 record outside the family. It never observes
-or moves the incident directories. Successful creation or exact-existing
-adoption requires retained file and parent synchronization plus identity and
-byte read-back; persistent post-link sync failure refuses, retains the inode,
-and permits exact retry after recovery. Five pair, ten publisher, eight sealed
-reader, and two CLI fixture tests passed. This is component evidence; paired
-replay and historical dispositions, independent review and operator admission,
-locked Genesis references, and the complete preservation fault journal remain
-open. Operating HOLD is unchanged.
+Typed schema inspection now retains the verified catalog prefix, its digest, normalized authority and restore state. Serving and current
+backup still require the current schema; backup receipts take their schema and restore subject from the inspected copy. Schema-22 integrity
+requires the complete result `["ok"]`. The extended schema identity, 40 adapter tests, 18 integration tests and Clippy passed with
+independent review. Authority is a sampled row: coherent upgrade admission still requires transaction and maintenance custody. This
+component adds neither prefix-backup permission nor an upgrade or high-water authority.
 
-A CI expectation component now derives 55 invocations from the reviewed 53
-nested job definitions and exact eight-workflow inventory. The canonical plan
-binds aggregate and member commits/trees, manifest and workflow digests, matrix
-values, dependencies, and runner selection. `bullet-publish ci-plan` supports an
-admitted aggregate checkout or an existing publication store/request, without
-creating another checkout or Git objects. Independent review against all eight
-source workflows and 29 publication tests passed. Its output explicitly contains no execution
-evidence. The 27 required invocations and 28 scheduled invocations remain
-distinct; root workflow generation/activation, hosted tool and worker admission,
-job observation envelopes, the stable final check, and additional family/MSRV
-and assurance campaigns remain open.
+Online backup now explicitly closes its admitted source on every producer result. A real SQLite close failure retains the connection and
+custody until process exit and refuses new admissions before filesystem effects. Confirmed close followed by postflight or cleanup failure
+reports the failure without poisoning later admissions. The extended child-process identity, 40 adapter tests, 18 integration tests and
+Clippy passed. Existing in-flight operations and unrelated serving shutdown paths are outside this repair; prefix backup and exclusive
+upgrade custody remain open.
+
+A two-location preservation component now binds the complete outer and Hub inventories to one purpose-specific record. `bullet-family
+preservation-bind` accepts supplied canonical mode-0600 observations in private mode-0700 parents and publishes a sealed mode-0400 record
+outside the family. It never observes or moves the incident directories. Successful creation or exact-existing adoption requires retained
+file and parent synchronization plus identity and byte read-back; persistent post-link sync failure refuses, retains the inode, and permits
+exact retry after recovery. Five pair, ten publisher, eight sealed reader, and two CLI fixture tests passed. This is component evidence;
+paired replay and historical dispositions, independent review and operator admission, locked Genesis references, and the complete
+preservation fault journal remain open. Operating HOLD is unchanged.
+
+A subsequent `preservation-bind replay` component consumes supplied sealed pair/request records and both complete retained ledger copies. It
+binds exact copy bytes, replay projections, every historical claim, and ordered dispositions to one sealed `REPLAY_FACTS_ONLY` record, with
+read-back and exact retry after synchronization failure. Recorded receipts must exist in the replayed history; other claims remain retained
+for recovery. Missing, corrupt or interrupted histories, omitted claims, invented receipts, and unsafe or conflicting paths refuse. Six new
+replay identities and 25 related tests passed, followed by combined Clippy and canonical inventory checks. The producer does not observe
+incident directories or admit Genesis: complete incident-range handling, independent review, durable locked admission references and the
+operator checkpoint remain required. Operating HOLD is unchanged.
+
+A CI expectation component now derives 55 invocations from the reviewed 53 nested job definitions and exact eight-workflow inventory. The
+canonical plan binds aggregate and member commits/trees, manifest and workflow digests, matrix values, dependencies, and runner selection.
+`bullet-publish ci-plan` supports an admitted aggregate checkout or an existing publication store/request, without creating another checkout
+or Git objects. Independent review against all eight source workflows and 29 publication tests passed. Its output explicitly contains no
+execution evidence. The 27 required invocations and 28 scheduled invocations remain distinct; root workflow generation/activation, hosted
+tool and worker admission, job observation envelopes, the stable final check, and additional family/MSRV and assurance campaigns remain
+open.
+
+A bootstrap CI diagnostic adapter now binds the selected immutable plan row, aggregate and member subjects, actual GitHub
+event/workflow/run/attempt, and bounded member observation bytes. `ci-job-context` and `ci-job-observe` support only
+`bullet-farm:REQUIRED:source_scan` under the existing bootstrap root job. The observer executes the exact source-bound semantic validator
+and retains its output digests. The bootstrap job does not execute the nested source scan; both outputs state `execution_evidence=false`,
+with no run or release verdict. Twenty-nine publication tests and both Clippy passes succeeded. This sampled validation does not attest
+hosted provenance or isolate mutable same-UID tools. Generated root job execution, complete execution observations and the stable required
+convergence check remain open. The measured Rust inventory is now 789 identities, partitioned into 570 Hub and 219 wire tests, with
+precisely the six new replay identities added and no prior identity removed. The typed inventory remains unchanged: all 18 gaps are
+`DESIGNED`, and all 18 product plus two diagnostic profiles remain `BLOCKED`.
 
 This is the best-known current gap inventory, not a completeness proof. Every
 blocked capability listed below has an owner document, a fail-closed checker,

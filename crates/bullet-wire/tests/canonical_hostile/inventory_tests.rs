@@ -70,6 +70,7 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
             (PathBuf::from("src/checkout/git.rs"), 1),
             (PathBuf::from("src/cli/preservation.rs"), 1),
             (PathBuf::from("src/coord/fresh_genesis.rs"), 1),
+            (PathBuf::from("src/coord/fresh_replay.rs"), 1),
             (PathBuf::from("src/coord/generation/manifest.rs"), 1),
             (
                 PathBuf::from("src/coord/generation/recovery/authority/metadata.rs"),
