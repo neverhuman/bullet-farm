@@ -74,6 +74,8 @@ run_member_ci() {
   set +e
   (
     cd "$root"
+    # Kernel owns its private target; its authority-marker refusals stay intact.
+    [[ "$member" != bullet-kernel ]] || unset CARGO_TARGET_DIR
     exec env BULLET_CI_PROOF_CUSTODY="$record" bash scripts/ci-local.sh "$lane"
   )
   status=$?
@@ -213,7 +215,7 @@ kernel_custody="$(family_custody_record bullet-kernel)" || exit $?
 set +e
 (
   cd "$KERNEL_ROOT"
-  exec env BULLET_CI_PROOF_CUSTODY="$kernel_custody" \
+  exec env -u CARGO_TARGET_DIR BULLET_CI_PROOF_CUSTODY="$kernel_custody" \
     BULLET_GITD_BIN="$gitd_bin" BULLET_GITD_SHA256="$gitd_sha256" \
     bash scripts/ci-local.sh family
 )
