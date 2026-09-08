@@ -2,7 +2,7 @@
 
 Status: **ACTIVE implementation plan; all release profiles remain `BLOCKED`**  
 Owner: Bullet Farm maintainers  
-Last reconciled: 2026-09-07
+Last reconciled: 2026-09-08
 
 This is the execution bridge from the frozen local family to Bullet developing
 Bullet through its own complete transaction. It refines the
@@ -19,6 +19,51 @@ repositories retain their authority, publishing exact reviewed objects/trees to
 PRs. The [publication runbook](../runbooks/publication.md) records the component
 implementation and remaining hosted prerequisites. Every ordinary, family,
 scheduled, and independent certification campaign must execute on final subjects.
+
+The September 8 component checkpoint passed the Portal `family` lane's three
+real-farmd browser tests on these exact source subjects:
+
+| Member | Commit | Tree |
+| --- | --- | --- |
+| Portal | `b66a2053d25b5d306ee4c4b345bc6aa8ed34347c` | `3132496669137555cadf28c208a9658cb86b914c` |
+| Kernel | `b179eafc2f86af5251d8b79a17106fe2b67e9ba7` | `99b6b38d0d45845dc098c31f70228e76f06033dd` |
+| BulletGit | `48755d95cf8469d48e1a022f2f7223c07393d6a3` | `7f3e36d8b1f838774f84fe0a15ca02df0a855a48` |
+
+From the Portal checkout, `bash scripts/ci-local.sh family` invokes
+`ops/ci/real-farmd.sh` and `e2e/real-farmd.spec.ts`. The executed path connects
+authenticated public commands, the UDS worker, product Runner/BulletGit,
+immutable retained-artifact validation, durable `UNKNOWN`, and worker restart
+read-back. Its provider is synthetic, its outer receipt is `UNSIGNED_FIXTURE`,
+and its evidence is `COMPONENT_PROOF`; independent, transaction, and release
+eligibility remain false. The browser uses Vite preview and real sibling farmd;
+this observation supplies no packaged-origin or installation certification.
+
+The accepted baseline repairs validate UTC timestamps in producer `+00:00` and fixture `Z` forms,
+checkpoint and close a quiescent WAL ledger before immutable reads, await owned
+Gitd termination, and clean up CI workers. Kernel `Cargo.toml`/`Cargo.lock` now
+pin rusqlite 0.39.0 with bundled SQLite 3.51.3 and retained checked unsigned SQL
+conversions. The SQLite C source matches the vendor's fixed release hash.
+The relevant Kernel consumers are
+`apps/bullet-runner/src/bin/bullet-command-worker/receipt/preservation.rs`,
+`crates/adapters/src/sqlite/open.rs::close_quiescent`, and
+`crates/runner/src/gitd/session.rs`; Portal owns the CI fixture lifecycle in
+`ops/ci/real-farmd.sh`. The bundled C SHA3-256 is
+`32d5424f97e0a7fc5ed2f6335afbb58be4e0298bd7117a34e39d345ff13d859e`,
+matching the [SQLite 3.51.3 release](https://sqlite.org/releaselog/3_51_3.html).
+Focused Runner library, SQLite adapter, and worker-receipt checks passed
+103, 36, and 24 tests respectively; the Rust 1.95 workspace/all-targets build
+also passed. These observations do not constitute a release MSRV receipt.
+
+Hub `d3c4db3600e6f1d93800d258e3ac7c1a2b4db4f3` passed `required`: 770 Rust
+tests, two formal models, and documentation/media checks. Its repaired
+`scripts/demo.sh` captures and revalidates five Cargo executable subjects;
+both existing launcher tests, including 35 fake-Cargo cases, passed. These observations precede the actual
+demo, final Kernel `required`, and repeated full-family campaign required for
+final-subject publication admission. Public App identity, PR publication, the complete root
+workflow inventory, portable audit, and branch protection remain blocked.
+WP-02 now records `COMPONENT` evidence in the typed inventory; all G1–G18
+remain `DESIGNED`, all release profiles remain `BLOCKED`, and Operating HOLD
+remains effective. WP-22 retains its separate publication component evidence.
 
 ## 1. Finish lines
 
@@ -78,10 +123,10 @@ coordinator, enrollment, provider, signing, or integration authority.
 | --- | --- | --- | --- |
 | DF-R4 | Hub recovery verifier/ledger: validate the published recovery tombstone, retired source, sibling absence, and sealed observation chain before and at final locked replay | Clean exact R3.1+R4 subject; all recovery/adoption hostile suites; strict lint; independent artifact review | Bounded logic is exact-copy green; `cargo clippy --locked --workspace --all-targets -- -D warnings` is 0/0 on this tree; R4.1 `canonical_hostile` 8/8 after the current path/attribute/dependency inventory pin. No live execution is authorized |
 | DF-R5 | Hub private recovery facade and narrow CLI: exact normalized absolute inputs, descriptor-safe Linux admission, sole inner topology oracle, deterministic writer-wait/resume, typed non-Linux refusal | Facade publish/wait/resume/already-current tests; facade-level Exchange crash/restart; macOS/Windows compile and zero-mutation CLI refusal | Linux facade, Exchange restart, and static hosted-lane policy are green. This Linux host now fail-closes with `NATIVE_PLATFORM_EVIDENCE_UNAVAILABLE` (`scripts/platform-native-evidence.sh`); native `macos-15`/`windows-2025` compile/refusal remains unproved until those runners admit `ops/ci/platform-refusal.sh` |
-| DF-R6 | Hub recovery producers: internally derived proof PASS, sealed independent APPROVE, canonical adoption request, explicit `adopt --request`, request-byte idempotency/conflict | Failed/SKIP/UNKNOWN/non-APPROVE cannot append; reviewer differs from orchestrator; exact proof set/watermark; retry invokes no clock/process/write | Linux component implemented: the [operator runbook](../runbooks/coordinator-recovery.md) covers the five closed CLI actions; focused model/backend/CLI chain is 5/5, public ingress 2/2, the complete coordinator library is 159/159, canonical hostiles are 8/8, and four canonical public suites are 19/19. Strict Hub lint still has 41 shared reachability/dead-code failures; native-platform execution, R7 rehearsal, independent review, and the real incident remain blocked |
+| DF-R6 | Hub recovery producers: internally derived proof PASS, sealed independent APPROVE, canonical adoption request, explicit `adopt --request`, request-byte idempotency/conflict | Failed/SKIP/UNKNOWN/non-APPROVE cannot append; reviewer differs from orchestrator; exact proof set/watermark; retry invokes no clock/process/write | Linux component implemented: the [operator runbook](../runbooks/coordinator-recovery.md) covers the five closed CLI actions; focused model/backend/CLI chain is 5/5, public ingress 2/2, the complete coordinator library is 159/159, canonical hostiles are 8/8, and four canonical public suites are 19/19. The former 41 shared Hub lint findings are historical; exact Hub `d3c4db3600e6f1d93800d258e3ac7c1a2b4db4f3` passed `required`, including strict lint. Native-platform execution, R7 rehearsal, independent review, and the real incident remain blocked |
 | DF-R7a | Fresh owner-0700 synthetic family: run rollover → proof → review → request → adopt → restart with injected crashes at every publication and append boundary | One immutable rehearsal bundle; deterministic redacted JSON; byte-identical rerun; independent review | Unsigned COMPONENT rehearsal producer (`scripts/recovery-rehearsal.sh`) is landed: 0700 parent, byte-identical rerun, live incident hard-false. Signed independent bundle review and policy-enabled recover-rollover remain open (`RECOVERY_POLICY_DISABLED` without operator keys) |
 | DF-R7b | Frozen real incident: independently compare every live input hash to the reviewed rehearsal, execute once under supervision, adopt every reviewed break-glass group, restart and read back | Current schema-2 generation, complete watermark, no unexplained frozen claim, signed human review record | Compare/refuse producer (`scripts/recovery-incident-compare.sh`) is landed: missing APPROVE and frozen live source both refuse; the script cannot chmod, recover, or adopt. Execution waits on independent human approval |
-| DF-W0a | Four repository owners close active changes, run atomic and standalone `required` lanes, then sole-writer commits reviewed path sets | Four clean immutable commit/tree pairs; no missing, skipped, zero-test, dirty, or orphan partition | Waits on incident recovery |
+| DF-W0a | Four repository owners close active changes, run atomic and standalone `required` lanes, then sole-writer commits reviewed path sets | Four clean immutable commit/tree pairs; no missing, skipped, zero-test, dirty, or orphan partition | Source preparation proceeds under the maintenance exception; coordinator use waits on complete two-location admission and the fresh-generation checkpoint, while historical recovery remains separate |
 | DF-W0b | Family order: BulletGit build → Kernel component/family with exact daemon path → Portal component/real-farmd browser → Hub contracts/models/media | Deterministic unsigned `bullet.ci-observation.v1`; second identical family run | No signed Evidence is claimed |
 | DF-DOG0 | First low-risk docs/test-only Bullet change uses status → exact claim → heartbeat → handoff → proof → sole-writer commit receipt → restart read-back | Stored request IDs and complete watermark reconstruct the whole loop after process restart | Any direct commit or inferred receipt invalidates the exercise |
 
@@ -196,7 +241,7 @@ only W5 can independently qualify and reconcile it.
 
 Current W6 component fact: a retained exact-subject wrapper authenticates an
 idempotent public `run_demo` POST, survives farmd restart, replays and polls the
-same command/request through the packaged Portal, dispatches it to a registered
+same command/request through the Vite-preview Portal, dispatches it to a registered
 same-UID `SO_PEERCRED` UDS Runner and bounded exact worker, admits the retained
 fixture transaction receipt, atomically settles the same command/request/raw-
 receipt BLAKE3 to durable `UNKNOWN`, and reads `NO_COMMAND` after worker restart.
@@ -280,9 +325,10 @@ reverse link. This table is a human route, not that executable inventory.
 - One owner at a time edits a trust-boundary seam. Recovery verifier/ledger,
   recovery CLI, receipt producers, and live incident execution remain
   serialized.
-- After Phase R, standalone lane repair can run independently in Hub, Kernel,
-  BulletGit, and Portal. The exact family lane is always serialized in its
-  dependency order.
+- Authorized source-maintenance lanes may prepare the baseline during Operating
+  HOLD with manual path-exact custody. Coordinator use waits on the admitted
+  development-generation transition; the exact family lane remains serialized
+  in dependency order.
 - After W1 freezes wire identity, Kernel W2, local packaging, Portal projection,
   and provider-onboarding refusal work may proceed on disjoint paths. They
   converge only on clean immutable subjects.
@@ -302,11 +348,15 @@ tool versions, test counts, outcomes, artifact hashes, evidence class,
 remaining holds, and independent reviewer. The owner board is reconciled after
 every packet, not after a wave-sized batch.
 
-The next executable queue is DF-R4 → DF-R5 → DF-R6 → DF-R7a → DF-R7b →
-DF-W0a/b → DF-DOG0. Once DF-DOG0 passes, the vertical product queue is DF-101
-through DF-105, DF-201 through DF-205, DF-301 through DF-304, DF-401 through
-DF-503, DF-601 through DF-605, and DF-701 through DF-706. W8 begins only from
-that admitted W7 subject.
+The active engineering queue prepares publication/CI and DF-W0a/b subjects,
+completes both-location admission and locked Genesis consumers, then obtains
+independent review and the operator fresh-generation checkpoint. Only the
+admitted transition and restart read-back permit DF-DOG0. DF-R4–DF-R7b remain
+separate historical recovery obligations; this plan authorizes no incident
+mutation or coordinator initialization. Once DF-DOG0 passes, the vertical
+product queue is DF-101 through DF-105, DF-201 through DF-205, DF-301 through
+DF-304, DF-401 through DF-503, DF-601 through DF-605, and DF-701 through DF-706.
+W8 begins only from that admitted W7 subject.
 
 “100%” still means all eight conditions in the
 [finish execution plan](execution-plan.md#9-definition-of-finished) hold at
