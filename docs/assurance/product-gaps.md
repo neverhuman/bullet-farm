@@ -11,6 +11,13 @@ generated [`release-truth.generated.md`](release-truth.generated.md). The active
 dependency order is [`closure-roadmap.md`](closure-roadmap.md). A newer commit
 invalidates a row until those sources are replayed.
 
+The operator selected `https://git.neverhuman.org/bulletfarm` as the primary
+integration destination, proposed JeRyu identity `root/bulletfarm`, containing
+all four supporting repositories' exact sources. Aggregate creation is currently
+blocked by JeRyu's global-admin requirement; the existing account can access the
+supporting repositories. Their PRs and audit scores do not establish complete
+aggregate CI. GitHub remains an independent mirror/effect-adapter obligation.
+
 Accepted local prerequisites cover two-location preservation and replay facts,
 typed schema inspection, serving and backup custody, explicit backup close,
 expected CI topology, and source-bound diagnostic validation. The
@@ -57,11 +64,19 @@ full Hub check exposed two stale test assertions; both were repaired and passed
 focused verification. A complete check of the resulting subject remains required.
 
 Canonical auditor repairs now have independently reviewed local evidence: Core
-completed 602 distinct tests, and the shared audit kernel completed 107 tests plus
-strict Clippy. Inventory classification, report outcomes and version declarations
-were repaired; immutable dependency admission, remaining detector regressions,
-witness and release proof validation, and portable artifact qualification remain
-open. The dated checkpoint records exact source and evidence subjects.
+completed 610 distinct tests including witness outcome and routing regressions;
+the shared audit kernel completed 115 tests plus strict Clippy with independently
+accepted runtime evidence. Inventory, report outcomes, version declarations,
+bounded witness refusals and Rust constructor detection were repaired. Immutable dependency admission, remaining detector
+regressions, complete witness/release receipt custody and portable artifact
+qualification remain open. The dated checkpoint records exact subjects.
+
+A later complete Hub invocation failed two corpus inventory checks after a
+concurrent BulletGit test-file move. The four affected coverage anchors were
+updated from the unchanged test body; generated outputs and all six focused
+checks passed independent review. Full proof on the resulting family subjects
+remains required. Concurrent member refactors and their audit scores do not
+inherit the earlier complete family receipt.
 
 Complete auditor qualification, coordinator admission, supervised upgrades,
 hosted CI qualification, and all subsequent production work remain open. All G1–G18 remain `DESIGNED`,

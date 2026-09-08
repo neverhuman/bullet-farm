@@ -657,3 +657,81 @@ The typed assurance inventory was reconciled unchanged at SHA256
 `d0df5aea6d15366246b8b58ae998605c8f30240be2859eb593bb567e9f16326f`.
 All G1–G18 remain `DESIGNED`, all 18 product and two diagnostic profiles remain
 `BLOCKED`, and the Operating HOLD remains effective.
+
+
+## September 8 witness, corpus anchors and JeRyu primary destination
+
+The accepted Core witness packet is committed locally as
+`c243b860348a702b577caeb21b788d1565d5d2fd`, tree
+`9cbcefbccecf6219eee457f18fde3136620fde45`. It preserves blocking report outcomes,
+constrains claimed conformance to the source report, refuses invalid Git bases,
+and retains required routes/proof obligations. Newline-containing paths remain
+valid inputs. A cached empty surface cannot clear nonempty routed changes, and
+an obligations boolean cannot replace the existing receipt match. Complete
+receipt/source/revision custody and omitted-dirty-scope coverage remain open.
+
+All 609 required tests and the separately selected performance test passed:
+610 distinct identities, eight added to the previous 602. Strict Clippy passed.
+The required run took 205.986 seconds with peak RSS 724,344 KiB. Packet SHA256
+`e5da001277694fddf45130f0beae3f29e65e5d954fe61a87ab24e435616046cf`;
+independent review SHA256
+`ebf0f73e58b7e73736b9e0bdafd9516483ab1c2a318e1a3dbfd0824f9bee6954`.
+The initial compiler failure is retained separately. The self-audit remains an
+advisory diagnostic using the selected older dependencies, not portable auditor
+admission. Subsequent release-consumer changes are still under verification.
+The shared Rust detector packet separately passed 115 tests and strict Clippy,
+with all prior 107 identities retained. Independent review accepted runtime packet
+SHA256 `8703ce4640c01584bb30f2e55b8a8eeda6d5e5d9ac9b772f1816735d587c9d07`;
+review SHA256 `c8cad0d58874d7a0c82db170ee2cc4616bd311c44fb8b7e29b523b062edd674b`.
+The exact source is local commit `dc7b9cf7a645c291597ec95b0757432f15b41e7d`,
+tree `41f229ab8e450dc7bf728cf51c5afb4033f9763c`. Unsupported namespace/value
+resolution remains unqualified; no immutable dependency or portable admission
+is granted.
+
+Complete Hub `required` on `a18d04c805a9286f3fe9c352c9cb4b1a239c40f2`
+with BulletGit `690346d95461d2b079a7eb4649c471cce1e2ab56` exited 100:
+576 of 578 Hub tests passed, including both repaired demo tests. Two corpus
+inventory checks failed because four anchors still named `change.rs` after the
+same test moved to `change_tests.rs`. Failure result SHA256
+`27034ba6d9a9bfb1432e7b7a7891d5114331e63527b4f9dcae3348c7f81cf21e`.
+The repair is Hub `7d89fbfd22e8539f4a0659e51c99a5ab3f0a6b82`, tree
+`5070777cfd4a0945648e5203f366aa6343582bf2`. Four policy anchors changed and
+both generated inventories were rebuilt by their generators. All five corpus
+and one orphan checks passed; independent review confirmed the moved test body
+is unchanged apart from indentation. The broader concurrent BulletGit refactor
+is not admitted by this anchor-only proof. Current member changes need renewed
+complete checks. All eight current member workflow hashes were subsequently
+read back equal to the reviewed catalog after the BulletGit CI repair; that byte
+reconciliation does not prove execution of the broader changed sources.
+
+The operator now requires all accepted sources under primary JeRyu aggregate
+`https://git.neverhuman.org/bulletfarm`; the proposed repository identity is
+`root/bulletfarm`, private with default branch `main`. Supporting source repos
+retain their origins. On September 8 at 21:46 UTC, authenticated read-back listed
+69 repositories with no `bulletfarm` aggregate visible to this account.
+The aggregate GET returned 403, so global absence is not proved. The current account was `jepsont`.
+The exact creation request SHA256 is
+`f1b6b9ea4798bcc87f9d821c5c8f2385d62a064901f8b90bfdb96038434ef036`.
+`POST /api/v3/repos` returned HTTP 403, "repository creation requires admin
+access". Runner administration also returned 403. The concrete creation request
+is ready for an administrator; no aggregate or successful run was created.
+
+Canonical JeRyu source inspection found its Actions surface projects check runs
+and does not dispatch workflows. Its `jeryu ci run` CLI currently uses an
+in-memory client, and GitHub workflow execution in the bridge requires mock mode.
+None supplies hosted execution evidence. The historical host script also creates
+worktrees, which this program prohibits. Native worker admission, real execution,
+exact aggregate/run/artifact read-back and protected final checks remain required.
+JeRyu routing review SHA256
+`436422d79e8c865992cc9a5b62dac6e297d9d17980373709c3cda460ff8c5117`.
+A destination-bound publication adapter is being implemented; its local tests,
+configuration selection and native CI reconstruction are still pending. Existing
+GitHub publication requests remain historical evidence. GitHub's independent
+adapter/profile obligations remain in the retained release program.
+
+The typed assurance inventory was reconciled without byte changes at SHA256
+`d0df5aea6d15366246b8b58ae998605c8f30240be2859eb593bb567e9f16326f`.
+All G1–G18 remain `DESIGNED`, all 18 product and two diagnostic profiles remain
+`BLOCKED`, and the coordinator Operating HOLD remains effective. No source score,
+local component proof, pending PR or repository-health label supplies complete CI
+or product release credit.

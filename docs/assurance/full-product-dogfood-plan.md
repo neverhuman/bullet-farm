@@ -19,10 +19,14 @@ is 90 with zero caps and zero hard findings for each member. Publication and
 operator dependencies do not stop unrelated engineering. Exact-source publication
 and operational hosted CI remain required alongside the Codex–Claude–Cursor
 subscription loop. All three
-providers are required initially; Antigravity follows. Four canonical source
-repositories retain their authority, publishing exact reviewed objects/trees to
-`neverhuman/bulletfarm` through App-authored review branches and human-approved
-PRs. The [publication runbook](../runbooks/publication.md) records the component
+providers are required initially; Antigravity follows. The primary integration destination selected by the operator is
+`https://git.neverhuman.org/bulletfarm`, with proposed JeRyu repository identity
+`root/bulletfarm`. It must contain the exact reviewed objects and trees of all
+four supporting repositories. Existing private source origins and historical
+publication request identities remain preserved. Protected, human-reviewed
+integration and complete applicable CI on the aggregate are required. GitHub's
+`neverhuman/bulletfarm` remains a separate mirror/effect-adapter obligation;
+its App credential does not gate preparing the JeRyu publication path. The [publication runbook](../runbooks/publication.md) records the component
 implementation and remaining hosted prerequisites. Every ordinary, family,
 scheduled, and independent certification campaign must execute on final subjects.
 
@@ -72,11 +76,19 @@ full Hub check exposed two stale test assertions; both were repaired and passed
 focused verification. A complete check of the resulting subject remains required.
 
 Canonical auditor repairs now have independently reviewed local evidence: Core
-completed 602 distinct tests, and the shared audit kernel completed 107 tests plus
-strict Clippy. Inventory classification, report outcomes and version declarations
-were repaired; immutable dependency admission, remaining detector regressions,
-witness and release proof validation, and portable artifact qualification remain
-open. The dated checkpoint records exact source and evidence subjects.
+completed 610 distinct tests including witness outcome and routing regressions;
+the shared audit kernel completed 115 tests plus strict Clippy with independently
+accepted runtime evidence. Inventory, report outcomes, version declarations,
+bounded witness refusals and Rust constructor detection were repaired. Immutable dependency admission, remaining detector
+regressions, complete witness/release receipt custody and portable artifact
+qualification remain open. The dated checkpoint records exact subjects.
+
+A later complete Hub invocation failed two corpus inventory checks after a
+concurrent BulletGit test-file move. The four affected coverage anchors were
+updated from the unchanged test body; generated outputs and all six focused
+checks passed independent review. Full proof on the resulting family subjects
+remains required. Concurrent member refactors and their audit scores do not
+inherit the earlier complete family receipt.
 
 Complete auditor qualification, coordinator admission, supervised upgrades,
 hosted CI qualification, and all subsequent production work remain open. All G1–G18 remain `DESIGNED`,
