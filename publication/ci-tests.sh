@@ -86,9 +86,14 @@ publication::transport_tests::atomic_source_publication_reconstructs_real_checko
 publication::transport_tests::conflicting_or_stale_remote_ref_cannot_partially_publish
 publication::transport_tests::git_basic_auth_encoding_and_unrelated_child_custody_are_exact
 publication::transport_tests::reconstructed_source_ref_drift_is_refused_before_checkout
+publication::ci_render::tests::preview_admits_exact_sources_without_claiming_existing_root_integrity
+publication::ci_render::tests::authentic_v1_roots_keep_original_request_and_commit_bytes
+publication::ci_render::tests::generated_roots_refuse_workflow_template_and_path_drift
+publication::ci_render::tests::generated_topology_preserves_dependencies_matrices_events_and_real_producer
+publication::ci_render::tests::tree_rendering_works_before_shallow_source_commits_are_available
 IDENTITIES
 sed 's/^/test /; s/$/ ... ok/' "$scratch/identities" >"$scratch/valid-tests.log"
-summary='test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 300 filtered out; finished in 1.23s'
+summary='test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 300 filtered out; finished in 1.23s'
 printf '%s\n' "$summary" >>"$scratch/valid-tests.log"
 bash "$wrapper" test-inventory "$scratch/valid-tests.log"
 pass_case rust_inventory_exact
@@ -106,8 +111,8 @@ for spec in \
   'malformed_test|1s/ ... ok$/ malformed/' \
   'foreign_test|1s/publication::/unrelated::/' \
   'missing_summary|/^test result/d' \
-  'wrong_pass_count|/^test result/s/29 passed/28 passed/' \
-  'zero_pass_count|/^test result/s/29 passed/0 passed/' \
+  'wrong_pass_count|/^test result/s/34 passed/33 passed/' \
+  'zero_pass_count|/^test result/s/34 passed/0 passed/' \
   'ignored_summary|/^test result/s/0 ignored/1 ignored/' \
   'malformed_duration|/^test result/s/1.23s/1..23s/' \
   'failed_summary|/^test result/s/ok\./FAILED./'; do
@@ -240,7 +245,42 @@ done
 cp -R "$family/bullet-farm/publication/root/." "$aggregate/"
 printf '%s\n' "$("$test_binary" inspect "$family")" >"$aggregate/publication.json"
 git -C "$aggregate" add .
-git -C "$aggregate" commit -qm 'exact temporary aggregate'
+git -C "$aggregate" commit -qm 'temporary exact source subjects before root generation'
+# Expected roots are independently checked only after the actual renderer output
+# is materialized. A preview does not admit existing workflow bytes or execution.
+require_refusal PUBLICATION_ROOT_MODE_DRIFT "$test_binary" verify "$aggregate"
+"$test_binary" ci-root-files "$aggregate" >"$scratch/expected-roots.json"
+"$test_binary" ci-root-files "$aggregate" >"$scratch/repeated-roots.json"
+cmp "$scratch/expected-roots.json" "$scratch/repeated-roots.json"
+jq -e '.purpose == "EXPECTED_ROOT_FILES_ONLY" and .execution_evidence == false and (.files | length == 8)' \
+  "$scratch/expected-roots.json" >/dev/null
+while IFS= read -r path; do
+  mkdir -p "$(dirname "$aggregate/$path")"
+  jq -jr --arg path "$path" '.files[$path]' "$scratch/expected-roots.json" >"$aggregate/$path"
+done < <(jq -r '.files | keys[]' "$scratch/expected-roots.json")
+git -C "$aggregate" add .
+git -C "$aggregate" commit -qm 'actual generated version two aggregate'
+"$test_binary" verify "$aggregate"
+"$test_binary" ci-plan "$aggregate" >"$scratch/v2-plan.json"
+jq -e '.plan.job_definition_count == 53 and .plan.invocation_count == 55 and .plan.execution_evidence == false' \
+  "$scratch/v2-plan.json" >/dev/null
+# Reconstruct fresh ordinary member checkouts from only the aggregate objects,
+# with commit and tree read-back against the emitted publication manifest.
+reconstructed="$scratch/independently-reconstructed"
+mkdir "$reconstructed"
+cp "$aggregate/repos.manifest.toml" "$reconstructed/repos.manifest.toml"
+for member in bullet-farm bullet-kernel bullet-git bullet-portal; do
+  commit="$(jq -r --arg member "$member" '.members[$member].commit' "$aggregate/publication.json")"
+  tree="$(jq -r --arg member "$member" '.members[$member].tree' "$aggregate/publication.json")"
+  git init -q --template= "$reconstructed/$member"
+  git -C "$reconstructed/$member" fetch -q --no-tags "$aggregate" "$commit"
+  git -C "$reconstructed/$member" checkout -q --detach "$commit"
+  [[ "$(git -C "$reconstructed/$member" rev-parse HEAD)" == "$commit" ]]
+  [[ "$(git -C "$reconstructed/$member" rev-parse 'HEAD^{tree}')" == "$tree" ]]
+done
+printf '%s\n' "$("$test_binary" inspect "$reconstructed")" >"$scratch/reconstructed-manifest.json"
+cmp "$aggregate/publication.json" "$scratch/reconstructed-manifest.json"
+pass_case actual_v2_roots
 aggregate_sha="$(git -C "$aggregate" rev-parse HEAD)"
 : >"$runner/outputs"
 hosted=(env "PATH=$runner/bullet-tools:/usr/bin:/bin" GITHUB_ACTIONS=true
@@ -260,7 +300,7 @@ require_refusal PUBLICATION_REQUIRED_INVENTORY "${hosted[@]}" GITHUB_JOB=publica
 rm "$runner/bullet-tools/git"
 
 # The bootstrap report is a test fixture with the independently enumerated
-# 29 Rust and 47 shell identities; its observation is emitted by the real CLI.
+# 34 Rust and 48 shell identities; its observation is emitted by the real CLI.
 bootstrap_report="$runner/bullet-publication-report"
 mkdir "$bootstrap_report"
 printf '[build]\njobs=2\n' >"$bootstrap_report/cargo-config.toml"
@@ -273,7 +313,7 @@ cp "$completed" "$bootstrap_report/wrapper-tests.log"
 for identity in final_success final_failure final_cancelled final_skipped final_neutral final_malformed final_empty; do
   printf 'publication wrapper case: %s ... ok\n' "$identity" >>"$bootstrap_report/wrapper-tests.log"
 done
-printf 'publication wrapper fixtures: 47 passed; 0 failed; 0 skipped\n' >>"$bootstrap_report/wrapper-tests.log"
+printf 'publication wrapper fixtures: 48 passed; 0 failed; 0 skipped\n' >>"$bootstrap_report/wrapper-tests.log"
 "${hosted[@]}" GITHUB_JOB=publication_integrity "$test_binary" ci-observe "$aggregate" "$family" "$bootstrap_report"
 bootstrap_digest="$(sha256sum "$bootstrap_report/observation.json" | cut -d ' ' -f 1)"
 downloads="$runner/bullet-publication-downloaded"
@@ -350,6 +390,6 @@ for result in failure cancelled skipped neutral malformed ''; do
   expect_refusal "final_${result:-empty}" 'publication integrity did not succeed' \
     env INTEGRITY_RESULT="$result" "${final_command[@]}"
 done
-printf 'publication wrapper fixtures: 47 passed; 0 failed; 0 skipped\n' >>"$completed"
+printf 'publication wrapper fixtures: 48 passed; 0 failed; 0 skipped\n' >>"$completed"
 bash "$wrapper" wrapper-inventory "$completed"
-printf 'publication wrapper fixtures: 47 passed; 0 failed; 0 skipped\n'
+printf 'publication wrapper fixtures: 48 passed; 0 failed; 0 skipped\n'

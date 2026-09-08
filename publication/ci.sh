@@ -17,7 +17,7 @@ test_inventory() {
   if ! names="$(LC_ALL=C awk '
     /^test result:/ {
       summaries++
-      if ($0 !~ /^test result: ok\. 29 passed; 0 failed; 0 ignored; 0 measured; [0-9]+ filtered out; finished in [0-9]+([.][0-9]+)?s$/) bad = 1
+      if ($0 !~ /^test result: ok\. 34 passed; 0 failed; 0 ignored; 0 measured; [0-9]+ filtered out; finished in [0-9]+([.][0-9]+)?s$/) bad = 1
       next
     }
     /^test / {
@@ -25,12 +25,12 @@ test_inventory() {
       if ($0 !~ /^test publication::[A-Za-z0-9_:]+ \.\.\. ok$/) bad = 1
       else print $2
     }
-    END { if (bad || tests != 29 || summaries != 1) exit 1 }
+    END { if (bad || tests != 34 || summaries != 1) exit 1 }
   ' "$log" | LC_ALL=C sort)"; then
     refuse PUBLICATION_TEST_INVENTORY_INVALID
   fi
   digest="$(printf '%s\n' "$names" | sha256sum | cut -d ' ' -f 1)"
-  [[ "$digest" == 780f50866d60997ebbaddc737c4361df70aeed226d1200652643246c4d9381bd ]] \
+  [[ "$digest" == f309efec38c41eed248b39a9c64ccb1e466ba02aabc5c89ac978ac12cb5fa35d ]] \
     || refuse PUBLICATION_TEST_INVENTORY_INVALID
 }
 
@@ -39,12 +39,12 @@ wrapper_inventory() {
   [[ -f "$log" && ! -L "$log" ]] || refuse PUBLICATION_WRAPPER_INVENTORY_INVALID
   bytes="$(wc -c <"$log")"
   [[ "$bytes" -gt 0 && "$bytes" -le 16777216 ]] || refuse PUBLICATION_WRAPPER_INVENTORY_INVALID
-  # These 47 names map to the independently reviewed original wrapper cases.
+  # These 48 names map to the independently reviewed wrapper cases, including actual v2 generation.
   # Successful exit and a count alone cannot admit missing or changed fixtures.
   if ! names="$(LC_ALL=C awk '
     /^publication wrapper fixtures:/ {
       summaries++
-      if ($0 != "publication wrapper fixtures: 47 passed; 0 failed; 0 skipped") bad = 1
+      if ($0 != "publication wrapper fixtures: 48 passed; 0 failed; 0 skipped") bad = 1
       next
     }
     /^publication wrapper case:/ {
@@ -54,12 +54,12 @@ wrapper_inventory() {
       next
     }
     /^publication wrapper/ {bad = 1}
-    END {if (bad || tests != 47 || summaries != 1) exit 1}
+    END {if (bad || tests != 48 || summaries != 1) exit 1}
   ' "$log" | LC_ALL=C sort)"; then
     refuse PUBLICATION_WRAPPER_INVENTORY_INVALID
   fi
   digest="$(printf '%s\n' "$names" | sha256sum | cut -d ' ' -f 1)"
-  [[ "$digest" == 04208b734d348c60d9b8ddda5aad257b6d7b55506fb92528de25bba92afdbcb3 ]] \
+  [[ "$digest" == 1a7cee84d811c3dc2c22af09d6d9843e454794d73b5eec4e99a8b739ec5baf6a ]] \
     || refuse PUBLICATION_WRAPPER_INVENTORY_INVALID
 }
 
