@@ -58,8 +58,9 @@ remain required. After the one-entry renderer test-module inventory repair,
 complete Hub and dependency-ordered family checks passed on the exact subjects
 in the dated checkpoint record. Independent review verified 2,284 distinct
 selected component tests and 31 fresh family artifacts. Three Kernel egress tests
-remain an excluded campaign. Portal intermediate observations contain stale
-artifact references and require repair; the selected final reports were verified.
+remain an excluded campaign. That historical run exposed stale Portal intermediate
+artifact references. Subsequent lifecycle and fixture repairs passed independent
+review, followed by complete standalone Portal proof on its recorded newer subject.
 Doctor also refuses complete Git metadata inspection of a retained Kernel build
 target quarantine. These local results grant no hosted or release credit.
 The BulletGit artifact uploader now creates its private stage before copying
@@ -76,12 +77,14 @@ full Hub check exposed two stale test assertions; both were repaired and passed
 focused verification. A complete check of the resulting subject remains required.
 
 Canonical auditor repairs now have independently reviewed local evidence: Core
-completed 610 distinct tests including witness outcome and routing regressions;
-the shared audit kernel completed 115 tests plus strict Clippy with independently
-accepted runtime evidence. Inventory, report outcomes, version declarations,
-bounded witness refusals and Rust constructor detection were repaired. Immutable dependency admission, remaining detector
+completed 619 distinct tests including witness routing, release-receipt
+completion and conformance/exit checks; the shared audit kernel completed 115 tests plus strict Clippy.
+Inventory, version declarations, bounded witness refusals and Rust constructor
+detection were repaired. The conformance/exit consistency and separate witness
+compatibility packets passed complete verification and independent review. Immutable dependency admission, remaining detector
 regressions, complete witness/release receipt custody and portable artifact
-qualification remain open. The dated checkpoint records exact subjects.
+qualification remain open. The dated checkpoint
+records exact subjects and retained failed attempts.
 
 A later complete Hub invocation failed two corpus inventory checks after a
 concurrent BulletGit test-file move. The four affected coverage anchors were
@@ -89,6 +92,21 @@ updated from the unchanged test body; generated outputs and all six focused
 checks passed independent review. Full proof on the resulting family subjects
 remains required. Concurrent member refactors and their audit scores do not
 inherit the earlier complete family receipt.
+
+The reviewed publication adapter now binds transport to each captured destination,
+preserves all four source trees and supports preparing a parentless JeRyu review
+branch. New requests default to the primary JeRyu destination. The complete
+publication test invocation passed 36 Rust tests; 50 wrapper cases also passed.
+Native JeRyu PR creation, reconstruction, initial-main integration and actual CI
+execution remain explicit blockers. No review-branch push creates `main`.
+
+Portal lifecycle receipts now retain each completed lane's exact artifacts. Its
+complete standalone required run passed on `fb7cd9fc` with 131 unit tests, 14
+mocked browser tests and all five lane observations verified. The dependency
+upgrade clears the reproduced development-server security advisory. A later
+153-test packet passes unchanged coverage thresholds. Its separately committed
+inventory and complete required run also pass on `e76eeb48`. These receipts do not replace full current-family,
+rendered accessibility, live provider or release campaigns.
 
 Complete auditor qualification, coordinator admission, supervised upgrades,
 hosted CI qualification, and all subsequent production work remain open. All G1–G18 remain `DESIGNED`,

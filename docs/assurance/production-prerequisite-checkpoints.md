@@ -735,3 +735,158 @@ All G1–G18 remain `DESIGNED`, all 18 product and two diagnostic profiles remai
 `BLOCKED`, and the coordinator Operating HOLD remains effective. No source score,
 local component proof, pending PR or repository-health label supplies complete CI
 or product release credit.
+
+
+## September 8 publication transport and retained Portal observations
+
+The destination-bound adapter is locally committed as
+`814cdb811ab3805945b425f3800923cf93baec30`, tree
+`d03a212ff6005c24b6b75bdd107fbfe67f4e06af`. It preserves request identities,
+uses exact-endpoint JeRyu authentication and permits parentless preparation while
+publishing only immutable source refs and a review branch. Complete-ref retry
+reconciles without claiming integration; an incomplete push refuses changed base
+state. Native PR and reconstruction operations return explicit unavailable
+errors. Neither preparation nor publication creates `main`.
+
+The reviewed default destination/configuration packet is
+`4cf32e29089060e45478112d904be978736bb049`, tree
+`f5c9da85b2ab3e5f850483e24c779de6b89971b0`; its 84 local link checks passed.
+Existing requests keep their captured destinations. Publication inventory commit
+`91e0a6bee03c57145054f2e9677731ee7afbff34`, tree
+`f801f37daacbc2a2047d543949ba1db73c05db7d`, records all 36 executed Rust identities
+and 50 wrapper cases. The first complete Rust invocation passed but its log
+validator rejected a legitimate long-running-test progress line. The corrected
+validator accepted those same retained completion bytes and rejects progress
+without exact completion. All 50 wrappers and mapped shell checks passed.
+Packet SHA256 `72ca895565ee278ec5535e3b08d8851b5490d26bb6e009ff6a4ab867b6c3de46`;
+independent review SHA256
+`aadecba9c1b89cd5a623eff66c71f5c8ec4149bc56e176fbf24f58ae875e5dea`.
+The built publication executable SHA256 is
+`e97890620ad1e94db0f6c75b1200e1c8ff0ebbb8ebe2ca95e48b7dc3e55e61fb`.
+This identifies a local executable, not a signed portable release artifact.
+
+Portal lifecycle and custody-fixture repairs are commits
+`ea20285a2fe57278b338f31a091c6ce935425bb4` and
+`19698798addec7263f7904ec3b4504e6d87a83b9`. Each completed generation retains
+its exact artifacts through preparation, completion, publication and observation;
+interrupted or altered payloads cannot supply success. Hub schema commit
+`cb1a579a181151fc21c9261b57d22b59b9a279aa`, tree
+`34d551c8b2ed34482c31129abfe2bb908e2a34be`, admits only the existing exact
+Playwright `.last-run.json` artifact path in addition to the previous safe paths.
+Its actual retained Portal observation and 3 accepted/18 rejected schema cases
+passed; no other artifact allowance was broadened. Independent review SHA256
+`5161756df862b08fc4fa4b32fb5c0307dca1351484714fa5b62496a23060f465`.
+
+The first complete Portal run on `19698798` failed its security lane after
+131 unit and 14 mocked browser tests passed. That failed result and its retained
+artifacts remain intact. Commit `fb7cd9fcf3a18315d1808e65d1e9a48538014c97`,
+tree `e7d80718b5ea1d7338da8de642a412c913021cb4`, upgrades Vitest and coverage-v8
+to 4.1.11 and retains the selected Vite dependency through a narrow override.
+Normal npm installation, full dependency audit and dependency-tree checks passed
+on Node 22.23.2/npm 10.9.8, with production lock entries unchanged. The advisory
+is GHSA-82fw-gwwq-j7x9. Installation failures from the earlier dependency
+resolution attempts remain retained.
+
+Complete standalone Portal `required` then passed in 106.469 seconds, peak RSS
+348,360 KiB, on that exact clean commit/tree. All five lane artifact chains and
+34 previous retained-byte checks passed independent read-back. The run selected
+131 unit identities and 14 mocked Playwright cases; it did not select coverage.
+Result SHA256 `946b9326cdcf1a7dbefe33aa894e8aa585dfa05b4b911e09f3fa3a6a960d521c`;
+log SHA256 `8ae84df6206b1efca74f77ba8ec5d459829d86aeefeb76098dc79bf07e56d1d5`;
+independent review SHA256
+`c0509eab9ee5ec76cc916746788cbafcf7c9d520f2ded4774abe673cdacf7e9f`.
+
+The separate coverage run initially failed unchanged thresholds with branch
+coverage 83.33%. A reviewed four-test-file packet retains all 131 previous test
+identities and adds 22 command/projection/stale-response tests. All 153 pass;
+branch coverage is 86.82%, and every unchanged global and seven-file threshold
+passes. Packet SHA256
+`285f7c89766161093cd21040ab5e99864ae8d4d7df95b331747534593075d78c`;
+review SHA256 `93e85d3222105d3c09d61136d2dc2c6705b343d7f3429399818d1220d786b7bc`.
+Inventory integration and complete proof on the resulting subject remain pending
+at this checkpoint. No browser, provider or family campaign is inferred from
+these later focused tests.
+
+Core release-receipt completion checks are committed locally at
+`490fb39732dfed99e5030b383e1907fa8698d48d`, tree
+`674f820befe555a7068f76d9bac15064d5449618`. Mandatory receipt prerequisites and
+nonzero child exits block success independently of a permissive selected policy.
+All 613 selected required/full-Cargo identities plus the explicit performance
+identity passed, 614 distinct tests. Packet SHA256
+`364156809cc0b61deaa49f9d0e5246ab5f6481093692cc8b83aa5ae98763f5b3`;
+independent review SHA256
+`737264e717bb25ee0ea1fee38838adddc91e403fd9b43b20048280c15db44978`.
+The interrupted traced invocation and initial compilation failure remain intact.
+A subsequent conformance/exit packet found one older witness assertion requiring
+compatibility repair; its full rerun is pending. Selected dependency tags and
+portable artifact admission remain unresolved.
+
+Read-only source-forge observation at 22:41 UTC found all four supporting PRs #1
+merged by the concurrently operating lane, at Hub `76015e61`, Kernel `52fdccfd`,
+BulletGit `f4181f26` and Portal `1e1ffda1`. Observation SHA256
+`2305d37c59d87bf984bc1868b3e16ecf83771da9696445697c271e22f0d77be0`.
+Those observed ref changes are not independent human-review or complete-CI
+admission by this health packet. Later remote advances require another read-back
+and proof before canonical source integration. The primary aggregate remained
+inaccessible at 22:35 UTC; its administrator request remains pending. Native
+worker execution, protected aggregate integration and complete exact-subject CI
+remain required.
+
+The typed assurance inventory is reconciled unchanged at SHA256
+`d0df5aea6d15366246b8b58ae998605c8f30240be2859eb593bb567e9f16326f`:
+all G1–G18 remain `DESIGNED`, all 18 product and two diagnostic profiles remain
+`BLOCKED`, and post-V1/retired dispositions remain preserved. The Operating HOLD
+remains effective. These measured component cycles do not establish a production
+forecast or begin the mandatory seven-day integrated-change observation.
+
+
+## September 8 integrated Portal coverage and Kernel source authority
+
+The Portal coverage tests are locally committed as
+`8a26246672c663705db10e9e96057bf787d23da1`, tree
+`ef09b75d4facce624a77302c8a59ed925e7a3ce1`. The separate inventory packet is
+`e76eeb485eb8b438cafac0a05327cfbf38c38619`, tree
+`7671ce0a135e13827543ac4111624d14c8f4c8f5`. Only the measured count and sorted
+identity digest changed in the fast, coverage and metadata guards. Independent
+review SHA256 `a63b537e5b7e7ec715263e7f2c7da78fcf2b4ed8a1bd62e3fc90ead2b14f7892`
+verified the exact previous bytes reconstruct by reversing those substitutions.
+The missing ShellCheck include-path failure remains a retained harness attempt.
+
+Complete standalone Portal `required` passed again on `e76eeb48` in 90.898
+seconds with the source and nine sampled tools unchanged. Raw log SHA256
+`0d0f19fa54f46a5e64387b072e1aaa04833b87ff3ba41e9f3b13e7eb655eb807`.
+The run uses the same five reviewed lane scripts and selects all 153 unit tests.
+The preceding full run and all earlier failed artifacts remain retained. Complete
+current-family and hosted execution still require their own final-subject proof.
+
+Kernel metadata commit `53062fb7193c975cf25884083d4e823c5c475573`, tree
+`506d56485bdd75cfb833bac5222e317e2b8d9a5e`, removes the false test-as-generator
+classification for the authored proposal schema. Six unique zones identify five
+real generator declarations and one reviewed-manual source. The actual OpenAPI
+command explicitly selects `--bin bullet`; copied policy/schema outputs retain
+Hub authority. Canonical JSON, generated client and copied outputs are unchanged.
+The initial ambiguous-binary command failed 101. The corrected command and the
+exact manual-schema constraint test both passed in 21.989 seconds, alongside the
+actual Hub synchronization check. The test proves its named key and item-limit
+constraints, not complete semantic equivalence. Packet SHA256
+`f21bf936487d8c43509cbba8e9dec317c1d28a94b47170f8f6f08db12a2da5fa`;
+independent review SHA256
+`44905b1ac72ca06e2e455ed9fd4b923d5d70ef5663e521a1f17bcbbc5556eb57`.
+Complete Kernel/family checks and qualified auditor classification remain open.
+
+The subsequent Core conformance/exit packet completed 618 required and full-Cargo
+identities plus its explicit performance identity, 619 distinct tests. The prior
+required failure from an obsolete witness assertion remains intact. Packet SHA256
+`f58e1bc3db16b07cdc4531f9b6a1a66c8064f6b1f0f04109bbd13494af759bef`
+passed final independent review SHA256
+`4e6b4e3a0e9ab619609c1e106aa4c76606b080ef8d1357b3168ae66460fa87c6`.
+Separate local commits `de74f697e63289e3f8572503547aaaae0c2b1ac3` and
+`ae67bd31bf2d869bdf4a68f969557a7fa6bc2a7d` preserve the four-file/one-file
+packet boundary; the final clean tree is `062e9541cb93a4aca866d84a30e65592f02627b4`.
+No immutable dependency or portable auditor admission is granted by this rerun.
+
+Typed inventory SHA256 remains
+`d0df5aea6d15366246b8b58ae998605c8f30240be2859eb593bb567e9f16326f`:
+all 18 gaps are `DESIGNED`, all 20 profiles are `BLOCKED`, and the Operating HOLD
+remains effective. The three governing documents and unchanged typed inventory
+have been reconciled together against these exact local packets.
