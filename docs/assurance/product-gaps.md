@@ -21,8 +21,9 @@ schema-23 databases through private snapshots. Restores preserve the schema and
 authority state, advance the restore epoch, and remain quarantined after final
 read-back. The staged backup producer now explicitly closes both output connections and
 shares retained-close-failure handling with restore. Its 16 focused tests and
-strict adapter Clippy passed; final complete member/family proof remains pending.
-Durable retry, exclusive supervised upgrade and activation remain open.
+strict adapter Clippy passed, followed by complete Kernel and dependency-ordered
+family checks on the recorded clean subjects. The complete documentation check
+also passed. Durable retry, exclusive supervised upgrade and activation remain open.
 The sealed replay reader reconstructs complete retained facts and rereads every
 input before returning `REPLAY_FACTS_READBACK_ONLY`; this grants no admission.
 
@@ -34,18 +35,28 @@ preview grants no verification or execution credit. The actual Hub source-scan
 producer and final diagnostic checks remain present; unsupported profiles fail
 explicitly. Original timeout and artifact requirements, execution of the complete
 inventory, admitted hosted tools and workers, and additional assurance campaigns
-remain required. Complete local member/family proof is pending; no hosted run is
-credited. The first complete Hub run passed all 578 Hub tests and 218 of 219
-wire tests, then rejected the new renderer test-module declaration missing from
-the explicit source inventory. The one-entry reconciliation passed that exact
-regression; a new complete run remains required.
+remain required. After the one-entry renderer test-module inventory repair,
+complete Hub and dependency-ordered family checks passed on the exact subjects
+in the dated checkpoint record. Independent review verified 2,284 distinct
+selected component tests and 31 fresh family artifacts. Three Kernel egress tests
+remain an excluded campaign. Portal intermediate observations contain stale
+artifact references and require repair; the selected final reports were verified.
+Doctor also refuses complete Git metadata inspection of a retained Kernel build
+target quarantine. These local results grant no hosted or release credit.
 The BulletGit artifact uploader now creates its private stage before copying
 validated diagnostics, and corpus replay respects the selected private Cargo
 target. Their mapped fixtures and complete BulletGit `required` check passed
 on the recorded exact subject; hosted execution remains unproved.
 
-Complete coordinator admission, supervised upgrades, hosted CI qualification,
-and all subsequent production work remain open. All G1–G18 remain `DESIGNED`,
+The demo launcher now rejects unsafe selected data ancestry before compilation,
+using the same owner, mode and root-owned sticky-directory rules as Kernel.
+All 44 wrapper fixtures passed after independent review. Its existing private
+`/tmp` default is preserved; actual demo execution on this newer Hub subject
+remains a separate proof. The first attempt failed because the test harness had
+two group-writable ancestors, and that failure remains retained.
+
+Complete auditor qualification, coordinator admission, supervised upgrades,
+hosted CI qualification, and all subsequent production work remain open. All G1–G18 remain `DESIGNED`,
 and all 18 product plus two diagnostic profiles remain `BLOCKED`.
 
 This is the best-known current gap inventory, not a completeness proof. Every

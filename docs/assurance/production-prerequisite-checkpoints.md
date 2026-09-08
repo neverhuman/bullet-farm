@@ -505,3 +505,100 @@ It receives no complete-suite credit; a new complete clean Hub run and the
 member/family sequence remain required. The typed assurance inventory was
 reconciled unchanged, with all G1–G18 `DESIGNED` and all 18 product plus two
 diagnostic profiles `BLOCKED`. No hosted or release evidence is admitted.
+
+## September 8 complete local integration proof
+
+The repaired Hub passed its complete `required` check on commit
+`3099f5be21ea134c2887acae98c28da0a96524bd`, tree
+`d0d718a4a211efd0a9469124a43b9f473c57ddc7`: all 578 Hub and 219 wire tests,
+two formal models, and the mapped lint, security, documentation and component
+media checks passed. Independent review reconstructed all 797 completed test
+identities and verified all six fresh artifacts. The prior failed run remains
+historical evidence. The successful invocation took 550.93 seconds; GNU time
+reported maximum RSS 1,755,188 KiB. Log SHA256
+`cb59756afa5e834038e9fb7d3072771337d266690f397b55cbb830e51824fcfd`;
+result manifest SHA256
+`653b2f204aaa499955dd3e3f04cae55da63a902b20e729c4e00ff250dc6e7a28`.
+
+The dependency-ordered family check then passed on these four clean, unchanged
+subjects:
+
+| Member | Commit | Tree |
+| --- | --- | --- |
+| Hub | `3099f5be21ea134c2887acae98c28da0a96524bd` | `d0d718a4a211efd0a9469124a43b9f473c57ddc7` |
+| Kernel | `b6a105b1ed12fd84d9abc1cc0554c6d052391c6b` | `7d6da8a9d9d4a43fe0f18ab610db1f7519882d45` |
+| BulletGit | `7c999f545a419d03fc94cdce2d804172bc3f0574` | `61f9cf31409ae95d918f10c58a0a71f5b4fe18e7` |
+| Portal | `3cc19fd388dfbedfca689f1703f9dc719ea9ac23` | `42a023a75de4955a1305f4e96057ddc2b85fad71` |
+
+The selected reports contain 62 BulletGit fast and 160 contract tests; 1,074
+Kernel standalone, 34 contract and nine family tests; 131 Portal unit, 14 browser
+and three real-farmd tests; and 219 Hub wire tests. All 1,706 selected tests and
+two formal models passed. Together with the separately verified 578 Hub tests,
+this covers 2,284 distinct mapped component selections. Three Kernel egress tests
+remain an explicitly excluded campaign. The complete Kernel documentation check
+passed, resolving the earlier freshness failure on this subject.
+
+Independent review verified all 31 newly produced member artifacts and the exact
+family observation. The family invocation took 874.77 seconds; GNU time reported
+maximum RSS 1,752,872 KiB. These are local process measurements, not hosted
+capacity admission. Log SHA256
+`d5181e1ca887ac466cb4783029eb321a9856188d3a91fcebae34abe3d7249c74`;
+result manifest SHA256
+`a3401d48bbccb49fb618f49298fb308878b72eb00365038e41d506575adae49c`;
+independent review SHA256
+`3afa1c109b735611c95713e56eb203544a4fd407d9886f289d80c5d37fa11241`.
+The observation identity is
+`blake3:90be405f00f4afa2981638dd955750694dd15a165b22d84f2a2706f36de04bce`.
+
+Five intermediate Portal lane observations each refer to six inherited artifacts
+absent from the retained snapshot and four artifacts whose later bytes differ.
+The selected final family reports were independently verified; the intermediate
+observations do not establish complete immutable artifact chains. The final
+Portal component receipt also references an external retained fixture tree;
+snapshot-only reconstruction of that tree is not claimed. These findings remain
+open in the repair queue, with original observations preserved.
+
+The explicit `just fast` invocation also passed all 578 selected tests with zero
+skipped on the same Hub subject. Its log SHA256 is
+`c297f65f28ef34e0e67e309be7bf72adfce9a018613ea670133c122ec0f109d8`.
+`doctor --json` returned the expected `BLOCKED` exit 3: schema-2 install authority
+and old family pins remain unresolved. It additionally refused complete Git
+metadata inspection because a retained sealed Kernel build-target quarantine is
+unreadable. Clean Git porcelain status does not clear that refusal. The exact
+quarantine is preserved pending separate reconciliation; the checker was not
+weakened. Doctor log SHA256
+`e5fedad7cd767fdec6a1b98a74d43aa9b822013511b2cccce5604aa241312abd`.
+
+All receipts above remain unsigned local component diagnostics. They grant no
+coordinator admission, provider qualification, hosted CI, transaction or release
+credit. The typed assurance inventory was reconciled without byte changes at
+SHA256 `d0df5aea6d15366246b8b58ae998605c8f30240be2859eb593bb567e9f16326f`:
+all G1–G18 remain `DESIGNED`, all 18 product and two diagnostic profiles remain
+`BLOCKED`, and active post-V1 plus retired dispositions remain present.
+The Operating HOLD remains effective. Later source changes require their own
+mapped proof; these receipts continue to identify the exact subjects above.
+
+
+## September 8 demo data preflight
+
+Commit `6efef495ab8da7e448786999c606998557aeaf52`, tree
+`5bd269bb56077573440b43f734894a858d07b837`, adds an early selected-data ancestry
+check to the actual demo launcher. It matches Kernel's root/caller ownership
+and non-group/other-write requirement, including its root-owned sticky-directory
+exception, and preserves the existing private `/tmp` default. Kernel still
+independently revalidates custody before opening SQLite. The shell preflight is
+a sampled usability check, not descriptor-level custody or a new authority grant.
+
+The initial real demo attempt exited 1 after 67.36 seconds because its harness
+created two non-root ancestors with mode 0775. Root-owned sticky `/tmp` was not
+the rejected condition. Log SHA256
+`e7c5f87844383711b8a768fd5b7eae2a58ea621a52881fe52304dbb10eca630c`.
+An initial, stricter HOME-default proposal was withdrawn before commit after
+independent source inspection; its 44-case diagnostic remains historical.
+The final 44 wrapper cases passed in 8.73 seconds, including default/explicit
+success and unsafe selected paths failing before Cargo or component execution.
+ShellCheck and diff checks passed. Final fixture log SHA256
+`28e2440653e28f1ea4b49934a2447beea9609961293988d4a2af32f646bd7f15`.
+Actual default demo execution and mapped proof on this newer Hub subject remain
+separate required evidence at this checkpoint. The typed assurance inventory
+was reconciled unchanged, with all G1–G18 `DESIGNED` and all 20 profiles `BLOCKED`.
