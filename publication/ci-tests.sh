@@ -17,20 +17,33 @@ printf '[extend]\nuseDefault = true\n' >"$repo/bullet-farm/publication/gitleaks.
 git -C "$repo" add README.md bullet-farm/publication/gitleaks.toml
 git -C "$repo" commit -qm fixture
 sha="$(git -C "$repo" rev-parse HEAD)"
-passed=0
+completed="$scratch/completed-wrapper-tests.log"
+: >"$completed"
 
-expect_refusal() {
+pass_case() {
+  printf 'publication wrapper case: %s ... ok\n' "$1" | tee -a "$completed"
+}
+
+require_refusal() {
   local code="$1"
   shift
   if "$@" >"$scratch/refusal.log" 2>&1; then
     printf 'expected refusal: %s\n' "$code" >&2
+    cat "$scratch/refusal.log" >&2
     exit 1
   fi
   grep -Fq -- "$code" "$scratch/refusal.log" || {
     printf 'missing refusal: %s\n' "$code" >&2
+    cat "$scratch/refusal.log" >&2
     exit 1
   }
-  passed=$((passed + 1))
+}
+
+expect_refusal() {
+  local identity="$1"
+  shift
+  require_refusal "$@"
+  pass_case "$identity"
 }
 
 invoke() {
@@ -75,105 +88,117 @@ sed 's/^/test /; s/$/ ... ok/' "$scratch/identities" >"$scratch/valid-tests.log"
 summary='test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 300 filtered out; finished in 1.23s'
 printf '%s\n' "$summary" >>"$scratch/valid-tests.log"
 bash "$wrapper" test-inventory "$scratch/valid-tests.log"
-passed=$((passed + 1))
+pass_case rust_inventory_exact
 tac "$scratch/valid-tests.log" | sed 's/300 filtered out/0 filtered out/; s/1.23s$/20.001s/' \
   >"$scratch/reordered-tests.log"
 bash "$wrapper" test-inventory "$scratch/reordered-tests.log"
-passed=$((passed + 1))
+pass_case rust_inventory_reordered
 
-for change in \
-  '1d' \
-  '1s/hosted_artifact_inventory/renamed_inventory/' \
-  '1s/ ... ok$/ ... FAILED/' \
-  '1s/ ... ok$/ ... ignored/' \
-  '1s/ ... ok$/ ... skipped/' \
-  '1s/ ... ok$/ malformed/' \
-  '1s/publication::/unrelated::/' \
-  '/^test result/d' \
-  '/^test result/s/29 passed/28 passed/' \
-  '/^test result/s/29 passed/0 passed/' \
-  '/^test result/s/0 ignored/1 ignored/' \
-  '/^test result/s/1.23s/1..23s/' \
-  '/^test result/s/ok\./FAILED./'; do
+for spec in \
+  'missing_test|1d' \
+  'renamed_test|1s/hosted_artifact_inventory/renamed_inventory/' \
+  'failed_test|1s/ ... ok$/ ... FAILED/' \
+  'ignored_test|1s/ ... ok$/ ... ignored/' \
+  'skipped_test|1s/ ... ok$/ ... skipped/' \
+  'malformed_test|1s/ ... ok$/ malformed/' \
+  'foreign_test|1s/publication::/unrelated::/' \
+  'missing_summary|/^test result/d' \
+  'wrong_pass_count|/^test result/s/29 passed/28 passed/' \
+  'zero_pass_count|/^test result/s/29 passed/0 passed/' \
+  'ignored_summary|/^test result/s/0 ignored/1 ignored/' \
+  'malformed_duration|/^test result/s/1.23s/1..23s/' \
+  'failed_summary|/^test result/s/ok\./FAILED./'; do
+  identity="${spec%%|*}"
+  change="${spec#*|}"
   sed "$change" "$scratch/valid-tests.log" >"$scratch/invalid-tests.log"
-  expect_refusal PUBLICATION_TEST_INVENTORY_INVALID \
+  expect_refusal "rust_inventory_$identity" PUBLICATION_TEST_INVENTORY_INVALID \
     bash "$wrapper" test-inventory "$scratch/invalid-tests.log"
 done
 awk 'NR == 1 {first = $0} NR == 2 {$0 = first} {print}' "$scratch/valid-tests.log" \
   >"$scratch/duplicate-tests.log"
-expect_refusal PUBLICATION_TEST_INVENTORY_INVALID \
+expect_refusal rust_inventory_duplicate_test PUBLICATION_TEST_INVENTORY_INVALID \
   bash "$wrapper" test-inventory "$scratch/duplicate-tests.log"
-for extra in \
-  "$summary" \
-  'test publication::unexpected ... ok' \
-  'test unrelated::unexpected ... FAILED' \
-  'test malformed'; do
+for spec in \
+  "duplicate_summary|$summary" \
+  'extra_test|test publication::unexpected ... ok' \
+  'extra_failed_test|test unrelated::unexpected ... FAILED' \
+  'extra_malformed_test|test malformed'; do
+  identity="${spec%%|*}"
+  extra="${spec#*|}"
   cat "$scratch/valid-tests.log" >"$scratch/extra-tests.log"
   printf '%s\n' "$extra" >>"$scratch/extra-tests.log"
-  expect_refusal PUBLICATION_TEST_INVENTORY_INVALID \
+  expect_refusal "rust_inventory_$identity" PUBLICATION_TEST_INVENTORY_INVALID \
     bash "$wrapper" test-inventory "$scratch/extra-tests.log"
 done
 ln -s "$scratch/valid-tests.log" "$scratch/symlink-tests.log"
 : >"$scratch/empty-tests.log"
-for invalid in "$scratch/symlink-tests.log" "$scratch/empty-tests.log" "$scratch/missing-tests.log" "$scratch"; do
-  expect_refusal PUBLICATION_TEST_INVENTORY_INVALID bash "$wrapper" test-inventory "$invalid"
+for spec in "symlink_log|$scratch/symlink-tests.log" "empty_log|$scratch/empty-tests.log" \
+  "missing_log|$scratch/missing-tests.log" "directory_log|$scratch"; do
+  identity="${spec%%|*}"
+  invalid="${spec#*|}"
+  expect_refusal "rust_inventory_$identity" PUBLICATION_TEST_INVENTORY_INVALID \
+    bash "$wrapper" test-inventory "$invalid"
 done
-expect_refusal PUBLICATION_CI_USAGE bash "$wrapper" test-inventory
-expect_refusal PUBLICATION_CI_USAGE bash "$wrapper" test-inventory "$scratch/valid-tests.log" extra
+expect_refusal rust_inventory_missing_argument PUBLICATION_CI_USAGE bash "$wrapper" test-inventory
+expect_refusal rust_inventory_extra_argument PUBLICATION_CI_USAGE \
+  bash "$wrapper" test-inventory "$scratch/valid-tests.log" extra
 
 mkdir "$scratch/runner"
-expect_refusal PUBLICATION_CI_USAGE bash "$wrapper"
-expect_refusal PUBLICATION_CI_USAGE bash "$wrapper" arbitrary
-expect_refusal PUBLICATION_CI_USAGE bash "$wrapper" source-scan extra
-expect_refusal PUBLICATION_DISPOSABLE_CI_REQUIRED \
+expect_refusal usage_missing_command PUBLICATION_CI_USAGE bash "$wrapper"
+expect_refusal usage_unknown_command PUBLICATION_CI_USAGE bash "$wrapper" arbitrary
+expect_refusal usage_source_scan_extra_argument PUBLICATION_CI_USAGE bash "$wrapper" source-scan extra
+expect_refusal runner_not_github_actions PUBLICATION_DISPOSABLE_CI_REQUIRED \
   env GITHUB_ACTIONS=false bash "$wrapper" source-scan
-expect_refusal PUBLICATION_EVENT_SHA_MISMATCH \
+expect_refusal runner_event_sha_mismatch PUBLICATION_EVENT_SHA_MISMATCH \
   env GITHUB_ACTIONS=true GITHUB_WORKSPACE="$repo" \
   GITHUB_SHA=0000000000000000000000000000000000000000 \
   RUNNER_TEMP="$scratch/runner" bash "$wrapper" source-scan
-expect_refusal PUBLICATION_EVENT_SHA_INVALID \
+expect_refusal runner_event_sha_invalid PUBLICATION_EVENT_SHA_INVALID \
   env GITHUB_ACTIONS=true GITHUB_WORKSPACE="$repo" GITHUB_SHA=main \
   RUNNER_TEMP="$scratch/runner" bash "$wrapper" source-scan
 printf 'dirty\n' >"$repo/untracked.txt"
-expect_refusal PUBLICATION_CHECKOUT_DIRTY invoke source-scan
+expect_refusal runner_dirty_checkout PUBLICATION_CHECKOUT_DIRTY invoke source-scan
 rm "$repo/untracked.txt"
 ln -s "$scratch/runner" "$scratch/runner-link"
-expect_refusal PUBLICATION_RUNNER_TEMP_INVALID \
+expect_refusal runner_temp_symlink PUBLICATION_RUNNER_TEMP_INVALID \
   env GITHUB_ACTIONS=true GITHUB_WORKSPACE="$repo" GITHUB_SHA="$sha" \
   RUNNER_TEMP="$scratch/runner-link" bash "$wrapper" source-scan
 ln -s "$repo" "$scratch/aggregate-link"
-expect_refusal PUBLICATION_CHECKOUT_INVALID \
+expect_refusal runner_checkout_symlink PUBLICATION_CHECKOUT_INVALID \
   env GITHUB_ACTIONS=true GITHUB_WORKSPACE="$scratch/aggregate-link" GITHUB_SHA="$sha" \
   RUNNER_TEMP="$scratch/runner" bash "$wrapper" source-scan
-expect_refusal PUBLICATION_SOURCE_SCAN_REQUIRED invoke prove
+expect_refusal source_scan_receipt_missing PUBLICATION_SOURCE_SCAN_REQUIRED invoke prove
 mkdir "$scratch/runner/bullet-publication-report" "$scratch/runner/bullet-publication-private"
 printf '{"success":true}\n' >"$scratch/runner/bullet-publication-report/source-scan.json"
-expect_refusal PUBLICATION_SOURCE_SCAN_REQUIRED invoke prove
+expect_refusal source_scan_receipt_malformed PUBLICATION_SOURCE_SCAN_REQUIRED invoke prove
 rm -r "$scratch/runner/bullet-publication-report" "$scratch/runner/bullet-publication-private"
 invoke source-scan
 [[ "$(cat "$scratch/runner/bullet-publication-report/source-scan.json")" == '[]' ]]
 [[ ! -e "$scratch/runner/bullet-publication-cargo" ]]
-passed=$((passed + 1))
-expect_refusal 'File exists' invoke source-scan
+pass_case source_scan_clean
+expect_refusal source_scan_repeated 'File exists' invoke source-scan
 mkdir "$scratch/canary-runner"
 printf 'aws_access_key_id = %s%s\n' 'AKIA' '6QWERTYUIOPASDFG' >"$repo/canary.txt"
 git -C "$repo" add canary.txt
 git -C "$repo" commit -qm 'intentional scanner fixture'
-expect_refusal PUBLICATION_SOURCE_SCAN_FAILED \
+require_refusal PUBLICATION_SOURCE_SCAN_FAILED \
   env GITHUB_ACTIONS=true GITHUB_WORKSPACE="$repo" \
   GITHUB_SHA="$(git -C "$repo" rev-parse HEAD)" RUNNER_TEMP="$scratch/canary-runner" \
   bash "$wrapper" source-scan
 [[ ! -e "$scratch/canary-runner/bullet-publication-report/source-scan.json" ]]
 [[ "$(find "$scratch/canary-runner/bullet-publication-report" -type f | wc -l)" == 1 ]]
+pass_case source_scan_canary
 
 # Execute the actual always-running final check, without a duplicate implementation.
 awk 'capture {sub(/^          /, ""); print} /^        run: \|$/ {capture = 1}' \
   "${wrapper%/*}/root/.github/workflows/publication.yml" >"$scratch/final.sh"
 [[ -s "$scratch/final.sh" ]]
 env INTEGRITY_RESULT=success bash "$scratch/final.sh"
-passed=$((passed + 1))
+pass_case final_success
 for result in failure cancelled skipped neutral malformed ''; do
-  expect_refusal 'publication integrity did not succeed' \
+  expect_refusal "final_${result:-empty}" 'publication integrity did not succeed' \
     env INTEGRITY_RESULT="$result" bash "$scratch/final.sh"
 done
-printf 'publication wrapper fixtures: %s passed\n' "$passed"
+printf 'publication wrapper fixtures: 47 passed; 0 failed; 0 skipped\n' >>"$completed"
+bash "$wrapper" wrapper-inventory "$completed"
+printf 'publication wrapper fixtures: 47 passed; 0 failed; 0 skipped\n'

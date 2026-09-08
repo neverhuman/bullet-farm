@@ -34,6 +34,35 @@ test_inventory() {
     || refuse PUBLICATION_TEST_INVENTORY_INVALID
 }
 
+wrapper_inventory() {
+  local log="$1" names digest bytes
+  [[ -f "$log" && ! -L "$log" ]] || refuse PUBLICATION_WRAPPER_INVENTORY_INVALID
+  bytes="$(wc -c <"$log")"
+  [[ "$bytes" -gt 0 && "$bytes" -le 16777216 ]] || refuse PUBLICATION_WRAPPER_INVENTORY_INVALID
+  # These 47 names map to the independently reviewed original wrapper cases.
+  # Successful exit and a count alone cannot admit missing or changed fixtures.
+  if ! names="$(LC_ALL=C awk '
+    /^publication wrapper fixtures:/ {
+      summaries++
+      if ($0 != "publication wrapper fixtures: 47 passed; 0 failed; 0 skipped") bad = 1
+      next
+    }
+    /^publication wrapper case:/ {
+      tests++
+      if ($0 !~ /^publication wrapper case: [a-z0-9_]+ \.\.\. ok$/) bad = 1
+      else print $4
+      next
+    }
+    /^publication wrapper/ {bad = 1}
+    END {if (bad || tests != 47 || summaries != 1) exit 1}
+  ' "$log" | LC_ALL=C sort)"; then
+    refuse PUBLICATION_WRAPPER_INVENTORY_INVALID
+  fi
+  digest="$(printf '%s\n' "$names" | sha256sum | cut -d ' ' -f 1)"
+  [[ "$digest" == 04208b734d348c60d9b8ddda5aad257b6d7b55506fb92528de25bba92afdbcb3 ]] \
+    || refuse PUBLICATION_WRAPPER_INVENTORY_INVALID
+}
+
 admit_runner() {
   [[ "${GITHUB_ACTIONS:-}" == true ]] || refuse PUBLICATION_DISPOSABLE_CI_REQUIRED
   [[ "${RUNNER_TEMP:-}" == /* && -d "$RUNNER_TEMP" && ! -L "$RUNNER_TEMP" ]] \
@@ -142,7 +171,9 @@ prove() {
   test_inventory "$private/publication-tests.log"
   cp "$private/publication-tests.log" "$report/publication-tests.log"
   bash "$GITHUB_WORKSPACE/bullet-farm/publication/ci-tests.sh" \
-    >"$report/wrapper-tests.log" 2>&1
+    >"$private/wrapper-tests.log" 2>&1 || refuse PUBLICATION_WRAPPER_TESTS_FAILED
+  wrapper_inventory "$private/wrapper-tests.log"
+  cp "$private/wrapper-tests.log" "$report/wrapper-tests.log"
   printf 'aggregate verification started; bootstrap incomplete\n' >"$report/status.txt"
   "$target/debug/bullet-publish" verify "$GITHUB_WORKSPACE" >"$report/verify.log"
   printf 'exact split reconstruction started; bootstrap incomplete\n' >"$report/status.txt"
@@ -155,6 +186,7 @@ prove() {
 
 case "${1:-}" in
   test-inventory) [[ "$#" == 2 ]] || refuse PUBLICATION_CI_USAGE; test_inventory "$2" ;;
+  wrapper-inventory) [[ "$#" == 2 ]] || refuse PUBLICATION_CI_USAGE; wrapper_inventory "$2" ;;
   source-scan) [[ "$#" == 1 ]] || refuse PUBLICATION_CI_USAGE; source_scan ;;
   prove) [[ "$#" == 1 ]] || refuse PUBLICATION_CI_USAGE; prove ;;
   *) refuse PUBLICATION_CI_USAGE ;;
