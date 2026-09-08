@@ -5,6 +5,17 @@ use crate::coord::{CoordError, publish_preservation_record, recovery_manifest, s
 use super::coord::Options;
 
 pub(super) fn run(root: &Path, args: &[String]) -> Result<String, CoordError> {
+    if args.first().is_some_and(|value| value == "replay") {
+        let options = Options::parse(&args[1..])?;
+        options.reject_flags()?;
+        options.reject_unknown_values(&["request", "out"])?;
+        let publication = crate::coord::fresh_replay::publish(
+            root,
+            Path::new(&options.one("request")?),
+            Path::new(&options.one("out")?),
+        )?;
+        return serde_json::to_string(&publication).map_err(CoordError::json);
+    }
     let options = Options::parse(args)?;
     options.reject_flags()?;
     options.reject_unknown_values(&["outer-inventory", "hub-inventory", "out"])?;
