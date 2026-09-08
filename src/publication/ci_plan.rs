@@ -10,11 +10,11 @@ use super::{
 };
 use crate::coord::CoordError;
 
-#[derive(Serialize)]
-struct Invocation {
-    member: &'static str,
-    member_commit: String,
-    member_tree: String,
+#[derive(Clone, Serialize)]
+pub(super) struct Invocation {
+    pub member: &'static str,
+    pub member_commit: String,
+    pub member_tree: String,
     workflow_path: &'static str,
     workflow_sha256: String,
     scope: &'static str,
@@ -44,6 +44,43 @@ struct Plan {
 struct Document {
     plan: Plan,
     plan_sha256: String,
+}
+
+#[derive(Serialize)]
+pub(super) struct AdmittedJob {
+    pub aggregate_commit: String,
+    pub aggregate_tree: String,
+    pub manifest_sha256: String,
+    pub catalog_sha256: String,
+    pub plan_sha256: String,
+    pub invocation_key: String,
+    pub invocation: Invocation,
+}
+
+pub(super) fn select(aggregate: &Path, key: &str, workflows: &[Workflow]) -> Result<AdmittedJob> {
+    git::checkout(aggregate)?;
+    let commit = git::text(aggregate, &["rev-parse", "HEAD"])?;
+    let document = document_at(aggregate, &commit, workflows)?;
+    let invocation = document.plan.invocations.get(key).cloned().ok_or_else(|| {
+        CoordError::new(
+            "PUBLICATION_CI_INVOCATION_UNKNOWN",
+            "expected invocation key required",
+        )
+    })?;
+    git::checkout(aggregate)?;
+    require(
+        git::text(aggregate, &["rev-parse", "HEAD"])? == commit,
+        "PUBLICATION_AGGREGATE_CHANGED",
+    )?;
+    Ok(AdmittedJob {
+        aggregate_commit: document.plan.aggregate_commit,
+        aggregate_tree: document.plan.aggregate_tree,
+        manifest_sha256: document.plan.manifest_sha256,
+        catalog_sha256: document.plan.catalog_sha256,
+        plan_sha256: document.plan_sha256,
+        invocation_key: key.into(),
+        invocation,
+    })
 }
 
 fn canonical(value: &impl Serialize) -> Result<Vec<u8>> {
@@ -178,6 +215,19 @@ fn record_bytes(path: &Path) -> Result<Vec<u8>> {
 }
 
 fn build_at(aggregate: &Path, aggregate_commit: &str, workflows: &[Workflow]) -> Result<String> {
+    String::from_utf8(canonical(&document_at(
+        aggregate,
+        aggregate_commit,
+        workflows,
+    )?)?)
+    .map_err(|_| CoordError::new("PUBLICATION_ENCODING", "UTF-8 required"))
+}
+
+fn document_at(
+    aggregate: &Path,
+    aggregate_commit: &str,
+    workflows: &[Workflow],
+) -> Result<Document> {
     let catalog = ci_inventory::canonical_catalog(workflows)?;
     super::oid(aggregate_commit)?;
     let manifest = read_manifest_at(aggregate, aggregate_commit)?;
@@ -284,10 +334,8 @@ fn build_at(aggregate: &Path, aggregate_commit: &str, workflows: &[Workflow]) ->
         plan.invocation_count == 55,
         "PUBLICATION_CI_INVOCATION_INVENTORY_INVALID",
     )?;
-    let document = Document {
+    Ok(Document {
         plan_sha256: store::digest(&canonical(&plan)?),
         plan,
-    };
-    String::from_utf8(canonical(&document)?)
-        .map_err(|_| CoordError::new("PUBLICATION_ENCODING", "UTF-8 required"))
+    })
 }

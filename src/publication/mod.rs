@@ -1,5 +1,6 @@
 //! Exact split-source identities for the public aggregate. No release authority.
 mod ci_inventory;
+mod ci_job;
 mod ci_plan;
 mod git;
 mod observation;
@@ -269,6 +270,15 @@ pub fn run(args: Vec<String>) -> Result<String> {
         }
         ["ci-plan", aggregate] => ci_plan::run(Path::new(aggregate)),
         ["ci-plan", store, request] => ci_plan::stored(Path::new(store), request),
+        ["ci-job-context", aggregate, root, key] => {
+            ci_job::run(Path::new(aggregate), Path::new(root), key, None)
+        }
+        ["ci-job-observe", aggregate, root, key, artifacts] => ci_job::run(
+            Path::new(aggregate),
+            Path::new(root),
+            key,
+            Some(Path::new(artifacts)),
+        ),
         ["push", store, request] => transport::push(Path::new(store), request),
         ["pr", store, request] => pull_request::run(Path::new(store), request),
         ["scan", path, id] => {
@@ -279,7 +289,7 @@ pub fn run(args: Vec<String>) -> Result<String> {
         }
         _ => Err(CoordError::new(
             "USAGE",
-            "bullet-publish inspect ROOT | prepare ROOT STORE REQUEST EXPECTED_MAIN | verify AGGREGATE | reconstruct AGGREGATE NEW_ROOT | ci-plan AGGREGATE | ci-plan STORE REQUEST | ci-observe AGGREGATE ROOT ARTIFACTS | scan STORE REQUEST | push STORE REQUEST | pr STORE REQUEST",
+            "bullet-publish inspect ROOT | prepare ROOT STORE REQUEST EXPECTED_MAIN | verify AGGREGATE | reconstruct AGGREGATE NEW_ROOT | ci-plan AGGREGATE | ci-plan STORE REQUEST | ci-job-context AGGREGATE ROOT KEY | ci-job-observe AGGREGATE ROOT KEY ARTIFACTS | ci-observe AGGREGATE ROOT ARTIFACTS | scan STORE REQUEST | push STORE REQUEST | pr STORE REQUEST",
         )),
     }
 }
