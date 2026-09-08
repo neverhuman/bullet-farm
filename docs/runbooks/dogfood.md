@@ -23,7 +23,7 @@ The board and the underlying execution loop both have remaining engineering work
    manual path-exact coordination in `AGENT_CHAT.md`. Original recovery remains separate. Do not chmod the 0400 ledger.
 2. **The diagnostic board exists, but it is not operable.** Use
    `bullet-family check dogfood --json` as the diagnostic board. The bounded
-   compatibility launcher `python3 scripts/dogfood-board.py --json` invokes
+   compatibility launcher `python3 tests/dogfood-board.py --json` invokes
    that exact Rust command and forwards its bytes and exit status; it has no
    projection logic of its own. The current blocked board exits non-zero and is
    always `authoritative: false`. Exit 0 is reserved for an operable loop, not

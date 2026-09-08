@@ -219,7 +219,7 @@ operator ceremony remains is withdrawn; no operator is being asked to waive miss
 
 - Landed surface: `bullet-family check dogfood --json` reports coordinator state, repository dirtiness,
   release status, and dogfood binding state. It is always diagnostic and exits non-zero when a loop
-  blocker remains. `scripts/dogfood-board.py` forwards its bytes and status.
+  blocker remains. `tests/dogfood-board.py` forwards its bytes and status.
 - Required future authority inputs: an admitted RFC 8785 policy and binding producer/read-back, sanctioned
   transition authority, and an exact transition-bound four-repository W0 subject. Every missing, changed,
   incomplete, dirty, unresolved-claim, or replay-watermark mismatch must refuse.
