@@ -1,4 +1,4 @@
-use std::{fmt::Write as _, os::unix::ffi::OsStrExt, path::Path, process::Command};
+use std::{fmt::Write as _, os::unix::ffi::OsStrExt, path::Path};
 
 use serde::{Serialize, de::DeserializeOwned};
 use sha2::{Digest, Sha256};
@@ -32,94 +32,25 @@ pub(crate) struct FreshGenesisPublication {
     pub(crate) wave0_outcome: FreshGenesisPublicationOutcome,
 }
 
-/// Load sealed W0 + incident inventory and refuse dirty porcelain or HEAD drift.
+/// Refuse legacy single-location inputs before reading or publishing records.
 ///
-/// # Errors
-///
-/// Missing files, invalid records, dirty trees, or commit drift.
+/// V1 cannot bind both incident locations, reviewed dispositions, and the
+/// operator checkpoint. Its observation/publication components remain available
+/// for engineering, but they cannot authorize sidecar or Genesis creation.
 pub(crate) fn consume_wave0_and_inventory(
     inventory_path: &Path,
     wave0_path: &Path,
-    family_root: &Path,
+    _family_root: &Path,
 ) -> Result<(IncidentInventoryV1, Wave0SubjectV1), CoordError> {
-    if !inventory_path.is_file() {
-        return Err(invalid("incident inventory is missing"));
+    if !inventory_path.is_file() || !wave0_path.is_file() {
+        return Err(invalid(
+            "incident inventory or W0 subject is missing or not a regular file",
+        ));
     }
-    if !wave0_path.is_file() {
-        return Err(invalid("W0 subject is missing"));
-    }
-    let inventory: IncidentInventoryV1 = load_canonical(inventory_path, "incident inventory")?;
-    let wave0: Wave0SubjectV1 = load_canonical(wave0_path, "W0 subject")?;
-    inventory.validate()?;
-    wave0.validate()?;
-    observe_clean_members(family_root, &wave0)?;
-    Ok((inventory, wave0))
-}
-
-fn load_canonical<T: DeserializeOwned + Serialize>(
-    path: &Path,
-    label: &str,
-) -> Result<T, CoordError> {
-    let bytes =
-        std::fs::read(path).map_err(|error| invalid(format!("cannot read {label}: {error}")))?;
-    let body = bytes.strip_suffix(b"\n").unwrap_or(bytes.as_slice());
-    bullet_wire::decode_canonical(body)
-        .map_err(|error| invalid(format!("{label} is not canonical: {error}")))
-}
-
-fn observe_clean_members(family_root: &Path, wave0: &Wave0SubjectV1) -> Result<(), CoordError> {
-    for member in &wave0.facts.members {
-        let dir = match member.repository_identity.as_str() {
-            "root/bullet-farm" => family_root.join("bullet-farm"),
-            "root/bullet-kernel" => family_root.join("bullet-kernel"),
-            "root/bullet-git" => family_root.join("bullet-git"),
-            "root/bullet-portal" => family_root.join("bullet-portal"),
-            other => {
-                return Err(invalid(format!(
-                    "W0 member identity {other} is not a family repository"
-                )));
-            }
-        };
-        if porcelain_dirty(&dir) {
-            return Err(invalid(format!(
-                "W0 refuses dirty porcelain in {}",
-                dir.display()
-            )));
-        }
-        let head = git_stdout(&dir, &["rev-parse", "HEAD"])?;
-        let expected = member
-            .commit_oid
-            .strip_prefix("sha1:")
-            .ok_or_else(|| invalid("W0 commit OID must be sha1-tagged"))?;
-        if head != expected {
-            return Err(invalid(format!(
-                "W0 commit drift in {}: observed {head} expected {expected}",
-                dir.display()
-            )));
-        }
-    }
-    Ok(())
-}
-
-fn porcelain_dirty(path: &Path) -> bool {
-    Command::new("git")
-        .args(["-C", &path.to_string_lossy(), "status", "--porcelain"])
-        .output()
-        .map(|output| !output.status.success() || !output.stdout.is_empty())
-        .unwrap_or(true)
-}
-
-fn git_stdout(path: &Path, args: &[&str]) -> Result<String, CoordError> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(path)
-        .args(args)
-        .output()
-        .map_err(|error| invalid(format!("git failed: {error}")))?;
-    if !output.status.success() {
-        return Err(invalid("git observation failed"));
-    }
-    Ok(String::from_utf8_lossy(&output.stdout).trim().to_owned())
+    Err(CoordError::new(
+        "FRESH_GENESIS_ADMISSION_UNAVAILABLE",
+        "single-location V1 records cannot authorize incident-derived Genesis; complete two-location admission, durable references, independent review, and operator checkpoint are required",
+    ))
 }
 
 pub(crate) fn publish_records(

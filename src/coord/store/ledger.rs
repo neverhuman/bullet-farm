@@ -12,6 +12,7 @@ use crate::coord::{
     model::{GENERATION_SCHEMA_VERSION, Record},
 };
 
+mod admission;
 mod adoption;
 mod fs;
 mod genesis;
@@ -145,6 +146,7 @@ impl Ledger {
     where
         F: FnOnce() -> Result<u64, CoordError>,
     {
+        admission::require_pristine_context(&self.family_root)?;
         let probe = fs::probe(&self.coord_dir)?;
         let observed = probe.presence();
         if observed == fs::Presence::Legacy {
@@ -156,9 +158,12 @@ impl Ledger {
             fs::ensure_layout(&self.family_root, &self.coord_dir)?;
             fs::CoordLock::acquire(&self.coord_dir, true)?
         };
+        admission::require_pristine_context(&self.family_root)?;
         if let Some(existing) = lock.current()? {
             let loaded = self.load_locked(&lock, Some(&existing), false)?;
             genesis::ensure_manifest_matches(provenance, &loaded.manifest)?;
+            let prepared = genesis::decode_authority(&fs::published_genesis_intent(&lock)?)?;
+            admission::require_matching_journal(&self.family_root, &prepared)?;
             return Ok(loaded.view);
         }
         let locked_presence = lock.presence_without_current()?;
@@ -177,6 +182,7 @@ impl Ledger {
                     provenance,
                     locked_presence == fs::Presence::Retired,
                 )?;
+                admission::require_matching_journal(&self.family_root, &prepared)?;
                 fs::publish_genesis_intent(&lock, &bytes)?;
                 if fs::published_genesis_intent(&lock)? != bytes {
                     return Err(changed("published Genesis intent read-back differs"));
@@ -190,6 +196,7 @@ impl Ledger {
                     ));
                 }
                 let prepared = genesis::prepare(provenance, clock()?)?;
+                admission::require_matching_journal(&self.family_root, &prepared)?;
                 fs::publish_genesis_intent(&lock, &prepared.intent_bytes)?;
                 if fs::published_genesis_intent(&lock)? != prepared.intent_bytes {
                     return Err(changed("published Genesis intent read-back differs"));
@@ -197,6 +204,7 @@ impl Ledger {
                 prepared
             }
         };
+        admission::require_matching_journal(&self.family_root, &prepared)?;
         let manifest = &prepared.manifest;
         let pointer = &prepared.current;
         fs::preflight_genesis_fence(
@@ -250,6 +258,7 @@ impl Ledger {
             &request_id,
         )?;
         files.revalidate(&lock, true)?;
+        admission::require_matching_journal(&self.family_root, &prepared)?;
         files = fs::publish_generation(&lock, files)?;
         files.revalidate(&lock, true)?;
         let current_bytes = pointer.canonical_bytes()?;

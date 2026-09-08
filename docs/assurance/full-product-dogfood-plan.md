@@ -11,8 +11,9 @@ Bullet through its own complete transaction. It refines the
 [WP-01–WP-23](../workplan.md), or [OD-A–OD-J](../decisions/0013-operator-decision-register.md).
 The executable profile check and admitted receipts always win over this page.
 
-The September 7 order starts with exact-source publication and operational
-hosted CI, then a usable Codex–Claude–Cursor subscription loop. All three
+The September 8 execution order continues local engineering while the publication
+App is unavailable. Exact-source publication and operational hosted CI remain a
+parallel required track alongside the Codex–Claude–Cursor subscription loop. All three
 providers are required initially; Antigravity follows. Four canonical source
 repositories retain their authority, publishing exact reviewed objects/trees to
 `neverhuman/bulletfarm` through App-authored review branches and human-approved
@@ -103,6 +104,32 @@ the typed inventory; all G1–G18 remain `DESIGNED`, all release profiles remain
 `BLOCKED`, and Operating HOLD remains effective. WP-22 retains its separate
 publication component evidence.
 
+The next admission prerequisite closes the incomplete single-location V1
+initialization route before record-body reads or sidecar publication. Pristine
+bootstrap now inventories both family metadata locations and binds permitted
+interrupted stages and generation directories to the durable initialization
+intent under the final lock. Retained incidents, foreign generations, ignored
+stages, symlinks, and hardlinks cannot be treated as a pristine retry.
+`src/coord/store/ledger/admission.rs` owns this guard; the existing initialization
+journal still handles exact retries and process death. The final focused ledger
+suite passed 51 tests, public coordinator lifecycle/CLI passed 11, and the
+repository's two-pass Clippy policy passed. This is a `COMPONENT` prerequisite:
+complete two-location inventory/replay/disposition/review records, Genesis-bound
+admission references, and the operator checkpoint remain absent. Filesystem
+absence does not prove that incident history never existed, and cooperative
+same-UID checks do not supply production custody separation. All G1–G18 evidence
+classes and all profile results in the typed inventory remain unchanged.
+
+September 8 schema prerequisite: authentic schema-22 migration prefixes now
+return `UPGRADE_REQUIRED` before writable source SQLite startup. A private
+preflight preserves source WAL and rollback journals, rejects external
+super-journal recovery, and bounds snapshot input and recovered size to 1 GiB.
+Focused adapter library (40), cross-process startup (5), and lease transaction
+(13) tests and all-target Clippy passed after independent hostile review.
+The supervised upgrade command, maintenance custody, prefix-aware verified
+backup, high-water enforcement, and rollback remain open; this startup
+preflight supplies none of their authority.
+
 ## 1. Finish lines
 
 “Dogfood” has three non-substitutable finish lines. Work is planned against the
@@ -112,33 +139,54 @@ earliest honest one, while preserving the path to the complete target.
 | --- | --- | --- | --- |
 | Coordination dogfood | Bullet uses a distinct preserved development generation for claims, handoffs, commits, receipts, exact retries, and restart; historical recovery stays separate | Complete two-location admission, independent review, operator checkpoint, W0 | **BLOCKED**; Operating HOLD remains effective |
 | Full-product offline dogfood | One Bullet change crosses Control, Execution/BulletGit, Verification, Delivery/integration, and Evidence/audit with all twelve fault boundaries | W7 `TRANSACTION_PROOF` | **BLOCKED**; a retained component bridge reaches purpose-signed fixture intent/evidence/proof and `MATCHED` Observation, exact Candidate delivery, local check, protected integration, reopen read-back, and post-exit retained-artifact reads, but its executor/keys/roles are harness-process fixtures, its outer receipt is unsigned/ineligible, and independent custody plus the twelve-boundary campaign are absent |
-| Live self-hosted dogfood | The same product path adds admitted Claude execution and protected Jeryu integration on the signed Ubuntu family | W8 `self-hosted-v1` | **BLOCKED** by W7 and OD-A/B/D/E |
+| Live self-hosted dogfood | The same product path adds separately admitted Codex, Claude, and Cursor subscription execution and protected Jeryu integration on the signed Ubuntu family | W8 `self-hosted-v1` | **BLOCKED** by W7 and OD-A/B/D/E |
 | Complete documented target | Independent evolution, provider, forge, platform, team, and saga profiles also pass | W9–W11 and all eight finish conditions | **BLOCKED**; no narrower receipt may be borrowed |
 
-The first two lines are engineering-owned except for schema-3 signing inputs.
-The third and fourth intentionally require operator custody. No percentage,
+Engineering owns the local consumers and proofs. The coordination transition
+also requires its exact reviewed operator checkpoint; live and release work
+requires the separately admitted account, signing, service, and forge custody. No percentage,
 checkbox, local simulation, or chat line promotes an evidence class.
 
 ## 2. Critical path and stop rules
 
 ```text
-exact-source publication, review PRs, and operational hosted CI
+local engineering and exact-source publication/hosted CI proceed in parallel
 → complete two-location preservation/admission and durable Genesis consumers
 → independent review and operator fresh-generation checkpoint
 → distinct development generation initialization and restart read-back
-→ W0 four clean heads and family observation
-→ first reviewed coordinated Bullet-on-Bullet change
-→ durable Codex–Claude–Cursor loop and twelve-task acceptance campaign
-→ W1 immutable contracts and schema-3 subjects
-→ W2 durable authority
-→ W3 service/isolation boundary
-→ W4 production BulletGit and LocalBareForge
-→ W5 independent verification and effect reconciliation
-→ W6 API/Portal operational truth
+→ W0 four clean heads, family observation, first reviewed coordinated change
+→ supervised schema 22→23 upgrade before account/run/quota migrations
+→ W1 generated contracts, immutable subjects, and durable launch admission
+→ W2 durable authority and W3 supervised Runner/service isolation
+→ W4 production BulletGit and W5 Candidate verification/effect reconciliation
+→ W6 durable operator commands, projections, and Portal reconciliation
+→ fake provider through the real path, then twelve Codex–Claude–Cursor tasks
+→ seven-day integrated-change survival observation
 → W7 signed twelve-boundary transaction and Ubuntu lifecycle
-→ W8 Claude + protected Jeryu self-hosted transaction
+→ W8 admitted subscriptions + protected Jeryu self-hosted transaction
 → W9/W10/W11 complete the documented target
 ```
+
+The upgrade path requires exclusive maintenance custody, a verified backup of
+an authentic supported migration prefix, one migration transaction, final
+reopen/read-back, external authority high-water, and quarantined rollback.
+Startup recognition alone is not upgrade execution. Subsequent execution tables
+must use this mechanism. `/api/v1/commands` remains the runtime mutation ingress:
+revision/idempotency/authority checks, quota reservation, launch nonce consumption,
+run allocation, and dispatch enqueue commit atomically. Runner must persist
+supervision and canonical results, reconcile ambiguous starts without a second
+invocation, and retain termination evidence before releasing capacity.
+
+The first native campaign comprises twelve bounded tasks, four per subscription
+CLI: Rust, TypeScript/React, tests, and documentation. Each selected account has
+its own credential/runtime generations and private home. Vendor quota buckets
+remain distinct from Bullet invocation use; warnings at 80%, critical alerts at
+95%, and exhaustion pauses survive restart. Manual `OPERATOR_REPORTED` snapshots
+expire within one hour or reset and need finite local allowances; they cannot
+override later vendor exhaustion. Unknown actual charges remain `UNPRICED`.
+Account selection and resume are explicit. Per-task limits remain one active invocation
+per account, two implementation workers, two repairs, one escalation, eight
+provider invocations, and 60 minutes; pauses and account changes reset none.
 
 Every packet stops on dirty or changed subjects, failed/skipped/zero tests,
 missing artifacts, stale generations, signer/identity substitution, an
@@ -309,8 +357,9 @@ forge.
 1. Finish the local provider-policy/enrollment-anchor consumers, exact runtime
    probe, launch/egress/teardown receipts, budgets, and onboarding UX before
    requesting credentials.
-2. Consume OD-D/E custody and the operator-admitted OD-A Claude enrollment.
-   Run one bounded native Claude conformance task on the exact W7 family. Stop
+2. Consume OD-D/E custody and each independently admitted OD-A Codex, Claude,
+   and Cursor account enrollment. Complete each provider's native conformance
+   and the twelve-task campaign on exact admitted subjects. Stop
    on runtime/model/profile drift, budget uncertainty, canary leak, or teardown
    ambiguity.
 3. Finish the offline Jeryu semantic adapter and receipt admission before
@@ -322,7 +371,7 @@ forge.
 5. Admit provider, forge, package, operations, and two-install receipts through
    their kind-specific verifiers. Run `check release --profile self-hosted-v1`
    from the admitted absolute registry.
-6. Only after PASS, record install and Claude task media from those same signed
+6. Only after PASS, record install and provider task media from those same signed
    subjects. Media is a projection of proof, never the proof itself.
 
 ## 9. W9–W11: all work beyond first GA
@@ -330,7 +379,7 @@ forge.
 | Phase | Independent branches | Completion condition |
 | --- | --- | --- |
 | W9 evolution | CognitiveTask/SelectionGroup/Role/Fusion persistence, budgets/routing/struggle, immutable recipes, matched-compute study, holdout custody, shadow, rollback readiness; then OD-H bounded ≤1% R0/R1 canary, promotion and drift | `evolution-v1` passes independently; it is never implied by self-hosted or universal |
-| W10 providers | Codex, Cursor, Antigravity exact runtime/enrollment/conformance receipts under OD-A | Four provider receipts exist; none substitutes for another |
+| W10 providers | Maintain independent Codex, Claude, and Cursor certifications from the initial campaign; add Antigravity exact runtime/enrollment/conformance under OD-A | Four provider receipts exist; none substitutes for another |
 | W10 forges | GitHub App under OD-C, GitLab.com under OD-I, self-managed GitLab under OD-J | Jeryu plus three independent forge profiles pass exact protected integration and reconciliation |
 | W10 platforms | Linux aarch64, macOS x86_64/arm64, Windows x64 build/install and certified containment or typed mutation refusal | Five platform slices install twice and pass their exact profile; Linux remains the mutation reference until separately certified |
 | W10 research | Preregistered matched corpus with subjects, costs, failures, and receipts | No benchmark/superiority claim precedes admitted comparable evidence |
@@ -352,7 +401,7 @@ No registered work may disappear between documents and implementation.
 | W9 evolution | G11, G13, G15 | WP-15 | OD-H after offline prerequisites |
 | W10 breadth | G5, G7, G9, G10, G12, G16 | WP-06, 09, 12, 15, 17, 21, 23 | OD-A/C/G/I/J |
 | W11 distributed/saga | G17, G18 | future profile work routed by the gap register | distributed infrastructure custody |
-| Optional/post-V1 governance | no release gap may be cleared by it | WP-09/10/14/17; WP-18 retired | OD-F/G clear no release gate |
+| Active post-V1 and retained governance | no release gap may be cleared by it | WP-09/10/14/17; WP-18 retired | OD-F/G clear no release gate |
 
 The W0 typed bidirectional inventory must fail if any G1–G18, WP-01–WP-23,
 OD-A–OD-J, W0–W11, invariant, receipt kind, runtime owner, test, or gate lacks a
@@ -394,7 +443,8 @@ separate historical recovery obligations; this plan authorizes no incident
 mutation or coordinator initialization. Once DF-DOG0 passes, the vertical
 product queue is DF-101 through DF-105, DF-201 through DF-205, DF-301 through
 DF-304, DF-401 through DF-503, DF-601 through DF-605, and DF-701 through DF-706.
-W8 begins only from that admitted W7 subject.
+W8 live self-hosted certification begins only from that admitted W7 subject;
+local provider consumer engineering proceeds while external checkpoints wait.
 
 “100%” still means all eight conditions in the
 [finish execution plan](execution-plan.md#9-definition-of-finished) hold at

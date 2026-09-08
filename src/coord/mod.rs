@@ -129,6 +129,17 @@ struct RepairMetadata {
 }
 
 fn repair_metadata(code: &str) -> RepairMetadata {
+    if code.starts_with("FRESH_GENESIS_ADMISSION_") {
+        return RepairMetadata {
+            purpose: "preserve incident history before coordinator initialization",
+            common_fixes: &[
+                "preserve both coordinator locations and every retained incident byte",
+                "complete exact reviewed admission before the operator checkpoint",
+            ],
+            docs_url: "docs/errors.md#dependency-unavailable",
+            repair_hint: "retain Operating HOLD until ADR 0015 admission is reviewed",
+        };
+    }
     if code == "COORD_RECOVERY_WRITER_WAIT" {
         return RepairMetadata {
             purpose: "preserve a live legacy writer fence",
@@ -470,6 +481,8 @@ mod tests {
             CoordError::new("COMMAND_TIMEOUT", "response lost"),
             CoordError::new("MSRV_GATE_MISSING", "no receipt"),
             CoordError::new("PROOF_FAILED", "red proof"),
+            CoordError::new("FRESH_GENESIS_ADMISSION_REQUIRED", "retained history"),
+            CoordError::new("FRESH_GENESIS_ADMISSION_UNAVAILABLE", "V1"),
         ] {
             assert!(!error.purpose().is_empty());
             assert!(error.common_fixes().len() >= 2);

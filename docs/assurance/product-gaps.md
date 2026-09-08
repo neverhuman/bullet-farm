@@ -51,6 +51,29 @@ subjects in the active plan, preceding this documentation commit. No successful 
 protected integration, native-provider, installation, or transaction
 certification is claimed.
 
+September 8 coordinator prerequisite: the single-location V1 initialization
+consumer now refuses before sidecar publication. The pristine initialization
+path checks both metadata locations and exact interrupted-journal subjects;
+retained incident material, foreign generations, and ignored or aliased stages
+refuse. Focused ledger (51 tests), public lifecycle/CLI (11 tests), and mapped
+Clippy checks passed. This closes an omitted-input bypass component; it does not
+supply the complete two-location admission packet or lift Operating HOLD.
+The [active plan](full-product-dogfood-plan.md) retains supervised upgrades before
+execution migrations, the real Runner/API/Candidate path, all three initial
+subscription providers and twelve tasks, publication/CI, and every later profile.
+The typed inventory was revalidated together with this entry: all G1–G18 remain
+`DESIGNED`, and all 18 product plus two diagnostic profiles remain `BLOCKED`.
+
+September 8 schema prerequisite: authentic schema-22 migration prefixes now
+return `UPGRADE_REQUIRED` before writable source SQLite startup. A private
+preflight preserves source WAL and rollback journals, rejects external
+super-journal recovery, and bounds snapshot input and recovered size to 1 GiB.
+Focused adapter library (40), cross-process startup (5), and lease transaction
+(13) tests and all-target Clippy passed after independent hostile review.
+The supervised upgrade command, maintenance custody, prefix-aware verified
+backup, high-water enforcement, and rollback remain open; this startup
+preflight supplies none of their authority.
+
 This is the best-known current gap inventory, not a completeness proof. Every
 blocked capability listed below has an owner document, a fail-closed checker,
 and a typed refusal, but the Wave-0 bidirectional implementation↔invariant
@@ -84,7 +107,7 @@ operator secret, signer, or policy generation flip is required.
 | Class | IDs | Agent action |
 | --- | --- | --- |
 | Engineering then operator | G1, G5, G6, G7, G16 | Implement and prove only the local producer/admission half behind an unexpired claim. Then document the exact operator act; do not invent a lock, flip `live_admission_enabled`, credentials, or patch a forge to look green. |
-| Engineering, predecessor-blocked | G2, G3, G4, G9, G12, G13, G14, G15, G17, G18 | Implement only behind an unexpired `coord claim`. A component receipt does not clear the family gate. |
+| Engineering, predecessor-blocked | G2, G3, G4, G9, G12, G13, G14, G15, G17, G18 | Use an unexpired `coord claim` after the admitted transition; during Operating HOLD use the authorized bounded manual path-exact maintenance protocol. A component receipt does not clear the family gate. |
 | Quality / platform | G8, G10 | Reduce hard findings; add a native backend. A local Jankurai binary is not CI evidence. |
 | Dependent certification | G11 | Keep `evolutionary_authority=false` through `self-hosted-v1`; implement and certify `evolution-v1` separately afterwards. Universal never implies it. |
 
@@ -124,6 +147,9 @@ Provider, forge, and platform profiles are independent. The later
 GitLab.com, self-managed GitLab, and all five platforms without implicitly
 admitting evolution, team, or saga. `legacy-v1-26` and `linux-preview` are
 diagnostics only. A receipt for one profile never certifies another.
+The initial coding campaign additionally requires Codex, Claude, and Cursor;
+that campaign requirement does not change the currently Claude-selected
+`self-hosted-v1` contract or replace independent provider certification.
 
 The profiled JSON report uses schema 3 and names its `profile`. The current
 registry boundary is intentionally conservative: an absolute registry may be
