@@ -41,11 +41,16 @@ Durable retry, exclusive supervised upgrade and activation remain open.
 The sealed replay reader reconstructs complete retained facts and rereads every
 input before returning `REPLAY_FACTS_READBACK_ONLY`; this grants no admission.
 
-The root CI template now executes one Hub source scan, retains separate command
-completion and diagnostic validation records, and checks exact artifacts in its
-stable final job. Local wrapper fixtures passed; no hosted run is credited.
-Execution of the complete 53-job inventory, admitted hosted tools and workers,
-and additional assurance campaigns remain required.
+Version-2 publication now renders root workflows deterministically from the eight
+pinned member workflow trees. The 53 member job definitions expand to 55
+invocations. Five focused Rust tests, 48 wrapper cases, strict production Clippy,
+and reconstruction of two historical version-1 packets passed. Expected-root
+preview grants no verification or execution credit. The actual Hub source-scan
+producer and final diagnostic checks remain present; unsupported profiles fail
+explicitly. Original timeout and artifact requirements, execution of the complete
+inventory, admitted hosted tools and workers, and additional assurance campaigns
+remain required. Complete local member/family proof is pending; no hosted run is
+credited.
 The BulletGit artifact uploader now creates its private stage before copying
 validated diagnostics, and corpus replay respects the selected private Cargo
 target. Their mapped fixtures and complete BulletGit `required` check passed

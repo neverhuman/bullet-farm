@@ -438,3 +438,50 @@ all G1–G18 remain `DESIGNED`, all 18 product and two diagnostic profiles remai
 `BLOCKED`, and active post-V1 plus retired dispositions remain present. This
 checkpoint grants no coordinator admission, provider enrollment, hosted CI,
 transaction, installation or release credit. The Operating HOLD remains effective.
+
+
+## September 8 version-2 publication checkpoint
+
+The reviewed generator was integrated through commits
+`add818b0b3c151aa973b097ce9fca3917a01fe89` (renderer modules),
+`c1f8a18e3de127f7a2bb41c6182d6fe674e7c90b` (version-2 consumer and preview), and
+`e7bc1e911ec24a208ff6947dcc88383f27777216` (actual wrapper fixture), ending at tree
+`c521f3c8c35a562766377c60cbd4b1e45a472856`. The renderer is split by source-tree
+admission, job rendering and tests; every touched file is below 500 lines.
+Both aggregate construction and read-back derive exact roots from canonical
+member trees. `ci-root-files` reports `EXPECTED_ROOT_FILES_ONLY` with
+`execution_evidence=false`; final verification independently enforces root bytes,
+modes and inventory. Authored nested workflow changes require new reviewed pins.
+
+The five selected renderer tests passed. Ordinary unit fixtures use isolated
+repositories; the explicitly family-dependent wrapper carries the authentic
+eight-workflow, four-member version-2 fixture. All 48 wrapper cases passed,
+including deterministic generation, rejection of unrendered roots and independent
+member reconstruction. Actual Nextest lists contain 797 total / 578 Hub / 219
+wire identities; subtracting exactly five renderer additions reproduces the
+previous complete identity digests. Both mapped Clippy passes succeeded, with
+fixture allowances separate from forbidden production JSON bypasses.
+Renderer log SHA256
+`cf64ce3decab12c2dcb19b9b6405101e70a38117fbba2d3d4032e522babc87e6`.
+Wrapper log SHA256
+`9277fc66dcb0759dd70c01893b423f296eca7b0840b6f790386938b49127da50`.
+
+The new binary read the two existing version-1 requests
+`production-prerequisites-20260908-r2` and `bootstrap-20260908-r9`, preserving
+aggregate identities `1fd6b99a371d26de447270894a34d93baf8d6546` and
+`bf2e877abe4b4edd23a9b1f4f78b6bab82c62c2b`. Before/after snapshots verify that
+all 4,869 stored request, prepared and object files plus refs are unchanged;
+the snapshot SHA256 is
+`9a86b100ff73e048ecc325ae7f60d0b1aa4ada366daa8f79afdaf47de6a09456`.
+Initial compilation, topology assertion and wrapper framing failures remain
+historical diagnostics; their incomplete runs receive no acceptance credit.
+
+The complete focused packet SHA256 is
+`9c94e82497c371d7e2ce12c19186c5bbccd61fc19f01fccc2e524badb69a6d27`.
+This proves topology, deterministic generation and explicit refusal behavior.
+Unavailable execution profiles still need their original timeout and artifact
+requirements implemented and their actual CI campaigns executed. Complete clean
+Hub and dependency-ordered member/family proof remains pending. The typed
+inventory was reconciled unchanged: all G1–G18 remain `DESIGNED`, every product
+and diagnostic profile remains `BLOCKED`, and the retained release program is
+unchanged. No hosted, coordinator, provider, transaction or release gate is cleared.
