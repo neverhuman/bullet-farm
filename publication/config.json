@@ -1,5 +1,5 @@
 {
-  "schema_version": "bullet.publication-config.v1",
+  "schema_version": "bullet.publication-config.v2",
   "destination": "https://github.com/neverhuman/bulletfarm.git",
   "root_files": {
     ".github/workflows/publication.yml": "publication/root/.github/workflows/publication.yml",

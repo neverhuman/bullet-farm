@@ -2,6 +2,7 @@
 mod ci_inventory;
 mod ci_job;
 mod ci_plan;
+mod ci_render;
 mod git;
 mod observation;
 mod pull_request;
@@ -106,8 +107,10 @@ fn source_ref(name: &str, commit: &str) -> String {
 impl Config {
     fn validate(&self) -> Result<()> {
         require(
-            self.schema_version == "bullet.publication-config.v1"
-                && self.destination == DESTINATION,
+            matches!(
+                self.schema_version.as_str(),
+                "bullet.publication-config.v1" | "bullet.publication-config.v2"
+            ) && self.destination == DESTINATION,
             "PUBLICATION_CONFIG_INVALID",
         )?;
         require(
@@ -193,7 +196,7 @@ fn read_manifest(aggregate: &Path) -> Result<Manifest> {
     read_manifest_at(aggregate, "HEAD")
 }
 
-fn read_manifest_at(aggregate: &Path, revision: &str) -> Result<Manifest> {
+fn read_source_manifest_at(aggregate: &Path, revision: &str) -> Result<Manifest> {
     let bytes = git::blob(aggregate, revision, MANIFEST)?;
     let manifest: Manifest = decode(&bytes)?;
     manifest.validate()?;
@@ -207,12 +210,31 @@ fn read_manifest_at(aggregate: &Path, revision: &str) -> Result<Manifest> {
     )?;
     let config: Config = decode(&git::blob(aggregate, &hub_revision, CONFIG)?)?;
     require(config == manifest.tool_config, "PUBLICATION_CONFIG_DRIFT")?;
+    // Tree objects are present in a shallow aggregate before source commits are fetched.
+    for (name, subject) in &manifest.members {
+        require(
+            git::text(aggregate, &["rev-parse", &format!("{revision}:{name}")])? == subject.tree,
+            "PUBLICATION_TREE_MISMATCH",
+        )?;
+    }
+    Ok(manifest)
+}
+
+fn read_manifest_at(aggregate: &Path, revision: &str) -> Result<Manifest> {
+    let manifest = read_source_manifest_at(aggregate, revision)?;
+    let root_files = ci_render::root_files(aggregate, &manifest)?;
     let mut expected = MEMBERS.iter().map(|n| (*n).to_owned()).collect::<Vec<_>>();
     expected.push(MANIFEST.into());
-    for (target, template) in &config.root_files {
+    for (target, rendered) in &root_files {
+        if manifest.tool_config.schema_version == "bullet.publication-config.v2" {
+            require(
+                git::text(aggregate, &["ls-tree", revision, "--", target])?
+                    .starts_with("100644 blob "),
+                "PUBLICATION_ROOT_MODE_DRIFT",
+            )?;
+        }
         require(
-            git::blob(aggregate, revision, target)?
-                == git::blob(aggregate, &hub_revision, template)?,
+            git::blob(aggregate, revision, target)? == *rendered,
             "PUBLICATION_TEMPLATE_DRIFT",
         )?;
         expected.push(target.split('/').next().unwrap_or_default().into());
@@ -227,7 +249,7 @@ fn read_manifest_at(aggregate: &Path, revision: &str) -> Result<Manifest> {
     )?;
     // Each root directory must contain exactly its selected leaves.
     let mut leaves = vec![MANIFEST.to_owned()];
-    leaves.extend(config.root_files.keys().cloned());
+    leaves.extend(root_files.keys().cloned());
     let actual = git::text(aggregate, &["ls-tree", "-r", "--name-only", revision])?;
     let mut actual = actual
         .lines()
@@ -237,12 +259,6 @@ fn read_manifest_at(aggregate: &Path, revision: &str) -> Result<Manifest> {
     actual.sort();
     leaves.sort();
     require(actual == leaves, "PUBLICATION_ROOT_INVENTORY_DRIFT")?;
-    for (name, subject) in &manifest.members {
-        require(
-            git::text(aggregate, &["rev-parse", &format!("{revision}:{name}")])? == subject.tree,
-            "PUBLICATION_TREE_MISMATCH",
-        )?;
-    }
     Ok(manifest)
 }
 
@@ -268,6 +284,7 @@ pub fn run(args: Vec<String>) -> Result<String> {
         ["ci-observe", aggregate, root, artifacts] => {
             observation::write(Path::new(aggregate), Path::new(root), Path::new(artifacts))
         }
+        ["ci-root-files", aggregate] => ci_render::preview(Path::new(aggregate)),
         ["ci-plan", aggregate] => ci_plan::run(Path::new(aggregate)),
         ["ci-plan", store, request] => ci_plan::stored(Path::new(store), request),
         ["ci-job-context", aggregate, root, key] => {
@@ -289,7 +306,7 @@ pub fn run(args: Vec<String>) -> Result<String> {
         }
         _ => Err(CoordError::new(
             "USAGE",
-            "bullet-publish inspect ROOT | prepare ROOT STORE REQUEST EXPECTED_MAIN | verify AGGREGATE | reconstruct AGGREGATE NEW_ROOT | ci-plan AGGREGATE | ci-plan STORE REQUEST | ci-job-context AGGREGATE ROOT KEY | ci-job-observe AGGREGATE ROOT KEY ARTIFACTS | ci-observe AGGREGATE ROOT ARTIFACTS | scan STORE REQUEST | push STORE REQUEST | pr STORE REQUEST",
+            "bullet-publish inspect ROOT | prepare ROOT STORE REQUEST EXPECTED_MAIN | verify AGGREGATE | reconstruct AGGREGATE NEW_ROOT | ci-root-files AGGREGATE | ci-plan AGGREGATE | ci-plan STORE REQUEST | ci-job-context AGGREGATE ROOT KEY | ci-job-observe AGGREGATE ROOT KEY ARTIFACTS | ci-observe AGGREGATE ROOT ARTIFACTS | scan STORE REQUEST | push STORE REQUEST | pr STORE REQUEST",
         )),
     }
 }

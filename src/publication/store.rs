@@ -212,9 +212,8 @@ pub(super) fn build_tree(repo: &Path, manifest: &Manifest) -> Result<String> {
         )?;
     }
     entries.push((MANIFEST.to_owned(), write_blob(repo, &encode(manifest)?)?));
-    for (target, template) in &manifest.tool_config.root_files {
-        let bytes = git::blob(repo, &manifest.members["bullet-farm"].commit, template)?;
-        entries.push((target.clone(), write_blob(repo, &bytes)?));
+    for (target, bytes) in super::ci_render::root_files(repo, manifest)? {
+        entries.push((target, write_blob(repo, &bytes)?));
     }
     for (path, object) in entries {
         git::execute(
