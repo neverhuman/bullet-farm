@@ -6,23 +6,36 @@ FAMILY="$(cd "$HUB/.." && pwd -P)"
 KERNEL="$FAMILY/bullet-kernel"
 GIT="$FAMILY/bullet-git"
 PORTAL="$FAMILY/bullet-portal"
+data_ancestors_valid() {
+  local ancestor="$1" identity owner mode
+  [[ "$ancestor" == /* && "$ancestor" != / && -d "$ancestor" && ! -L "$ancestor" \
+    && "$(realpath -e -- "$ancestor")" == "$ancestor" ]] || return 1
+  while :; do
+    [[ -d "$ancestor" && ! -L "$ancestor" ]] || return 1
+    identity="$(stat -c '%u:%a' -- "$ancestor")" || return 1
+    owner="${identity%%:*}"; mode="${identity#*:}"
+    [[ "$owner" == 0 || "$owner" == "$(id -u)" ]] || return 1
+    [[ "$mode" =~ ^[0-7]{3,4}$ ]] || return 1
+    if (( (8#$mode & 8#22) != 0 )); then
+      [[ "$owner" == 0 ]] && (( (8#$mode & 8#1000) != 0 )) || return 1
+    fi
+    [[ "$ancestor" != / ]] || break
+    ancestor="${ancestor%/*}"
+    [[ -n "$ancestor" ]] || ancestor=/
+  done
+}
+
 if [[ -n "${BULLET_DATA_DIR:-}" ]]; then
   DATA="$BULLET_DATA_DIR"
-  if [[ "$DATA" != /* || "$DATA" == "/" || ! -d "$DATA" || -L "$DATA" ]]; then
-    echo "BULLET_DATA_DIR must name an existing absolute real directory" >&2
-    exit 1
-  fi
-  CANONICAL_DATA="$(realpath -e -- "$DATA")"
-  if [[ "$CANONICAL_DATA" != "$DATA" ]]; then
-    echo "BULLET_DATA_DIR must be normalized and contain no symlinked ancestor" >&2
-    exit 1
-  fi
-  if [[ "$(stat -c '%u:%a' -- "$DATA")" != "$(id -u):700" ]]; then
-    echo "BULLET_DATA_DIR must be caller-owned with exact mode 0700" >&2
-    exit 1
-  fi
 else
   DATA="$(mktemp -d /tmp/bullet-txn.XXXXXX)"
+fi
+# This preflight avoids an expensive build for a path SQLite will refuse. The
+# ledger independently revalidates custody before it opens or creates any data.
+if ! data_ancestors_valid "$DATA" \
+  || [[ "$(stat -c '%u:%a' -- "$DATA")" != "$(id -u):700" ]]; then
+  echo "DEMO_DATA_INVALID: use a canonical caller-owned 0700 directory; ancestors must be root/caller-owned without group/other write, except root-owned sticky directories" >&2
+  exit 1
 fi
 
 echo "== Bullet Farm demo =="

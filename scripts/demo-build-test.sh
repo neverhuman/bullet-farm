@@ -106,8 +106,8 @@ chmod 700 "$fixture_root/bin/cargo" "$fixture_root/bin/mktemp"
 
 case_count=0
 run_case() {
-  local variant="$1" expected="$2" selected="${3:-explicit}" status=0
-  local case_dir="$fixture_root/case $variant" reports target
+  local variant="$1" expected="$2" selected="${3:-explicit}" data_selection="${4:-explicit}" status=0
+  local case_dir="$fixture_root/case $variant" reports target data
   mkdir -m 700 "$case_dir"
   mkdir -m 700 "$case_dir/family" "$case_dir/tmp" "$case_dir/target" "$case_dir/data"
   for member in bullet-farm bullet-kernel bullet-git bullet-portal; do
@@ -164,9 +164,26 @@ SH
     mode) chmod 775 "$target" ;;
     family) target="$case_dir/family/bullet-kernel/target"; chmod 700 "$target" ;;
   esac
+  data="$case_dir/data"
+  case "$data_selection" in
+    relative) data=relative-data ;;
+    missing) data="$case_dir/missing-data" ;;
+    file) touch "$case_dir/data-file"; data="$case_dir/data-file" ;;
+    symlink) ln -s "$data" "$case_dir/data-alias"; data="$case_dir/data-alias" ;;
+    mode) mkdir -m 775 "$case_dir/writable-data"; data="$case_dir/writable-data" ;;
+    ancestor|sticky)
+      mkdir -m 700 "$case_dir/unsafe-parent" "$case_dir/unsafe-parent/data"
+      chmod 775 "$case_dir/unsafe-parent"
+      [[ "$data_selection" != sticky ]] || chmod 1777 "$case_dir/unsafe-parent"
+      data="$case_dir/unsafe-parent/data" ;;
+    ancestor-symlink)
+      ln -s "$case_dir" "$case_dir/parent-alias"
+      data="$case_dir/parent-alias/data" ;;
+  esac
   local -a invocation=(env -i "PATH=$fixture_root/bin:/usr/bin:/bin" "CASE=$case_dir" \
-    "VARIANT=$variant" "BULLET_DATA_DIR=$case_dir/data" BULLET_DEMO_PORTAL=0 \
+    "VARIANT=$variant" BULLET_DEMO_PORTAL=0 \
     BULLET_VERIFIER_FIXTURE_FD=999 BULLET_VERIFIER_FIXTURE_BIN=/untrusted)
+  [[ "$data_selection" == default ]] || invocation+=("BULLET_DATA_DIR=$data")
   [[ "$selected" == default ]] || invocation+=("CARGO_TARGET_DIR=$target")
   "${invocation[@]}" bash "$case_dir/family/bullet-farm/scripts/demo.sh" \
     >"$case_dir/stdout" 2>"$case_dir/stderr" || status="$?"
@@ -176,7 +193,10 @@ SH
     exit 1
   fi
   [[ ! -e "$case_dir/stale-executed" && "$(<"$case_dir/data/keep")" == 'preserved data' ]]
-  if [[ "$variant" == target-* ]]; then
+  if [[ "$variant" == data-* && "$expected" != 0 ]]; then
+    [[ ! -e "$case_dir/calls" && ! -e "$case_dir/data-used" ]]
+    grep -Fq DEMO_DATA_INVALID "$case_dir/stderr"
+  elif [[ "$variant" == target-* ]]; then
     [[ ! -e "$case_dir/calls" && ! -e "$case_dir/data-used" ]]
     grep -Fq DEMO_TARGET_INVALID "$case_dir/stderr"
   else
@@ -224,6 +244,15 @@ SH
 
 run_case explicit 0
 run_case default 0 default
+run_case data-default 0 explicit default
+for data_selection in relative missing file symlink mode ancestor ancestor-symlink; do
+  run_case "data-$data_selection" 1 explicit "$data_selection"
+done
+if [[ "$(id -u)" == 0 ]]; then
+  run_case data-root-sticky 0 explicit sticky
+else
+  run_case data-user-sticky 1 explicit sticky
+fi
 for selected in relative empty missing root symlink mode family; do
   run_case "target-$selected" 1 "$selected"
 done
@@ -238,5 +267,5 @@ run_case later-build-drift 1
 run_case later-build-replaced 1
 run_case component-drift 1
 run_case component-failed-drift 37
-[[ "$case_count" == 35 ]]
+[[ "$case_count" == 44 ]]
 printf 'demo build wrapper fixtures: %s passed\n' "$case_count"
