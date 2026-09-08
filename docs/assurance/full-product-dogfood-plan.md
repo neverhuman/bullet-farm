@@ -26,6 +26,10 @@ typed current-schema inspection, serving and backup custody, explicit backup
 close, expected CI topology, and source-bound diagnostic validation. The
 [dated checkpoint record](production-prerequisite-checkpoints.md) retains exact
 subjects, executed checks, failed attempts, and each component's limits.
+Backups now consume an owned recovered private snapshot and preserve the
+original source during WAL or rollback-journal recovery. Exclusive upgrade
+admission and prefix-aware backup remain required.
+
 Complete coordinator admission, supervised upgrades, hosted job execution,
 and all subsequent production work remain open. All G1–G18 remain `DESIGNED`,
 and all 18 product plus two diagnostic profiles remain `BLOCKED`.

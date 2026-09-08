@@ -230,3 +230,19 @@ The complete Kernel `required` check subsequently passed on commit
 Log SHA256: `da64c0cce7709258ecb861a9585f1ab3274cabaea2c874cd9790ebf5653fad28`.
 Only that run's log and newly generated fast/contract reports receive current
 credit; inherited coverage, family, faults and older observation files do not.
+
+A later backup snapshot component was accepted on Kernel commit
+`22d90d6a66f16624ccd1f60e6711576b8637de30`, tree
+`5738a18bee863445f8dbc7c7444769ba4f14c6c6`. The actual backup source is now an
+owned recovered private snapshot opened read-only; SQLite never opens the
+original source for this backup path. Source custody and private directory
+ownership survive inspection, publication, read-back and explicit close.
+Nine backup tests, one schema-22 preservation test, 40 adapter tests, five
+cross-process tests, 13 lease tests and strict Clippy passed. Empty and
+unsupported sources still refuse. Failed close retains live handles and private
+files until process exit; confirmed-close cleanup failure reports retained
+paths and permits retry. Source capture and pre-cleanup directory identity
+checks remain sampled under shared custody, with no hostile same-UID
+containment, prefix allowance or exclusive upgrade authority. Complete
+`required` proof on this newer commit remains pending; the preceding run
+binds only its recorded older subject.
