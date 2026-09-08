@@ -33,8 +33,23 @@ provider remains synthetic and the receipt `UNSIGNED_FIXTURE` /
 browser campaign uses Vite preview; packaged-origin and installation evidence
 remain separate. WP-02 records `COMPONENT`, while all G1–G18 remain `DESIGNED`,
 all profiles remain `BLOCKED`, and coordinator Operating HOLD remains effective.
-Final Kernel `required`, the actual Hub demo, and repeated full-family proof
-remain pending; no successful public CI or protected integration is claimed.
+A subsequent actual Hub demo and separate component-receipt verification passed
+on Hub `cdcbfd50` and Kernel `071173a9`, with Portal `b66a2053` and BulletGit
+`48755d95`; exact commits, trees, and receipt digest are in the active plan.
+That demo used synthetic execution and ephemeral fixture authority, with
+transaction-gate and release-profile eligibility false. The following family
+attempt completed Kernel `required` (1,067 selected standalone and 34 contract
+tests) and all nine Kernel family tests, then failed Portal security on a
+public fixture key identifier. The original failed-run receipt remains preserved unchanged. Repaired
+Portal `3cc19fd3` passed its seven pinned scanner canaries, eight refusal
+mutations, and focused security and CI-policy checks. Two repaired full-family
+runs then passed at 04:07 and 04:18 UTC with all eleven canonical report entries:
+1,699 selected cases and two formal models per run. Their canonical results match
+exactly; actual run metadata remains separately retained. These unsigned
+`DIAGNOSTIC_ONLY` observations have `release_authority=false` and bind the dated
+subjects in the active plan, preceding this documentation commit. No successful public CI,
+protected integration, native-provider, installation, or transaction
+certification is claimed.
 
 This is the best-known current gap inventory, not a completeness proof. Every
 blocked capability listed below has an owner document, a fail-closed checker,

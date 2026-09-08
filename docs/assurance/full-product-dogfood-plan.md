@@ -57,13 +57,51 @@ also passed. These observations do not constitute a release MSRV receipt.
 Hub `d3c4db3600e6f1d93800d258e3ac7c1a2b4db4f3` passed `required`: 770 Rust
 tests, two formal models, and documentation/media checks. Its repaired
 `scripts/demo.sh` captures and revalidates five Cargo executable subjects;
-both existing launcher tests, including 35 fake-Cargo cases, passed. These observations precede the actual
-demo, final Kernel `required`, and repeated full-family campaign required for
-final-subject publication admission. Public App identity, PR publication, the complete root
-workflow inventory, portable audit, and branch protection remain blocked.
-WP-02 now records `COMPONENT` evidence in the typed inventory; all G1–G18
-remain `DESIGNED`, all release profiles remain `BLOCKED`, and Operating HOLD
-remains effective. WP-22 retains its separate publication component evidence.
+both existing launcher tests, including 35 fake-Cargo cases, passed.
+
+The September 8 actual `just demo` and separate component-receipt verification
+then passed on these newer Hub and Kernel subjects, with Portal and BulletGit
+unchanged from the initial checkpoint above:
+
+| Member | Commit | Tree |
+| --- | --- | --- |
+| Hub | `cdcbfd50e643635483acb427cf376f131684740d` | `b8a07dce4e284d1730f8a8e783bbf5444f6f2383` |
+| Kernel | `071173a94e2d50d404aa07801a07064bd8a1e375` | `247dcc67595af8aa5f73420b7a78399494fed6ff` |
+
+The demo disabled Portal startup and used synthetic execution and ephemeral
+fixture authority. Receipt SHA256
+`b379e69f9c82ad3ef1b13c16acd54fc52616e88da69048ef748ce0e0205ca2c1`
+verified as `COMPONENT_PROOF`, with `EPHEMERAL_SELF_SIGNED` component signing
+and `UNSIGNED_DIAGNOSTIC` verification trust. Transaction-gate and release-profile
+eligibility remain false; this adds no native-provider, installation, or
+independent transaction certification.
+
+The following full-family attempt on those same four subjects completed
+BulletGit `required`, Kernel `required` (1,067 selected standalone tests and
+34 contract tests), and all nine Kernel family tests. Portal passed 131 Vitest
+and 14 standalone Playwright tests, then its security lane refused two matches
+of a public fixture key identifier in a retained receipt. The attempt failed;
+its logs and original receipt remain preserved. Portal
+`3cc19fd388dfbedfca689f1703f9dc719ea9ac23` (tree
+`42a023a75de4955a1305f4e96057ddc2b85fad71`) now extends the default scanner
+policy with one exact field-and-public-label match. Seven pinned canaries,
+eight refusal mutations, and focused security and CI-policy checks passed.
+The original failed-run receipt remains preserved unchanged; later runs produce
+their own receipts. No artifact directory or whole field was excluded.
+
+Two complete repaired full-family runs passed on September 8 at 04:07 and
+04:18 UTC on Hub `cdcbfd50`, Kernel `071173a9`, BulletGit `48755d95`, and Portal `3cc19fd3`.
+Each retained all eleven canonical report entries: 1,699 selected cases and
+two formal models. Their canonical results match exactly; the observation digest is
+`blake3:7a3d352c9fc6ef8fc579fe25728befe78ab83d98afd15c36860f7b1d2675bcbc`.
+Each is an unsigned `DIAGNOSTIC_ONLY` observation with `release_authority=false`.
+Real run metadata remains separately retained. These dated observations precede
+this documentation commit; later source subjects require their own proof. Public App
+identity, PR publication, the complete root workflow inventory, portable audit,
+and branch protection remain blocked. WP-02 retains `COMPONENT` evidence in
+the typed inventory; all G1–G18 remain `DESIGNED`, all release profiles remain
+`BLOCKED`, and Operating HOLD remains effective. WP-22 retains its separate
+publication component evidence.
 
 ## 1. Finish lines
 
