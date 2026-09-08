@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Hub target and Gitd inheritance proof using its exact driver and fixture receivers.
+# Reproduce the operator default; the family build must tighten its own mask.
 set -euo pipefail
+umask 0002
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 fixture="$(mktemp -d)"
 cleanup() { chmod -R u+rwx -- "$fixture"; rm -rf -- "$fixture"; }
@@ -57,6 +59,7 @@ case "$member:$1" in
       && "${BULLET_GITD_SHA256:-}" == "${expected[1]}" \
       && "$BULLET_GITD_BIN" == /* && -f "$BULLET_GITD_BIN" \
       && -x "$BULLET_GITD_BIN" && ! -L "$BULLET_GITD_BIN" \
+      && "$(stat -Lc '%a' -- "$BULLET_GITD_BIN")" == 700 \
       && "$(sha256sum "$BULLET_GITD_BIN" | cut -d ' ' -f 1)" == "$BULLET_GITD_SHA256" ]] || exit 98
     printf 'portal received exact Gitd\n' >>"$TARGET_TRACE"
     if [[ "$TARGET_MODE" == portal-after-change ]]; then

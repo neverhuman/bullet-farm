@@ -189,11 +189,16 @@ log "2/7 build the sole-writer daemon from the admitted BulletGit subject"
 # Start a clean non-login shell so Hub's sourced Cargo boundary cannot leak
 # across the repository boundary. The explicit rustup subject agrees with
 # BulletGit's checked-in primary toolchain and leaves Hub on Rust 1.95.0.
-(cd "$GIT_ROOT" && env -i HOME="${HOME:?}" PATH="$PATH" LC_ALL=C TZ=UTC \
-  CARGO_INCREMENTAL=0 CARGO_TARGET_DIR="$family_tmp/gitd-target" \
-  CARGO_NET_OFFLINE=true \
-  bash --noprofile --norc -c \
-    'exec rustup run 1.97.1 cargo build --locked -p bullet-gitd --bin bullet-gitd')
+(
+  # The retained executable must be private even when the invoking shell uses 0002.
+  umask 077
+  cd "$GIT_ROOT"
+  env -i HOME="${HOME:?}" PATH="$PATH" LC_ALL=C TZ=UTC \
+    CARGO_INCREMENTAL=0 CARGO_TARGET_DIR="$family_tmp/gitd-target" \
+    CARGO_NET_OFFLINE=true \
+    bash --noprofile --norc -c \
+      'exec rustup run 1.97.1 cargo build --locked -p bullet-gitd --bin bullet-gitd'
+)
 gitd_expected="$family_tmp/gitd-target/debug/bullet-gitd"
 gitd_bin="$(realpath -e -- "$gitd_expected")" \
   || { refuse BULLET_GITD_BIN_MISSING "$gitd_expected"; exit 1; }
