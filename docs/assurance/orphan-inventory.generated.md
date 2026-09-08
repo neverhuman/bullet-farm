@@ -78,7 +78,7 @@ A green inventory closes only the declared graph; it completes no wave or gate.
 | Workplan | Waves | Follow-on | Owner | Lifecycle | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | WP-01 | W0, W1, W7 | none | hub-assurance | ACTIVE | DESIGNED |
-| WP-02 | W2, W3, W4, W5, W6, W7 | none | transaction-family | ACTIVE | DESIGNED |
+| WP-02 | W2, W3, W4, W5, W6, W7 | none | transaction-family | ACTIVE | COMPONENT |
 | WP-03 | W1 | none | shared-wire | ACTIVE | DESIGNED |
 | WP-04 | W0, W4, W7 | none | hub-bulletgit | ACTIVE | DESIGNED |
 | WP-05 | W4, W5, W7 | none | bulletgit-verifier-effects | ACTIVE | DESIGNED |
@@ -129,7 +129,7 @@ Receipt-kind reverse edges: `artifact` 8, `containment` 1, `forge` 2, `operation
 | ../repos.manifest.toml | f201a2d8293db09aacfe10ad276b7f7792fd956a9d34136f02155bcbfb43de4f |
 | contracts/v1alpha1/schema-bundle.json | 5b47756bcab8bc88aa24c42a5bcf535e6cbcf95241151b5ebfc50055e7d0b167 |
 | docs/schemas/bullet.assurance-inventory.v1.schema.json | fb00a7e88263db61a8c00c241eeceb822ac718b285e91c37078805acbf467c4e |
-| policy/assurance-inventory-v1.json | 1551fefa323c8cdd18b42dbfc5cb8d6e6aa638f1a4112c79d76e40a08c81e200 |
+| policy/assurance-inventory-v1.json | d0df5aea6d15366246b8b58ae998605c8f30240be2859eb593bb567e9f16326f |
 | policy/corpus-coverage-v1.json | 04a40bdde0f212a37243da973c26ed938394dd5621030878416bd3d001ff28f7 |
 | policy/v1alpha1/invariant-registry.json | 5b9c57329de0e812fdc441455ab7467e20b52f89f36c67d5787d562c5a7d67e5 |
 
