@@ -19,6 +19,18 @@ pub(super) struct Request {
     pub manifest: Manifest,
 }
 
+impl Request {
+    pub(super) fn bootstrap(&self) -> Result<bool> {
+        oid(&self.expected_main)?;
+        let bootstrap = self.expected_main == super::EMPTY_MAIN;
+        require(
+            !bootstrap || self.manifest.tool_config.destination == super::JERYU_DESTINATION,
+            "PUBLICATION_BOOTSTRAP_DESTINATION_INVALID",
+        )?;
+        Ok(bootstrap)
+    }
+}
+
 #[derive(Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Prepared {
@@ -161,7 +173,7 @@ impl Store {
         let request: Request = decode(&request_bytes)?;
         let prepared: Prepared = decode(&read_record(&self.path(id, "prepared"))?)?;
         request.manifest.validate()?;
-        oid(&request.expected_main)?;
+        request.bootstrap()?;
         oid(&prepared.aggregate_commit)?;
         require(
             request.schema_version == "bullet.publication-request.v1"
@@ -246,14 +258,10 @@ pub(super) fn build_commit(repo: &Path, request: &Request) -> Result<String> {
         command.env(format!("GIT_{role}_EMAIL"), "publication@bullet.invalid");
         command.env(format!("GIT_{role}_DATE"), "2000-01-01T00:00:00Z");
     }
-    command.args([
-        "-c",
-        "commit.gpgSign=false",
-        "commit-tree",
-        &tree,
-        "-p",
-        &request.expected_main,
-    ]);
+    command.args(["-c", "commit.gpgSign=false", "commit-tree", &tree]);
+    if !request.bootstrap()? {
+        command.args(["-p", &request.expected_main]);
+    }
     let message = format!(
         "Publish exact Bullet family: {}\n\nRequest-SHA256: {}\n",
         request.request_id,
@@ -265,7 +273,8 @@ pub(super) fn build_commit(repo: &Path, request: &Request) -> Result<String> {
 }
 
 pub(super) fn prepare(root: &Path, store: &Path, id: &str, base: &str) -> Result<String> {
-    prepare_from(root, store, id, base, super::DESTINATION)
+    let destination = capture(root)?.tool_config.destination;
+    prepare_from(root, store, id, base, &destination)
 }
 
 pub(super) fn prepare_from(
@@ -290,6 +299,12 @@ pub(super) fn prepare_from(
         expected_main: base.into(),
         manifest,
     };
+    request.bootstrap()?;
+    require(
+        destination == request.manifest.tool_config.destination
+            || Path::new(destination).is_absolute(),
+        "PUBLICATION_DESTINATION_MISMATCH",
+    )?;
     persist(&store.path(id, "request"), &encode(&request)?)?;
     if store.path(id, "prepared").exists() {
         let (_, prepared) = store.load(id)?;
@@ -306,16 +321,26 @@ pub(super) fn prepare_from(
             None,
         )?;
     }
-    git::bytes(
-        &store.objects,
-        &[
-            "fetch",
-            "--no-tags",
-            "--no-write-fetch-head",
-            destination,
-            base,
-        ],
-    )?;
+    if !request.bootstrap()? {
+        let mut command = git::command(&store.objects);
+        if destination == super::JERYU_DESTINATION {
+            super::transport::authenticate_git(
+                &mut command,
+                destination,
+                &super::transport::jeryu_token()?,
+            )?;
+        }
+        git::execute(
+            command.args([
+                "fetch",
+                "--no-tags",
+                "--no-write-fetch-head",
+                destination,
+                base,
+            ]),
+            None,
+        )?;
+    }
     git::bytes(
         &store.objects,
         &["fsck", "--full", "--strict", "--no-dangling"],

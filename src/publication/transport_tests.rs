@@ -195,3 +195,136 @@ fn git_basic_auth_encoding_and_unrelated_child_custody_are_exact() {
         );
     }
 }
+
+#[test]
+fn jeryu_bootstrap_preserves_sources_and_reconciles_without_creating_main() {
+    let fixture = Fixture::new();
+    let hub = fixture.root.join("bullet-farm");
+    let mut config: super::Config =
+        super::decode(&std::fs::read(hub.join(super::CONFIG)).unwrap()).unwrap();
+    config.destination = super::JERYU_DESTINATION.into();
+    std::fs::write(hub.join(super::CONFIG), super::encode(&config).unwrap()).unwrap();
+    super::tests::commit(&hub, "admit fixture JeRyu destination");
+    git::bytes(fixture.temp.path(), &["init", "--bare", "bootstrap.git"]).unwrap();
+    let remote = fixture.temp.path().join("bootstrap.git");
+    let remote = remote.to_str().unwrap();
+    let path = hub.join(".git/bullet-publication");
+    let first =
+        store::prepare_from(&fixture.root, &path, "bootstrap", super::EMPTY_MAIN, remote).unwrap();
+    assert_eq!(
+        first,
+        store::prepare_from(&fixture.root, &path, "bootstrap", super::EMPTY_MAIN, remote).unwrap()
+    );
+    let store = store::Store::open(&path).unwrap();
+    let (request, prepared) = store.load("bootstrap").unwrap();
+    assert_eq!(
+        git::text(
+            &store.objects,
+            &[
+                "rev-list",
+                "--parents",
+                "-n",
+                "1",
+                &prepared.aggregate_commit
+            ]
+        )
+        .unwrap(),
+        prepared.aggregate_commit
+    );
+    let receipt = transport::publish_to(&store, &request, &prepared, remote, None).unwrap();
+    assert_eq!(
+        receipt,
+        transport::publish_to(&store, &request, &prepared, remote, None).unwrap()
+    );
+    let refs = transport::read_remote(&store, remote).unwrap();
+    assert_eq!(refs.len(), 5);
+    assert!(!refs.contains_key("refs/heads/main"));
+    let aggregate = fixture.aggregate(&store, &prepared);
+    let reconstructed = fixture.temp.path().join("reconstructed");
+    let error = transport::reconstruct(&aggregate, &reconstructed).unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("PUBLICATION_JERYU_RECONSTRUCTION_UNAVAILABLE")
+    );
+    assert!(!reconstructed.exists());
+    transport::reconstruct_from(&aggregate, &reconstructed, remote).unwrap();
+    assert_eq!(super::capture(&reconstructed).unwrap(), request.manifest);
+    // A different main appearing before a new publication refuses all effects.
+    git::bytes(
+        std::path::Path::new(remote),
+        &[
+            "update-ref",
+            "refs/heads/main",
+            &request.manifest.members["bullet-farm"].commit,
+        ],
+    )
+    .unwrap();
+    git::bytes(
+        std::path::Path::new(remote),
+        &["update-ref", "-d", &prepared.review_ref],
+    )
+    .unwrap();
+    assert!(transport::publish_to(&store, &request, &prepared, remote, None).is_err());
+    assert!(
+        !transport::read_remote(&store, remote)
+            .unwrap()
+            .contains_key(&prepared.review_ref)
+    );
+}
+
+#[test]
+fn publication_destination_and_authentication_are_request_bound() {
+    let fixture = Fixture::new();
+    let (store, mut request, _) = fixture.prepared();
+    request.expected_main = super::EMPTY_MAIN.into();
+    assert!(request.bootstrap().is_err());
+    assert!(store::build_commit(&store.objects, &request).is_err());
+    for destination in [super::DESTINATION, super::JERYU_DESTINATION] {
+        let mut config = request.manifest.tool_config.clone();
+        config.destination = destination.into();
+        assert!(config.validate().is_ok());
+        let mut command = git::command(&store.objects);
+        transport::authenticate_git(&mut command, destination, "fixture-token").unwrap();
+        assert!(!format!("{:?}", command.get_args().collect::<Vec<_>>()).contains("fixture-token"));
+        let env = command
+            .get_envs()
+            .filter_map(|(k, v)| {
+                v.map(|v| {
+                    (
+                        k.to_string_lossy().into_owned(),
+                        v.to_string_lossy().into_owned(),
+                    )
+                })
+            })
+            .collect::<std::collections::BTreeMap<_, _>>();
+        assert_eq!(
+            env["GIT_CONFIG_KEY_0"],
+            format!("http.{destination}.extraheader")
+        );
+        assert_eq!(env["GIT_CONFIG_KEY_1"], "http.followRedirects");
+        assert_eq!(env["GIT_CONFIG_VALUE_1"], "false");
+        assert_eq!(
+            env["GIT_CONFIG_VALUE_0"].starts_with("Authorization: Bearer "),
+            destination == super::JERYU_DESTINATION
+        );
+    }
+    for destination in [
+        "https://git.neverhuman.org/git/root/bulletfarm.git.evil",
+        "https://git.neverhuman.org/git/root/other.git",
+        "http://git.neverhuman.org/git/root/bulletfarm.git",
+        "https://elsewhere.invalid/bulletfarm.git",
+    ] {
+        let mut config = request.manifest.tool_config.clone();
+        config.destination = destination.into();
+        assert!(config.validate().is_err());
+        assert!(
+            transport::authenticate_git(
+                &mut git::command(&store.objects),
+                destination,
+                "fixture-token"
+            )
+            .is_err()
+        );
+    }
+}

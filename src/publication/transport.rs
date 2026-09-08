@@ -34,17 +34,30 @@ pub(super) fn desired_refs(request: &Request, prepared: &Prepared) -> BTreeMap<S
 }
 
 pub(super) fn read_remote(store: &Store, destination: &str) -> Result<BTreeMap<String, String>> {
-    let output = git::text(
-        &store.objects,
-        &[
+    read_remote_authenticated(store, destination, None)
+}
+
+fn read_remote_authenticated(
+    store: &Store,
+    destination: &str,
+    token: Option<&str>,
+) -> Result<BTreeMap<String, String>> {
+    let mut command = git::command(&store.objects);
+    if let Some(token) = token {
+        authenticate_git(&mut command, destination, token)?;
+    }
+    let output = String::from_utf8(git::execute(
+        command.args([
             "ls-remote",
             "--refs",
             destination,
             "refs/heads/main",
             "refs/heads/publication/*",
             "refs/tags/bullet-source/v1/*",
-        ],
-    )?;
+        ]),
+        None,
+    )?)
+    .map_err(|_| CoordError::new("PUBLICATION_REMOTE_INVALID", "non-UTF-8 refs"))?;
     let mut refs = BTreeMap::new();
     for line in output.lines() {
         let (commit, name) = line
@@ -57,6 +70,54 @@ pub(super) fn read_remote(store: &Store, destination: &str) -> Result<BTreeMap<S
         )?;
     }
     Ok(refs)
+}
+
+pub(super) fn jeryu_token() -> Result<String> {
+    let token = std::env::var("BULLET_PUBLICATION_TOKEN").map_err(|_| {
+        CoordError::new(
+            "PUBLICATION_JERYU_TOKEN_REQUIRED",
+            "provide a JeRyu token authorized for root/bulletfarm",
+        )
+    })?;
+    require(
+        !token.is_empty()
+            && token.len() <= 4096
+            && !token
+                .bytes()
+                .any(|b| b.is_ascii_whitespace() || b.is_ascii_control()),
+        "PUBLICATION_TOKEN_INVALID",
+    )?;
+    Ok(token)
+}
+
+pub(super) fn authenticate_git(
+    command: &mut Command,
+    destination: &str,
+    token: &str,
+) -> Result<()> {
+    require(
+        matches!(destination, DESTINATION | super::JERYU_DESTINATION),
+        "PUBLICATION_DESTINATION_MISMATCH",
+    )?;
+    let header = if destination == super::JERYU_DESTINATION {
+        format!("Authorization: Bearer {token}")
+    } else {
+        format!(
+            "Authorization: Basic {}",
+            base64(format!("x-access-token:{token}").as_bytes())
+        )
+    };
+    // Exact URL scope, no redirects, and no secret in argv or retained output.
+    command
+        .env("GIT_CONFIG_COUNT", "2")
+        .env(
+            "GIT_CONFIG_KEY_0",
+            format!("http.{destination}.extraheader"),
+        )
+        .env("GIT_CONFIG_VALUE_0", header)
+        .env("GIT_CONFIG_KEY_1", "http.followRedirects")
+        .env("GIT_CONFIG_VALUE_1", "false");
+    Ok(())
 }
 
 pub(super) fn gh_executable(path: &Path) -> Result<(std::fs::File, std::path::PathBuf)> {
@@ -243,7 +304,7 @@ pub(super) fn publish_to(
     token: Option<&str>,
 ) -> Result<Vec<u8>> {
     let desired = desired_refs(request, prepared);
-    let remote = read_remote(store, destination)?;
+    let remote = read_remote_authenticated(store, destination, token)?;
     for (name, commit) in &desired {
         require(
             remote.get(name).is_none_or(|actual| actual == commit),
@@ -255,7 +316,11 @@ pub(super) fn publish_to(
         .all(|(name, commit)| remote.get(name) == Some(commit));
     if !complete {
         require(
-            remote.get("refs/heads/main") == Some(&request.expected_main),
+            if request.bootstrap()? {
+                !remote.contains_key("refs/heads/main")
+            } else {
+                remote.get("refs/heads/main") == Some(&request.expected_main)
+            },
             "PUBLICATION_BASE_CHANGED",
         )?;
         let mut command = git::command(&store.objects);
@@ -267,20 +332,7 @@ pub(super) fn publish_to(
             ));
         }
         if let Some(token) = token {
-            // Secret passed only through child environment, never argv or retained output.
-            command
-                .env_remove("BULLET_PUBLICATION_TOKEN")
-                .env_remove("GH_TOKEN")
-                .env_remove("GITHUB_TOKEN")
-                .env("GIT_CONFIG_COUNT", "1")
-                .env("GIT_CONFIG_KEY_0", "http.https://github.com/.extraheader")
-                .env(
-                    "GIT_CONFIG_VALUE_0",
-                    format!(
-                        "Authorization: Basic {}",
-                        base64(format!("x-access-token:{token}").as_bytes())
-                    ),
-                );
+            authenticate_git(&mut command, destination, token)?;
         }
         command.arg(destination);
         for (name, commit) in &desired {
@@ -288,7 +340,7 @@ pub(super) fn publish_to(
         }
         // A lost response does not authorize a new request. Read remote truth even on failure.
         let outcome = git::execute(&mut command, None);
-        let observed = read_remote(store, destination)?;
+        let observed = read_remote_authenticated(store, destination, token)?;
         if !desired
             .iter()
             .all(|(name, commit)| observed.get(name) == Some(commit))
@@ -302,7 +354,7 @@ pub(super) fn publish_to(
             ));
         }
     }
-    let observed = read_remote(store, destination)?;
+    let observed = read_remote_authenticated(store, destination, token)?;
     require(
         desired
             .iter()
@@ -323,8 +375,13 @@ pub(super) fn push(path: &Path, id: &str) -> Result<String> {
     let store = Store::open(path)?;
     let (request, prepared) = store.load(id)?;
     scan::scan(&store, &request, &prepared)?;
-    let token = app_token()?;
-    let receipt = publish_to(&store, &request, &prepared, DESTINATION, Some(&token))?;
+    let destination = &request.manifest.tool_config.destination;
+    let token = if destination == super::JERYU_DESTINATION {
+        jeryu_token()?
+    } else {
+        app_token()?
+    };
+    let receipt = publish_to(&store, &request, &prepared, destination, Some(&token))?;
     store::persist(&store.path(id, "receipt"), &receipt)?;
     String::from_utf8(receipt)
         .map_err(|_| CoordError::new("PUBLICATION_ENCODING", "UTF-8 required"))
@@ -382,6 +439,10 @@ pub(super) fn reconstruct_from(aggregate: &Path, root: &Path, destination: &str)
 }
 
 pub(super) fn reconstruct(aggregate: &Path, root: &Path) -> Result<String> {
+    require(
+        read_manifest(aggregate)?.tool_config.destination == DESTINATION,
+        "PUBLICATION_JERYU_RECONSTRUCTION_UNAVAILABLE",
+    )?;
     require(
         std::env::var("GITHUB_ACTIONS").as_deref() == Ok("true"),
         "PUBLICATION_DISPOSABLE_CI_REQUIRED",

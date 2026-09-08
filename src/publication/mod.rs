@@ -28,6 +28,8 @@ const MEMBERS: [&str; 4] = [
     "bullet-portal",
 ];
 const DESTINATION: &str = "https://github.com/neverhuman/bulletfarm.git";
+const JERYU_DESTINATION: &str = "https://git.neverhuman.org/git/root/bulletfarm.git";
+const EMPTY_MAIN: &str = "0000000000000000000000000000000000000000";
 const MANIFEST: &str = "publication.json";
 const CONFIG: &str = "publication/config.json";
 
@@ -110,7 +112,7 @@ impl Config {
             matches!(
                 self.schema_version.as_str(),
                 "bullet.publication-config.v1" | "bullet.publication-config.v2"
-            ) && self.destination == DESTINATION,
+            ) && (self.destination == DESTINATION || self.destination == JERYU_DESTINATION),
             "PUBLICATION_CONFIG_INVALID",
         )?;
         require(
@@ -297,7 +299,17 @@ pub fn run(args: Vec<String>) -> Result<String> {
             Some(Path::new(artifacts)),
         ),
         ["push", store, request] => transport::push(Path::new(store), request),
-        ["pr", store, request] => pull_request::run(Path::new(store), request),
+        ["pr", path, id] => {
+            {
+                let store = store::Store::open(Path::new(path))?;
+                let (request, _) = store.load(id)?;
+                require(
+                    request.manifest.tool_config.destination == DESTINATION,
+                    "PUBLICATION_JERYU_PR_TRANSPORT_UNAVAILABLE",
+                )?;
+            }
+            pull_request::run(Path::new(path), id)
+        }
         ["scan", path, id] => {
             let store = store::Store::open(Path::new(path))?;
             let (request, prepared) = store.load(id)?;
