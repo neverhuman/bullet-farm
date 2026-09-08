@@ -155,6 +155,18 @@ replay and historical dispositions, independent review and operator admission,
 locked Genesis references, and the complete preservation fault journal remain
 open. Operating HOLD is unchanged.
 
+A CI expectation component now derives 55 invocations from the reviewed 53
+nested job definitions and exact eight-workflow inventory. The canonical plan
+binds aggregate and member commits/trees, manifest and workflow digests, matrix
+values, dependencies, and runner selection. `bullet-publish ci-plan` supports an
+admitted aggregate checkout or an existing publication store/request, without
+creating another checkout or Git objects. Independent review against all eight
+source workflows and 29 publication tests passed. Its output explicitly contains no execution
+evidence. The 27 required invocations and 28 scheduled invocations remain
+distinct; root workflow generation/activation, hosted tool and worker admission,
+job observation envelopes, the stable final check, and additional family/MSRV
+and assurance campaigns remain open.
+
 ## 1. Finish lines
 
 “Dogfood” has four non-substitutable finish lines. Work is planned against the
