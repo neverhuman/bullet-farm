@@ -1,4 +1,6 @@
 //! Exact split-source identities for the public aggregate. No release authority.
+mod ci_inventory;
+mod ci_plan;
 mod git;
 mod observation;
 mod pull_request;
@@ -187,21 +189,29 @@ fn capture(root: &Path) -> Result<Manifest> {
 
 fn read_manifest(aggregate: &Path) -> Result<Manifest> {
     git::checkout(aggregate)?;
-    let bytes = git::blob(aggregate, "HEAD", MANIFEST)?;
+    read_manifest_at(aggregate, "HEAD")
+}
+
+fn read_manifest_at(aggregate: &Path, revision: &str) -> Result<Manifest> {
+    let bytes = git::blob(aggregate, revision, MANIFEST)?;
     let manifest: Manifest = decode(&bytes)?;
     manifest.validate()?;
     require(
         encode(&manifest)? == bytes,
         "PUBLICATION_MANIFEST_NOT_CANONICAL",
     )?;
-    let hub_revision = git::text(aggregate, &["rev-parse", "HEAD:bullet-farm"])?;
+    let hub_revision = git::text(
+        aggregate,
+        &["rev-parse", &format!("{revision}:bullet-farm")],
+    )?;
     let config: Config = decode(&git::blob(aggregate, &hub_revision, CONFIG)?)?;
     require(config == manifest.tool_config, "PUBLICATION_CONFIG_DRIFT")?;
     let mut expected = MEMBERS.iter().map(|n| (*n).to_owned()).collect::<Vec<_>>();
     expected.push(MANIFEST.into());
     for (target, template) in &config.root_files {
         require(
-            git::blob(aggregate, "HEAD", target)? == git::blob(aggregate, &hub_revision, template)?,
+            git::blob(aggregate, revision, target)?
+                == git::blob(aggregate, &hub_revision, template)?,
             "PUBLICATION_TEMPLATE_DRIFT",
         )?;
         expected.push(target.split('/').next().unwrap_or_default().into());
@@ -209,7 +219,7 @@ fn read_manifest(aggregate: &Path) -> Result<Manifest> {
     expected.sort();
     expected.dedup();
     require(
-        git::text(aggregate, &["ls-tree", "--name-only", "HEAD"])?
+        git::text(aggregate, &["ls-tree", "--name-only", revision])?
             .lines()
             .eq(expected.iter().map(String::as_str)),
         "PUBLICATION_ROOT_INVENTORY_DRIFT",
@@ -217,7 +227,7 @@ fn read_manifest(aggregate: &Path) -> Result<Manifest> {
     // Each root directory must contain exactly its selected leaves.
     let mut leaves = vec![MANIFEST.to_owned()];
     leaves.extend(config.root_files.keys().cloned());
-    let actual = git::text(aggregate, &["ls-tree", "-r", "--name-only", "HEAD"])?;
+    let actual = git::text(aggregate, &["ls-tree", "-r", "--name-only", revision])?;
     let mut actual = actual
         .lines()
         .filter(|p| !MEMBERS.iter().any(|m| p.starts_with(&format!("{m}/"))))
@@ -228,7 +238,7 @@ fn read_manifest(aggregate: &Path) -> Result<Manifest> {
     require(actual == leaves, "PUBLICATION_ROOT_INVENTORY_DRIFT")?;
     for (name, subject) in &manifest.members {
         require(
-            git::text(aggregate, &["rev-parse", &format!("HEAD:{name}")])? == subject.tree,
+            git::text(aggregate, &["rev-parse", &format!("{revision}:{name}")])? == subject.tree,
             "PUBLICATION_TREE_MISMATCH",
         )?;
     }
@@ -257,6 +267,8 @@ pub fn run(args: Vec<String>) -> Result<String> {
         ["ci-observe", aggregate, root, artifacts] => {
             observation::write(Path::new(aggregate), Path::new(root), Path::new(artifacts))
         }
+        ["ci-plan", aggregate] => ci_plan::run(Path::new(aggregate)),
+        ["ci-plan", store, request] => ci_plan::stored(Path::new(store), request),
         ["push", store, request] => transport::push(Path::new(store), request),
         ["pr", store, request] => pull_request::run(Path::new(store), request),
         ["scan", path, id] => {
@@ -267,7 +279,7 @@ pub fn run(args: Vec<String>) -> Result<String> {
         }
         _ => Err(CoordError::new(
             "USAGE",
-            "bullet-publish inspect ROOT | prepare ROOT STORE REQUEST EXPECTED_MAIN | verify AGGREGATE | reconstruct AGGREGATE NEW_ROOT | ci-observe AGGREGATE ROOT ARTIFACTS | scan STORE REQUEST | push STORE REQUEST | pr STORE REQUEST",
+            "bullet-publish inspect ROOT | prepare ROOT STORE REQUEST EXPECTED_MAIN | verify AGGREGATE | reconstruct AGGREGATE NEW_ROOT | ci-plan AGGREGATE | ci-plan STORE REQUEST | ci-observe AGGREGATE ROOT ARTIFACTS | scan STORE REQUEST | push STORE REQUEST | pr STORE REQUEST",
         )),
     }
 }
