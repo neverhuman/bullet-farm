@@ -44,7 +44,10 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
                 PathBuf::from("crates/bullet-wire/src/catalog/validation.rs"),
                 1,
             ),
-            (PathBuf::from("crates/bullet-wire/src/contract_bindings.rs"), 1),
+            (
+                PathBuf::from("crates/bullet-wire/src/contract_bindings.rs"),
+                1
+            ),
             (PathBuf::from("crates/bullet-wire/src/dogfood.rs"), 1),
             (
                 PathBuf::from("crates/bullet-wire/src/dogfood/enrollment_signing.rs"),
@@ -65,6 +68,7 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
             (PathBuf::from("src/check/model.rs"), 1),
             (PathBuf::from("src/check/release_evidence.rs"), 1),
             (PathBuf::from("src/checkout/git.rs"), 1),
+            (PathBuf::from("src/cli/preservation.rs"), 1),
             (PathBuf::from("src/coord/fresh_genesis.rs"), 1),
             (PathBuf::from("src/coord/generation/manifest.rs"), 1),
             (
@@ -75,6 +79,7 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
             (PathBuf::from("src/coord/generation/segment.rs"), 1),
             (PathBuf::from("src/coord/git/wave0.rs"), 1),
             (PathBuf::from("src/coord/model/fresh_genesis.rs"), 1),
+            (PathBuf::from("src/coord/model/fresh_preservation.rs"), 1),
             (
                 PathBuf::from("src/coord/model/recovery_manifest/bootstrap_build.rs"),
                 1,
