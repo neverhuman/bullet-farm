@@ -1,8 +1,12 @@
-# Exact-source public publication
+# Exact-source aggregate publication
 
 Status: component implementation; hosted CI and release certification unproved.
 This is part of W0/WP-22 and G1/G8/G12. The existing gap register remains the
-completion board.
+completion board. The selected primary destination is JeRyu `root/bulletfarm`,
+using `https://git.neverhuman.org/git/root/bulletfarm.git`. All four member trees
+and their original source objects are published there. GitHub remains a
+secondary mirror adapter. A destination is captured in each request: changing
+the current configuration never changes a retained request's destination.
 
 `bullet-publish` captures four clean ordinary canonical checkouts, their exact
 commit/tree/object format, and root templates from the captured Hub commit.
@@ -17,7 +21,7 @@ publication, and CI records bind that SHA. Root files come only from selected
 ## Prepare and review
 
 First prove and commit reviewed changes on local review branches in canonical
-checkouts. Set explicit absolute paths and the authoritative current public main
+checkouts. Set explicit absolute paths and the authoritative current aggregate main
 OID. Request identifiers admit letters, digits, and hyphens.
 
 ```bash
@@ -25,7 +29,7 @@ family_root=/absolute/canonical/family
 publication_store="$family_root/bullet-farm/.git/bullet-publication"
 publication_bin=/absolute/proved/bullet-publish
 publication_request=reviewed-packet-identifier
-publication_base=exact-current-public-main-oid
+publication_base=exact-current-aggregate-main-oid
 "$publication_bin" inspect "$family_root"
 "$publication_bin" prepare "$family_root" "$publication_store" \
   "$publication_request" "$publication_base"
@@ -34,8 +38,28 @@ publication_base=exact-current-public-main-oid
 The exclusive private store is a bare object database inside Hub metadata,
 without a worktree or alternative member checkout. Durable intent precedes
 effects. Identical requests reconstruct the same commit; changed inputs conflict.
+Use a new request identifier after changing a source commit or configuration;
+keep all earlier requests and receipts intact.
 Git writes explicitly fsync. Interrupted requests reconcile retained local refs.
-Inspect the request and prepared commit before public effects.
+Inspect the request and prepared commit before publication effects.
+
+For the first JeRyu aggregate only, an absent `main` is represented by exactly
+40 zeroes. This creates a deterministic parentless aggregate and needs no base
+fetch. Verify repository identity and main absence through authenticated
+read-back before publishing. Before an incomplete bootstrap publication, a newly
+present main refuses further push; reconcile the new base through a new reviewed
+request. Already complete exact source and review refs can be read back with
+`integrated: false`, without asserting main integration. The tool never
+initializes or advances `main` itself. Native JeRyu PR behavior against an unborn
+`main` still needs qualification; this bootstrap is not an admitted first-main
+integration procedure.
+
+The destination must already exist and permit the publishing account to write.
+The September 8 creation request for private `root/bulletfarm` was rejected with
+HTTP 403, `repository creation requires admin access`; authenticated account
+`jepsont` could not create it. An administrator must create the repository and
+grant write access. An HTTP 200 response serving the web application's shell is
+not repository existence or access evidence.
 
 ## History admission and publication
 
@@ -66,22 +90,26 @@ Run history admission before any publication credentials are needed:
 "$publication_bin" scan "$publication_store" "$publication_request"
 ```
 
-Credentialed operations also require `BULLET_PUBLICATION_GH`: the absolute
+For JeRyu Git publication, set `BULLET_PUBLICATION_TOKEN` to the authorized
+JeRyu credential. It is passed through an exact-destination Bearer header in the
+child environment, with redirects disabled. Token syntax validation establishes
+neither permissions nor scope; authenticated server read-back is required.
+Ordinary PR jobs receive no publication, subscription, or signing credentials.
+
+The historical GitHub adapter additionally requires `BULLET_PUBLICATION_GH`: the absolute
 GitHub CLI 2.62.0 Linux x86_64 executable with SHA256
 `d2330508768dbbaa4c474353c77367e1690b1fe08c81497f787e40f9f53564d4`.
 Its upstream release archive SHA256 is
 `41c8b0698ad3003cb5c44bde672a1ffd5f818595abd80162fbf8cc999418446a`;
 the retained executable runs with private configuration and a cleared environment.
 
-Publication requires `BULLET_PUBLICATION_TOKEN`: an expiring GitHub App
+GitHub publication requires `BULLET_PUBLICATION_TOKEN`: an expiring GitHub App
 installation token scoped to `neverhuman/bulletfarm` alone with Contents,
 Workflows, and Pull requests write.
-Operator tokens are refused. Ordinary PR jobs receive no publication,
-subscription, or signing credentials. Retry with the original request:
+Operator tokens are refused by that adapter. Retry with the original request:
 
 ```bash
 "$publication_bin" push "$publication_store" "$publication_request"
-"$publication_bin" pr "$publication_store" "$publication_request"
 ```
 
 The tool atomically publishes lightweight source tags at
@@ -92,21 +120,39 @@ Synthetic scan refs never leave the store. Receipts record `integrated: false`.
 The tool never writes main. Its pre-push main comparison is not a server-side
 compare-and-swap on main.
 
-The PR command retains its exact creation intent before a single attempted POST.
+JeRyu `pr` currently refuses with `PUBLICATION_JERYU_PR_TRANSPORT_UNAVAILABLE`.
+Native PR creation and its durable response-loss reconciliation must be completed
+before automated integration; never reroute a JeRyu request through GitHub.
+
+For historical GitHub requests, the PR command retains its exact creation intent
+before a single attempted POST:
+
+```bash
+"$publication_bin" pr "$publication_store" "$publication_request"
+```
 After response loss or process death it reconciles through reads of the original
 request; absent proof of the first outcome refuses another POST. It binds the
 Bot author, repository, source head, request body, and authoritative read-back.
 Closed or merged PRs retain their original receipt; reconciliation still requires
 the retained source and review refs.
 
-An actual App-authored PR, independent human approval, tested merge subject, and
-final main rerun remain required. Protect main after complete required checks operate:
+An actual forge-authenticated PR, independent human approval, tested merge
+subject, and final main rerun remain required. The GitHub adapter additionally
+requires its admitted App author. Protect main after complete required checks operate:
 PR review, stale-review dismissal, required checks, and no force-push/deletion.
 Token rotation does not change request identity.
 
 ## Hosted proof scope
 
-The discoverable bootstrap checks out the actual event SHA without persisted
+Native JeRyu CI is not activated by these GitHub workflow templates. Its runner
+registration, exact-subject execution, artifact retrieval, required checks and
+protected integration remain pending. JeRyu `reconstruct` currently refuses
+with `PUBLICATION_JERYU_RECONSTRUCTION_UNAVAILABLE`; local reconstruction
+fixtures do not establish native hosted support. A synthetic Actions projection
+or a check name without the required execution and artifact receipts is not a
+successful campaign.
+
+The retained GitHub bootstrap template checks out the actual event SHA without persisted
 credentials, scans source before building, provisions private Cargo configuration
 and targets, runs publication tests, and reconstructs ordinary checkouts from
 immutable source refs. Symlinks, hidden dirt, missing objects, paths, source refs,
