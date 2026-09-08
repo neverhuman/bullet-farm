@@ -133,6 +133,7 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
             (PathBuf::from("src/family_lock/schema.rs"), 1),
             (PathBuf::from("src/fuse.rs"), 1),
             (PathBuf::from("src/process.rs"), 1),
+            (PathBuf::from("src/publication/ci_render.rs"), 1),
             (PathBuf::from("src/publication/mod.rs"), 1),
             (PathBuf::from("src/publication/observation.rs"), 1),
             (PathBuf::from("src/publication/pull_request.rs"), 1),

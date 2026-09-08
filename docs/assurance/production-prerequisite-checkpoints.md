@@ -485,3 +485,23 @@ Hub and dependency-ordered member/family proof remains pending. The typed
 inventory was reconciled unchanged: all G1–G18 remain `DESIGNED`, every product
 and diagnostic profile remains `BLOCKED`, and the retained release program is
 unchanged. No hosted, coordinator, provider, transaction or release gate is cleared.
+
+## September 8 complete Hub proof followup
+
+The first full `required` run on Hub commit
+`d7c3dd8a678c6757a00b6fd40d6448359b12bb86`, tree
+`e60aa38f8f4207c75972caad8cc92db8efd132e4`, exited 100 after all 578 Hub
+and 218 of 219 wire tests passed. The exact test-module source inventory rejected
+one undeclared `#[cfg(test)]` site in `src/publication/ci_render.rs`.
+The repair adds that single observed site to the reviewed inventory, preserving
+all decoder restrictions and negative checks. The previously failing test then
+passed with zero ignored. Full-run log SHA256
+`07118d14aa0b3240a2a82b9aa1fd272ab05004c50fbf8bd3eec3318d5989209e`;
+focused repair log SHA256
+`0fef190f58e9b74205345657dd72360efb13f9fc87b95b239a2be7fe6c70e3b7`.
+
+The failed full invocation took 454.18 seconds with peak RSS 1,388,416 KiB.
+It receives no complete-suite credit; a new complete clean Hub run and the
+member/family sequence remain required. The typed assurance inventory was
+reconciled unchanged, with all G1–G18 `DESIGNED` and all 18 product plus two
+diagnostic profiles `BLOCKED`. No hosted or release evidence is admitted.

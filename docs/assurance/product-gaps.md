@@ -35,7 +35,10 @@ producer and final diagnostic checks remain present; unsupported profiles fail
 explicitly. Original timeout and artifact requirements, execution of the complete
 inventory, admitted hosted tools and workers, and additional assurance campaigns
 remain required. Complete local member/family proof is pending; no hosted run is
-credited.
+credited. The first complete Hub run passed all 578 Hub tests and 218 of 219
+wire tests, then rejected the new renderer test-module declaration missing from
+the explicit source inventory. The one-entry reconciliation passed that exact
+regression; a new complete run remains required.
 The BulletGit artifact uploader now creates its private stage before copying
 validated diagnostics, and corpus replay respects the selected private Cargo
 target. Their mapped fixtures and complete BulletGit `required` check passed
