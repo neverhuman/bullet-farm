@@ -602,3 +602,58 @@ ShellCheck and diff checks passed. Final fixture log SHA256
 Actual default demo execution and mapped proof on this newer Hub subject remain
 separate required evidence at this checkpoint. The typed assurance inventory
 was reconciled unchanged, with all G1–G18 `DESIGNED` and all 20 profiles `BLOCKED`.
+
+
+## September 8 demo execution and auditor source packets
+
+Actual `just demo` passed on Hub `3166157c6fd89c60313ded2b322af2acb00266f7`,
+tree `4201f8abde93b7b4c74b0a51abe7ce5736fbecb1`, with the other three family
+subjects unchanged from the complete family proof above. The invocation used the
+launcher's fresh default and took 15.843 seconds; the timed command reported
+13.94 seconds and peak RSS 59,392 KiB. Result SHA256
+`e8ec0889cd6f1dcc1c721e5dcdaab8dba7055e01059cb6dcff7ed734b626a931`;
+log SHA256 `ce84e535289ee62d528170688f7320763b2a9b596271d7eae3a8695ee9b34d08`;
+independent read-back SHA256
+`e215e2d414720fcd35987c1f5eff30a15459cb6cefa155a326e177091e4b344d`.
+The copied runtime evidence is a sampled local retention, not an atomic snapshot.
+It remains `COMPONENT_PROOF`, with an ephemeral self-signed fixture, a pending
+command phase and no production `TRANSACTION_PROOF`.
+
+The subsequent full Hub check on that same subject exited 100 after 576 of 578
+Hub tests passed. Two demo tests still expected the old literal path check and
+35 wrapper cases. Failure result SHA256
+`49269bb1a227d7b20a7cbad9615a8a9cbf53e78ddace9c3bcd163cc8a49564fb`
+is retained without complete-suite credit. The repair tests actual symlinked
+ancestry rejection and expects all 44 executed wrapper cases. Both existing test
+identities passed with zero ignored or filtered; source SHA256
+`59c50753634aad257e180d201e5757c4195b7d30736c7d68eb70ea6cd51204b8`,
+focused log SHA256
+`27b7009109dfc422a8eb10780d5281e0f1aa8ef1c4d927b995b17892130af551`.
+Independent review accepted the repair; complete proof of its resulting commit
+remains required.
+
+The canonical auditor Core source packets are committed locally at
+`788af08aead5ee5a964e351cf0a8f50929dcfd6a`, tree
+`69c5ce603dabf123604c7d8bfb6b5ab09b0d892d`. Their exact source bytes passed
+601 required tests plus one separately executed ignored performance test,
+strict Clippy and version consistency. Evidence packet SHA256
+`5f88a5e83e373b4bc9f1743e92fe76dd774f96a5e2d4a6f984d765e73ae6b436`.
+The local self-audit scored 95 with zero caps and hard findings, but used advisory
+policy with floor 85 and retained one medium coverage-evidence finding. This
+neither qualifies the portable auditor nor establishes Bullet's score-90 gate.
+
+The shared audit kernel's classifier, mechanical Rust split and two-expression
+lint repair are locally committed at `d50075ff5c1406c2629fe47d2441ce3d6449889a`,
+tree `fb4693da598b4204055864daed1124fd061bb797`. All 107 workspace tests and
+strict all-target Clippy passed; its required wrapper performs metadata checks
+only. Independent review verified packet SHA256
+`edd92d847b815458546787b75a6449291de2a806dd5bee121218f1edff531622`.
+Existing 736-line comment-parser debt remains open. These local review commits
+have no source-forge, immutable-tag, dependency or release admission; the selected
+Core dependencies still require reconciliation. Witness, receipt and heuristic
+regression work remains unfinished.
+
+The typed assurance inventory was reconciled unchanged at SHA256
+`d0df5aea6d15366246b8b58ae998605c8f30240be2859eb593bb567e9f16326f`.
+All G1–G18 remain `DESIGNED`, all 18 product and two diagnostic profiles remain
+`BLOCKED`, and the Operating HOLD remains effective.

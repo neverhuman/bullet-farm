@@ -30,10 +30,6 @@ fn demo_launcher_uses_a_fresh_default_and_preserves_explicit_data() {
         "the explicit demo data directory must be used exactly"
     );
     assert!(
-        DEMO_LAUNCHER.contains("realpath -e -- \"$DATA\""),
-        "the explicit directory must reject symlinked ancestors"
-    );
-    assert!(
         !DEMO_LAUNCHER.contains("chmod") && !DEMO_LAUNCHER.contains("mkdir -p \"$DATA\""),
         "the launcher must not mutate an unadmitted explicit path"
     );
@@ -70,6 +66,20 @@ fn demo_launcher_uses_a_fresh_default_and_preserves_explicit_data() {
         assert!(!linked.status.success());
         assert_eq!(
             fs::metadata(&target).unwrap().permissions().mode() & 0o777,
+            0o700
+        );
+
+        let child = target.join("child");
+        fs::create_dir(&child).unwrap();
+        fs::set_permissions(&child, fs::Permissions::from_mode(0o700)).unwrap();
+        let linked_ancestor = rejected_data_directory(&alias.join("child"));
+        assert!(!linked_ancestor.status.success());
+        assert!(
+            String::from_utf8_lossy(&linked_ancestor.stderr).contains("DEMO_DATA_INVALID"),
+            "a symlinked ancestor must fail data admission before any build"
+        );
+        assert_eq!(
+            fs::metadata(&child).unwrap().permissions().mode() & 0o777,
             0o700
         );
 
@@ -260,7 +270,7 @@ fn demo_launcher_labels_component_evidence_before_running_the_fixture() {
         );
         assert_eq!(
             String::from_utf8_lossy(&proof.stdout),
-            "demo build wrapper fixtures: 35 passed\n"
+            "demo build wrapper fixtures: 44 passed\n"
         );
     }
 }

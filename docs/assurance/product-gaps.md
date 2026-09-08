@@ -50,10 +50,18 @@ on the recorded exact subject; hosted execution remains unproved.
 
 The demo launcher now rejects unsafe selected data ancestry before compilation,
 using the same owner, mode and root-owned sticky-directory rules as Kernel.
-All 44 wrapper fixtures passed after independent review. Its existing private
-`/tmp` default is preserved; actual demo execution on this newer Hub subject
-remains a separate proof. The first attempt failed because the test harness had
-two group-writable ancestors, and that failure remains retained.
+All 44 wrapper fixtures passed after independent review. The actual default demo
+then passed on the recorded clean Hub subject, with independently verified local
+component evidence. Its first failed attempt remains retained. The subsequent
+full Hub check exposed two stale test assertions; both were repaired and passed
+focused verification. A complete check of the resulting subject remains required.
+
+Canonical auditor repairs now have independently reviewed local evidence: Core
+completed 602 distinct tests, and the shared audit kernel completed 107 tests plus
+strict Clippy. Inventory classification, report outcomes and version declarations
+were repaired; immutable dependency admission, remaining detector regressions,
+witness and release proof validation, and portable artifact qualification remain
+open. The dated checkpoint records exact source and evidence subjects.
 
 Complete auditor qualification, coordinator admission, supervised upgrades,
 hosted CI qualification, and all subsequent production work remain open. All G1–G18 remain `DESIGNED`,
