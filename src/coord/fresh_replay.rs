@@ -25,6 +25,9 @@ const MAX_DISPOSITIONS: usize = 2_048;
 const CLAIM_DOMAIN: &str = "bullet-family.coord.fresh-replay-claim.v1";
 const REPLAY_DOMAIN: &str = "bullet-family.coord.fresh-replay-subject.v1";
 
+mod readback;
+pub(crate) use readback::verify;
+
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 enum Location {
@@ -118,18 +121,65 @@ pub(crate) fn publish(
     outside(root, request_path)?;
     outside(root, output)?;
     let request: FreshReplayRequestV1 = sealed::read(request_path)?;
+    let request_bytes = canonical_lf(&request)?;
+    let reconstructed = reconstruct(root, request, &[request_path, output])?;
+    let mut inputs = reconstructed.inputs().to_vec();
+    inputs.push((request_path, request_bytes.as_slice()));
+    revalidate(&inputs)?;
+    let outcome = match sealed::write(output, &reconstructed.subject) {
+        Ok(()) => FreshGenesisPublicationOutcome::Created,
+        Err(_) => FreshGenesisPublicationOutcome::AdoptedExactExisting,
+    };
+    if sealed::read_synced_raw(output, MAX_BYTES + 1)? != reconstructed.bytes {
+        return Err(changed(
+            "replay output differs from the exact intended subject",
+        ));
+    }
+    revalidate(&inputs)?;
+    Ok(ReplayPublication {
+        replay_id: reconstructed.subject.replay_id.clone(),
+        sealed_sha256: sha256(&reconstructed.bytes),
+        byte_length: reconstructed.bytes.len() as u64,
+        outcome,
+    })
+}
+
+struct Reconstruction {
+    subject: FreshReplaySubjectV1,
+    bytes: Vec<u8>,
+    preservation_bytes: Vec<u8>,
+    outer_bytes: Vec<u8>,
+    hub_bytes: Vec<u8>,
+}
+
+impl Reconstruction {
+    fn inputs(&self) -> [(&Path, &[u8]); 3] {
+        let request = &self.subject.facts.request;
+        [
+            (&request.preservation.path, &self.preservation_bytes),
+            (&request.outer_ledger_copy, &self.outer_bytes),
+            (&request.hub_ledger_copy, &self.hub_bytes),
+        ]
+    }
+}
+
+fn reconstruct(
+    root: &Path,
+    request: FreshReplayRequestV1,
+    record_paths: &[&Path],
+) -> Result<Reconstruction, CoordError> {
+    require_normalized_absolute(root, "replay family root")?;
     if request.schema_version != 1 || request.dispositions.len() > MAX_DISPOSITIONS {
         return Err(invalid(
             "replay request schema or disposition bound is unsupported",
         ));
     }
-    let paths = [
-        request_path,
-        output,
-        &request.preservation.path,
-        &request.outer_ledger_copy,
-        &request.hub_ledger_copy,
-    ];
+    let mut paths = record_paths.to_vec();
+    paths.extend([
+        request.preservation.path.as_path(),
+        request.outer_ledger_copy.as_path(),
+        request.hub_ledger_copy.as_path(),
+    ]);
     for (index, path) in paths.iter().enumerate() {
         outside(root, path)?;
         if paths[index + 1..].contains(path) {
@@ -153,7 +203,6 @@ pub(crate) fn publish(
     let outer = replay(&outer_bytes, &preservation.outer_inventory.inventory_id)?;
     let hub = replay(&hub_bytes, &preservation.hub_inventory.inventory_id)?;
     require_dispositions(&request.dispositions, &outer, &hub)?;
-    let request_bytes = canonical_lf(&request)?;
     let facts = ReplayFacts {
         kind: "FRESH_REPLAY_SUBJECT_V1",
         schema_version: 1,
@@ -163,37 +212,14 @@ pub(crate) fn publish(
         hub,
     };
     let replay_id = subject_id("fgr_", REPLAY_DOMAIN, &facts)?;
-    let subject = FreshReplaySubjectV1 {
-        replay_id: replay_id.clone(),
-        facts,
-    };
+    let subject = FreshReplaySubjectV1 { replay_id, facts };
     let bytes = canonical_lf(&subject)?;
-    let request = &subject.facts.request;
-    let inputs = [
-        (request_path, request_bytes.as_slice()),
-        (
-            request.preservation.path.as_path(),
-            preserved_bytes.as_slice(),
-        ),
-        (request.outer_ledger_copy.as_path(), outer_bytes.as_slice()),
-        (request.hub_ledger_copy.as_path(), hub_bytes.as_slice()),
-    ];
-    revalidate(&inputs)?;
-    let outcome = match sealed::write(output, &subject) {
-        Ok(()) => FreshGenesisPublicationOutcome::Created,
-        Err(_) => FreshGenesisPublicationOutcome::AdoptedExactExisting,
-    };
-    if sealed::read_synced_raw(output, MAX_BYTES + 1)? != bytes {
-        return Err(changed(
-            "replay output differs from the exact intended subject",
-        ));
-    }
-    revalidate(&inputs)?;
-    Ok(ReplayPublication {
-        replay_id,
-        sealed_sha256: sha256(&bytes),
-        byte_length: bytes.len() as u64,
-        outcome,
+    Ok(Reconstruction {
+        subject,
+        bytes,
+        preservation_bytes: preserved_bytes,
+        outer_bytes,
+        hub_bytes,
     })
 }
 
@@ -304,7 +330,7 @@ fn require_dispositions(
 fn revalidate(inputs: &[(&Path, &[u8])]) -> Result<(), CoordError> {
     for (path, bytes) in inputs {
         if sealed::read_raw(path, MAX_BYTES + 1)? != *bytes {
-            return Err(changed("sealed replay input changed during publication"));
+            return Err(changed("sealed replay input changed during read-back"));
         }
     }
     Ok(())

@@ -5,6 +5,14 @@ use crate::coord::{CoordError, publish_preservation_record, recovery_manifest, s
 use super::coord::Options;
 
 pub(super) fn run(root: &Path, args: &[String]) -> Result<String, CoordError> {
+    if args.first().is_some_and(|value| value == "replay-verify") {
+        let options = Options::parse(&args[1..])?;
+        options.reject_flags()?;
+        options.reject_unknown_values(&["record"])?;
+        let verified =
+            crate::coord::fresh_replay::verify(root, Path::new(&options.one("record")?))?;
+        return serde_json::to_string(&verified).map_err(CoordError::json);
+    }
     if args.first().is_some_and(|value| value == "replay") {
         let options = Options::parse(&args[1..])?;
         options.reject_flags()?;
