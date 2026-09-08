@@ -118,7 +118,7 @@ pub(super) fn reviewed() -> Vec<Workflow> {
         (
             "bullet-kernel",
             "5e45f68e8a682b8f474ff73bfa0b35545af3a77f3a13534fa4f462c6e1e1451d",
-            "844082771185883a16508ee80a8560b83187119d7f42a75a7b0bc00fe6683082",
+            "b703dc10751eb777347511bafae7b9d125752c5b75d590135fcf2156f698f0ff",
         ),
         (
             "bullet-portal",
