@@ -337,3 +337,60 @@ BulletGit `required` on the accepted subject is pending at this checkpoint.
 Both repairs remove concrete CI blockers; full root workflow activation and
 hosted tool/worker admission remain open. The typed inventory was reconciled
 without byte changes: all G1–G18 remain `DESIGNED` and all 20 profiles `BLOCKED`.
+
+
+Verified prefix restore was accepted on Kernel commit
+`8445f75d8550b5aab3559907cb8d67bc2f038fb2`, tree
+`3fa7f9ecb2587347cad763b9476f4083b55c97f1`. The existing restore consumer now
+admits only strict inspected schema 22 or 23 with an exact receipt. It preserves
+schema and authority state, advances the restore epoch transactionally, and
+returns success only after reading back the published quarantined output through
+another private verification snapshot. SQLite never opens the backup source or
+published output names. Explicit close failures retain live handles and files
+until process exit and poison subsequent serving/backup/restore calls. Cleanup
+failures retain evidence; post-publication failures never report success.
+Five focused tests, 45 adapter tests, five cross-process tests, 13 lease tests and
+strict Clippy passed after independent review. The initial Clippy dead-code
+failure is retained; selecting the inspected current/prefix digest in the actual
+consumer repaired it, followed by focused and strict Clippy success. Final focused
+log SHA256 `fc3d2c61ffe3e6c5df9609672371f987956489a2774d15348445d85228278a94`;
+final Clippy log SHA256
+`358477f485a9e87d4b29d7cd509c3b19e2aaab5700e6564ac85da1c35b80907c`.
+Actual Nextest contains 1,118 total / 1,072 standalone identities: two new restore
+tests and one accurately renamed existing test reconstruct the prior inventories.
+The three egress, 34 contract and nine family identities are unchanged. Capture,
+read-back and cleanup remain sampled same-UID checks, not exclusive hostile
+custody. Durable backup/receipt retry, maintenance custody and intent journal,
+external authority high-water, migration and rollback activation remain open.
+The following metadata commit updates only measured counts/digests and a stale
+comment; complete Kernel proof on that integrated subject is pending here.
+
+The sealed replay reader was accepted on Hub commit
+`bd4c48944c68d48299e312994a70d56549b86346`, tree
+`172ee3fcb162fa1e6c09805d7b8dada3461eba57`. The actual
+`preservation-bind replay-verify --record ABS` command reads the sealed canonical
+record, decodes its closed embedded request and shares the producer's complete
+deterministic reconstruction. Whole-record comparison binds all retained inputs,
+role-bound ledgers, projections, historical dispositions and the replay identity.
+Final rereads of all three inputs and the record precede the fact-only response.
+Nine replay tests (six retained producer and three new reader identities), two
+CLI regressions, both Clippy passes and the canonical module inventory passed on
+unchanged independently reviewed bytes. Replay log SHA256
+`89c271f19f180455f350b3cc4d271c0e52a1f9941075938c2318751849b8a846`.
+Actual Nextest contains 792 identities: 573 Hub plus 219 wire. Removing exactly
+three additions reproduces the prior complete lists and digests. The reader
+performs no writes, incident observation or recovery and grants no Genesis
+admission. Complete incident-range handling, independent review and operator
+binding, final initialization-lock persistence and crash journal remain open.
+Complete Hub proof on this later integrated subject is pending here.
+
+Complete BulletGit `required` then passed on the previously recorded commit
+`7c999f545a419d03fc94cdce2d804172bc3f0574`, tree
+`61f9cf31409ae95d918f10c58a0a71f5b4fe18e7`: 62 fast and 160 contract tests,
+all six actual corpus outcomes, lint, security and documentation. Log SHA256
+`6c4e3e08480915b873c54551531c8a86dca294ce7e51db61e1e6e42f180d46da`.
+Only its three newly generated artifacts and exact run log receive new credit;
+13 inherited artifacts are excluded. This is local member proof, not a hosted
+or complete family result. The typed inventory was read and reconciled without
+byte changes: all G1–G18 remain `DESIGNED`, all 20 profiles remain `BLOCKED`,
+and active post-V1 plus retained retired dispositions remain unchanged.
