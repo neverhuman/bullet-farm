@@ -130,9 +130,34 @@ The supervised upgrade command, maintenance custody, prefix-aware verified
 backup, high-water enforcement, and rollback remain open; this startup
 preflight supplies none of their authority.
 
+A subsequent serving-custody component retains a shared lock on the admitted
+main descriptor before preflight and throughout the ledger lifetime. It supports
+the ext filesystem family and refuses unsupported filesystems or contention.
+Tests prove independent SQLite close, duplicate descriptors, process death, and
+a forced creation-to-lock race; busy refusal preserves the exact inode. The
+focused custody identity, 40 adapter, five cross-process, and 13 lease tests and
+Clippy passed with independent review. Online backups now use the same shared
+custody and read-only SQLite, retaining the source guard through publication
+and bounded receipt read-back. Exclusive-owner and missing-source refusal tests
+preserve the complete source/destination inventory. Prefix-aware upgrade backup,
+exclusive maintenance, and generation replacement custody remain open.
+
+A two-location preservation component now binds the complete outer and Hub
+inventories to one purpose-specific record. `bullet-family preservation-bind`
+accepts supplied canonical mode-0600 observations in private mode-0700 parents
+and publishes a sealed mode-0400 record outside the family. It never observes
+or moves the incident directories. Successful creation or exact-existing
+adoption requires retained file and parent synchronization plus identity and
+byte read-back; persistent post-link sync failure refuses, retains the inode,
+and permits exact retry after recovery. Five pair, ten publisher, eight sealed
+reader, and two CLI fixture tests passed. This is component evidence; paired
+replay and historical dispositions, independent review and operator admission,
+locked Genesis references, and the complete preservation fault journal remain
+open. Operating HOLD is unchanged.
+
 ## 1. Finish lines
 
-“Dogfood” has three non-substitutable finish lines. Work is planned against the
+“Dogfood” has four non-substitutable finish lines. Work is planned against the
 earliest honest one, while preserving the path to the complete target.
 
 | Finish line | Meaning | Earliest gate | Current fact |
