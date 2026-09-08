@@ -170,7 +170,8 @@ prove() {
     || refuse PUBLICATION_TESTS_FAILED
   test_inventory "$private/publication-tests.log"
   cp "$private/publication-tests.log" "$report/publication-tests.log"
-  bash "$GITHUB_WORKSPACE/bullet-farm/publication/ci-tests.sh" \
+  BULLET_PUBLICATION_TEST_BIN="$target/debug/bullet-publish" \
+    bash "$GITHUB_WORKSPACE/bullet-farm/publication/ci-tests.sh" \
     >"$private/wrapper-tests.log" 2>&1 || refuse PUBLICATION_WRAPPER_TESTS_FAILED
   wrapper_inventory "$private/wrapper-tests.log"
   cp "$private/wrapper-tests.log" "$report/wrapper-tests.log"
@@ -182,6 +183,9 @@ prove() {
   printf 'publication proof completed; typed observation pending; full member/family campaigns remain required\n' \
     >"$report/status.txt"
   "$target/debug/bullet-publish" ci-observe "$GITHUB_WORKSPACE" "$split_root" "$report"
+  [[ -f "${GITHUB_OUTPUT:-}" && ! -L "$GITHUB_OUTPUT" ]] || refuse PUBLICATION_OUTPUT_INVALID
+  printf 'bootstrap_completion_sha256=%s\n' \
+    "$(sha256sum "$report/observation.json" | cut -d ' ' -f 1)" >>"$GITHUB_OUTPUT"
 }
 
 case "${1:-}" in
@@ -189,5 +193,9 @@ case "${1:-}" in
   wrapper-inventory) [[ "$#" == 2 ]] || refuse PUBLICATION_CI_USAGE; wrapper_inventory "$2" ;;
   source-scan) [[ "$#" == 1 ]] || refuse PUBLICATION_CI_USAGE; source_scan ;;
   prove) [[ "$#" == 1 ]] || refuse PUBLICATION_CI_USAGE; prove ;;
+  member-source-scan)
+    [[ "$#" == 1 ]] || refuse PUBLICATION_CI_USAGE
+    bash "$(dirname "${BASH_SOURCE[0]}")/ci-required.sh" member-run
+    ;;
   *) refuse PUBLICATION_CI_USAGE ;;
 esac

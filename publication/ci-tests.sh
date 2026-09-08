@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Real Git and pinned scanner fixtures; never invokes Cargo or a remote forge.
+# Real Git, publication verifier and pinned scanner fixtures. No Cargo or remote forge.
 set -euo pipefail
 wrapper="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/ci.sh"
+required="${wrapper%/*}/ci-required.sh"
+test_binary="${BULLET_PUBLICATION_TEST_BIN:?absolute built bullet-publish fixture subject required}"
+[[ "$test_binary" == /* && -f "$test_binary" && -x "$test_binary" && ! -L "$test_binary" ]]
 scratch="$(mktemp -d)"
 trap 'rm -rf -- "$scratch"' EXIT
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 GIT_NO_REPLACE_OBJECTS=1
@@ -189,15 +192,163 @@ require_refusal PUBLICATION_SOURCE_SCAN_FAILED \
 [[ "$(find "$scratch/canary-runner/bullet-publication-report" -type f | wc -l)" == 1 ]]
 pass_case source_scan_canary
 
-# Execute the actual always-running final check, without a duplicate implementation.
-awk 'capture {sub(/^          /, ""); print} /^        run: \|$/ {capture = 1}' \
-  "${wrapper%/*}/root/.github/workflows/publication.yml" >"$scratch/final.sh"
-[[ -s "$scratch/final.sh" ]]
-env INTEGRITY_RESULT=success bash "$scratch/final.sh"
+# Exercise the complete production member-run path with the real verifier and
+# exact workflow pins. These ordinary temporary repositories contain no provider
+# identity and never mutate the canonical family or access a remote forge.
+canonical="${wrapper%/publication/ci.sh}"
+runner="$scratch/member-runner"
+family="$runner/bullet-publication-family"
+aggregate="$scratch/member-aggregate"
+mkdir "$runner" "$family" "$aggregate" "$runner/bullet-tools" \
+  "$runner/bullet-publication-target" "$runner/bullet-publication-target/debug"
+cp "$test_binary" "$runner/bullet-publication-target/debug/bullet-publish"
+cp "$(realpath -e "$(command -v gitleaks)")" "$runner/bullet-tools/gitleaks"
+cp "$canonical/publication/root/repos.manifest.toml" "$family/repos.manifest.toml"
+for member in bullet-farm bullet-kernel bullet-git bullet-portal; do
+  subject="$family/$member"
+  git init -q --template= "$subject"
+  git -C "$subject" config user.name 'Publication member fixture'
+  git -C "$subject" config user.email fixture@bullet.invalid
+  mkdir -p "$subject/.github/workflows"
+  for workflow in ci.yml scheduled.yml; do
+    cp "$canonical/../$member/.github/workflows/$workflow" "$subject/.github/workflows/$workflow"
+  done
+  printf '.ci-artifacts/\n.ci-upload/\ntarget/\n' >"$subject/.gitignore"
+  if [[ "$member" == bullet-farm ]]; then
+    cp -R "$canonical/publication" "$subject/publication"
+    cp "$canonical/.node-version" "$canonical/.npm-version" "$subject/"
+    mkdir "$subject/scripts" "$subject/ops" "$subject/ops/ci"
+    for script in ci-local.sh ci-doctor.sh ci-observation.sh; do
+      cp "$canonical/scripts/$script" "$subject/scripts/$script"
+    done
+    for script in lib.sh artifact-path.sh artifact-check.sh tool-version.sh toolchain-pins.sh \
+      rust-toolchain-boundary.sh strict-json.sh stage-artifacts.sh family-custody.sh scratch-floor.sh source-scan.sh; do
+      cp "$canonical/ops/ci/$script" "$subject/ops/ci/$script"
+    done
+  fi
+  git -C "$subject" add .
+  git -C "$subject" commit -qm 'actual scanner fixture sources'
+done
+git -C "$aggregate" init -q --template=
+git -C "$aggregate" config user.name 'Publication aggregate fixture'
+git -C "$aggregate" config user.email fixture@bullet.invalid
+for member in bullet-farm bullet-kernel bullet-git bullet-portal; do
+  commit="$(git -C "$family/$member" rev-parse HEAD)"
+  git -C "$aggregate" fetch -q --no-tags "$family/$member" "$commit"
+  git -C "$aggregate" read-tree --prefix="$member/" -u "$commit"
+done
+cp -R "$family/bullet-farm/publication/root/." "$aggregate/"
+printf '%s\n' "$("$test_binary" inspect "$family")" >"$aggregate/publication.json"
+git -C "$aggregate" add .
+git -C "$aggregate" commit -qm 'exact temporary aggregate'
+aggregate_sha="$(git -C "$aggregate" rev-parse HEAD)"
+: >"$runner/outputs"
+hosted=(env "PATH=$runner/bullet-tools:/usr/bin:/bin" GITHUB_ACTIONS=true
+  "GITHUB_WORKSPACE=$aggregate" "GITHUB_SHA=$aggregate_sha" "GITHUB_WORKFLOW_SHA=$aggregate_sha"
+  GITHUB_EVENT_NAME=pull_request GITHUB_RUN_ID=123 GITHUB_RUN_ATTEMPT=2
+  GITHUB_WORKFLOW_REF=neverhuman/bulletfarm/.github/workflows/publication.yml@refs/pull/7/merge
+  "RUNNER_TEMP=$runner" "GITHUB_OUTPUT=$runner/outputs")
+"${hosted[@]}" GITHUB_JOB=publication_integrity bash "$required" member-run
+member_digest="$(sed -n 's/^member_completion_sha256=//p' "$runner/outputs")"
+[[ "$member_digest" =~ ^[0-9a-f]{64}$ ]]
+member_report="$runner/bullet-publication-member-report"
+jq -e '.completed == true and .exit_code == 0 and .tool_closure_admitted == false' "$member_report/completion.json" >/dev/null
+jq -e '.execution_evidence == false and .member_observation.outcomes[0].status == "PASS"' "$member_report/validation.json" >/dev/null
+[[ "$(git -C "$aggregate" rev-parse HEAD)" == "$aggregate_sha" ]]
+printf 'unadmitted helper\n' >"$runner/bullet-tools/git"
+require_refusal PUBLICATION_REQUIRED_INVENTORY "${hosted[@]}" GITHUB_JOB=publication_integrity bash "$required" member-run
+rm "$runner/bullet-tools/git"
+
+# The bootstrap report is a test fixture with the independently enumerated
+# 29 Rust and 47 shell identities; its observation is emitted by the real CLI.
+bootstrap_report="$runner/bullet-publication-report"
+mkdir "$bootstrap_report"
+printf '[build]\njobs=2\n' >"$bootstrap_report/cargo-config.toml"
+cp "$scratch/valid-tests.log" "$bootstrap_report/publication-tests.log"
+for name in reconstruct status toolchain verify; do printf 'fixture %s\n' "$name" >"$bootstrap_report/$name.log"; done
+mv "$bootstrap_report/status.log" "$bootstrap_report/status.txt"
+mv "$bootstrap_report/toolchain.log" "$bootstrap_report/toolchain.txt"
+printf '[]\n' >"$bootstrap_report/source-scan.json"
+cp "$completed" "$bootstrap_report/wrapper-tests.log"
+for identity in final_success final_failure final_cancelled final_skipped final_neutral final_malformed final_empty; do
+  printf 'publication wrapper case: %s ... ok\n' "$identity" >>"$bootstrap_report/wrapper-tests.log"
+done
+printf 'publication wrapper fixtures: 47 passed; 0 failed; 0 skipped\n' >>"$bootstrap_report/wrapper-tests.log"
+"${hosted[@]}" GITHUB_JOB=publication_integrity "$test_binary" ci-observe "$aggregate" "$family" "$bootstrap_report"
+bootstrap_digest="$(sha256sum "$bootstrap_report/observation.json" | cut -d ' ' -f 1)"
+downloads="$runner/bullet-publication-downloaded"
+mkdir "$downloads"
+cp -R "$bootstrap_report" "$downloads/publication-bootstrap-123-2"
+cp -R "$member_report" "$downloads/publication-hub-source-scan-123-2"
+final_command=("${hosted[@]}" GITHUB_JOB=publication_required
+  "BOOTSTRAP_COMPLETION_SHA256=$bootstrap_digest" "MEMBER_COMPLETION_SHA256=$member_digest"
+  bash "$required" required)
+env INTEGRITY_RESULT=success "${final_command[@]}"
+
+# The actual consumed final check rejects a plausible PASS without completion,
+# response-loss/stale-attempt subjects, altered scripts and extra artifact bytes.
+downloaded_member="$downloads/publication-hub-source-scan-123-2"
+for mutation in missing empty symbolic extra duplicate changed_validator changed_command incomplete; do
+  cp -R "$downloaded_member" "$scratch/member-good"
+  completion="$downloaded_member/completion.json"
+  expected="$member_digest"
+  case "$mutation" in
+    missing) rm "$completion" ;;
+    empty) : >"$completion" ;;
+    symbolic) rm "$completion"; ln -s "$member_report/completion.json" "$completion" ;;
+    extra) printf 'unadmitted\n' >"$downloaded_member/extra.json" ;;
+    duplicate) sed -i '1s/{/{"scope":"duplicate",/' "$completion" ;;
+    changed_validator)
+      jq '.validation.script_sha256 = ("0" * 64)' "$downloaded_member/validation.json" >"$scratch/changed.json"
+      mv "$scratch/changed.json" "$downloaded_member/validation.json"
+      digest="$(sha256sum "$downloaded_member/validation.json" | cut -d ' ' -f 1)"
+      jq --arg digest "$digest" '.validation_sha256 = $digest' "$completion" >"$scratch/changed.json"
+      mv "$scratch/changed.json" "$completion"
+      expected="$(sha256sum "$completion" | cut -d ' ' -f 1)"
+      ;;
+    changed_command|incomplete)
+      field='.command = ["true"]'
+      [[ "$mutation" != incomplete ]] || field='.completed = false'
+      jq "$field" "$completion" >"$scratch/changed.json"
+      mv "$scratch/changed.json" "$completion"
+      expected="$(sha256sum "$completion" | cut -d ' ' -f 1)"
+      ;;
+  esac
+  if "${hosted[@]}" GITHUB_JOB=publication_required INTEGRITY_RESULT=success \
+    "BOOTSTRAP_COMPLETION_SHA256=$bootstrap_digest" "MEMBER_COMPLETION_SHA256=$expected" \
+    bash "$required" required >"$scratch/member-refusal.log" 2>&1; then
+    printf 'accepted hostile member artifact: %s\n' "$mutation" >&2; exit 1
+  fi
+  grep -Eq 'PUBLICATION_|STRICT_JSON_' "$scratch/member-refusal.log"
+  rm -r "$downloaded_member"
+  mv "$scratch/member-good" "$downloaded_member"
+done
+require_refusal PUBLICATION_COMPLETION_REQUIRED "${hosted[@]}" GITHUB_JOB=publication_required \
+  INTEGRITY_RESULT=success "BOOTSTRAP_COMPLETION_SHA256=$bootstrap_digest" \
+  MEMBER_COMPLETION_SHA256= bash "$required" required
+require_refusal PUBLICATION_REQUIRED_UPLOAD_INVENTORY "${hosted[@]}" GITHUB_JOB=publication_required \
+  INTEGRITY_RESULT=success GITHUB_RUN_ATTEMPT=3 "BOOTSTRAP_COMPLETION_SHA256=$bootstrap_digest" \
+  "MEMBER_COMPLETION_SHA256=$member_digest" bash "$required" required
+printf 'changed\n' >>"$downloads/publication-bootstrap-123-2/verify.log"
+require_refusal PUBLICATION_BOOTSTRAP_ARTIFACT_CHANGED env INTEGRITY_RESULT=success "${final_command[@]}"
+cp "$bootstrap_report/verify.log" "$downloads/publication-bootstrap-123-2/verify.log"
+env INTEGRITY_RESULT=success "${final_command[@]}"
+
+# A pre-existing valid observation cannot substitute for an actual failed scan.
+printf 'aws_access_key_id = %s%s\n' 'AKIA' '6QWERTYUIOPASDFG' >"$family/bullet-farm/canary.txt"
+git -C "$family/bullet-farm" add canary.txt
+git -C "$family/bullet-farm" commit -qm 'intentional scanner canary'
+cat >"$scratch/run-scan.sh" <<'SCAN'
+source "$1"
+publication_run_scan "$2" "$3" "$4" "$5"
+SCAN
+require_refusal PUBLICATION_MEMBER_SCAN_FAILED bash "$scratch/run-scan.sh" \
+  "$required" "$family/bullet-farm" "$(git -C "$family/bullet-farm" rev-parse HEAD)" \
+  "$runner/failed-member-private" "$runner/bullet-tools/gitleaks"
 pass_case final_success
 for result in failure cancelled skipped neutral malformed ''; do
   expect_refusal "final_${result:-empty}" 'publication integrity did not succeed' \
-    env INTEGRITY_RESULT="$result" bash "$scratch/final.sh"
+    env INTEGRITY_RESULT="$result" "${final_command[@]}"
 done
 printf 'publication wrapper fixtures: 47 passed; 0 failed; 0 skipped\n' >>"$completed"
 bash "$wrapper" wrapper-inventory "$completed"
