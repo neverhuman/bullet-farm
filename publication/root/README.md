@@ -19,8 +19,10 @@ source refs and verifies their trees against this aggregate.
 Bullet is not release certified. See the existing
 [G1–G18 register](bullet-farm/docs/assurance/product-gaps.md) and
 [full-product plan](bullet-farm/docs/assurance/full-product-dogfood-plan.md).
-Publication integrity alone does not establish passing member, family, scheduled,
-or operational certification campaigns. Human review is required for integration.
+The root bootstrap also executes one Hub source scan with exact artifact and
+run-attempt checks. The full 53-job/55-invocation member inventory, family,
+scheduled and operational certification campaigns remain required. Human review
+is required for integration; local fixture checks do not establish hosted success.
 
 Root files are generated from the Hub's `publication/root/` templates. Change the
 source template and republish; direct aggregate edits fail regeneration checks.

@@ -114,23 +114,38 @@ template drift, and unequal trees refuse. `GITHUB_SHA` stays unchanged. The Rust
 observation binds actual event/workflow/run/attempt, member subjects, and exact
 artifact hashes; it is unsigned diagnostic evidence.
 
-`Publication bootstrap required` always runs and rejects every predecessor result
-except success. It covers publication integrity only. The eight existing member
-workflow files define 53 jobs before matrix expansion. Complete hosted activation,
-repeated real family proof, portable Jankurai, scheduled security/native jobs,
-dedicated operational campaigns, final acceptance, and protected integration
-remain unproved. No missing campaign is replaced by bootstrap success.
+The template also runs the reconstructed Hub's actual `source-scan` lane with
+a checksum-pinned scanner and a cleared child environment, stages its diagnostic,
+and executes the exact source-bound semantic validator. Completion binds command
+success, aggregate and member subjects, event/workflow/run/attempt, supporting
+tool observations and artifact digests. The existing Rust validation envelope
+retains `execution_evidence=false`; a separate unsigned completion record binds
+the actual command. Supporting tool hashes describe a sampled interval, with
+`tool_closure_admitted=false`.
+
+`Publication bootstrap required` always runs, downloads the exact bootstrap and
+member artifacts for that run/attempt, and rejects every predecessor result
+except success. Missing completion outputs, stale subjects, unexpected files,
+invalid bodies or changed digests refuse. This covers publication bootstrap and
+one actual Hub source scan. The eight existing member workflows define 53 jobs
+and 55 expanded invocations; complete activation, repeated real family proof,
+portable Jankurai, admitted tools and workers, scheduled security/native jobs,
+operational campaigns, final acceptance and protected integration remain unproved.
+Local fixtures do not establish public hosted execution or release eligibility.
 
 ## Focused checks
 
-Use an admitted private `CARGO_TARGET_DIR` and the exact scanner subject:
+Use an admitted private `CARGO_TARGET_DIR` and the exact scanner subject. Build
+`bullet-publish` from the current Hub with `cargo build --locked --bin
+bullet-publish --message-format=json`, and set `publication_bin` to the exact
+executable path returned in Cargo's JSON output before running the wrappers:
 
 ```bash
 cargo test --locked -p bullet-family --lib publication:: -- --test-threads=1
 cargo test --locked -p bullet-family --lib family_lock
 cargo test --locked -p bullet-family --lib coord::git::wave0
 cargo test --locked -p bullet-family --test family_lock --test family_lock_git
-bash publication/ci-tests.sh
+BULLET_PUBLICATION_TEST_BIN="$publication_bin" bash publication/ci-tests.sh
 ```
 
 The full Hub partition and independently reviewed identity pins remain required.

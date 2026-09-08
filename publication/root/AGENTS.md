@@ -14,8 +14,10 @@ Source origins remain authoritative; public integration requires human review.
 
 The root publication bootstrap workflow proves aggregate integrity, publication
 unit tests and exact source reconstruction into ordinary disposable CI checkouts.
-Its success is not full member/family CI, operational evidence or release
-certification. Those campaigns remain separate requirements.
+It also executes the exact Hub source-scan lane and validates completed artifacts
+against the aggregate event, member subjects, run and attempt. Its success does
+not establish full member/family CI, operational evidence or release certification.
+Those campaigns and complete tool admission remain separate requirements.
 
 CI uses the real aggregate event SHA and retains distinct member commit/tree
 subjects. Never substitute a member SHA for `GITHUB_SHA`, infer a missing check
