@@ -113,6 +113,7 @@ fn unique_decode_admits_formatting_but_never_ambiguous_members_or_numbers() {
             (PathBuf::from("src/coord/state/recovery_adoption.rs"), 1),
             (PathBuf::from("src/coord/state/recovery_evidence.rs"), 1),
             (PathBuf::from("src/coord/store/ledger.rs"), 1),
+            (PathBuf::from("src/coord/store/ledger/admission.rs"), 1),
             (PathBuf::from("src/coord/store/ledger/adoption.rs"), 1),
             (
                 PathBuf::from("src/coord/store/ledger/recovery_production.rs"),
