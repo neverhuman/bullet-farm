@@ -12,15 +12,22 @@ dependency order is [`closure-roadmap.md`](closure-roadmap.md). A newer commit
 invalidates a row until those sources are replayed.
 
 Accepted local prerequisites cover two-location preservation and replay facts,
-typed current-schema inspection, serving and backup custody, explicit backup
-close, expected CI topology, and source-bound diagnostic validation. The
+typed schema inspection, serving and backup custody, explicit backup close,
+expected CI topology, and source-bound diagnostic validation. The
 [dated checkpoint record](production-prerequisite-checkpoints.md) retains exact
 subjects, executed checks, failed attempts, and each component's limits.
-Backups now consume an owned recovered private snapshot and preserve the
-original source during WAL or rollback-journal recovery. Exclusive upgrade
-admission and prefix-aware backup remain required.
+Backups preserve authentic schema-22 prefixes and current schema-23 databases
+through an owned recovered private snapshot. Serving and ordinary restore still
+require schema 23; prefix restore, durable backup retry and exclusive supervised
+upgrade admission remain required.
 
-Complete coordinator admission, supervised upgrades, hosted job execution,
+The root CI template now executes one Hub source scan, retains separate command
+completion and diagnostic validation records, and checks exact artifacts in its
+stable final job. Local wrapper fixtures passed; no hosted run is credited.
+Execution of the complete 53-job inventory, admitted hosted tools and workers,
+and additional assurance campaigns remain required.
+
+Complete coordinator admission, supervised upgrades, hosted CI qualification,
 and all subsequent production work remain open. All G1–G18 remain `DESIGNED`,
 and all 18 product plus two diagnostic profiles remain `BLOCKED`.
 

@@ -246,3 +246,54 @@ checks remain sampled under shared custody, with no hostile same-UID
 containment, prefix allowance or exclusive upgrade authority. Complete
 `required` proof on this newer commit remains pending; the preceding run
 binds only its recorded older subject.
+
+
+A subsequent CI execution component was accepted on Hub commit
+`c64be759ab8a50313b3d7e98d5e7dc2c47730183`, tree
+`fb825b4ff32e41812239a69b0335f3892c86bcae`. The root bootstrap job now executes
+the reconstructed Hub's actual source-scan entrypoint, stages the exact member
+diagnostic, and invokes the source-bound semantic validator. A separate
+completion record binds successful bounded execution, selected source subjects,
+tool and artifact digests; the earlier Rust validation output still correctly
+states `execution_evidence=false`. A stable final job requires both run/attempt
+artifact sets and successful predecessor/completion outputs; missing, skipped,
+cancelled, neutral, malformed, stale, corrupt or extra results refuse.
+All 47 actual wrapper fixtures and 29 publication tests passed, as did
+ShellCheck, actionlint and exact inventory checks. The wrapper log SHA256 is
+`f28f97d9d687855591debc602367c80ee506d71d6645f3a91b71eb14a3549497`;
+the publication test log SHA256 is
+`56bc5e369b252ee0ea8a5c153737859a1ca4b4a145a4f48e45dbed8cf92b0197`.
+These are local fixture proofs, not GitHub executions. Completion remains
+unsigned `DIAGNOSTIC_ONLY`, with `tool_closure_admitted=false` and no release
+authority. This executes only one Hub source scan; all 53 job definitions / 55
+invocations, family/MSRV additions, hosted capacity, portable Jankurai and
+isolated certification workers still require implementation or qualification.
+Later publication description edits require rebuilding the embedded template
+catalog and rerunning the wrapper on their exact new subject.
+
+Prefix-aware backup was then accepted on Kernel commit
+`a6f11d03e053c550d86f7fda788714a9a5f7f447`, tree
+`e1c962e59254d66760ca12ac4c41e04b63a25507`. The actual backup producer accepts
+only inspected authentic schema 22 or current schema 23, verifies identical
+source/copy schema state, digest and restore state, and reads back the exact
+published bytes. Tests cover standalone, retained WAL, missing SHM, hot journal,
+malformed catalogs, quarantine, exclusive custody, publication faults and
+collision without source changes. All three new prefix tests, 43 adapter tests,
+five cross-process tests, 13 lease tests and strict Clippy passed after independent
+review. An initial diagnostic-string assertion failure is retained; the final
+repair corrected expected Display text and strengthened the typed error check.
+Actual Nextest listings contain 1,116 total / 1,070 standalone identities; removing
+exactly these three additions reproduces both prior identity digests, with the
+three egress, 34 contract and nine family identities unchanged.
+Serving and ordinary restore still require the current schema, and quarantine
+still refuses backup. A schema-22 receipt grants no rollback activation or upgrade
+authority; prefix restore and durable backup/receipt retry remain open. Before
+original writable access, supervised upgrade still needs exclusive maintenance
+custody, a persistent serving gate and intent journal, external authority
+high-water, transactional migration and verified quarantined rollback. Source
+capture and cleanup retain the preceding component's sampled same-UID limits.
+Complete required checks on the integrated subjects are a separate pending proof
+at this checkpoint; earlier full checks do not transfer to later source trees.
+The typed inventory was read and reconciled without changing its bytes: all
+G1–G18 remain `DESIGNED`; all 18 product and two diagnostic profiles remain
+`BLOCKED`, including the active post-V1 and retained retired dispositions.
