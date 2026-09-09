@@ -35,6 +35,9 @@ assessment of working components, production defects, all 53/55 nested CI jobs,
 three-account qualification, genuine media and avoidable complexity. It studied
 all 101 member documentation files plus six exact outer mirrors. Its evidence
 limits and dated source/GitHub read-backs remain explicit.
+The [xbabe2 development close-out](xbabe2-development-closeout.md) is the
+packet-level sequence for using Codex, Claude, and Cursor on this host; it
+does not change profile status.
 
 The [checkpoint record](production-prerequisite-checkpoints.md),
 [health observations](health-observations-20260908.md) and
