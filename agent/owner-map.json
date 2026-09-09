@@ -17,6 +17,8 @@
     "repos.manifest.toml": "split",
     ".gitattributes": "ops",
     ".gitignore": "ops",
+    ".gitleaks.toml": "ops",
+    "generated/": "ops",
     ".node-version": "ops",
     ".npm-version": "ops",
     "clippy.toml": "ops",

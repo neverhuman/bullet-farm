@@ -29,6 +29,14 @@
       "command": "just lint",
       "purpose": "verify generated local state remains outside source authority"
     },
+    ".gitleaks.toml": {
+      "command": "bash ops/ci/source-scan.sh",
+      "purpose": "verify the committed secret-scan policy still refuses planted canaries"
+    },
+    "generated/": {
+      "command": "bash scripts/sync-family-contracts.sh check",
+      "purpose": "verify hub-synced generated zone stubs stay bound to their source contracts"
+    },
     ".node-version": {
       "command": "bash ops/ci/dev-supervision-test.sh",
       "purpose": "verify the canonical Node pin and malformed-subject refusal"
