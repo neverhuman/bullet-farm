@@ -36,6 +36,11 @@ three-account qualification, genuine media and avoidable complexity. It studied
 all 101 member documentation files plus six exact outer mirrors. Its evidence
 limits and dated source/GitHub read-backs remain explicit.
 
+The [post-audit health checkpoint](health-checkpoint-20260909.md) records the
+accepted strict JSON repair, actual inventory reconciliation and complete Kernel
+required pass on `02bf7c5`, with its exact tree and retained failed attempts.
+Other member/family, auditor, hosted CI and production acceptance remain open.
+
 The [checkpoint record](production-prerequisite-checkpoints.md),
 [health observations](health-observations-20260908.md) and
 [prerequisite observations](prerequisite-observations-20260908.md) preserve exact
@@ -51,8 +56,9 @@ The [audit baseline](health-audit-baseline.json) and
 [repair queue](health-repair-queue.jsonl) retain 165 findings and 28 cap occurrences
 as unresolved triage inputs. Later score claims do not close them without an
 admitted auditor and source evidence. In particular, declaration-only generated
-stubs and permissive formal JSON preprocessing identified by the deep audit need
-correction; a higher score cannot justify them.
+stubs need correction; a higher score cannot justify them. The Kernel's active
+formal JSON consumer is repaired in the checkpoint above; unused workaround
+artifacts still await separate reviewed cleanup.
 
 The next implementation order remains trustworthy local health, complete GitHub
 CI/publication, preserved-generation admission and supervised upgrade, then one

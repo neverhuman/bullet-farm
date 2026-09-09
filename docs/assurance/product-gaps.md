@@ -24,6 +24,12 @@ concrete complexity reductions after studying all 101 member documentation files
 Its BF-A01–BF-A12 findings are source/reproducer-backed repair work under this
 register, not new product-profile statuses or a replacement governing plan.
 
+The [post-audit health checkpoint](health-checkpoint-20260909.md) records the
+Kernel's strict JSON repair, truthful fixture ownership and actual test-inventory
+update, followed by a complete required pass on `02bf7c5`. It identifies the
+excluded egress/family campaigns, rejected publication attempts and remaining
+auditor, CI, recorder and production work without changing any profile status.
+
 Exact historical accepted subjects and failed attempts remain in the
 [checkpoint](production-prerequisite-checkpoints.md),
 [health observations](health-observations-20260908.md) and
