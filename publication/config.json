@@ -1,6 +1,6 @@
 {
   "schema_version": "bullet.publication-config.v2",
-  "destination": "https://git.neverhuman.org/git/root/bulletfarm.git",
+  "destination": "https://github.com/neverhuman/bulletfarm.git",
   "root_files": {
     ".github/workflows/publication.yml": "publication/root/.github/workflows/publication.yml",
     "AGENTS.md": "publication/root/AGENTS.md",

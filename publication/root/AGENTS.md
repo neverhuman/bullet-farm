@@ -3,9 +3,9 @@
 This repository publishes exact reviewed subjects from four independent source
 repositories. Read `publication.json` for their commits, trees and immutable
 source refs. The primary integration destination is
-`https://git.neverhuman.org/root/bulletfarm`, with Git transport at
-`https://git.neverhuman.org/git/root/bulletfarm.git`. The secondary public index
-is `https://github.com/neverhuman/bulletfarm`.
+`https://github.com/neverhuman/bulletfarm`, with Git transport at
+`https://github.com/neverhuman/bulletfarm.git`. New requests capture this selected
+destination; retained requests keep their original destinations and identities.
 
 Root files are generated from the Hub's `publication/root/` templates according
 to `bullet-farm/publication/config.json`. Edit the canonical Hub templates and
@@ -20,9 +20,11 @@ unit tests and exact source reconstruction into ordinary disposable CI checkouts
 It also defines execution of the exact Hub source-scan lane and validation of completed artifacts
 against the aggregate event, member subjects, run and attempt. Its success does
 not establish full member/family CI, operational evidence or release certification.
-Those campaigns and complete tool admission remain separate requirements. JeRyu
-runner activation, native reconstruction, and native PR transport are pending;
-the presence of a workflow file or a projected check does not prove execution.
+Version-2 generated roots add the reviewed member job inventory; unsupported
+execution profiles remain explicit failures. Complete campaigns and tool admission
+remain required. JeRyu self-hosting, runner activation, native reconstruction and
+native PR transport remain separate release obligations. A workflow file or a
+projected check does not prove execution.
 
 CI uses the real aggregate event SHA and retains distinct member commit/tree
 subjects. Never substitute a member SHA for `GITHUB_SHA`, infer a missing check
