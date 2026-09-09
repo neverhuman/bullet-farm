@@ -147,18 +147,22 @@ except (OSError, tomllib.TOMLDecodeError) as error:
 allowed = {
     ("build", "jobs"): lambda value: type(value) is int and value > 0,
     ("net", "retry"): lambda value: type(value) is int and value >= 0,
+    ("net", "git-fetch-with-cli"): lambda value: type(value) is bool,
     ("cache", "auto-clean-frequency"): lambda value: isinstance(value, (int, str)),
 }
 rejected = []
 
 def walk(value, prefix=()):
+    rule = allowed.get(prefix)
+    if rule is not None:
+        if not rule(value):
+            rejected.append(".".join(prefix))
+        return
     if isinstance(value, dict):
         for key, child in value.items():
             walk(child, prefix + (str(key).replace("_", "-").lower(),))
         return
-    rule = allowed.get(prefix)
-    if rule is None or not rule(value):
-        rejected.append(".".join(prefix) or "<root>")
+    rejected.append(".".join(prefix) or "<root>")
 
 walk(document)
 print(",".join(sorted(set(rejected))))
