@@ -326,24 +326,6 @@ jq -e '.execution_evidence == false and .member_observation.outcomes[0].status =
 printf 'unadmitted helper\n' >"$runner/bullet-tools/git"
 require_refusal PUBLICATION_REQUIRED_INVENTORY "${hosted[@]}" GITHUB_JOB=publication_integrity bash "$required" member-run
 rm "$runner/bullet-tools/git"
-"${hosted[@]}" GITHUB_JOB=bullet_git_source_scan bash "$required" git-member-run
-git_digest="$(sed -n 's/^git_member_completion_sha256=//p' "$runner/outputs")"
-[[ "$git_digest" =~ ^[0-9a-f]{64}$ ]]
-git_report="$runner/bullet-publication-git-member-report"
-jq -e --arg sha "$aggregate_sha" '
-  .hosted.event_sha == $sha and .hosted.job == "bullet_git_source_scan" and
-  .subject.invocation_key == "bullet-git:REQUIRED:source_scan" and .subject.invocation.matrix == {}
-' "$git_report/context.json" >/dev/null
-jq -e '.member_observation.repository == "bullet-git" and .validation.exit_code == 0 and
-  .member_observation.outcomes == [{lane:"source-scan",status:"PASS",exit_code:0}] and
-  .execution_evidence == false and .release_authority == false' "$git_report/validation.json" >/dev/null
-[[ "$(git -C "$aggregate" rev-parse HEAD)" == "$aggregate_sha" ]]
-git_downloads="$runner/bullet-publication-git-downloaded"
-mkdir "$git_downloads"
-cp -R "$git_report" "$git_downloads/publication-git-source-scan-123-2"
-git_final=("${hosted[@]}" GITHUB_JOB=publication_required
-  "BULLET_GIT_MEMBER_COMPLETION_SHA256=$git_digest" bash "$required" git-required)
-env BULLET_GIT_SOURCE_SCAN_RESULT=success "${git_final[@]}"
 
 # The bootstrap report is a test fixture with the independently enumerated
 # 36 Rust and 50 shell identities; its observation is emitted by the real CLI.
@@ -362,6 +344,26 @@ done
 printf 'publication wrapper fixtures: 50 passed; 0 failed; 0 skipped\n' >>"$bootstrap_report/wrapper-tests.log"
 "${hosted[@]}" GITHUB_JOB=publication_integrity "$test_binary" ci-observe "$aggregate" "$family" "$bootstrap_report"
 bootstrap_digest="$(sha256sum "$bootstrap_report/observation.json" | cut -d ' ' -f 1)"
+"${hosted[@]}" bash "$canonical/publication/ci-transfer-tests.sh" prepare "$member_digest" "$bootstrap_digest" "$reconstructed"
+"${hosted[@]}" GITHUB_JOB=bullet_git_source_scan bash "$required" git-member-run
+git_digest="$(sed -n 's/^git_member_completion_sha256=//p' "$runner/outputs")"
+[[ "$git_digest" =~ ^[0-9a-f]{64}$ ]]
+git_report="$runner/bullet-publication-git-member-report"
+jq -e --arg sha "$aggregate_sha" '
+  .hosted.event_sha == $sha and .hosted.job == "bullet_git_source_scan" and
+  .subject.invocation_key == "bullet-git:REQUIRED:source_scan" and .subject.invocation.matrix == {}
+' "$git_report/context.json" >/dev/null
+jq -e '.member_observation.repository == "bullet-git" and .validation.exit_code == 0 and
+  .member_observation.outcomes == [{lane:"source-scan",status:"PASS",exit_code:0}] and
+  .execution_evidence == false and .release_authority == false' "$git_report/validation.json" >/dev/null
+[[ "$(git -C "$aggregate" rev-parse HEAD)" == "$aggregate_sha" ]]
+git_downloads="$runner/bullet-publication-git-downloaded"
+mkdir "$git_downloads"
+cp -R "$git_report" "$git_downloads/publication-git-source-scan-123-2"
+git_final=("${hosted[@]}" GITHUB_JOB=publication_required
+  "BULLET_GIT_MEMBER_COMPLETION_SHA256=$git_digest" bash "$required" git-required)
+env BULLET_GIT_SOURCE_SCAN_RESULT=success "${git_final[@]}"
+"${hosted[@]}" bash "$canonical/publication/ci-transfer-tests.sh" final "$member_digest" "$bootstrap_digest" "$reconstructed"
 downloads="$runner/bullet-publication-downloaded"
 mkdir "$downloads"
 cp -R "$bootstrap_report" "$downloads/publication-bootstrap-123-2"
