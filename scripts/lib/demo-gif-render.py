@@ -3,6 +3,7 @@
 
 import argparse
 import hashlib
+from fractions import Fraction
 import json
 import math
 import os
@@ -158,9 +159,9 @@ class Runner:
 
 
 def decoded(run, ffmpeg, path, dimensions, timing=None):
-    data = run.ff(ffmpeg, "-protocol_whitelist", "file,pipe", "-i", str(path), "-map", "0:v:0",
+    data = run.ff(ffmpeg, "-copyts", "-protocol_whitelist", "file,pipe", "-i", str(path), "-map", "0:v:0",
                   "-fps_mode", "passthrough", "-c:v", "rawvideo", "-pix_fmt", "rgb24",
-                  "-f", "framehash", "-hash", "sha256", "-")
+                  "-enc_time_base", "-1", "-f", "framehash", "-hash", "sha256", "-")
     frames, timebase, geometry = [], None, None
     for line in data.decode().splitlines():
         if line.startswith("#tb 0: "):
@@ -175,9 +176,76 @@ def decoded(run, ffmpeg, path, dimensions, timing=None):
             frames.append(fields[5])
             if timing is not None:
                 need(timebase is not None and re.fullmatch(r"[1-9][0-9]*/[1-9][0-9]*", timebase), "TIMEBASE_INVALID")
-                timing.append({"pts": int(fields[2]), "duration": int(fields[3]), "timebase": timebase})
+                timing.append({"pts": int(fields[2]), "timebase": timebase})
     need(0 < len(frames) <= 100000, "DECODED_FRAME_COUNT")
     return frames
+
+
+def gif_delays(data):
+    """Walk GIF blocks, never search compressed image payload for control bytes."""
+    pos, pending, delays = 0, None, []
+    def take(size):
+        nonlocal pos
+        need(pos + size <= len(data), "GIF_BLOCK_TRUNCATED")
+        part, pos = data[pos:pos + size], pos + size
+        return part
+    def blocks():
+        size = take(1)[0]
+        while size:
+            take(size)
+            size = take(1)[0]
+    header = take(13)
+    need(header[:6] in [b"GIF87a", b"GIF89a"], "GIF_REQUIRED")
+    if header[10] & 128:
+        take(3 * 2 ** ((header[10] & 7) + 1))
+    while True:
+        marker = take(1)[0]
+        if marker == 0x21:
+            label = take(1)[0]
+            if label == 0xf9:
+                control = take(6)
+                need(pending is None and control[0] == 4 and control[-1] == 0, "GIF_GCE_AMBIGUOUS")
+                pending = struct.unpack("<H", control[2:4])[0]
+            else:
+                need(label in [0xfe, 0xff], "GIF_RENDERING_EXTENSION_UNSUPPORTED")
+                blocks()
+        elif marker == 0x2c:
+            descriptor = take(9)
+            if descriptor[8] & 128:
+                take(3 * 2 ** ((descriptor[8] & 7) + 1))
+            take(1)  # LZW code size, followed by structurally bounded data sub-blocks.
+            blocks()
+            need(pending is not None and len(delays) < 64, "GIF_GCE_MISSING")
+            delays.append(pending)
+            pending = None
+        else:
+            need(marker == 0x3b and pos == len(data) and pending is None and delays, "GIF_TRAILER_INVALID")
+            return delays
+
+
+def portal_schedule(value, measured):
+    rows = value["frames"]
+    need(len(rows) == len(measured), "MASTER_TIMING_COUNT")
+    times = [Fraction(row["pts"]) * Fraction(row["timebase"]) for row in measured]
+    need(times[0] == 0, "MASTER_TIMING_ORIGIN")
+    for i, (row, observed) in enumerate(zip(rows, times)):
+        expected = (Fraction(str(row["elapsed_ms"])) - Fraction(str(rows[0]["elapsed_ms"]))) / 1000
+        need(abs(observed - expected) <= Fraction(i, 2_000_000), "MASTER_SOURCE_TIMING_DRIFT")
+        need(i == 0 or observed > times[i - 1], "MASTER_TIMING_ORDER")
+    pts = [int(time * 100 + Fraction(1, 2)) for time in times]  # Nonnegative half-up, as FFmpeg.
+    gaps = [after - before for before, after in zip(pts, pts[1:])]
+    need(all(2 <= gap <= 65535 for gap in gaps), "GIF_TIMING_UNREPRESENTABLE")
+    return pts, gaps + [gaps[-1] if gaps else 10]
+
+
+def verify_portal_timing(value, master, gif, path):
+    pts, delays = portal_schedule(value, master)
+    observed = [Fraction(row["pts"]) * Fraction(row["timebase"]) for row in gif]
+    need(observed == [Fraction(tick, 100) for tick in pts], "GIF_SOURCE_TIMING_DRIFT")
+    need(gif_delays(read(path)) == delays, "GIF_NATIVE_DELAY_DRIFT")
+    return {"gif_native_delays_cs": delays,
+            "final_frame_hold": {"policy": "REPEAT_LAST_GAP_OR_SINGLE_100MS", "delay_cs": delays[-1],
+                                 "source_observed": False}}
 
 
 def gif_geometry(path):
@@ -252,7 +320,8 @@ def portal(run, ffmpeg, source, value):
     for i, row in enumerate(rows):
         concat += f"file source/{row['file']}\noption framerate 1000000\n"
         if i + 1 < len(rows):
-            concat += f"duration {(rows[i+1]['elapsed_ms'] - row['elapsed_ms']) / 1000:.6f}\n"
+            duration = int((Fraction(str(rows[i+1]["elapsed_ms"])) - Fraction(str(row["elapsed_ms"]))) * 1000 + Fraction(1, 2))
+            concat += f"duration {duration // 1000000}.{duration % 1000000:06}\n"
     put(run.root / "sequence.ffconcat", concat.encode())
     master, gif = run.root / "master.nut", run.root / "derivative.gif"
     run.ff(ffmpeg, "-n", "-f", "concat", "-safe", "0", "-protocol_whitelist", "file,pipe", "-i", "sequence.ffconcat",
@@ -261,16 +330,19 @@ def portal(run, ffmpeg, source, value):
     master_timing, gif_timing = [], []
     master_rgb = decoded(run, ffmpeg, master, dimensions, master_timing)
     need(master_rgb == original, "MASTER_RGB_MISMATCH")
+    _, delays = portal_schedule(value, master_timing)
     run.ff(ffmpeg, "-n", "-i", str(master), "-filter_complex",
            "split[a][b];[a]palettegen=reserve_transparent=0[p];[b][p]paletteuse=dither=none",
-           "-fps_mode", "passthrough", "-loop", "0", str(gif))
+           "-fps_mode", "passthrough", "-enc_time_base", "1:100", "-final_delay", str(delays[-1]),
+           "-loop", "0", str(gif))
     gif_rgb = decoded(run, ffmpeg, gif, dimensions, gif_timing)
     need(len(gif_rgb) == len(original), "GIF_FRAME_COUNT_MISMATCH")
-    return {"master_rgb": "EXACT", "gif_rgb": "EXACT" if gif_rgb == original else "QUANTIZED",
+    timing_proof = verify_portal_timing(value, master_timing, gif_timing, gif)
+    return {**timing_proof, "master_rgb": "EXACT", "gif_rgb": "EXACT" if gif_rgb == original else "QUANTIZED",
             "source_rgb_sha256": original, "master_rgb_sha256": master_rgb, "gif_rgb_sha256": gif_rgb,
             "source_elapsed_ms": [row["elapsed_ms"] for row in rows],
             "master_decoded_timing": master_timing, "gif_decoded_timing": gif_timing,
-            "timing": "original JSON retained; screenshot timestamps rebased; master microseconds/GIF centiseconds; no interpolated frames"}
+            "timing": "source-bound native PTS; master cumulative half-microsecond interval rounding/GIF centiseconds; explicit display tail; no interpolated frames"}
 
 
 def main():
@@ -359,6 +431,8 @@ def main():
                      and receipt["fidelity"]["gif_decoded_timing"] == gif_timing, "TIMING_RECEIPT_DRIFT")
                 need(original == master == receipt["fidelity"]["source_rgb_sha256"] == receipt["fidelity"]["master_rgb_sha256"]
                      and gif == receipt["fidelity"]["gif_rgb_sha256"] and receipt["fidelity"]["master_rgb"] == "EXACT", "RGB_RECEIPT_DRIFT")
+                timing_proof = verify_portal_timing(value, master_timing, gif_timing, args.input / "derivative.gif")
+                need(all(receipt["fidelity"][key] == val for key, val in timing_proof.items()), "TIMING_POLICY_DRIFT")
                 label = "EXACT" if gif == original else "QUANTIZED"
                 need(receipt["fidelity"]["gif_rgb"] == label and (not args.strict_lossless or label == "EXACT"), "GIF_RGB_QUANTIZED")
             else:
