@@ -14,7 +14,6 @@ fi
 }
 # shellcheck source=scripts/readme-live-check.sh
 source "$HUB/scripts/readme-live-check.sh"
-LIVE_CAPTURE_FILES=(capture.json stderr.txt stdout.txt)
 live_start
 stage=''
 cleanup() {
@@ -37,6 +36,7 @@ name="${destination##*/}"
 parent_subject="$(live_root_subject "$parent")"
 sources="$(live_sources)"
 capture_subject="$(live_root_subject "$capture")"
+live_profile "$capture"
 live_snapshot "$capture" "$LIVE_TMP/capture" "${LIVE_CAPTURE_FILES[@]}"
 live_capture "$LIVE_TMP/capture"
 
