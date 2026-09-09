@@ -1,4 +1,3 @@
-
 use super::{
     MANIFEST_NAME, MAX_FILE_BYTES, MAX_MANIFEST_BYTES, MAX_PACKAGE_LOCK_BYTES, MAX_TOOL_BYTES,
     MAX_TOOL_TREE_BYTES, decode_manifest, manifest_root, read_manifest, read_regular_bounded,
