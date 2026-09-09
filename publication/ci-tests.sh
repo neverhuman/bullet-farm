@@ -250,6 +250,14 @@ for member in bullet-farm bullet-kernel bullet-git bullet-portal; do
       rust-toolchain-boundary.sh strict-json.sh stage-artifacts.sh family-custody.sh scratch-floor.sh source-scan.sh; do
       cp "$canonical/ops/ci/$script" "$subject/ops/ci/$script"
     done
+  elif [[ "$member" == bullet-git ]]; then
+    mkdir "$subject/scripts" "$subject/ops" "$subject/ops/ci"
+    for script in ci-local.sh ci-doctor.sh ci-observation.sh; do
+      cp "$canonical/../bullet-git/scripts/$script" "$subject/scripts/$script"
+    done
+    for script in lib.sh source-scan.sh artifact-check.sh stage-artifacts.sh; do
+      cp "$canonical/../bullet-git/ops/ci/$script" "$subject/ops/ci/$script"
+    done
   fi
   git -C "$subject" add .
   git -C "$subject" commit -qm 'actual scanner fixture sources'
@@ -318,6 +326,24 @@ jq -e '.execution_evidence == false and .member_observation.outcomes[0].status =
 printf 'unadmitted helper\n' >"$runner/bullet-tools/git"
 require_refusal PUBLICATION_REQUIRED_INVENTORY "${hosted[@]}" GITHUB_JOB=publication_integrity bash "$required" member-run
 rm "$runner/bullet-tools/git"
+"${hosted[@]}" GITHUB_JOB=bullet_git_source_scan bash "$required" git-member-run
+git_digest="$(sed -n 's/^git_member_completion_sha256=//p' "$runner/outputs")"
+[[ "$git_digest" =~ ^[0-9a-f]{64}$ ]]
+git_report="$runner/bullet-publication-git-member-report"
+jq -e --arg sha "$aggregate_sha" '
+  .hosted.event_sha == $sha and .hosted.job == "bullet_git_source_scan" and
+  .subject.invocation_key == "bullet-git:REQUIRED:source_scan" and .subject.invocation.matrix == {}
+' "$git_report/context.json" >/dev/null
+jq -e '.member_observation.repository == "bullet-git" and .validation.exit_code == 0 and
+  .member_observation.outcomes == [{lane:"source-scan",status:"PASS",exit_code:0}] and
+  .execution_evidence == false and .release_authority == false' "$git_report/validation.json" >/dev/null
+[[ "$(git -C "$aggregate" rev-parse HEAD)" == "$aggregate_sha" ]]
+git_downloads="$runner/bullet-publication-git-downloaded"
+mkdir "$git_downloads"
+cp -R "$git_report" "$git_downloads/publication-git-source-scan-123-2"
+git_final=("${hosted[@]}" GITHUB_JOB=publication_required
+  "BULLET_GIT_MEMBER_COMPLETION_SHA256=$git_digest" bash "$required" git-required)
+env BULLET_GIT_SOURCE_SCAN_RESULT=success "${git_final[@]}"
 
 # The bootstrap report is a test fixture with the independently enumerated
 # 36 Rust and 50 shell identities; its observation is emitted by the real CLI.
@@ -347,41 +373,72 @@ env INTEGRITY_RESULT=success "${final_command[@]}"
 
 # The actual consumed final check rejects a plausible PASS without completion,
 # response-loss/stale-attempt subjects, altered scripts and extra artifact bytes.
-downloaded_member="$downloads/publication-hub-source-scan-123-2"
-for mutation in missing empty symbolic extra duplicate changed_validator changed_command incomplete; do
-  cp -R "$downloaded_member" "$scratch/member-good"
-  completion="$downloaded_member/completion.json"
-  expected="$member_digest"
-  case "$mutation" in
-    missing) rm "$completion" ;;
-    empty) : >"$completion" ;;
-    symbolic) rm "$completion"; ln -s "$member_report/completion.json" "$completion" ;;
-    extra) printf 'unadmitted\n' >"$downloaded_member/extra.json" ;;
-    duplicate) sed -i '1s/{/{"scope":"duplicate",/' "$completion" ;;
-    changed_validator)
-      jq '.validation.script_sha256 = ("0" * 64)' "$downloaded_member/validation.json" >"$scratch/changed.json"
-      mv "$scratch/changed.json" "$downloaded_member/validation.json"
-      digest="$(sha256sum "$downloaded_member/validation.json" | cut -d ' ' -f 1)"
-      jq --arg digest "$digest" '.validation_sha256 = $digest' "$completion" >"$scratch/changed.json"
-      mv "$scratch/changed.json" "$completion"
-      expected="$(sha256sum "$completion" | cut -d ' ' -f 1)"
-      ;;
-    changed_command|incomplete)
-      field='.command = ["true"]'
-      [[ "$mutation" != incomplete ]] || field='.completed = false'
-      jq "$field" "$completion" >"$scratch/changed.json"
-      mv "$scratch/changed.json" "$completion"
-      expected="$(sha256sum "$completion" | cut -d ' ' -f 1)"
-      ;;
-  esac
-  if "${hosted[@]}" GITHUB_JOB=publication_required INTEGRITY_RESULT=success \
-    "BOOTSTRAP_COMPLETION_SHA256=$bootstrap_digest" "MEMBER_COMPLETION_SHA256=$expected" \
-    bash "$required" required >"$scratch/member-refusal.log" 2>&1; then
-    printf 'accepted hostile member artifact: %s\n' "$mutation" >&2; exit 1
+for profile in hub git; do
+  downloaded_member="$downloads/publication-hub-source-scan-123-2"
+  good_report="$member_report"; good_digest="$member_digest"; mode=required
+  if [[ "$profile" == git ]]; then
+    downloaded_member="$git_downloads/publication-git-source-scan-123-2"
+    good_report="$git_report"; good_digest="$git_digest"; mode=git-required
   fi
-  grep -Eq 'PUBLICATION_|STRICT_JSON_' "$scratch/member-refusal.log"
-  rm -r "$downloaded_member"
-  mv "$scratch/member-good" "$downloaded_member"
+  for mutation in missing empty symbolic extra duplicate changed_validator changed_command incomplete \
+    member_repository member_commit member_tree member_skip member_tool; do
+    cp -R "$downloaded_member" "$scratch/member-good"
+    completion="$downloaded_member/completion.json"
+    expected="$good_digest"
+    case "$mutation" in
+      missing) rm "$completion" ;;
+      empty) : >"$completion" ;;
+      symbolic) rm "$completion"; ln -s "$good_report/completion.json" "$completion" ;;
+      extra) printf 'unadmitted\n' >"$downloaded_member/extra.json" ;;
+      duplicate) sed -i '1s/{/{"scope":"duplicate",/' "$completion" ;;
+      member_*)
+        observation="$downloaded_member/member/.ci-artifacts/observations/source-scan.json"
+        case "$mutation" in
+          member_repository) field='.repository = "bullet-portal"' ;;
+          member_commit) field='.commit_oid = ("0" * 40)' ;;
+          member_tree) field='.tree_oid = ("0" * 40)' ;;
+          member_skip) field='.outcomes[0].status = "SKIPPED"' ;;
+          member_tool) field='.tool_versions.gitleaks = "8.21.3"' ;;
+        esac
+        jq "$field" "$observation" >"$scratch/changed.json"; mv "$scratch/changed.json" "$observation"
+        digest="$(sha256sum "$observation" | cut -d ' ' -f 1)"
+        jq --slurpfile observation "$observation" --arg digest "$digest" \
+          '.member_observation = $observation[0] | .member_observation_sha256 = $digest' \
+          "$downloaded_member/validation.json" >"$scratch/changed.json"
+        mv "$scratch/changed.json" "$downloaded_member/validation.json"
+        validation_digest="$(sha256sum "$downloaded_member/validation.json" | cut -d ' ' -f 1)"
+        jq --arg observation "$digest" --arg validation "$validation_digest" \
+          '.member_observation_sha256 = $observation | .validation_sha256 = $validation' \
+          "$completion" >"$scratch/changed.json"
+        mv "$scratch/changed.json" "$completion"
+        expected="$(sha256sum "$completion" | cut -d ' ' -f 1)"
+        ;;
+      changed_validator)
+        jq '.validation.script_sha256 = ("0" * 64)' "$downloaded_member/validation.json" >"$scratch/changed.json"
+        mv "$scratch/changed.json" "$downloaded_member/validation.json"
+        digest="$(sha256sum "$downloaded_member/validation.json" | cut -d ' ' -f 1)"
+        jq --arg digest "$digest" '.validation_sha256 = $digest' "$completion" >"$scratch/changed.json"
+        mv "$scratch/changed.json" "$completion"
+        expected="$(sha256sum "$completion" | cut -d ' ' -f 1)"
+        ;;
+      changed_command|incomplete)
+        field='.command = ["true"]'
+        [[ "$mutation" != incomplete ]] || field='.completed = false'
+        jq "$field" "$completion" >"$scratch/changed.json"
+        mv "$scratch/changed.json" "$completion"
+        expected="$(sha256sum "$completion" | cut -d ' ' -f 1)"
+        ;;
+    esac
+    if "${hosted[@]}" GITHUB_JOB=publication_required INTEGRITY_RESULT=success \
+      BULLET_GIT_SOURCE_SCAN_RESULT=success "BULLET_GIT_MEMBER_COMPLETION_SHA256=$expected" \
+      "BOOTSTRAP_COMPLETION_SHA256=$bootstrap_digest" "MEMBER_COMPLETION_SHA256=$expected" \
+      bash "$required" "$mode" >"$scratch/member-refusal.log" 2>&1; then
+      printf 'accepted hostile member artifact: %s\n' "$mutation" >&2; exit 1
+    fi
+    grep -Eq 'PUBLICATION_|STRICT_JSON_' "$scratch/member-refusal.log"
+    rm -r "$downloaded_member"
+    mv "$scratch/member-good" "$downloaded_member"
+  done
 done
 require_refusal PUBLICATION_COMPLETION_REQUIRED "${hosted[@]}" GITHUB_JOB=publication_required \
   INTEGRITY_RESULT=success "BOOTSTRAP_COMPLETION_SHA256=$bootstrap_digest" \
@@ -394,17 +451,27 @@ require_refusal PUBLICATION_BOOTSTRAP_ARTIFACT_CHANGED env INTEGRITY_RESULT=succ
 cp "$bootstrap_report/verify.log" "$downloads/publication-bootstrap-123-2/verify.log"
 env INTEGRITY_RESULT=success "${final_command[@]}"
 
+require_refusal PUBLICATION_REQUIRED_UPLOAD_INVENTORY "${hosted[@]}" GITHUB_JOB=publication_required \
+  BULLET_GIT_SOURCE_SCAN_RESULT=success GITHUB_RUN_ATTEMPT=3 "BULLET_GIT_MEMBER_COMPLETION_SHA256=$git_digest" bash "$required" git-required
+require_refusal PUBLICATION_COMPLETION_REQUIRED "${hosted[@]}" GITHUB_JOB=publication_required \
+  BULLET_GIT_SOURCE_SCAN_RESULT=success BULLET_GIT_MEMBER_COMPLETION_SHA256= bash "$required" git-required
+for result in failure cancelled skipped neutral malformed ''; do
+  require_refusal PUBLICATION_GIT_SOURCE_SCAN_DID_NOT_SUCCEED env BULLET_GIT_SOURCE_SCAN_RESULT="$result" "${git_final[@]}"
+done
+
 # A pre-existing valid observation cannot substitute for an actual failed scan.
-printf 'aws_access_key_id = %s%s\n' 'AKIA' '6QWERTYUIOPASDFG' >"$family/bullet-farm/canary.txt"
-git -C "$family/bullet-farm" add canary.txt
-git -C "$family/bullet-farm" commit -qm 'intentional scanner canary'
+for member in bullet-farm bullet-git; do
+printf 'aws_access_key_id = %s%s\n' 'AKIA' '6QWERTYUIOPASDFG' >"$family/$member/canary.txt"
+git -C "$family/$member" add canary.txt
+git -C "$family/$member" commit -qm 'intentional scanner canary'
 cat >"$scratch/run-scan.sh" <<'SCAN'
 source "$1"
 publication_run_scan "$2" "$3" "$4" "$5"
 SCAN
 require_refusal PUBLICATION_MEMBER_SCAN_FAILED bash "$scratch/run-scan.sh" \
-  "$required" "$family/bullet-farm" "$(git -C "$family/bullet-farm" rev-parse HEAD)" \
-  "$runner/failed-member-private" "$runner/bullet-tools/gitleaks"
+  "$required" "$family/$member" "$(git -C "$family/$member" rev-parse HEAD)" \
+  "$runner/failed-$member-private" "$runner/bullet-tools/gitleaks"
+done
 pass_case final_success
 for result in failure cancelled skipped neutral malformed ''; do
   expect_refusal "final_${result:-empty}" 'publication integrity did not succeed' \
