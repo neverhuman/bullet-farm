@@ -59,7 +59,15 @@ Enumeration supplies no new test-execution credit. Packet SHA256
 `c9d5fe6df92ac90ff6ad6b362cdb56415106f5c80cdd5f946fc35d2eb377721b`;
 independent runtime review SHA256
 `6b4921dfbdadb602cb6ca8f3dc92a217effe5bfb1c27d4941f07d7d4a9155e0a`.
-A complete required rerun on this clean subject remains pending.
+The complete required-r4 run on this clean subject passed in 470.949 seconds,
+with 1,074 fast and 34 contract tests: 1,108 distinct completed cases. All
+required lanes and source/tool/configuration guards passed. Result SHA256
+`d1c24c163ad2e86aeedb24ebeaad8c1ea7e49acdcd65375d4470ebef2463a739`;
+independent review SHA256
+`0a8242c4a00465dfc279cb7c9189462edad1b538246b35ccff462ee78e2a9967`.
+The earlier required-r3 command passed but concurrent configuration changes
+invalidated its guard; it remains diagnostic evidence only. Neither run supplies
+family, egress, hosted CI or release-campaign acceptance.
 
 Jankurai's browser-storage repair is committed locally as
 `c995f83837a1554a25291842e253c16a5aa82b53`, tree
@@ -85,6 +93,61 @@ independent runtime review SHA256
 Both auditor repositories' required wrappers run metadata only; their full tests
 and strict Clippy were executed separately. Neither packet updates selected
 immutable dependencies or admits a portable auditor artifact.
+
+Jankurai's tool-execution repair is committed as
+`0444744ffb1b41e0b09769f1f7d7e7e61e57c31c`, tree
+`e529eae8193b4c6a475d48f9e03091b8f2e379f5`. All 76 analyzer workspace tests,
+including 11 new regression groups, and strict Clippy passed. A supported,
+reachable CI declaration supplies route information only; inert catalogs,
+comments or command strings cannot establish executed artifacts. Actual admitted
+execution observations remain required. Packet SHA256
+`55bcf80a4d1a2feaad569e69f5a24522857159ea866f66506895ec225a2150f5`;
+independent runtime review SHA256
+`184ff7d29b9341ec475da3c4f809022485e16539478158f854d8532a2198477f`.
+Core still selects earlier dependency commits; this local repair does not
+qualify the selected executable or a portable auditor.
+
+Hub's capture-normalization packet is committed as
+`73fb192b546b754dd3c7913d83616dd240be4223`, tree
+`9580689beabbfb7499e2a7ef9e9a626029b4581b`. All 15 custody groups and ShellCheck
+passed. Literal captured replies are retained; unmeasured model, account,
+authentication, source and transaction facts remain unknown. Packet SHA256
+`d44fb2e57e613a1d63fab37385b43a4d4c32204bbf3e00ca34d5132113df5003`;
+independent review SHA256
+`ba1495b247c72a8df8a31ef93926d4c133a1ba093e26dd87ce31fa91a577ce50`.
+This committed intermediate packet refuses complete media qualification.
+The subsequent offline renderer is under review; current Hub full proof waits
+for its integration, reviewed capture/tool inputs and complete reconstruction.
+Historical version-1 media retains its original bytes and limited provenance.
+
+BulletGit's test-only import repair is committed as
+`f0c8605595564bf990b6a52735e8710b4e9a6440`, tree
+`61a422cd305dd2a967e0c2f8093fe9a46dc23b1a`. Existing generation tests, strict
+Clippy and formatting passed; runtime behavior is unchanged. Independent source
+review SHA256:
+`4c28e68850425317a0eb0e4ae867ab050f6c1b4603cdbf48bbf455d8a771f4a2`.
+The complete required-r3 run passed 222 tests but used the checkout Cargo target;
+its independent review explicitly retained the private-target gap. A subsequent
+cold run, required-r5, passed all required lanes in 135.802 seconds with a new
+0700 private target, unchanged source/tool/configuration guards and 2,208,353,374
+logical build-output bytes. Its raw log SHA256 is
+`92784ec15929ead6948695f548b2ce962051b53d42362b8e75910e69c624499c`;
+independent review SHA256 is
+`2f4021dd0d730c3cf03a36f0c46c3a03e4701b9f70317c672a9830152dd196a3`.
+Nextest's separate
+repository-local report store is preserved; it is not the Cargo build target.
+
+The intervening required-r4 run failed before compilation when secret scanning
+matched a generated Rustdoc search-index fragment from required-r3. Its redacted
+report SHA256 is
+`42962df41e763682bc9e59d551387c92615d6a15defd80d7a06d7e892e3858de`.
+All 964 generated documentation entries were retained outside the checkout,
+with an unchanged preservation manifest SHA256
+`d14bd0f6ae9b7bc137865da24de712970c54148b10385d0eaab7055a4b9bcf5b`.
+No source-scanning exemption was added. Newly generated private documentation
+scans clean, but the old search-index filename/bytes were not reproduced; its
+exact false-positive disposition remains unconfirmed. Failed-run reports and
+older successful receipts are retained separately from current evidence.
 
 Typed inventory SHA256 remains
 `d0df5aea6d15366246b8b58ae998605c8f30240be2859eb593bb567e9f16326f`.

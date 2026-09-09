@@ -79,7 +79,9 @@ focused verification. A complete check of the resulting subject remains required
 Canonical auditor repairs now have independently reviewed local evidence: Core
 completed 619 distinct tests including witness routing, release-receipt
 completion and conformance/exit checks; the shared audit kernel completed 123
-tests and the browser-security analyzers completed 65, each with strict Clippy.
+tests and the analyzers completed 76, each with strict Clippy. The latest
+tool-execution repair distinguishes reachable CI declarations from admitted
+execution observations; command catalogs cannot establish verified artifacts.
 Inventory, version declarations, bounded witness refusals and Rust constructor
 detection were repaired. The conformance/exit consistency and separate witness
 compatibility packets passed complete verification and independent review. Immutable dependency admission, remaining detector
@@ -114,12 +116,15 @@ The [full audit baseline](health-audit-baseline.json) and
 occurrences. All 193 entries remain unresolved triage inputs. Each disposition
 requires source evidence; a higher unqualified score cannot close a finding.
 
-Kernel formatting repairs passed their checks. A later full required run passed
-1,074 fast tests and strict Clippy, then failed a stale test identity digest.
-The reviewed repair on `21e504a4` preserves the exact test body, all 1,120
-identities and partition counts, and corrects the extracted Gitd test-source
-anchors. Focused inventory and negative controls pass; the complete rerun remains
-pending. The dated checkpoint retains the failed full run and exact repair proof.
+Kernel's reviewed inventory repair on `21e504a4` preserves all 1,120 identities
+and partition counts. Complete required-r4 passed 1,108 distinct cases and every
+required lane on that clean subject; older failures and the configuration-invalidated
+run remain retained. BulletGit's test-only import repair on `f0c86055` passed
+focused checks and complete required-r3. Its newer cold required-r5 passed with
+a private Cargo target and passed independent read-back.
+The intervening generated-Rustdoc scan failure and all retained output remain
+explicit in the dated checkpoint. Hub's 15-group normalization packet passed;
+complete offline media reconstruction and current Hub/family proof remain open.
 
 Complete auditor qualification, coordinator admission, supervised upgrades,
 hosted CI qualification, and all subsequent production work remain open. All G1–G18 remain `DESIGNED`,
