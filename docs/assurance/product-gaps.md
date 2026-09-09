@@ -11,112 +11,39 @@ generated [`release-truth.generated.md`](release-truth.generated.md). The active
 dependency order is [`closure-roadmap.md`](closure-roadmap.md). A newer commit
 invalidates a row until those sources are replayed.
 
-The operator selected `https://git.neverhuman.org/bulletfarm` as the primary
-integration destination, proposed JeRyu identity `root/bulletfarm`, containing
-all four supporting repositories' exact sources. Aggregate creation is currently
-blocked by JeRyu's global-admin requirement; the existing account can access the
-supporting repositories. Their PRs and audit scores do not establish complete
-aggregate CI. GitHub remains an independent mirror/effect-adapter obligation.
+The latest operator instruction selects **GitHub `neverhuman/bulletfarm`** as the
+primary integration repository, containing the exact accepted sources of all four
+supporting repositories. Current JeRyu-primary configuration/runbooks are stale;
+retain historical request identities and correct the active route. Supporting
+source PRs and audit scores do not establish complete aggregate CI. Separately
+accepted Jeryu self-hosting and forge-certification obligations remain in scope.
 
-Accepted local prerequisites cover two-location preservation and replay facts,
-typed schema inspection, serving and backup custody, explicit backup close,
-expected CI topology, and source-bound diagnostic validation. The
-[dated checkpoint record](production-prerequisite-checkpoints.md) retains exact
-subjects, executed checks, failed attempts, and each component's limits.
-Backups and verified restores support authentic schema-22 prefixes and current
-schema-23 databases through private snapshots. Restores preserve the schema and
-authority state, advance the restore epoch, and remain quarantined after final
-read-back. The staged backup producer now explicitly closes both output connections and
-shares retained-close-failure handling with restore. Its 16 focused tests and
-strict adapter Clippy passed, followed by complete Kernel and dependency-ordered
-family checks on the recorded clean subjects. The complete documentation check
-also passed. Durable retry, exclusive supervised upgrade and activation remain open.
-The sealed replay reader reconstructs complete retained facts and rereads every
-input before returning `REPLAY_FACTS_READBACK_ONLY`; this grants no admission.
+The [9 September deep audit](deep-audit-20260909.md) records the current production
+bridge, all CI execution gaps, actual account/runtime discovery, media defects and
+concrete complexity reductions after studying all 101 member documentation files.
+Its BF-A01–BF-A12 findings are source/reproducer-backed repair work under this
+register, not new product-profile statuses or a replacement governing plan.
 
-Version-2 publication now renders root workflows deterministically from the eight
-pinned member workflow trees. The 53 member job definitions expand to 55
-invocations. Five focused Rust tests, 48 wrapper cases, strict production Clippy,
-and reconstruction of two historical version-1 packets passed. Expected-root
-preview grants no verification or execution credit. The actual Hub source-scan
-producer and final diagnostic checks remain present; unsupported profiles fail
-explicitly. Original timeout and artifact requirements, execution of the complete
-inventory, admitted hosted tools and workers, and additional assurance campaigns
-remain required. After the one-entry renderer test-module inventory repair,
-complete Hub and dependency-ordered family checks passed on the exact subjects
-in the dated checkpoint record. Independent review verified 2,284 distinct
-selected component tests and 31 fresh family artifacts. Three Kernel egress tests
-remain an excluded campaign. That historical run exposed stale Portal intermediate
-artifact references. Subsequent lifecycle and fixture repairs passed independent
-review, followed by complete standalone Portal proof on its recorded newer subject.
-Doctor also refuses complete Git metadata inspection of a retained Kernel build
-target quarantine. These local results grant no hosted or release credit.
-The BulletGit artifact uploader now creates its private stage before copying
-validated diagnostics, and corpus replay respects the selected private Cargo
-target. Their mapped fixtures and complete BulletGit `required` check passed
-on the recorded exact subject; hosted execution remains unproved.
-
-The demo launcher now rejects unsafe selected data ancestry before compilation,
-using the same owner, mode and root-owned sticky-directory rules as Kernel.
-All 44 wrapper fixtures passed after independent review. The actual default demo
-then passed on the recorded clean Hub subject, with independently verified local
-component evidence. Its first failed attempt remains retained. The subsequent
-full Hub check exposed two stale test assertions; both were repaired and passed
-focused verification. A complete check of the resulting subject remains required.
-
-Canonical auditor repairs now have independently reviewed local evidence: Core
-completed 619 distinct tests including witness routing, release-receipt
-completion and conformance/exit checks; the shared audit kernel completed 123
-tests and the analyzers completed 76, each with strict Clippy. The latest
-tool-execution repair distinguishes reachable CI declarations from admitted
-execution observations; command catalogs cannot establish verified artifacts.
-Inventory, version declarations, bounded witness refusals and Rust constructor
-detection were repaired. The conformance/exit consistency and separate witness
-compatibility packets passed complete verification and independent review. Immutable dependency admission, remaining detector
-regressions, complete witness/release receipt custody and portable artifact
-qualification remain open. The dated checkpoint
-records exact subjects and retained failed attempts.
-
-A later complete Hub invocation failed two corpus inventory checks after a
-concurrent BulletGit test-file move. The four affected coverage anchors were
-updated from the unchanged test body; generated outputs and all six focused
-checks passed independent review. Full proof on the resulting family subjects
-remains required. Concurrent member refactors and their audit scores do not
-inherit the earlier complete family receipt.
-
-The reviewed publication adapter now binds transport to each captured destination,
-preserves all four source trees and supports preparing a parentless JeRyu review
-branch. New requests default to the primary JeRyu destination. The complete
-publication test invocation passed 36 Rust tests; 50 wrapper cases also passed.
-Native JeRyu PR creation, reconstruction, initial-main integration and actual CI
-execution remain explicit blockers. No review-branch push creates `main`.
-
-Portal lifecycle receipts now retain each completed lane's exact artifacts. Its
-complete standalone required run passed on `fb7cd9fc` with 131 unit tests, 14
-mocked browser tests and all five lane observations verified. The dependency
-upgrade clears the reproduced development-server security advisory. A later
-153-test packet passes unchanged coverage thresholds. Its separately committed
-inventory and complete required run also pass on `e76eeb48`. These receipts do not replace full current-family,
-rendered accessibility, live provider or release campaigns.
+Exact historical accepted subjects and failed attempts remain in the
+[checkpoint](production-prerequisite-checkpoints.md),
+[health observations](health-observations-20260908.md) and
+[prerequisite observations](prerequisite-observations-20260908.md). The current
+branches need their own complete proof. Offline media generation and independent
+reconstruction passed, but the text replay and five Portal stills do not qualify
+native provider coding or production operation.
 
 The [full audit baseline](health-audit-baseline.json) and
-[repair queue](health-repair-queue.jsonl) retain all 165 findings and 28 cap
-occurrences. All 193 entries remain unresolved triage inputs. Each disposition
-requires source evidence; a higher unqualified score cannot close a finding.
+[repair queue](health-repair-queue.jsonl) preserve all 165 findings and 28 cap
+occurrences as unresolved triage inputs. An admitted portable auditor, explicit
+score-90/zero-cap/zero-hard policy, actual repair evidence and reviewed medium
+dispositions are still required. The deep audit independently rejected new
+unverified generated stubs and weakened formal JSON parsing as health acceptance.
 
-Kernel's reviewed inventory repair on `21e504a4` preserves all 1,120 identities
-and partition counts. Complete required-r4 passed 1,108 distinct cases and every
-required lane on that clean subject; older failures and the configuration-invalidated
-run remain retained. BulletGit's test-only import repair on `f0c86055` passed
-focused checks and complete required-r3. Its newer cold required-r5 passed with
-a private Cargo target and passed independent read-back.
-The intervening generated-Rustdoc scan failure and all retained output remain
-explicit in the dated checkpoint. Hub's 15-group normalization packet passed;
-complete offline media reconstruction and current Hub/family proof remain open.
-
-Complete auditor qualification, coordinator admission, supervised upgrades,
-hosted CI qualification, and all subsequent production work remain open. All G1–G18 remain `DESIGNED`,
-and all 18 product plus two diagnostic profiles remain `BLOCKED`.
+Production admission, supervised upgrades, account-aware dispatch, termination
+and durable finalization, browser response-loss recovery, complete hosted CI and
+all profile campaigns remain open. All G1–G18 remain `DESIGNED`; all 18 product
+plus two diagnostic profiles remain `BLOCKED`. The typed inventory is unchanged:
+this documentation packet claims no newly admitted runtime evidence.
 
 This is the best-known current gap inventory, not a completeness proof. Every
 blocked capability listed below has an owner document, a fail-closed checker,
