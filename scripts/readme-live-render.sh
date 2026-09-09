@@ -8,12 +8,20 @@ LIVE_DEMOS=(claude-session codex-session cursor-session portal-ui)
 LIVE_IMAGE='ghcr.io/charmbracelet/vhs@sha256:9d5fc3dc0c160b0fb1d2212baff07e6bdf3fa9438c504a3237484567302fcf93'
 LIVE_TOOLS=(awk bash cat cmp cp diff dirname docker env find grep iconv id jq mkdir mktemp mv
   python3 realpath rm sha256sum sort stat timeout tr uname)
-LIVE_LOCK="$HUB/.config/readme-live-tools.json"
+LIVE_LOCK=''
+LIVE_PIN="$HUB/.config/readme-live-tools.sha256"
 
 render_tool_receipt() {
-  local expected entry name path digest bytes actual selected
-  [[ -f "$LIVE_LOCK" && ! -L "$LIVE_LOCK" && "$(realpath -e -- "$LIVE_LOCK")" == "$LIVE_LOCK" &&
+  local expected entry name path digest bytes actual selected receipt_sha
+  [[ -f "$LIVE_PIN" && ! -L "$LIVE_PIN" && "$(realpath -e -- "$LIVE_PIN")" == "$LIVE_PIN" &&
+    "$(stat -c '%h' "$LIVE_PIN")" == 1 && "$(stat -c '%s' "$LIVE_PIN")" == 65 ]] || live_die INVALID_TOOL_PIN
+  IFS= read -r receipt_sha <"$LIVE_PIN" || live_die INVALID_TOOL_PIN
+  [[ "$receipt_sha" =~ ^[0-9a-f]{64}$ ]] || live_die INVALID_TOOL_PIN
+  [[ "$LIVE_LOCK" == /* && "$LIVE_LOCK" != "$HUB/"* && -f "$LIVE_LOCK" && ! -L "$LIVE_LOCK" &&
+    "$(realpath -e -- "$LIVE_LOCK")" == "$LIVE_LOCK" &&
     "$(stat -c '%h' "$LIVE_LOCK")" == 1 && "$(stat -c '%s' "$LIVE_LOCK")" -le 4194304 ]] || live_die TOOL_RECEIPT_UNAVAILABLE
+  entry="$(sha256sum "$LIVE_LOCK")"; entry="${entry%% *}"
+  [[ "$entry" == "$receipt_sha" ]] || live_die TOOL_RECEIPT_HASH_MISMATCH
   live_strict_json "$LIVE_LOCK"
   expected="$(printf '%s\n' "${LIVE_TOOLS[@]}" | jq -Rsc 'split("\n")[:-1] | sort')"
   jq -e --arg image "$LIVE_IMAGE" --argjson names "$expected" '
@@ -45,7 +53,8 @@ render_tool_receipt() {
     actual="$(sha256sum -- "$path")"; actual="${actual%% *}"
     [[ "$actual" == "$digest" ]] || live_die TOOL_FILE_DRIFT
   done <"$LIVE_TMP/tool-files.tsv"
-  entry="$(sha256sum "$LIVE_LOCK")"; entry="${entry%% *}"
+  actual="$(sha256sum "$LIVE_LOCK")"; actual="${actual%% *}"
+  [[ "$actual" == "$entry" ]] || live_die TOOL_RECEIPT_HASH_MISMATCH
   jq -cS --arg receipt_sha256 "$entry" '{image,image_id,platform,vhs_version,ffmpeg_version,
     tool_receipt_sha256:$receipt_sha256,width:1200,height:675,fps:12,max_bytes:3145728,
     max_seconds:30,font:"JetBrains Mono",locale:"C.UTF-8",timezone:"UTC",epoch:1787616000}' "$LIVE_LOCK"
@@ -264,10 +273,11 @@ if [[ "$#" == 2 && "$1" == --from-normalized ]]; then
   echo 'readme-live-render: MEDIA_GENERATION_UNQUALIFIED (complete four-demo inputs required)' >&2; exit 78
 fi
 mode="$1"
-[[ ( "$#" == 2 && "$mode" == --verify-collection ) ||
-  ( "$#" == 4 && "$mode" == --from-captures && "$3" == --staged-root ) ]] || {
-  echo 'usage: readme-live-render.sh --from-captures ABSOLUTE_DIRECTORY --staged-root NEW_ABSOLUTE_DIRECTORY | --verify-collection ABSOLUTE_DIRECTORY' >&2; exit 2;
+[[ ( "$#" == 4 && "$mode" == --verify-collection && "$3" == --tools-receipt ) ||
+  ( "$#" == 6 && "$mode" == --from-captures && "$3" == --staged-root && "$5" == --tools-receipt ) ]] || {
+  echo 'usage: readme-live-render.sh (--from-captures ABSOLUTE_DIRECTORY --staged-root NEW_ABSOLUTE_DIRECTORY | --verify-collection ABSOLUTE_DIRECTORY) --tools-receipt ABSOLUTE_PRIVATE_FILE' >&2; exit 2;
 }
+LIVE_LOCK="${!#}"
 live_start
 stage=''; container=''; tool_sequence=0; render_input="$LIVE_TMP/render-input"
 mkdir "$render_input" "$LIVE_TMP/docker-config"

@@ -261,18 +261,19 @@ live_portal_expected() {
 }
 
 if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then return 0; fi
-if [[ "$#" == 0 ]]; then
+if [[ "$#" == 0 || ( "$#" == 2 && "$1" == --tools-receipt ) ]]; then
   if [[ -f "$LIVE_HUB/docs/readme-live-media/collection.json" ]]; then
-    exec bash "$LIVE_HUB/scripts/readme-live-render.sh" --verify-collection "$LIVE_HUB/docs/readme-live-media"
+    [[ "$#" == 2 ]] || { echo 'readme-live-check: TOOL_RECEIPT_REQUIRED' >&2; exit 78; }
+    exec bash "$LIVE_HUB/scripts/readme-live-render.sh" --verify-collection "$LIVE_HUB/docs/readme-live-media" "$@"
   fi
   echo 'readme-live-check: MEDIA_GENERATION_UNQUALIFIED (historical v1 preserved; no normal docs PASS)' >&2
   exit 78
 fi
-if [[ "$#" == 2 && "$1" == --rendered-collection ]]; then
-  exec bash "$LIVE_HUB/scripts/readme-live-render.sh" --verify-collection "$2"
+if [[ "$#" == 4 && "$1" == --rendered-collection && "$3" == --tools-receipt ]]; then
+  exec bash "$LIVE_HUB/scripts/readme-live-render.sh" --verify-collection "$2" "$3" "$4"
 fi
 [[ "$#" == 2 && "$1" == --normalized-stage ]] || {
-  echo 'usage: readme-live-check.sh --normalized-stage ABSOLUTE_DIRECTORY' >&2; exit 2;
+  echo 'usage: readme-live-check.sh --normalized-stage ABSOLUTE_DIRECTORY | [--rendered-collection ABSOLUTE_DIRECTORY] --tools-receipt ABSOLUTE_PRIVATE_FILE' >&2; exit 2;
 }
 live_start
 trap 'rm -rf -- "$LIVE_TMP"' EXIT

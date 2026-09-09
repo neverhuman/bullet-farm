@@ -11,6 +11,8 @@ mkdir -p "$fixture/scripts" "$fixture/.config" "$fixture/bin" "$fixture/docs"
 for file in readme-live-record.sh readme-live-render.sh readme-live-check.sh readme-schema-check.sh; do
   cp "$SOURCE_HUB/scripts/$file" "$fixture/scripts/"
 done
+receipt="$test_root/private-receipt.json"
+pin="$fixture/.config/readme-live-tools.sha256"
 export README_FAKE_MARKER="$test_root/docker-called"
 export README_FORBIDDEN_MARKER="$test_root/provider-called"
 for tool in claude codex cursor-agent curl npm node; do
@@ -114,8 +116,12 @@ jq -n --argjson tools "$tools" --arg path "$runtime" --arg sha256 "$digest" \
   image_id:("sha256:"+("0"*63)+"1"),vhs_version:"vhs version v0.11.0 (c6af91a)",
   ffmpeg_version:"ffmpeg version 7.1.3-0+deb13u1 fixture-only",tools:$tools,
   runtime_files:[{path:$path,sha256:$sha256,bytes:$bytes}]
-}' >"$fixture/.config/readme-live-tools.json"
-cp "$fixture/.config/readme-live-tools.json" "$test_root/original-tools.json"
+}' >"$receipt"
+cp "$receipt" "$test_root/original-tools.json"
+pin_receipt() { local hash; hash="$(sha256sum "$receipt")"; printf '%s\n' "${hash%% *}" >"$pin"; }
+pin_receipt
+chmod 600 "$receipt"
+cp "$pin" "$test_root/original-pin"
 
 captures="$test_root/captures"
 mkdir "$captures"
@@ -157,9 +163,42 @@ done
 jq -n --argjson demos "$demos" '{schema_version:"bullet.readme-live-inputs.v2",
   classification:"UNSIGNED_OPERATOR_SUPPLIED_CAPTURE",release_authority:false,demos:$demos}' \
   >"$captures/capture-collection.json"
-generate() { bash "$fixture/scripts/readme-live-render.sh" --from-captures "$1" --staged-root "$2"; }
-verify() { bash "$fixture/scripts/readme-live-check.sh" --rendered-collection "$1"; }
+generate() { bash "$fixture/scripts/readme-live-render.sh" --from-captures "$1" --staged-root "$2" --tools-receipt "$receipt"; }
+verify() { bash "$fixture/scripts/readme-live-check.sh" --rendered-collection "$1" --tools-receipt "$receipt"; }
 output="$test_root/output"
+[[ ! -e "$fixture/.config/readme-live-tools.json" ]]
+expect_failure MEDIA_GENERATION_UNQUALIFIED bash "$fixture/scripts/readme-live-check.sh"
+cp "$receipt" "$fixture/.config/local-receipt.json"
+ln -s "$receipt" "$test_root/receipt-link"
+ln -s "$test_root" "$test_root/parent-link"
+for selected in relative.json "$test_root/missing.json" "$fixture/.config/local-receipt.json" \
+  "$test_root/receipt-link" "$test_root/parent-link/private-receipt.json"; do
+  expect_failure TOOL_RECEIPT_UNAVAILABLE bash "$fixture/scripts/readme-live-render.sh" \
+    --from-captures "$captures" --staged-root "$test_root/not-published" --tools-receipt "$selected"
+  [[ ! -e "$README_FAKE_MARKER" && ! -e "$test_root/not-published" ]]
+done
+rm "$fixture/.config/local-receipt.json" "$test_root/receipt-link" "$test_root/parent-link"
+cp "$receipt" "$test_root/changed-receipt.json"
+printf '\n' >>"$test_root/changed-receipt.json"
+expect_failure TOOL_RECEIPT_HASH_MISMATCH bash "$fixture/scripts/readme-live-render.sh" \
+  --from-captures "$captures" --staged-root "$test_root/not-published" --tools-receipt "$test_root/changed-receipt.json"
+for bad in missing invalid nonhex digest symlink hardlink oversized; do
+  case "$bad" in
+    missing) rm "$pin" ;;
+    invalid) printf '%064d' 0 >"$pin" ;;
+    nonhex) printf '%s\n' "$(printf 'g%.0s' {1..64})" >"$pin" ;;
+    digest) printf '%064d\n' 0 >"$pin" ;;
+    symlink) rm "$pin"; ln -s "$test_root/original-pin" "$pin" ;;
+    hardlink) ln "$pin" "$test_root/pin-peer" ;;
+    oversized) truncate -s 66 "$pin" ;;
+  esac
+  reason=INVALID_TOOL_PIN; [[ "$bad" != digest ]] || reason=TOOL_RECEIPT_HASH_MISMATCH
+  expect_failure "$reason" generate "$captures" "$test_root/not-published"
+  [[ ! -e "$README_FAKE_MARKER" && ! -e "$test_root/not-published" ]]
+  [[ "$bad" != hardlink ]] || rm "$test_root/pin-peer"
+  rm -f "$pin"; cp "$test_root/original-pin" "$pin"
+done
+pass explicit_external_receipt_and_source_pin_admission
 DOCKER_HOST=forbidden DOCKER_CONTEXT=forbidden DOCKER_CONFIG=forbidden generate "$captures" "$output"
 [[ -s "$README_FAKE_MARKER" && ! -e "$README_FORBIDDEN_MARKER" ]]
 for demo in claude-session codex-session cursor-session; do
@@ -197,7 +236,8 @@ pass exact_unknown_stdout_only_and_reported_completed_forms
 
 verify "$output"
 cp -a "$output" "$fixture/docs/readme-live-media"
-bash "$fixture/scripts/readme-live-check.sh"
+bash "$fixture/scripts/readme-live-check.sh" --tools-receipt "$receipt"
+expect_failure TOOL_RECEIPT_REQUIRED bash "$fixture/scripts/readme-live-check.sh"
 pass complete_verifier_and_normal_docs_endpoint
 
 for filter in '.artifact_hashes=[]' '.artifact_hashes += [.artifact_hashes[0]]' '.demos |= .[0:3]' \
@@ -223,38 +263,41 @@ pass unchanged_gif_cannot_hide_other_output_drift
 
 for filter in '.tools |= .[1:]' '.tools |= map(select(.name != "dirname"))' '.tools += [.tools[0]]' '.tools[0].sha256=("0"*64)' \
   '.runtime_files[0].sha256=("0"*64)' '.image="unexpected"' '.platform="unknown"'; do
-  jq "$filter" "$test_root/original-tools.json" >"$fixture/.config/readme-live-tools.json"
+  jq "$filter" "$test_root/original-tools.json" >"$receipt"
+  pin_receipt # Fixture source selects malformed receipt to exercise downstream checks.
   rm -f "$README_FAKE_MARKER"
   expect_failure '' generate "$captures" "$test_root/not-published"
   [[ ! -e "$README_FAKE_MARKER" && ! -e "$test_root/not-published" ]]
 done
-cp "$test_root/original-tools.json" "$fixture/.config/readme-live-tools.json"
+cp "$test_root/original-tools.json" "$receipt"; pin_receipt
 pass tool_selection_hash_platform_and_image_receipt_refusal
 
 for bad in config-symlink receipt-hardlink oversized; do
   case "$bad" in
     config-symlink) mv "$fixture/.config" "$test_root/elsewhere-config"; ln -s "$test_root/elsewhere-config" "$fixture/.config" ;;
-    receipt-hardlink) ln "$fixture/.config/readme-live-tools.json" "$test_root/receipt-peer" ;;
-    oversized) truncate -s 4194305 "$fixture/.config/readme-live-tools.json" ;;
+    receipt-hardlink) ln "$receipt" "$test_root/receipt-peer" ;;
+    oversized) truncate -s 4194305 "$receipt" ;;
   esac
   rm -f "$README_FAKE_MARKER"
-  expect_failure TOOL_RECEIPT_UNAVAILABLE generate "$captures" "$test_root/not-published"
+  reason=TOOL_RECEIPT_UNAVAILABLE; [[ "$bad" != config-symlink ]] || reason=INVALID_TOOL_PIN
+  expect_failure "$reason" generate "$captures" "$test_root/not-published"
   [[ ! -e "$README_FAKE_MARKER" && ! -e "$test_root/not-published" ]]
   case "$bad" in
     config-symlink) rm "$fixture/.config"; mv "$test_root/elsewhere-config" "$fixture/.config" ;;
     receipt-hardlink) rm "$test_root/receipt-peer" ;;
-    oversized) cp "$test_root/original-tools.json" "$fixture/.config/readme-live-tools.json" ;;
+    oversized) cp "$test_root/original-tools.json" "$receipt"; pin_receipt ;;
   esac
 done
 pass canonical_tool_receipt_ancestry_links_and_preparse_bound
 
-jq '.image_id=("sha256:"+("2"*64))' "$test_root/original-tools.json" >"$fixture/.config/readme-live-tools.json"
+jq '.image_id=("sha256:"+("2"*64))' "$test_root/original-tools.json" >"$receipt"
+pin_receipt
 expect_failure IMAGE_DRIFT generate "$captures" "$test_root/not-published"
-cp "$test_root/original-tools.json" "$fixture/.config/readme-live-tools.json"
+cp "$test_root/original-tools.json" "$receipt"; pin_receipt
 expect_failure IMAGE_VERSION_DRIFT env README_FAKE_VHS_VERSION=unqualified bash "$fixture/scripts/readme-live-render.sh" \
-  --from-captures "$captures" --staged-root "$test_root/not-published"
+  --from-captures "$captures" --staged-root "$test_root/not-published" --tools-receipt "$receipt"
 expect_failure IMAGE_VERSION_DRIFT env README_FAKE_FFMPEG_VERSION=unqualified bash "$fixture/scripts/readme-live-render.sh" \
-  --from-captures "$captures" --staged-root "$test_root/not-published"
+  --from-captures "$captures" --staged-root "$test_root/not-published" --tools-receipt "$receipt"
 [[ ! -e "$test_root/not-published" ]]
 pass actual_image_and_version_readback_refusals
 
@@ -274,11 +317,11 @@ done
 pass exact_portal_frame_inventory_before_tool_execution
 
 expect_failure INVALID_PORTAL_FRAME env README_FAKE_PNG_WIDTH=999 bash "$fixture/scripts/readme-live-render.sh" \
-  --from-captures "$captures" --staged-root "$test_root/bad-frame"
+  --from-captures "$captures" --staged-root "$test_root/bad-frame" --tools-receipt "$receipt"
 expect_failure INVALID_RENDER_PROBE env README_FAKE_FRAMES=0 bash "$fixture/scripts/readme-live-render.sh" \
-  --from-captures "$captures" --staged-root "$test_root/bad-probe"
+  --from-captures "$captures" --staged-root "$test_root/bad-probe" --tools-receipt "$receipt"
 expect_failure RENDER_TOOL_FAILED env README_FAKE_RENDER_FAIL=1 bash "$fixture/scripts/readme-live-render.sh" \
-  --from-captures "$captures" --staged-root "$test_root/bad-render"
+  --from-captures "$captures" --staged-root "$test_root/bad-render" --tools-receipt "$receipt"
 [[ ! -e "$test_root/bad-frame" && ! -e "$test_root/bad-probe" && ! -e "$test_root/bad-render" ]]
 pass decoder_and_renderer_failures_cannot_publish
 
@@ -299,12 +342,13 @@ bash -c '
   source "$1/scripts/readme-live-render.sh"
   live_start
   trap '\''rm -rf -- "$LIVE_TMP"'\'' EXIT
+  LIVE_LOCK="$3"
   sources="$(live_sources)"; renderer="$(render_tool_receipt)"
   render_manifest "$2/codex-session" codex-session "$2/codex-session/render.json"
   collection_files=()
   while IFS= read -r file; do collection_files+=("$file"); done < <(jq -r ".artifact_hashes[].path" "$2/collection.json")
   collection_manifest "$2" "$2/collection.json"
-' fixture "$fixture" "$test_root/hostile"
+' fixture "$fixture" "$test_root/hostile" "$receipt"
 rm -f "$README_FAKE_MARKER"
 expect_failure RECONSTRUCTION_DRIFT verify "$test_root/hostile"
 [[ -s "$README_FAKE_MARKER" ]]
@@ -327,21 +371,21 @@ for bad in unicode too-many-lines; do
 done
 pass unsupported_glyph_and_overflow_refuse_without_lossy_output
 
-for changed in "$captures/codex-session/stdout.txt" "$fixture/scripts/readme-live-render.sh" "$fixture/.config/readme-live-tools.json"; do
+for changed in "$captures/codex-session/stdout.txt" "$fixture/scripts/readme-live-render.sh" "$receipt" "$pin"; do
   cp "$changed" "$test_root/original-file"
   rm -f "$test_root/once"
   expect_failure '' env README_FAKE_MUTATE="$changed" README_FAKE_ONCE="$test_root/once" \
-    bash "$fixture/scripts/readme-live-render.sh" --from-captures "$captures" --staged-root "$test_root/not-published"
+    bash "$fixture/scripts/readme-live-render.sh" --from-captures "$captures" --staged-root "$test_root/not-published" --tools-receipt "$receipt"
   [[ -e "$test_root/once" && ! -e "$test_root/not-published" ]]
   cp "$test_root/original-file" "$changed"
 done
 pass changed_input_source_and_tool_receipt_cannot_publish
 
 expect_failure RECONSTRUCTION_DRIFT env README_FAKE_NONDETERMINISTIC=1 bash "$fixture/scripts/readme-live-render.sh" \
-  --from-captures "$captures" --staged-root "$test_root/not-published"
+  --from-captures "$captures" --staged-root "$test_root/not-published" --tools-receipt "$receipt"
 [[ ! -e "$test_root/not-published" ]]
 expect_failure PUBLICATION_INCOMPLETE env README_FAKE_COLLISION="$test_root/late-collision" \
-  bash "$fixture/scripts/readme-live-render.sh" --from-captures "$captures" --staged-root "$test_root/late-collision"
+  bash "$fixture/scripts/readme-live-render.sh" --from-captures "$captures" --staged-root "$test_root/late-collision" --tools-receipt "$receipt"
 grep -Fxq 'collision sentinel' "$test_root/late-collision/sentinel"
 expect_failure '' verify "$test_root/late-collision"
 [[ ! -e "$README_FORBIDDEN_MARKER" ]]
