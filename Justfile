@@ -42,6 +42,15 @@ readme-live-render:
 readme-live-check:
     bash scripts/readme-live-check.sh
 
+demo-gif-record:
+    bash scripts/demo-gif-record.sh
+
+demo-gif-render:
+    bash scripts/demo-gif-render.sh
+
+demo-gif-check:
+    bash scripts/demo-gif-check.sh
+
 fast:
     bash scripts/ci-local.sh fast
 
