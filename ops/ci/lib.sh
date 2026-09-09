@@ -6,6 +6,10 @@ export REPO_ROOT
 export GIT_TERMINAL_PROMPT=0
 export LC_ALL=C
 export TZ=UTC
+if command -v gitleaks >/dev/null 2>&1; then
+  BULLET_PUBLICATION_GITLEAKS="$(command -v gitleaks)"
+  export BULLET_PUBLICATION_GITLEAKS
+fi
 
 HUB_FILTER='package(bullet-family) | package(bullet-linux-lease)'
 WIRE_FILTER='package(bullet-wire)'
