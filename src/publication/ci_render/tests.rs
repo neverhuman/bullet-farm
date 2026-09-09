@@ -137,10 +137,15 @@ fn generated_topology_preserves_dependencies_matrices_events_and_real_producer()
             );
             let mut needs = job.needs.clone();
             needs.sort();
-            let needs = needs
+            let mut needs = needs
                 .iter()
                 .map(|id| job_id(workflow, id))
                 .collect::<Vec<_>>();
+            let active = workflow.scope == "REQUIRED" && id == "bullet_git_source_scan";
+            if active {
+                assert!(needs.is_empty(), "source dependencies are unchanged");
+                needs.push("publication_integrity".into()); // Infrastructure-only tool transfer.
+            }
             assert_eq!(
                 block
                     .lines()
@@ -162,7 +167,34 @@ fn generated_topology_preserves_dependencies_matrices_events_and_real_producer()
             if !job.os.is_empty() {
                 assert!(block.contains("os: [macos-15, windows-2025]"));
             }
-            assert!(block.trim_end().ends_with("          exit 1"));
+            if active {
+                assert!(!block.contains("PUBLICATION_CI_RUNTIME_ADMISSION_UNAVAILABLE"));
+                for required in [
+                    "ci-transfer.sh receive",
+                    "ci-required.sh git-member-run",
+                    "needs.publication_integrity.outputs.transfer_sha256",
+                    "needs.publication_integrity.outputs.bootstrap_completion_sha256",
+                    "needs.publication_integrity.outputs.member_completion_sha256",
+                    "needs.publication_integrity.result",
+                    "steps.member.outputs.git_member_completion_sha256",
+                    "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+                    "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+                    "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093",
+                    "name: publication-tools-${{ github.run_id }}-${{ github.run_attempt }}",
+                    "name: publication-git-source-scan-${{ github.run_id }}-${{ github.run_attempt }}",
+                    "if-no-files-found: error",
+                    "include-hidden-files: true",
+                    "bullet-publication-transfer-download/",
+                    "retention-days: 14",
+                    "reconstruct \"$GITHUB_WORKSPACE\"",
+                    "persist-credentials: false",
+                ] {
+                    assert!(block.contains(required), "{required}");
+                }
+                assert!(!block.contains("cargo build"));
+            } else {
+                assert!(block.trim_end().ends_with("          exit 1"));
+            }
             counts.0 += 1;
             counts.1 += job.os.len().max(1);
         }
@@ -178,6 +210,21 @@ fn generated_topology_preserves_dependencies_matrices_events_and_real_producer()
         }
     }
     assert_eq!(counts, (53, 55));
+    assert_eq!(
+        files
+            .values()
+            .map(|bytes| String::from_utf8_lossy(bytes)
+                .matches("PUBLICATION_CI_RUNTIME_ADMISSION_UNAVAILABLE")
+                .count())
+            .sum::<usize>(),
+        51
+    );
+    assert!(bootstrap.contains("ci-transfer.sh prepare"));
+    assert!(bootstrap.contains("steps.transfer.outputs.transfer_sha256"));
+    assert!(bootstrap.contains("steps.transfer.outputs.verifier_sha256"));
+    assert!(bootstrap.contains("actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"));
+    assert!(primary.contains("ci-transfer.sh git-required"));
+
     let rendered_jobs = files
         .values()
         .flat_map(|bytes| std::str::from_utf8(bytes).unwrap().lines())
@@ -194,6 +241,14 @@ fn generated_topology_preserves_dependencies_matrices_events_and_real_producer()
         .collect::<std::collections::BTreeSet<_>>();
     let final_job = primary.split("\n  publication_required:\n").nth(1).unwrap();
     assert!(final_job.contains("    timeout-minutes: 5\n"));
+    for binding in [
+        "needs.bullet_git_source_scan.result",
+        "needs.bullet_git_source_scan.outputs.git_member_completion_sha256",
+        "needs.publication_integrity.outputs.verifier_sha256",
+        "bullet-publication-git-downloaded/publication-git-source-scan-",
+    ] {
+        assert!(final_job.contains(binding), "{binding}");
+    }
     let dependencies = final_job
         .lines()
         .find_map(|line| line.strip_prefix("    needs: ["))
