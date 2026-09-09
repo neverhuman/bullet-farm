@@ -4,8 +4,9 @@ This pipeline records native CLI observations and Portal screenshots on the
 operator's machine. It does not establish production Bullet dispatch, account
 qualification, a completed coding task or release evidence. The
 [deep audit](../assurance/deep-audit-20260909.md) records those missing connections.
-Existing files in this directory are historical, unqualified observations;
-the current pipeline never overwrites or automatically publishes them.
+Historical captures remain unqualified observations, preserved in private
+custody and retained source history. The current pipeline never overwrites or
+automatically publishes them.
 
 ## Capture
 
@@ -30,12 +31,25 @@ failure may use a separate fallback attempt; interruption aborts the campaign.
 `native_capture_child_started` means a capture child was forked; successful
 provider execution remains `UNVERIFIED`.
 
-The Portal tour currently captures eight landmark PNGs at 1920 × 1080 with
-observed timestamps. It masks the bootstrap input and retains correlated HTTP
-and command observations without persisting response credentials. These are
-screenshots, **not a continuous browser screencast**. Loopback listener identity
-and product completion remain `UNVERIFIED`. Failed capture and cleanup evidence
-stay in the private run directory.
+The Portal tour samples 1920 × 1080 PNGs serially after initial DOM content is
+loaded and between eight correlated landmarks. It requests a 4 Hz ceiling and
+retains actual capture/write timing, missed cadence, frame gaps and checkpoints;
+it does not interpolate frames. Bounds are 64 frames, 15 seconds, 32 MiB of PNGs
+and 8 MiB per PNG. Capture stops and retains its failure when a limit or screenshot
+operation fails. It drains any active capture/write before closing the browser.
+
+The bootstrap input is masked. Correlated HTTP and command observations are
+retained without storing response credentials. Loopback listener identity and
+product completion remain `UNVERIFIED`. Actual Chromium tests use synthetic pages
+and responses; production Portal/account acceptance is separate.
+
+The renderer validates native master timestamps against the recorded capture
+and encodes GIF absolute timestamps with centisecond rounding. It checks the
+actual GIF frame delays independently; encoded intervals shorter than two
+centiseconds, or colliding after rounding, refuse. The final display hold repeats the last encoded
+gap, or uses 100 milliseconds for a single frame. That hold is a display policy,
+not an additional observed capture duration. The [health checkpoint](../assurance/health-checkpoint-20260909.md)
+retains the original timing failure and the independently verified correction.
 
 ## Render one selected capture
 

@@ -25,11 +25,13 @@ Its BF-A01–BF-A12 findings are source/reproducer-backed repair work under this
 register, not new product-profile statuses or a replacement governing plan.
 
 The [post-audit health checkpoint](health-checkpoint-20260909.md) records the
-Kernel's strict JSON repair, truthful fixture ownership and actual test-inventory
-update, followed by a complete required pass on `02bf7c5`, and locally accepted
-recorder/private-renderer packets with 14 focused test identities. It identifies
-excluded campaigns, rejected publication, the actual Hub docs refusal, private
-media limits and remaining production work without changing any profile status.
+complete Kernel required pass on `02bf7c5`, reviewed capture/rendering work with
+20 distinct focused tests, actual 819-test inventory enumeration and the complete
+mapped Hub documentation pass. It also records the independently verified GIF
+timing repair, reviewed private receipt selection and retained-original media
+custody, preserved failures, and corrections to conflicting shortcuts. Auditor,
+clean complete Hub/family, hosted CI and real-account production acceptance
+remain open; no typed product-profile status changes follow from local proof.
 
 Exact historical accepted subjects and failed attempts remain in the
 [checkpoint](production-prerequisite-checkpoints.md),
