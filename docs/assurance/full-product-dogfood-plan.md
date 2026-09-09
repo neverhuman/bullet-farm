@@ -44,13 +44,34 @@ family pass exists for the evolving subjects. Reviewed capture, GIF timing,
 private receipt custody and publication timeout/destination repairs remain local
 component evidence. Auditor admission, complete family/hosted CI and real-account
 production acceptance remain open; no typed profile status changes follow.
+Subsequent accepted local packets connect the actual Git source-scan adapter and
+isolated tool transfer through the workflow generator (`5b11bfb3`, `599b2ae8`,
+`974f5de2`). Portal custody repair `9f53fe6a` passes 183 unit tests, with its exact
+inventory admitted by `29d02c34`. These focused results still require complete
+checks on the final subjects and exact hosted execution.
 
 The [xbabe2 development closeout](xbabe2-development-closeout.md) supplies the
 detailed work order, dependencies, rapid/full CI campaigns, per-provider negative
 proofs and real 1080p TUI/web capture contract under this plan. It is implementation
 detail for the existing DF/G/WP program, not a second completion register. All
 recording, browser capture, rendering and verification code must ship in the
-tracked main aggregate using the Rust/Vite/TypeScript/React stack.
+tracked main aggregate using the Rust/Vite/TypeScript/React stack. The requested
+real xbabe2 demonstration includes Codex, Claude, Cursor and Antigravity after
+each account/runtime qualifies. Each native 1920×1080 GIF must be strictly below
+50,000,000 bytes; original lossless masters, decoded color/pixel comparisons and
+timing checks remain required. Size compliance never promotes a quantized or
+fixture recording into lossless production evidence.
+
+Portal29d02c34 now has an independently accepted complete standalone required pass with183 units,14 mocked browser cases and five bundle tests; Hub6ad38025 integrates reviewed media CI routing after its direct suites passed. Complete current Hub/family/hosted and actual production proofs remain pending.
+
+The latest instruction explicitly rejects a harness-exception recording as the
+production milestone. The [expanded real-production work order](xbabe2-development-closeout.md)
+pins the simulator-only worker/Runner and unavailable product verifier to exact
+source, retains the working atomic command ledger and native Claude component,
+and specifies bounded repairs through real account execution, independent
+verification and human integration. Recordings follow that connected path. All
+four requested providers must execute real tasks before the four-provider demo
+is complete; no fixture or read-only explanation prompt can substitute.
 
 The [checkpoint record](production-prerequisite-checkpoints.md),
 [health observations](health-observations-20260908.md) and

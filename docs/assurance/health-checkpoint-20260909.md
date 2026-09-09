@@ -10,6 +10,17 @@ The audit remains a frozen observation of its original subjects. Its 101-documen
 coverage has been followed by a 103-document inventory and review of subsequent
 changes, including the two new audit/checkpoint documents.
 
+Production source read-back at Kernel5858e843/Git6cf10e70 confirms that durable
+command/outbox/claim infrastructure exists, while the worker still requires a
+simulator receipt and settles UNKNOWN; the standalone Runner is sim-only and
+the product verifier refuses signed-intent admission. Native Claude read-only
+dispatch is a separate component. The expanded [development closeout](xbabe2-development-closeout.md)
+orders actual production admission, native dispatch, durable stop/Candidate
+completion, independent verifier and human integration; it does not grant a
+harness-recording exception or promote a profile.
+
+Portal29d02c348e66bd4da6bd4582a33e2932b3c72940 / treee6f8dc714761d9ca6a8c6f784ef29a944fd191fa completed the full standalone required lane on9September:183 unit tests,14 mocked browser tests, five bundle tests and all five fresh lane observations. Independent readback9c0343ca verified1,431 artifact hashes, immutable inputs and released process/lock custody; elapsed92.234732seconds. This adds no real-farmd, coverage, family, hosted or provider acceptance. Hub6ad38025 integrates the media CI routing after all three direct suites and independent review3c272047; complete mapped/fullHub proof remains pending.
+
 ## Accepted Kernel work
 
 | Commit | Reviewed change | Executed evidence |
@@ -175,18 +186,37 @@ subsequently changed Kernel. Retry only after all four subjects and inputs freez
 | `912dddf210e32dd48213e44a0c5b07615acfcf18` | Select `neverhuman/bulletfarm` for new requests and reconcile root templates while preserving historical identities. | All 50 actual wrapper cases passed again against the changed configuration/templates. This is local reconstruction proof, not remote publication. |
 | `8b6fb098e797bb26c73ceda0c8eb439a197dec57` | Correct aggregate clone/publication instructions and remove hardcoded green/audit badges. | Independent source review and focused links passed; complete mapped documentation proof of the final integrated subject remains required. |
 
-External Claude provider edits remain uncommitted and unaccepted at this checkpoint.
+External Claude provider edits were uncommitted at the earlier checkpoint;
+subsequent preservation commits do not supply independent acceptance.
 Independent review found post-spawn failures classified as pre-spawn, lost known
 usage, missing durable failure records after collisions/write errors, diagnostic
 text preventing recording, and valid transcripts reaching success despite process
 failure or timeout. Later native protocol observations are valuable inputs, but
 need exact source/receipt review and paired unsafe-case tests. They do not admit
-the provider or lift this root's coordinator Operating HOLD. External Portal
-response-loss changes and their supporting PR also await independent acceptance.
+the provider or lift this root's coordinator Operating HOLD.
+
+Subsequent reviewed local packets are:
+
+| Commit | Change | Focused evidence and remaining limit |
+| --- | --- | --- |
+| `5b11bfb3000a44e04ea6969a67f1dc5dc5939556` | Validate actual BulletGit source-scan completion, including ordinary executable validator files. | 36 publication tests, three mapped Clippy commands, build and 50 wrappers passed. Earlier format/mode failures remain retained. |
+| `599b2ae8a6e0c958da658307a43ae1525210d6b0` | Transfer exact verifier/scanner subjects between isolated jobs. | All 50 wrapper cases plus 23 transfer controls, Bash and ShellCheck passed; exact verifier/scanner bytes and run/attempt binding are checked independently of the downloaded manifest; complete executable/runtime closure is not established by this packet. |
+| `974f5de20032ba619e4495791946e44d42e94508` | Connect the generated Git source-scan job to bootstrap tool transfer and final report validation. | Fresh 36 publication tests, mapped lint/build and 50+23 controls passed. The other 51 unavailable member profiles and five final refusal gates remain; no hosted run occurred. |
+| `9f53fe6af3d03e7f3a632e44f5fee07239947e3a` | Preserve Portal command identity across corrupt storage, reload and stale POST/GET responses. | Typecheck, 43 focused and all 183 unit tests passed; all 32 coverage floors and 8,384 input guards agreed. APIs were mocked; no actual browser/provider claim. |
+| `29d02c348e66bd4da6bd4582a33e2932b3c72940` | Ratchet fast/coverage/meta checks to the actual 183 identities. | Existing report and metadata gates passed; 8,390 guarded inputs agreed. Complete standalone required subsequently passed; see review9c0343ca above. Family and hosted acceptance remain separate. |
+
+The original 165 Portal identities are retained alongside 18 new regression
+cases. External supporting merges that omitted workflows are not accepted as
+complete source publication. The repaired canonical history retains workflows.
+All 21 inventoried recording/media source and test files are tracked and carried
+by unfiltered aggregate tree import; their presence on public main still requires
+publication of the accepted source tree. Real four-provider recordings, the
+strict 1080p GIF size/fidelity checks, and language migrations remain work.
+No typed gap or product-profile status is promoted by these local packets.
 
 ## Outstanding delivery and production work
 
-At **10:40 UTC**, GitHub `neverhuman/bulletfarm` main remained
+At the **11:52 UTC** read-back, GitHub `neverhuman/bulletfarm` main remained
 `f8ce28e6b0583160519e5898250904f63eee753d`: zero workflows, zero runs, zero
 rulesets and unprotected main. Supporting Hub PR 2 merged as `55e86b2` and
 Kernel PR 2 as `6070a05`; these reconstructed subjects do not inherit proofs
@@ -194,6 +224,9 @@ bound to different canonical commits. The earlier exact audit/Kernel branch
 pushes were rejected because the available OAuth token lacks `workflow` scope.
 Their branches remained absent. Source/workflow history was preserved; the
 repository-scoped publication App and complete aggregate CI remain required.
+Fresh SSH main-ref reads succeeded for all four supporting repositories; this
+establishes a transport option for preserving full review history, not permission
+to discard remote-only history or evidence of a push.
 
 The installed Jankurai remains **1.6.11**. Subsequent remote discovery found the
 published 1.7.0 Linux archive and its checksum/provenance assets, plus all three
