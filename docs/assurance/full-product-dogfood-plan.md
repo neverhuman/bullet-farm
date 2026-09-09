@@ -2,7 +2,7 @@
 
 Status: **ACTIVE implementation plan; all release profiles remain `BLOCKED`**  
 Owner: Bullet Farm maintainers  
-Last reconciled: 2026-09-08
+Last reconciled: 2026-09-09
 
 This is the execution bridge from the frozen local family to Bullet developing
 Bullet through its own complete transaction. It refines the
@@ -78,7 +78,8 @@ focused verification. A complete check of the resulting subject remains required
 
 Canonical auditor repairs now have independently reviewed local evidence: Core
 completed 619 distinct tests including witness routing, release-receipt
-completion and conformance/exit checks; the shared audit kernel completed 115 tests plus strict Clippy.
+completion and conformance/exit checks; the shared audit kernel completed 123
+tests and the browser-security analyzers completed 65, each with strict Clippy.
 Inventory, version declarations, bounded witness refusals and Rust constructor
 detection were repaired. The conformance/exit consistency and separate witness
 compatibility packets passed complete verification and independent review. Immutable dependency admission, remaining detector
@@ -107,6 +108,18 @@ upgrade clears the reproduced development-server security advisory. A later
 153-test packet passes unchanged coverage thresholds. Its separately committed
 inventory and complete required run also pass on `e76eeb48`. These receipts do not replace full current-family,
 rendered accessibility, live provider or release campaigns.
+
+The [full audit baseline](health-audit-baseline.json) and
+[repair queue](health-repair-queue.jsonl) retain all 165 findings and 28 cap
+occurrences. All 193 entries remain unresolved triage inputs. Each disposition
+requires source evidence; a higher unqualified score cannot close a finding.
+
+Kernel formatting repairs passed their checks. A later full required run passed
+1,074 fast tests and strict Clippy, then failed a stale test identity digest.
+The reviewed repair on `21e504a4` preserves the exact test body, all 1,120
+identities and partition counts, and corrects the extracted Gitd test-source
+anchors. Focused inventory and negative controls pass; the complete rerun remains
+pending. The dated checkpoint retains the failed full run and exact repair proof.
 
 Complete auditor qualification, coordinator admission, supervised upgrades,
 hosted CI qualification, and all subsequent production work remain open. All G1–G18 remain `DESIGNED`,
