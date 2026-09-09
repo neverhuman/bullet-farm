@@ -28,6 +28,8 @@ jobs:
           persist-credentials: false
       - name: Install checksum-pinned ripgrep 14.1.1
         run: bash ops/ci/install-ripgrep.sh
+      - name: Install checksum-pinned just 1.58.0
+        run: bash ops/ci/install-just.sh
       - name: Install checksum-pinned gitleaks 8.21.2
         run: bash ops/ci/install-gitleaks.sh
       - id: lane
@@ -62,6 +64,8 @@ jobs:
           persist-credentials: false
       - name: Install checksum-pinned ripgrep 14.1.1
         run: bash ops/ci/install-ripgrep.sh
+      - name: Install checksum-pinned just 1.58.0
+        run: bash ops/ci/install-just.sh
       - uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b
         with:
           toolchain: 1.95.0
@@ -101,6 +105,8 @@ jobs:
           persist-credentials: false
       - name: Install checksum-pinned ripgrep 14.1.1
         run: bash ops/ci/install-ripgrep.sh
+      - name: Install checksum-pinned just 1.58.0
+        run: bash ops/ci/install-just.sh
       - uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b
         with:
           toolchain: 1.95.0
@@ -145,6 +151,8 @@ jobs:
           persist-credentials: false
       - name: Install checksum-pinned ripgrep 14.1.1
         run: bash ops/ci/install-ripgrep.sh
+      - name: Install checksum-pinned just 1.58.0
+        run: bash ops/ci/install-just.sh
       - uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b
         with:
           toolchain: 1.95.0
@@ -188,6 +196,8 @@ jobs:
           persist-credentials: false
       - name: Install checksum-pinned ripgrep 14.1.1
         run: bash ops/ci/install-ripgrep.sh
+      - name: Install checksum-pinned just 1.58.0
+        run: bash ops/ci/install-just.sh
       - uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b
         with:
           toolchain: 1.95.0
@@ -229,6 +239,8 @@ jobs:
           persist-credentials: false
       - name: Install checksum-pinned ripgrep 14.1.1
         run: bash ops/ci/install-ripgrep.sh
+      - name: Install checksum-pinned just 1.58.0
+        run: bash ops/ci/install-just.sh
       - uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b
         with:
           toolchain: 1.95.0
@@ -279,6 +291,8 @@ jobs:
           persist-credentials: false
       - name: Install checksum-pinned ripgrep 14.1.1
         run: bash ops/ci/install-ripgrep.sh
+      - name: Install checksum-pinned just 1.58.0
+        run: bash ops/ci/install-just.sh
       - name: Download atomic observations and sanitized reports
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
