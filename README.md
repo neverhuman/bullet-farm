@@ -87,6 +87,25 @@ Offline suites validate bounded protocol transcripts. They do not execute a live
 
 [Static fallback](docs/readme-media/provider-safety/fallback.png) · [Accessible transcript](docs/readme-media/provider-safety/transcript.txt) · [Reproduction manifest](docs/readme-media/provider-safety/manifest.json)
 
+## Private capture and rendering
+
+The [capture runbook](docs/demo-gif/README.md) describes native CLI observations
+and the Portal screenshot sequence. Each run preserves its own private inputs,
+failed attempts and outcome records. These tools are under local qualification;
+no current recording proves production account admission or a completed Bullet
+coding transaction.
+
+Portal rendering preserves the original PNGs and creates a pixel-exact FFV1
+master. GIF output is checked against the decoded source pixels and labeled
+`EXACT` or `QUANTIZED`. Terminal casts are retained byte-for-byte; their GIFs are
+rendered derivatives with no claim of original RGB equality. Rendering and
+checking require explicit local inputs and tool hashes.
+
+The [deep audit](docs/assurance/deep-audit-20260909.md) and
+[health checkpoint](docs/assurance/health-checkpoint-20260909.md) identify the
+remaining production, CI and account qualification work. Historical local media
+is retained for review and is not presented as an accepted production demo.
+
 ## Seven functions, five transaction authorities
 
 Bullet Farm separates seven useful functions from five independently authorized
@@ -184,7 +203,7 @@ just readme-render         # pinned VHS image, network disabled
 just readme-check          # claims, media, hashes, limits, double render
 ```
 
-The public index is [github.com/neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm). GitHub is a secretless PR/discovery mirror. The Hub defines `CI / required` in `.github/workflows/ci.yml`; this first public snapshot does not enable hosted Actions. It is not authoritative release Evidence, and no badge is published before a hosted run and branch-protection read-back exist. Future Jeryu jobs are described by `ci.toml` but remain inactive pending forge ratification and immutable provisioning.
+The primary delivery target is [github.com/neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm), assembled from the four supporting source repositories. Hosted Actions and protected integration are not yet active on that aggregate. The Hub defines local and hosted lane sources, but a definition is not a successful run; no CI badge is published before exact-subject execution and branch-protection read-back. The current publication configuration and some operating documents still point to JeRyu and require reconciliation under the [delivery plan](docs/assurance/full-product-dogfood-plan.md). Retained publication requests keep their original identities; JeRyu self-hosting remains a separate release obligation.
 
 Documentation: [index](docs/README.md) · [paper sources](docs/paper/README.md) · [workplan](docs/workplan.md) · [CI policy](docs/testing.md) · [license](LICENSE)
 

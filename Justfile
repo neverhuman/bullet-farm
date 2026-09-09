@@ -33,6 +33,29 @@ readme-render:
 readme-check:
     bash scripts/readme-check.sh
 
+[positional-arguments]
+readme-live-record *args:
+    bash scripts/readme-live-record.sh "$@"
+
+[positional-arguments]
+readme-live-render *args:
+    bash scripts/readme-live-render.sh "$@"
+
+[positional-arguments]
+readme-live-check *args:
+    bash scripts/readme-live-check.sh "$@"
+
+demo-gif-record:
+    bash scripts/demo-gif-record.sh
+
+[positional-arguments]
+demo-gif-render *args:
+    bash scripts/demo-gif-render.sh "$@"
+
+[positional-arguments]
+demo-gif-check *args:
+    bash scripts/demo-gif-check.sh "$@"
+
 fast:
     bash scripts/ci-local.sh fast
 
