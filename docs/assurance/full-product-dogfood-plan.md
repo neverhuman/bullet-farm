@@ -24,11 +24,11 @@ selects **GitHub `neverhuman/bulletfarm`** as the primary integration repository
 containing all four supporting repositories' exact reviewed objects and trees.
 Preserve private origins, immutable source objects and historical publication
 request identities. Protected human-reviewed integration and complete applicable
-CI on the aggregate are required. Current publication configuration still selects
-JeRyu and must be reconciled through a new request; it is not current user intent.
+CI on the aggregate are required. Commit `912dddf` selects GitHub for new
+publication requests; existing requests keep their original destinations.
 Jeryu self-hosting and remaining forge certifications stay in the full release
-program. The [publication runbook](../runbooks/publication.md) retains component
-implementation and hosted prerequisites pending its destination correction.
+program. The [publication runbook](../runbooks/publication.md) describes the
+selected aggregate, retained history and incomplete hosted prerequisites.
 
 The [9 September deep audit](deep-audit-20260909.md) is the current source-grounded
 assessment of working components, production defects, all 53/55 nested CI jobs,
@@ -36,14 +36,21 @@ three-account qualification, genuine media and avoidable complexity. It studied
 all 101 member documentation files plus six exact outer mirrors. Its evidence
 limits and dated source/GitHub read-backs remain explicit.
 
-The [post-audit health checkpoint](health-checkpoint-20260909.md) records the
-complete Kernel required pass on `02bf7c5`, reviewed capture/rendering work with
-20 distinct focused tests, actual 819-test inventory enumeration and the complete
-mapped Hub documentation pass. It also records the independently verified GIF
-timing repair, reviewed private receipt selection and retained-original media
-custody, preserved failures, and corrections to conflicting shortcuts. Auditor,
-clean complete Hub/family, hosted CI and real-account production acceptance
-remain open; no typed product-profile status changes follow from local proof.
+The [post-audit health checkpoint](health-checkpoint-20260909.md) records complete
+required passes for Kernel `02bf7c5` and Hub `258c8467`, including actual execution
+of all 819 Hub/wire identities. Later source changes require new mapped proof.
+The four-member retry failed on Kernel source drift after stage 5; no complete
+family pass exists for the evolving subjects. Reviewed capture, GIF timing,
+private receipt custody and publication timeout/destination repairs remain local
+component evidence. Auditor admission, complete family/hosted CI and real-account
+production acceptance remain open; no typed profile status changes follow.
+
+The [xbabe2 development closeout](xbabe2-development-closeout.md) supplies the
+detailed work order, dependencies, rapid/full CI campaigns, per-provider negative
+proofs and real 1080p TUI/web capture contract under this plan. It is implementation
+detail for the existing DF/G/WP program, not a second completion register. All
+recording, browser capture, rendering and verification code must ship in the
+tracked main aggregate using the Rust/Vite/TypeScript/React stack.
 
 The [checkpoint record](production-prerequisite-checkpoints.md),
 [health observations](health-observations-20260908.md) and
@@ -52,9 +59,9 @@ accepted subjects, failed attempts and earlier complete proofs. Current branches
 must not inherit those receipts. Accepted local components include prefix/current
 backup custody, command/lease/Git preservation, publication reconstruction,
 Portal tests and deterministic offline media; production dispatch and admission
-remain incomplete. The latest offline renderer was actually executed twice and
-independently reconstructed, but its CLI outputs replay identical retained text
-and its Portal output uses five screenshots. It proves no native coding session.
+remain incomplete. Earlier offline media replayed retained text and five Portal
+screenshots; subsequent continuous capture retained 17 synthetic browser frames.
+Neither demonstrates a native coding session or the real production Portal.
 
 The [audit baseline](health-audit-baseline.json) and
 [repair queue](health-repair-queue.jsonl) retain 165 findings and 28 cap occurrences

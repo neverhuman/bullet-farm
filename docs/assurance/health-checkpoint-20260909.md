@@ -2,7 +2,7 @@
 
 Status: **Corrective packets accepted locally; production and release remain incomplete**
 
-Last updated: 2026-09-09 06:56 UTC
+Last updated: 2026-09-09 11:10 UTC
 
 This checkpoint follows the [deep audit](deep-audit-20260909.md),
 [full-product plan](full-product-dogfood-plan.md) and [G1–G18 register](product-gaps.md).
@@ -146,11 +146,47 @@ generated or hidden with an exclusion. Source-pin selection keeps the current
 receipt usable outside the checkout. Seven filesystem tests and independent
 copy/procedure reviews preceded relocation. Interrupted operations require
 reconciliation; this one-off transfer is not a production crash campaign.
-Full mapped lint and a clean complete Hub/family run remain open.
+The later clean complete Hub pass below covers mapped lint; complete proof of
+subsequent changes and the four-member family remains open.
+
+## Complete Hub proof and subsequent integration
+
+Hub `258c8467be46855a6bdadc410e24deb96f097c40`, tree
+`2cfe419ae37a26f7c6fbcee1fd89ddb82f2bb674`, passed the complete required lane:
+**819 distinct tests (600 Hub, 219 wire)**, all five mapped lanes, both pinned
+models and custody controls. No selected test failed, skipped or retried.
+GNU time was 22:41.98; maximum child RSS was 1,792,340 KiB. Its new private target
+used 4,171,760,014 logical bytes. These measure this local run, not the memory
+needed by parallel hosted workers. All 814 source, ten configuration, 25 tool,
+177 sysroot-library and 478 browser-file subjects stayed unchanged; the checkout
+was clean and the lock released. Independent review accepted the exact subject.
+
+The next family run completed the stage 1–5 commands, then refused concurrent
+Kernel source drift at the stage 5 boundary. Stages 6–7 never started.
+Its 1,037.97-second GNU measurement, 400 produced
+and 349 prior artifacts, and failure review remain retained. The earlier family
+failure from an unsuitable temporary-directory ancestry/socket length remains
+separate. Neither run establishes complete family acceptance or proves the
+subsequently changed Kernel. Retry only after all four subjects and inputs freeze.
+
+| Commit | Reviewed change | Executed evidence and limit |
+| --- | --- | --- |
+| `eb6c9ccdf82347f16c792d9bce6409bbc7b6814c` | Preserve the exact source timeout for each of 53 jobs / 55 matrix invocations; keep the authentic v1 publication template unchanged. | 36 publication tests, three mapped Clippy commands and 50 actual wrapper cases passed with source/tool/config guards. Initial compile and unmapped-lint failures remain retained. The 52 unavailable member jobs and five final refusals remain unavailable. |
+| `912dddf210e32dd48213e44a0c5b07615acfcf18` | Select `neverhuman/bulletfarm` for new requests and reconcile root templates while preserving historical identities. | All 50 actual wrapper cases passed again against the changed configuration/templates. This is local reconstruction proof, not remote publication. |
+| `8b6fb098e797bb26c73ceda0c8eb439a197dec57` | Correct aggregate clone/publication instructions and remove hardcoded green/audit badges. | Independent source review and focused links passed; complete mapped documentation proof of the final integrated subject remains required. |
+
+External Claude provider edits remain uncommitted and unaccepted at this checkpoint.
+Independent review found post-spawn failures classified as pre-spawn, lost known
+usage, missing durable failure records after collisions/write errors, diagnostic
+text preventing recording, and valid transcripts reaching success despite process
+failure or timeout. Later native protocol observations are valuable inputs, but
+need exact source/receipt review and paired unsafe-case tests. They do not admit
+the provider or lift this root's coordinator Operating HOLD. External Portal
+response-loss changes and their supporting PR also await independent acceptance.
 
 ## Outstanding delivery and production work
 
-At **06:26 UTC**, GitHub `neverhuman/bulletfarm` main remained
+At **10:40 UTC**, GitHub `neverhuman/bulletfarm` main remained
 `f8ce28e6b0583160519e5898250904f63eee753d`: zero workflows, zero runs, zero
 rulesets and unprotected main. Supporting Hub PR 2 merged as `55e86b2` and
 Kernel PR 2 as `6070a05`; these reconstructed subjects do not inherit proofs
@@ -163,8 +199,11 @@ The installed Jankurai remains **1.6.11**. Subsequent remote discovery found the
 published 1.7.0 Linux archive and its checksum/provenance assets, plus all three
 selected dependency tags. An initial tag absence was caused by a local URL
 rewrite and is not evidence of remote absence. The archive was downloaded and
-hashed without installation or execution; attestation shape was inspected,
-without cryptographic trust verification.
+hashed without installation or execution. Subsequent cryptographic verification
+with the selected GitHub CLI checked the GitHub OIDC/workflow identity, source,
+run/attempt and archive subject, plus wrong-workflow/archive/repository negatives.
+That verifies artifact origin, not the missing selected fixes, runtime behavior,
+portable auditor admission or any Bullet score.
 
 Source readback establishes a remaining admission defect: selected Core
 `8505079e47597225e1f2bf65f57d41b0d050bfe7` has the common-base versions of
@@ -185,7 +224,9 @@ real tasks, mixed-provider collaboration and seven-day survival observation.
 The remaining custody, lifecycle, platform, evolution, forge, distributed and
 post-V1 obligations stay in the full plan. All G1–G18 remain `DESIGNED`; all
 18 product and two diagnostic profiles remain `BLOCKED` in the unchanged typed
-inventory. The coordinator Operating HOLD remains effective.
+inventory. The coordinator Operating HOLD remains effective. The
+[xbabe2 development closeout](xbabe2-development-closeout.md) details the existing
+plan's work order and requires capture/render/check source in the main aggregate.
 
 ## Retained evidence
 
@@ -212,3 +253,11 @@ receipts, including:
 
 Hosted runs, packages and product-profile receipts require their own executed,
 exact-subject admission. Local observations do not substitute for them.
+
+Additional retained receipts include `hub-required-r1/` (required log SHA-256
+`abe398c959a7c3c31147ec1b4a1c94753714ec0081bf658216a30038fc252937`),
+family retry log `4750847541dcf1ffb183b58b4d87447db2c9df5f0d677e0cf6e59d909b1af5dd`,
+timeout review `270ec9fb087b227a3437a3194d783b765276771730010af961943b7f3b47c142`,
+destination review `d489da27235464bb57e050988d4968f8072510d274f5fa93a46af113d8bbf560`,
+and Jankurai attestation review
+`a496fd885eb8f7e8631afb65fb9da5a0a91977c266d8d2243c7c04c5001c8554`.

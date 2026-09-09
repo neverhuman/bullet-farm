@@ -13,8 +13,8 @@ invalidates a row until those sources are replayed.
 
 The latest operator instruction selects **GitHub `neverhuman/bulletfarm`** as the
 primary integration repository, containing the exact accepted sources of all four
-supporting repositories. Current JeRyu-primary configuration/runbooks are stale;
-retain historical request identities and correct the active route. Supporting
+supporting repositories. Commit `912dddf` selects that destination for new
+requests; historical request identities and destinations remain intact. Supporting
 source PRs and audit scores do not establish complete aggregate CI. Separately
 accepted Jeryu self-hosting and forge-certification obligations remain in scope.
 
@@ -24,22 +24,23 @@ concrete complexity reductions after studying all 101 member documentation files
 Its BF-A01–BF-A12 findings are source/reproducer-backed repair work under this
 register, not new product-profile statuses or a replacement governing plan.
 
-The [post-audit health checkpoint](health-checkpoint-20260909.md) records the
-complete Kernel required pass on `02bf7c5`, reviewed capture/rendering work with
-20 distinct focused tests, actual 819-test inventory enumeration and the complete
-mapped Hub documentation pass. It also records the independently verified GIF
-timing repair, reviewed private receipt selection and retained-original media
-custody, preserved failures, and corrections to conflicting shortcuts. Auditor,
-clean complete Hub/family, hosted CI and real-account production acceptance
-remain open; no typed product-profile status changes follow from local proof.
+The [post-audit health checkpoint](health-checkpoint-20260909.md) records complete
+Kernel `02bf7c5` and Hub `258c8467` required passes, actual execution of all 819
+Hub/wire identities, reviewed capture/timing/custody repairs and publication
+timeout/destination packets. Later changes need new mapped proof. The family
+retry refused Kernel source drift after stage 5; no complete family pass follows.
+Auditor admission, hosted CI and real-account production acceptance remain open.
+The [detailed xbabe2 work order](xbabe2-development-closeout.md) refines the existing
+plan with dependencies, CI campaigns, three-provider qualification and maintained
+real 1080p capture source. It changes no G/WP/profile definition or status.
 
 Exact historical accepted subjects and failed attempts remain in the
 [checkpoint](production-prerequisite-checkpoints.md),
 [health observations](health-observations-20260908.md) and
 [prerequisite observations](prerequisite-observations-20260908.md). The current
 branches need their own complete proof. Offline media generation and independent
-reconstruction passed, but the text replay and five Portal stills do not qualify
-native provider coding or production operation.
+reconstruction passed. The historical text/five-still replay and later continuous
+synthetic browser capture do not qualify native coding or production operation.
 
 The [full audit baseline](health-audit-baseline.json) and
 [repair queue](health-repair-queue.jsonl) preserve all 165 findings and 28 cap
