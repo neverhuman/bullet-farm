@@ -2,7 +2,7 @@ import { createRequire } from "node:module";
 import { mkdir, open, realpath, stat } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { createHash } from "node:crypto";
+import { startPortalSampling } from "./demo-gif-portal-sampler.mjs";
 
 export function commandObservation(value, expectedId = null) {
   const statuses = ["PENDING", "APPLIED", "VERIFIED", "FAILED", "UNKNOWN"];
@@ -66,6 +66,7 @@ export async function capturePortal(env = process.env) {
   await exclusiveJson(join(out, "started.json"), observation);
   let browser;
   let context;
+  let sampler;
   let failure;
   const started = performance.now();
   try {
@@ -75,20 +76,19 @@ export async function capturePortal(env = process.env) {
     const page = await context.newPage();
     page.setDefaultTimeout(8000);
     page.setDefaultNavigationTimeout(10000);
-    async function shot(name) {
-      const image = await page.screenshot({ type: "png", animations: "disabled",
-        mask: [page.locator("#bootstrap-token")] });
-      const file = `frames/${name}.png`;
-      await exclusiveFile(join(out, file), image);
-      observation.frames.push({ file, elapsed_ms: performance.now() - started,
-        sha256: createHash("sha256").update(image).digest("hex"), bytes: image.length,
-        width: 1920, height: 1080, source: "BROWSER_PNG_SCREENSHOT" });
-    }
     function responseFor(path, method) {
       return page.waitForResponse((response) => response.url() === `${origin}${path}`
         && response.request().method() === method);
     }
     await page.goto(`${origin}/#/control-tower`, { waitUntil: "domcontentloaded" });
+    sampler = await startPortalSampling({ page, out, frames: observation.frames, started });
+    observation.sampling = sampler.summary;
+    observation.sampling.start_boundary = "INITIAL_DOMCONTENTLOADED";
+    observation.sampling.landmark_reading_ms = 400;
+    async function shot(name) {
+      await sampler.checkpoint(name);
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    }
     await page.getByRole("heading", { name: "Control Tower" }).waitFor();
     await page.getByLabel("One-time bootstrap token").waitFor();
     observation.steps.push({ step: "bootstrap_form", observed: true });
@@ -143,6 +143,13 @@ export async function capturePortal(env = process.env) {
     observation.failure_class = error instanceof Error ? error.name : "UnknownError";
     failure = error;
   } finally {
+    try {
+      if (sampler) await sampler.stop();
+    } catch (error) {
+      observation.capture_status = "FAILED";
+      observation.sampling_cleanup = "FAILED";
+      failure ??= error;
+    }
     try {
       if (context) await context.close();
     } catch (error) {
