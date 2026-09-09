@@ -2,11 +2,13 @@
 
 Status: component implementation; hosted CI and release certification unproved.
 This is part of W0/WP-22 and G1/G8/G12. The existing gap register remains the
-completion board. The selected primary destination is JeRyu `root/bulletfarm`,
-using `https://git.neverhuman.org/git/root/bulletfarm.git`. All four member trees
-and their original source objects are published there. GitHub remains a
-secondary mirror adapter. A destination is captured in each request: changing
-the current configuration never changes a retained request's destination.
+completion board. The selected primary destination is GitHub
+`neverhuman/bulletfarm`, using `https://github.com/neverhuman/bulletfarm.git`.
+New requests capture all four member trees and their original source identities
+for publication there. Preparation does not establish remote publication or CI
+success. Changing the current configuration never changes a retained request's
+destination; JeRyu self-hosting and native forge qualification remain release
+obligations.
 
 `bullet-publish` captures four clean ordinary canonical checkouts, their exact
 commit/tree/object format, and root templates from the captured Hub commit.
@@ -15,8 +17,8 @@ valid; portable schema `1.3.0` uses exact basenames and `split_root = "."`
 against an explicitly admitted root. Private source origins are preserved.
 
 The versioned `publication.json` contains no aggregate SHA. External prepared,
-publication, and CI records bind that SHA. Root files come only from selected
-`publication/root/` templates; direct aggregate edits or extra root files refuse.
+publication, and CI records bind that SHA. Root files come from selected `publication/root/` templates and, for version 2,
+the reviewed workflow catalog. Direct aggregate edits or extra root files refuse.
 
 ## Prepare and review
 
@@ -43,6 +45,8 @@ keep all earlier requests and receipts intact.
 Git writes explicitly fsync. Interrupted requests reconcile retained local refs.
 Inspect the request and prepared commit before publication effects.
 
+The existing GitHub aggregate requires a fresh, authenticated, nonzero `main`
+OID. The following retained bootstrap procedure applies only to JeRyu requests.
 For the first JeRyu aggregate only, an absent `main` is represented by exactly
 40 zeroes. This creates a deterministic parentless aggregate and needs no base
 fetch. Verify repository identity and main absence through authenticated
@@ -55,10 +59,11 @@ initializes or advances `main` itself. Native JeRyu PR behavior against an unbor
 integration procedure.
 
 The destination must already exist and permit the publishing account to write.
-The September 8 creation request for private `root/bulletfarm` was rejected with
+The September 8 historical creation request for private JeRyu `root/bulletfarm` was rejected with
 HTTP 403, `repository creation requires admin access`; authenticated account
-`jepsont` could not create it. An administrator must create the repository and
-grant write access. An HTTP 200 response serving the web application's shell is
+`jepsont` could not create it. That attempt required administrator creation and a write grant; its retained
+report establishes no later success. An HTTP 200 response serving the web
+application's shell is
 not repository existence or access evidence.
 
 ## History admission and publication
@@ -96,7 +101,7 @@ child environment, with redirects disabled. Token syntax validation establishes
 neither permissions nor scope; authenticated server read-back is required.
 Ordinary PR jobs receive no publication, subscription, or signing credentials.
 
-The historical GitHub adapter additionally requires `BULLET_PUBLICATION_GH`: the absolute
+The GitHub adapter requires `BULLET_PUBLICATION_GH`: the absolute
 GitHub CLI 2.62.0 Linux x86_64 executable with SHA256
 `d2330508768dbbaa4c474353c77367e1690b1fe08c81497f787e40f9f53564d4`.
 Its upstream release archive SHA256 is
@@ -124,7 +129,7 @@ JeRyu `pr` currently refuses with `PUBLICATION_JERYU_PR_TRANSPORT_UNAVAILABLE`.
 Native PR creation and its durable response-loss reconciliation must be completed
 before automated integration; never reroute a JeRyu request through GitHub.
 
-For historical GitHub requests, the PR command retains its exact creation intent
+For GitHub requests, the PR command retains its exact creation intent
 before a single attempted POST:
 
 ```bash
@@ -143,6 +148,12 @@ PR review, stale-review dismissal, required checks, and no force-push/deletion.
 Token rotation does not change request identity.
 
 ## Hosted proof scope
+
+Version-2 root workflows derive from the reviewed eight member workflows:
+53 job definitions and 55 expanded invocations, plus five aggregate final gates.
+Unsupported execution profiles remain explicit failures. Generating these files
+does not activate or complete hosted CI. The retained version-1 bootstrap
+template and original requests remain unchanged.
 
 Native JeRyu CI is not activated by these GitHub workflow templates. Its runner
 registration, exact-subject execution, artifact retrieval, required checks and
@@ -169,15 +180,18 @@ retains `execution_evidence=false`; a separate unsigned completion record binds
 the actual command. Supporting tool hashes describe a sampled interval, with
 `tool_closure_admitted=false`.
 
-`Publication bootstrap required` always runs, downloads the exact bootstrap and
-member artifacts for that run/attempt, and rejects every predecessor result
-except success. Missing completion outputs, stale subjects, unexpected files,
+The retained version-1 `Publication bootstrap required` gate always runs,
+downloads the exact bootstrap and member artifacts for that run/attempt, and
+rejects every predecessor result except success. Missing completion outputs, stale subjects, unexpected files,
 invalid bodies or changed digests refuse. This covers publication bootstrap and
 one actual Hub source scan. The eight existing member workflows define 53 jobs
 and 55 expanded invocations; complete activation, repeated real family proof,
 portable Jankurai, admitted tools and workers, scheduled security/native jobs,
 operational campaigns, final acceptance and protected integration remain unproved.
-Local fixtures do not establish public hosted execution or release eligibility.
+Version-2 final gates remain unconditional refusals pending complete execution
+and artifact admission, including when all preceding job results say success. Scheduled and operational campaigns require their
+own execution against the candidate. Local fixtures do not establish public
+hosted execution or release eligibility.
 
 ## Focused checks
 

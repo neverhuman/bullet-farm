@@ -1,17 +1,14 @@
 # Bullet Farm
 
-[![CI](https://img.shields.io/badge/ci-local%20required-green.svg)](docs/testing.md)
-[![Jankurai](https://img.shields.io/badge/jankurai-audit-blue.svg)](docs/testing.md)
-
 **Many minds. One verified line to main.**
 
 Bullet Farm is building the transaction boundary for coding agents: fenced authority, one repository writer, exact Candidates, independent Evidence, durable effect reconciliation, and protected integration.
 
 **Current alpha:** the boundaries are component-proved; public installation, live providers, and the connected transaction remain blocked.
 
-**Public index:** [github.com/neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm)
+**Primary integration repository:** [github.com/neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm)
 
-That is the public URL. The hyphenated slug `neverhuman/bullet-farm` is not. GitHub is a discovery and PR mirror, not source authority, and a clone is not an installer.
+The publication tool assembles the four supporting member trees and preserves their exact source identities in the aggregate. `neverhuman/bullet-farm` is the supporting Hub repository. A source clone does not establish installation or release acceptance.
 
 [Dated Stage-1 architecture preprint](docs/paper/bullet_farm_ieee.pdf) · [Dated Stage-1 executive brief](docs/paper/executive_brief.pdf) · [Architecture](docs/architecture.md) · [Current release truth](docs/assurance/release-truth.generated.md)
 
@@ -23,14 +20,19 @@ The preprints describe the earlier universal release envelope; the current stage
 
 This is a pre-release engineering system, not an installer announcement. A model saying “done,” a process exiting zero, or a pull request opening has no completion authority.
 
-## Public index
+## Source checkout
 
 ```bash
-git clone https://github.com/neverhuman/bulletfarm.git bullet-farm
-cd bullet-farm
+git clone https://github.com/neverhuman/bulletfarm.git bulletfarm
+cd bulletfarm
 ```
 
-Clone into `bullet-farm` so the checkout name matches the family member. This repository is the hub only. The kernel, BulletGit, and portal members are independent checkouts and are not published under hyphenated `neverhuman/bullet-*` slugs.
+This is the aggregate root, with the Hub under `bullet-farm/`. Read its
+`publication.json` for the recorded member subjects; a remote snapshot may
+precede the latest reviewed local changes. Development and family proof use the
+four independent canonical member checkouts. Their supporting GitHub repositories
+are `neverhuman/bullet-farm`, `neverhuman/bullet-kernel`, `neverhuman/bullet-git`
+and `neverhuman/bullet-portal`.
 
 Public installation is not available. The checked-in `family.lock` is a diagnostic schema-2 snapshot; it cannot authorize source acquisition or a release install. The [source-setup runbook](docs/runbooks/source-setup.md) explains that boundary.
 
@@ -148,7 +150,7 @@ path is required; `preview` and `dev` operate on the four existing sibling check
 | `bullet-git` | sole writer, private clones, journal/CAS, Change and Candidate identity | `crates/bullet-git-*`, `crates/bullet-gitd/` |
 | `bullet-portal` | generated API client and non-authoritative projections | `src/generated/`, `src/pages/`, `src/components/` |
 
-The public GitHub index publishes this hub at [neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm). Local checkout names stay `bullet-farm`, `bullet-kernel`, `bullet-git`, and `bullet-portal`. See the [code map and “change X here” guide](docs/code-map.md) before editing a boundary.
+The publication tool targets all four member trees at [neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm). Local checkout names stay `bullet-farm`, `bullet-kernel`, `bullet-git`, and `bullet-portal`. See the [code map and “change X here” guide](docs/code-map.md) before editing a boundary.
 
 ## What exists, and what is still unproved
 
@@ -203,7 +205,7 @@ just readme-render         # pinned VHS image, network disabled
 just readme-check          # claims, media, hashes, limits, double render
 ```
 
-The primary delivery target is [github.com/neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm), assembled from the four supporting source repositories. Hosted Actions and protected integration are not yet active on that aggregate. The Hub defines local and hosted lane sources, but a definition is not a successful run; no CI badge is published before exact-subject execution and branch-protection read-back. The current publication configuration and some operating documents still point to JeRyu and require reconciliation under the [delivery plan](docs/assurance/full-product-dogfood-plan.md). Retained publication requests keep their original identities; JeRyu self-hosting remains a separate release obligation.
+The primary delivery target is [github.com/neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm), assembled from the four supporting source repositories. Hosted Actions and protected integration are not yet active on that aggregate. The Hub defines local and hosted lane sources, but a definition is not a successful run; no CI badge is published before exact-subject execution and branch-protection read-back. New requests select GitHub through the committed publication configuration; the [publication runbook](docs/runbooks/publication.md) describes preparation and required execution evidence under the [delivery plan](docs/assurance/full-product-dogfood-plan.md). Retained publication requests keep their original identities; JeRyu self-hosting remains a separate release obligation.
 
 Documentation: [index](docs/README.md) · [paper sources](docs/paper/README.md) · [workplan](docs/workplan.md) · [CI policy](docs/testing.md) · [license](LICENSE)
 
