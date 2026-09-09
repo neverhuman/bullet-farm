@@ -32,8 +32,8 @@ fn unavailable(manifest: &Manifest, workflow: &Workflow, job: &Job) -> String {
         "RUST_CARGO_TOOL_SUBJECTS_AND_CAPACITY"
     };
     let mut out = format!(
-        "\n  {id}:\n    name: '{key}'\n    runs-on: {}\n    timeout-minutes: 5\n",
-        job.runner
+        "\n  {id}:\n    name: '{key}'\n    runs-on: {}\n    timeout-minutes: {}\n",
+        job.runner, job.timeout_minutes
     );
     if !job.needs.is_empty() {
         let needs = job

@@ -30,8 +30,53 @@ fn fixture() -> (Fixture, Vec<Workflow>) {
     (fixture, catalog)
 }
 
+fn assert_reviewed_timeouts() {
+    let catalog = ci_inventory::reviewed();
+    assert!(ci_inventory::canonical_catalog(&catalog).is_ok());
+    for (member, path, id, minutes) in [
+        ("bullet-farm", ci_inventory::CI, "source_scan", 10),
+        ("bullet-farm", ci_inventory::CI, "docs", 35),
+        ("bullet-git", ci_inventory::CI, "required", 5),
+        (
+            "bullet-kernel",
+            ci_inventory::SCHEDULED,
+            "portable-refusal",
+            35,
+        ),
+        ("bullet-portal", ci_inventory::CI, "lint", 10),
+    ] {
+        let workflow = catalog
+            .iter()
+            .find(|w| w.member == member && w.path == path)
+            .unwrap();
+        let job = workflow.jobs.iter().find(|j| j.id == id).unwrap();
+        assert_eq!(job.timeout_minutes, minutes, "{member}:{path}:{id}");
+    }
+    for minutes in [0, 1, 5, u16::MAX] {
+        let mut invalid = catalog.clone();
+        invalid[0].jobs[0].timeout_minutes = minutes;
+        assert_eq!(
+            ci_inventory::canonical_catalog(&invalid)
+                .err()
+                .unwrap()
+                .code(),
+            "PUBLICATION_CI_TIMEOUT_INVALID"
+        );
+    }
+    let mut unknown = catalog;
+    unknown[0].jobs.last_mut().unwrap().id = "unknown_job";
+    assert_eq!(
+        ci_inventory::canonical_catalog(&unknown)
+            .err()
+            .unwrap()
+            .code(),
+        "PUBLICATION_CI_TIMEOUT_INVALID"
+    );
+}
+
 #[test]
 fn generated_topology_preserves_dependencies_matrices_events_and_real_producer() {
+    assert_reviewed_timeouts();
     let (fixture, mut catalog) = fixture();
     let (store, request, prepared) = fixture.prepared();
     let request_bytes = fs::read(store.path("fixture-1", "request")).unwrap();
@@ -50,6 +95,14 @@ fn generated_topology_preserves_dependencies_matrices_events_and_real_producer()
     );
     assert!(primary.contains("run: bash bullet-farm/publication/ci-required.sh required"));
     assert!(!primary.contains("branches: [main]"));
+    let bootstrap = primary
+        .split("\n  publication_integrity:\n")
+        .nth(1)
+        .unwrap()
+        .split("\n  bullet_farm_")
+        .next()
+        .unwrap();
+    assert!(bootstrap.contains("    timeout-minutes: 30\n"));
     let mut counts = (1, 1);
     for workflow in &catalog {
         let path = if workflow.scope == "REQUIRED" {
@@ -76,6 +129,12 @@ fn generated_topology_preserves_dependencies_matrices_events_and_real_producer()
                 workflow.member, workflow.scope, job.id
             )));
             assert_eq!(block.contains("    if: ${{ always() }}"), job.always);
+            assert_eq!(
+                block
+                    .lines()
+                    .find(|line| line.starts_with("    timeout-minutes:")),
+                Some(format!("    timeout-minutes: {}", job.timeout_minutes).as_str())
+            );
             let mut needs = job.needs.clone();
             needs.sort();
             let needs = needs
@@ -134,6 +193,7 @@ fn generated_topology_preserves_dependencies_matrices_events_and_real_producer()
         .flat_map(|w| w.jobs.iter().map(move |j| job_id(w, j.id)))
         .collect::<std::collections::BTreeSet<_>>();
     let final_job = primary.split("\n  publication_required:\n").nth(1).unwrap();
+    assert!(final_job.contains("    timeout-minutes: 5\n"));
     let dependencies = final_job
         .lines()
         .find_map(|line| line.strip_prefix("    needs: ["))
