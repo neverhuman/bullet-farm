@@ -159,8 +159,12 @@ elif case=='custody':
  invoke('render','portal',source,root/'bad-tool',expect=1,reason='TOOL_HASH_MISMATCH',executable=tool,tool_hash='0'*64)
  assert not (root/'executed').exists()
  tool2=root/'slow';write(tool2,('#!'+str(python)+'\nimport time\ntime.sleep(10)\n').encode());tool2.chmod(0o700)
- begin=time.monotonic();invoke('render','portal',source,root/'timed-out',['--timeout','0.1'],1,'TOOL_TIMEOUT',executable=tool2)
- assert time.monotonic()-begin<3
+ # The budget must outlast the renderer's own setup and fall well short of
+ # the tool's ten-second sleep. At 0.1s the pre-spawn deadline check won
+ # the race and the refusal was RENDER_DEADLINE, so the kill path this
+ # case exists to prove was never reached.
+ begin=time.monotonic();invoke('render','portal',source,root/'timed-out',['--timeout','2'],1,'TOOL_TIMEOUT',executable=tool2)
+ assert time.monotonic()-begin<8
  interrupted=root/'interrupted';pidfile=root/'child.pid'
  tool3=root/'interruptible';write(tool3,('#!'+str(python)+'\nimport os,time\nfrom pathlib import Path\nPath('+repr(str(pidfile))+').write_text(str(os.getpid()))\ntime.sleep(20)\n').encode());tool3.chmod(0o700)
  command=['bash',str(hub/'scripts/demo-gif-render.sh'),str(python),sha(python),sha(implementation),
