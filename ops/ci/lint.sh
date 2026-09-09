@@ -24,6 +24,9 @@ fi
 bash ops/ci/disallowed-methods-test.sh
 bash ops/ci/readme-jsonschema-custody.sh
 bash ops/ci/install-readme-jsonschema-test.sh
+# Offline capture/tool-contract regressions use temporary fixtures and forbid provider calls.
+bash scripts/readme-live-custody-test.sh
+bash scripts/readme-live-render-test.sh
 mapfile -t workflow_files < <(
   find .github/workflows -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) | LC_ALL=C sort
 )
