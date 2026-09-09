@@ -21,8 +21,6 @@ accepted Jeryu self-hosting and forge-certification obligations remain in scope.
 The [9 September deep audit](deep-audit-20260909.md) records the current production
 bridge, all CI execution gaps, actual account/runtime discovery, media defects and
 concrete complexity reductions after studying all 101 member documentation files.
-The [xbabe2 development close-out](xbabe2-development-closeout.md) sequences the
-remaining host-local dogfood packets; it does not close any G-row.
 Its BF-A01–BF-A12 findings are source/reproducer-backed repair work under this
 register, not new product-profile statuses or a replacement governing plan.
 
