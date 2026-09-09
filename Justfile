@@ -36,6 +36,11 @@ readme-check:
 fast:
     bash scripts/ci-local.sh fast
 
+# Existing member `fast` lanes only. Requires absolute BULLET_GIT_ROOT,
+# BULLET_KERNEL_ROOT, and BULLET_PORTAL_ROOT. Not required/family/hosted CI.
+dogfood-rapid:
+    bash scripts/dogfood-rapid.sh
+
 lint:
     bash scripts/ci-local.sh lint
 
