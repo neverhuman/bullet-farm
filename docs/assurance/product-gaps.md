@@ -26,9 +26,10 @@ register, not new product-profile statuses or a replacement governing plan.
 
 The [post-audit health checkpoint](health-checkpoint-20260909.md) records the
 Kernel's strict JSON repair, truthful fixture ownership and actual test-inventory
-update, followed by a complete required pass on `02bf7c5`. It identifies the
-excluded egress/family campaigns, rejected publication attempts and remaining
-auditor, CI, recorder and production work without changing any profile status.
+update, followed by a complete required pass on `02bf7c5`, and locally accepted
+recorder/private-renderer packets with 14 focused test identities. It identifies
+excluded campaigns, rejected publication, the actual Hub docs refusal, private
+media limits and remaining production work without changing any profile status.
 
 Exact historical accepted subjects and failed attempts remain in the
 [checkpoint](production-prerequisite-checkpoints.md),

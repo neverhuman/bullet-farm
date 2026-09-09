@@ -38,8 +38,10 @@ limits and dated source/GitHub read-backs remain explicit.
 
 The [post-audit health checkpoint](health-checkpoint-20260909.md) records the
 accepted strict JSON repair, actual inventory reconciliation and complete Kernel
-required pass on `02bf7c5`, with its exact tree and retained failed attempts.
-Other member/family, auditor, hosted CI and production acceptance remain open.
+required pass on `02bf7c5`, plus the independently reviewed recorder and private
+renderer packets with 14 focused test identities. It records the actual Hub
+documentation refusal and media qualification limits. Complete Hub/family,
+auditor, hosted CI and production acceptance remain open.
 
 The [checkpoint record](production-prerequisite-checkpoints.md),
 [health observations](health-observations-20260908.md) and
