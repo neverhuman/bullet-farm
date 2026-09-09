@@ -31,8 +31,8 @@ mapfile -t workflow_files < <(
 actionlint "${workflow_files[@]}"
 mapfile -t shell_files < <(
   {
-    rg --files -g '*.sh'
-    rg -l --hidden -g '!target/**' -g '!.git/**' '^#!.*(bash|/sh)' .
+    git ls-files -- '*.sh'
+    git ls-files -z | xargs -0 -r rg -l --hidden '^#!.*(bash|/sh)'
   } | sed 's#^\./##' | LC_ALL=C sort -u
 )
 [[ "${#shell_files[@]}" -gt 0 ]] || { refuse SHELL_INVENTORY_EMPTY "no shell files"; exit 1; }

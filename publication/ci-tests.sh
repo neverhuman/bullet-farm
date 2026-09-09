@@ -91,9 +91,11 @@ publication::ci_render::tests::authentic_v1_roots_keep_original_request_and_comm
 publication::ci_render::tests::generated_roots_refuse_workflow_template_and_path_drift
 publication::ci_render::tests::generated_topology_preserves_dependencies_matrices_events_and_real_producer
 publication::ci_render::tests::tree_rendering_works_before_shallow_source_commits_are_available
+publication::transport_tests::jeryu_bootstrap_preserves_sources_and_reconciles_without_creating_main
+publication::transport_tests::publication_destination_and_authentication_are_request_bound
 IDENTITIES
 sed 's/^/test /; s/$/ ... ok/' "$scratch/identities" >"$scratch/valid-tests.log"
-summary='test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 300 filtered out; finished in 1.23s'
+summary='test result: ok. 36 passed; 0 failed; 0 ignored; 0 measured; 300 filtered out; finished in 1.23s'
 printf '%s\n' "$summary" >>"$scratch/valid-tests.log"
 bash "$wrapper" test-inventory "$scratch/valid-tests.log"
 pass_case rust_inventory_exact
@@ -101,6 +103,24 @@ tac "$scratch/valid-tests.log" | sed 's/300 filtered out/0 filtered out/; s/1.23
   >"$scratch/reordered-tests.log"
 bash "$wrapper" test-inventory "$scratch/reordered-tests.log"
 pass_case rust_inventory_reordered
+
+progress='test publication::observation::tests::hosted_artifact_inventory_refuses_extra_missing_empty_or_symbolic_bytes has been running for over 60 seconds'
+{ printf '%s\n' "$progress"; cat "$scratch/valid-tests.log"; } >"$scratch/progress-tests.log"
+bash "$wrapper" test-inventory "$scratch/progress-tests.log"
+pass_case rust_inventory_progress
+for invalid_progress in \
+  'test publication::unexpected has been running for over 60 seconds' \
+  "$progress malformed" \
+  'test publication::unexpected ... FAILED'; do
+  { printf '%s\n' "$invalid_progress"; cat "$scratch/valid-tests.log"; } >"$scratch/invalid-progress.log"
+  require_refusal PUBLICATION_TEST_INVENTORY_INVALID \
+    bash "$wrapper" test-inventory "$scratch/invalid-progress.log"
+done
+sed '1d' "$scratch/valid-tests.log" >"$scratch/incomplete-progress.log"
+printf '%s\n' "$progress" >>"$scratch/incomplete-progress.log"
+require_refusal PUBLICATION_TEST_INVENTORY_INVALID \
+  bash "$wrapper" test-inventory "$scratch/incomplete-progress.log"
+pass_case rust_inventory_invalid_progress
 
 for spec in \
   'missing_test|1d' \
@@ -111,8 +131,8 @@ for spec in \
   'malformed_test|1s/ ... ok$/ malformed/' \
   'foreign_test|1s/publication::/unrelated::/' \
   'missing_summary|/^test result/d' \
-  'wrong_pass_count|/^test result/s/34 passed/33 passed/' \
-  'zero_pass_count|/^test result/s/34 passed/0 passed/' \
+  'wrong_pass_count|/^test result/s/36 passed/35 passed/' \
+  'zero_pass_count|/^test result/s/36 passed/0 passed/' \
   'ignored_summary|/^test result/s/0 ignored/1 ignored/' \
   'malformed_duration|/^test result/s/1.23s/1..23s/' \
   'failed_summary|/^test result/s/ok\./FAILED./'; do
@@ -300,7 +320,7 @@ require_refusal PUBLICATION_REQUIRED_INVENTORY "${hosted[@]}" GITHUB_JOB=publica
 rm "$runner/bullet-tools/git"
 
 # The bootstrap report is a test fixture with the independently enumerated
-# 34 Rust and 48 shell identities; its observation is emitted by the real CLI.
+# 36 Rust and 50 shell identities; its observation is emitted by the real CLI.
 bootstrap_report="$runner/bullet-publication-report"
 mkdir "$bootstrap_report"
 printf '[build]\njobs=2\n' >"$bootstrap_report/cargo-config.toml"
@@ -313,7 +333,7 @@ cp "$completed" "$bootstrap_report/wrapper-tests.log"
 for identity in final_success final_failure final_cancelled final_skipped final_neutral final_malformed final_empty; do
   printf 'publication wrapper case: %s ... ok\n' "$identity" >>"$bootstrap_report/wrapper-tests.log"
 done
-printf 'publication wrapper fixtures: 48 passed; 0 failed; 0 skipped\n' >>"$bootstrap_report/wrapper-tests.log"
+printf 'publication wrapper fixtures: 50 passed; 0 failed; 0 skipped\n' >>"$bootstrap_report/wrapper-tests.log"
 "${hosted[@]}" GITHUB_JOB=publication_integrity "$test_binary" ci-observe "$aggregate" "$family" "$bootstrap_report"
 bootstrap_digest="$(sha256sum "$bootstrap_report/observation.json" | cut -d ' ' -f 1)"
 downloads="$runner/bullet-publication-downloaded"
@@ -390,6 +410,6 @@ for result in failure cancelled skipped neutral malformed ''; do
   expect_refusal "final_${result:-empty}" 'publication integrity did not succeed' \
     env INTEGRITY_RESULT="$result" "${final_command[@]}"
 done
-printf 'publication wrapper fixtures: 48 passed; 0 failed; 0 skipped\n' >>"$completed"
+printf 'publication wrapper fixtures: 50 passed; 0 failed; 0 skipped\n' >>"$completed"
 bash "$wrapper" wrapper-inventory "$completed"
-printf 'publication wrapper fixtures: 48 passed; 0 failed; 0 skipped\n'
+printf 'publication wrapper fixtures: 50 passed; 0 failed; 0 skipped\n'
