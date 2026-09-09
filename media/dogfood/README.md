@@ -71,3 +71,48 @@ distributed artifact carries the rendered frames exactly.
 This is a `DOGFOOD_RUN`: an operational observation. It clears no release gate,
 satisfies no self-hosting claim, and every eligibility flag in its receipt is
 false. The recording says so on screen rather than in a footnote.
+
+# The Control Tower screencast
+
+`docs/readme-media/portal-real/portal-real.gif` walks the Control Tower against
+a `bullet-farmd` serving the SQLite ledger that the dogfood run above wrote.
+There are no fixtures and no mocked responses: the browser exchanges the
+one-time bootstrap token against the running daemon, and every surface reports
+`source bullet-kernel/sqlite-ledger` with the run's real sequence number.
+
+It shows the real mission, the real work packages, and fence 1 from that run.
+It also shows the Merge Rail reporting zero Candidates, which is the honest
+state: `bullet-gitd` preserved the Candidate into a bundle, and nothing yet
+publishes it into the ledger the Portal projects from. That gap is real and the
+screenshot is not edited to hide it.
+
+Capture it with `bullet-portal/ops/media/portal-capture.mjs`, run from the
+portal package root so Playwright resolves:
+
+    BULLET_BOOTSTRAP_TOKEN=<the one-time token farmd printed> \
+    PORTAL_ORIGIN=http://127.0.0.1:4399 CAPTURE_DIR=<dir> \
+      node ops/media/portal-capture.mjs
+
+## Quality, as measured rather than asserted
+
+| Property | Measured |
+| --- | --- |
+| Geometry | 1920 x 1200 |
+| Size | 1.1 MB |
+| Frames | 9, 20.8 s |
+| Colours per frame | 249 to 254 |
+
+GIF is an 8-bit format and a browser screenshot is 24-bit, so this one cannot
+be lossless in the way the terminal recording is, and saying otherwise would be
+the kind of claim this project exists to refuse. What was actually done:
+
+- Chromium renders with `--disable-lcd-text`, `--disable-font-subpixel-positioning`
+  and `--font-render-hinting=none`, which cuts the capture from 11,480 distinct
+  colours to 2,115 without softening the glyphs.
+- Each frame is quantized once to 256 colours with no dithering. Against the
+  24-bit capture that moves at most 26/255 on 3.1% of pixels in the worst
+  frame, and at most 7/255 on about 1% of pixels in six of the eight. Every
+  changed pixel is a glyph antialiasing edge.
+- The GIF then reproduces those quantized frames with a worst residual of
+  1/255, so the distributed artifact is the quantized capture and nothing
+  further was lost in encoding it.
