@@ -73,6 +73,8 @@ jobs:
         with:
           tool: cargo-nextest@0.9.137
           fallback: none
+      - name: Install gitleaks 8.21.2 for the publication scanner conformance tests
+        run: bash ops/ci/install-gitleaks.sh
       - id: lane
         if: ${{ !cancelled() }}
         name: Hub component partition
