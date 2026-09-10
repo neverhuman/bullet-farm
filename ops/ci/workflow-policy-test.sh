@@ -99,3 +99,39 @@ sed -i 's|^        run: bash scripts/ci-local.sh audit$|        if: ${{ always()
 expect_audit_neutral_failure conditional-lane SCHEDULED_AUDIT_LANE_EXECUTION_DRIFT
 sed -i '/^  audit:$/,$d' "$workflow_test_root/workflows/scheduled.yml"
 expect_audit_neutral_failure missing-job SCHEDULED_JOB_MISSING
+
+expect_devnode_failure() {
+  local hostile="$1" workflow="$2" expected="${3-HOSTED_DEVNODE_LANE_FORBIDDEN}" output code
+  set +e
+  output="$(refuse_hosted_devnode_lane "$workflow" 2>&1)"
+  code=$?
+  set -e
+  [[ "$code" -ne 0 && "$output" == *"$expected"* ]] \
+    || { refuse WORKFLOW_DEVNODE_HOSTILE_FAILED "$hostile code=$code output=$output"; exit 1; }
+}
+
+# A hosted job that runs the lane.
+printf '%s\n' 'jobs:' '  devnode:' '    steps:' '      - run: ops/ci/devnode.sh' \
+  >"$workflow_test_root/workflows/hostile-devnode.yml"
+expect_devnode_failure named-lane "$workflow_test_root/workflows/hostile-devnode.yml"
+# A comment is enough: the name must not appear in a hosted workflow at all,
+# because a commented lane is one uncomment away from a false claim.
+printf '%s\n' 'name: ci' '# TODO: re-enable the devnode lane here' \
+  >"$workflow_test_root/workflows/hostile-devnode.yml"
+expect_devnode_failure commented-lane "$workflow_test_root/workflows/hostile-devnode.yml"
+# A matrix entry that reaches the lane through ci-local.sh names it too.
+printf '%s\n' 'jobs:' '  lanes:' '    strategy:' '      matrix:' \
+  '        lane: [fast, lint, devnode]' \
+  >"$workflow_test_root/workflows/hostile-devnode.yml"
+expect_devnode_failure matrix-lane "$workflow_test_root/workflows/hostile-devnode.yml"
+rm -- "$workflow_test_root/workflows/hostile-devnode.yml"
+# The guard refuses a substituted entry rather than reading through it.
+ln -s ci.yml "$workflow_test_root/workflows/hostile-devnode.yml"
+expect_devnode_failure symlinked-workflow \
+  "$workflow_test_root/workflows/hostile-devnode.yml" WORKFLOW_ENTRY_NOT_REGULAR
+rm -- "$workflow_test_root/workflows/hostile-devnode.yml"
+# And admits the two real hosted workflows, which name no such lane.
+refuse_hosted_devnode_lane "$workflow_test_root/workflows/ci.yml" \
+  || { refuse WORKFLOW_DEVNODE_HOSTILE_FAILED "real ci.yml was refused"; exit 1; }
+refuse_hosted_devnode_lane "$workflow_test_root/workflows/scheduled.yml" \
+  || { refuse WORKFLOW_DEVNODE_HOSTILE_FAILED "real scheduled.yml was refused"; exit 1; }

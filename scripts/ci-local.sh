@@ -168,12 +168,15 @@ case "$lane" in
   platform) run_observed platform ops/ci/platform-refusal.sh ;;
   audit) run_observed audit ops/ci/audit.sh ;;
   toolchain-pinned) run_observed toolchain-pinned ops/ci/toolchain-pinned.sh ;;
+  # Development host only. ops/ci/devnode.sh refuses under GITHUB_ACTIONS and
+  # ops/ci/workflow-policy.sh refuses any hosted workflow that names it.
+  devnode) run_observed devnode ops/ci/devnode.sh ;;
   all) run_observed required ops/ci/required.sh \
     .ci-artifacts/junit/fast.xml .ci-artifacts/junit/contract.xml \
     .ci-artifacts/formal/contract.json .ci-artifacts/formal/contract.log \
     .ci-artifacts/contracts/bundle-manifest.json ;;
   *)
-    echo "usage: $0 {source-scan|fast|lint|contract|security|docs|required|family|family-contract|history|links|advisory|coverage|platform|audit|toolchain-pinned|all}" >&2
+    echo "usage: $0 {source-scan|fast|lint|contract|security|docs|required|family|family-contract|history|links|advisory|coverage|platform|audit|toolchain-pinned|devnode|all}" >&2
     exit 2
     ;;
 esac

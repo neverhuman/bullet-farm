@@ -132,6 +132,7 @@ lane_tools_for() {
     platform) printf '%s\n' 'git rustc cargo' ;;
     audit) printf '%s\n' 'git jankurai' ;;
     toolchain-pinned) printf '%s\n' 'git rustc cargo rustup b3sum rustc_pinned cargo_pinned' ;;
+    devnode) printf '%s\n' 'git rustc cargo' ;;
     *) return 1 ;;
   esac
 }
