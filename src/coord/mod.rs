@@ -91,6 +91,14 @@ impl CoordError {
         self.code
     }
 
+    /// The specific failure, without the code.
+    ///
+    /// `Display` writes `{code}: {reason}` and always will; this exists so a
+    /// renderer can lay the two out separately instead of parsing them apart.
+    pub fn reason(&self) -> &str {
+        &self.reason
+    }
+
     /// Operation the failed boundary was protecting.
     pub const fn purpose(&self) -> &'static str {
         self.purpose
