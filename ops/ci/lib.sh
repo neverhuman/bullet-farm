@@ -333,6 +333,7 @@ enforce_rust_build_subject() {
     ./crates/bullet-wire/Cargo.toml \
     ./crates/bullet-wire/fuzz/Cargo.toml)"
   expected_proof_manifests="$(printf '%s\n' \
+    ./devnode/record/Cargo.toml \
     ./devnode/tui/Cargo.toml)"
   expected_manifests="$(
     printf '%s\n%s\n' "$expected_product_manifests" "$expected_proof_manifests" \
@@ -360,7 +361,9 @@ enforce_rust_build_subject() {
     crates/bullet-wire/fuzz/Cargo.lock \
     rust-toolchain.toml \
     devnode/tui/Cargo.toml \
-    devnode/tui/Cargo.lock
+    devnode/tui/Cargo.lock \
+    devnode/record/Cargo.toml \
+    devnode/record/Cargo.lock
   do
     [[ -f "$subject_root/$relative" && ! -L "$subject_root/$relative" ]] || {
       refuse RUST_BUILD_SUBJECT_INVALID "$relative is missing, not regular, or a symlink"
@@ -393,6 +396,12 @@ enforce_rust_build_subject() {
         ;;
       devnode/tui/Cargo.lock)
         expected=efa9e735ab167412e00f1fe184b83026d62f317a2d9bbd51dba7576365908401
+        ;;
+      devnode/record/Cargo.toml)
+        expected=a0f1e12a32f99b3c1a5bb9b4d6d141aacd958af43c2fbbb93d749870b7cbf705
+        ;;
+      devnode/record/Cargo.lock)
+        expected=89e63ca487fcb48dea3402993902c4b74073e5bf99433bbe167e8fe3435b10e7
         ;;
     esac
     actual="$(sha256_lf_text_file "$subject_root/$relative")" || return 1

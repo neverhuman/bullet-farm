@@ -43,3 +43,30 @@ the hard way:
   credential store's startup read lock, and the concurrency at which it begins
   has not been established, so the harness serialises rather than claiming a
   limit it has not proved.
+
+## What `devnode/record` is
+
+A recorder, not a test. It drives the installed `bullet` console through the same
+real pseudo-terminal and writes a 1920×1080 GIF, one lossless PNG master per beat,
+a transcript and a `run.json` naming every subject with a digest.
+
+The geometry is the point. Every media artifact in this repository misses the
+geometry it declares: the two terminal GIFs are 2049×1323 and 1903×1228, the
+second of those despite being named "1080", and the Portal capture is 1920×1200.
+Tuiwright renders `cols × cell_width` by `rows × cell_height` and scales real
+JetBrains Mono to the cell, so 120 × 36 at a 16 × 30 cell with no padding is
+exactly 1920 × 1080 — and 120 × 36 is a terminal size a person would actually use.
+The recorder reads that geometry back out of the encoded file's own header and
+refuses `DEVNODE_RECORD_GIF_GEOMETRY_DRIFT` rather than trusting the encoder.
+
+Two things it will not do. It records nothing it has not first asserted, so the
+artifact cannot contain a frame the harness did not verify. And it names in
+`run.json` the beats it did **not** record and why — today that is every beat
+needing durable work, because the ledger holds none and inventing rows would make
+the recording a mock.
+
+The lane builds it and does not run it. A recording is a deliberate act against a
+real session with a private output directory; a lane that published media as a
+side effect would be publishing without anyone asking.
+
+    cd devnode/record && cargo run --locked

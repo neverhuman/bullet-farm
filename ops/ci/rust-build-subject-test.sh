@@ -13,7 +13,8 @@ build_subject_root="$fixture_root/build-subject"
 mkdir -p \
   "$build_subject_root/crates/bullet-linux-lease" \
   "$build_subject_root/crates/bullet-wire/fuzz" \
-  "$build_subject_root/devnode/tui"
+  "$build_subject_root/devnode/tui" \
+  "$build_subject_root/devnode/record"
 cp "$repo_root/Cargo.toml" "$build_subject_root/Cargo.toml"
 cp "$repo_root/crates/bullet-linux-lease/Cargo.toml" \
   "$build_subject_root/crates/bullet-linux-lease/Cargo.toml"
@@ -29,6 +30,8 @@ cp "$repo_root/rust-toolchain.toml" "$build_subject_root/rust-toolchain.toml"
 # pinned in lib.sh: a harness that no lane can see is a harness nobody reviews.
 cp "$repo_root/devnode/tui/Cargo.toml" "$build_subject_root/devnode/tui/Cargo.toml"
 cp "$repo_root/devnode/tui/Cargo.lock" "$build_subject_root/devnode/tui/Cargo.lock"
+cp "$repo_root/devnode/record/Cargo.toml" "$build_subject_root/devnode/record/Cargo.toml"
+cp "$repo_root/devnode/record/Cargo.lock" "$build_subject_root/devnode/record/Cargo.lock"
 
 enforce_rust_build_subject "$build_subject_root"
 for subject in \
@@ -40,7 +43,9 @@ for subject in \
   crates/bullet-wire/fuzz/Cargo.lock \
   rust-toolchain.toml \
   devnode/tui/Cargo.toml \
-  devnode/tui/Cargo.lock
+  devnode/tui/Cargo.lock \
+  devnode/record/Cargo.toml \
+  devnode/record/Cargo.lock
 do
   lf_digest="$(sha256_lf_text_file "$build_subject_root/$subject")"
   crlf_lines=0
@@ -168,6 +173,8 @@ grep -Fq RUST_BUILD_SUBJECT_DRIFT "$fixture_root/proof-lock-drift.log" || {
   exit 1
 }
 cp "$repo_root/devnode/tui/Cargo.lock" "$build_subject_root/devnode/tui/Cargo.lock"
+cp "$repo_root/devnode/record/Cargo.toml" "$build_subject_root/devnode/record/Cargo.toml"
+cp "$repo_root/devnode/record/Cargo.lock" "$build_subject_root/devnode/record/Cargo.lock"
 enforce_rust_build_subject "$build_subject_root"
 
 printf '%s\n' '' '[dependencies.rustversion]' 'version = "=1.0.23"' \

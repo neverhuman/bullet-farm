@@ -75,6 +75,17 @@ log "console flows through a real pseudo-terminal"
     cargo test --locked --test tui -- --test-threads=1
 )
 
+log "the 1080p recorder still builds against its pinned harness"
+# Building it, not running it. A recording is a deliberate act with a private
+# output directory and a real session; a lane that produced published media as a
+# side effect would be a lane that publishes without anyone asking. Building it
+# is what stops it rotting silently while the console changes underneath it.
+(
+  cd devnode/record
+  CARGO_TARGET_DIR="${BULLET_DEVNODE_TARGET:-$HOME/.cache/bullet-devnode-target}" \
+    cargo build --locked
+)
+
 log "browser flows against a real daemon"
 # Both halves are mandatory. A lane that can skip its browser half while still
 # reporting success is a lane that quietly proves less than it appears to, which
