@@ -247,7 +247,7 @@ fn hostile_fixture_files_fail_with_stable_reason_codes() {
         ("invalid-utf8.json", "INVALID_UTF8"),
         ("lf.json", "NON_CANONICAL_JSON"),
         ("non-nfc.json", "NON_NFC_STRING"),
-        ("nul.json", "CONTROL_CHARACTER_FORBIDDEN"),
+        ("nul-character.json", "CONTROL_CHARACTER_FORBIDDEN"),
         ("raw-control.json", "INVALID_JSON"),
         ("zero-width.json", "ZERO_WIDTH_CHARACTER_FORBIDDEN"),
     ]);

@@ -170,22 +170,22 @@ pub(super) fn reviewed() -> Vec<Workflow> {
     let pins = [
         (
             "bullet-farm",
-            "52c7841a5a4c6ab4a2321fce6b18755552da49d5b0e065c7be4925ad0880a1fb",
-            "e284e768a81d1ff83a5e453c3b81fbd3df0762e172367378af845e87502b422f",
+            "a6a4e78bc68635a5dff3f896b95a4940adecd9858505c5bb1781ecf73e41ab3e",
+            "700c2b023ef5279c6e99f990575e3e7232b150b32a8ab8b1ef0004948bbc0cfc",
         ),
         (
             "bullet-git",
-            "fd628b973138e9a27a7c2e7c1a6d700fc6675647b0049fd0ba14e84dfcb64f82",
-            "7a9a8db8573a90467c5c62783cfb016f8e7ba31e3449fe81c4780d429a03a9fc",
+            "7e7f03bfc74e9fb87f0f46aae726a6a455bac0ae9b7208989653ea46325bf1ce",
+            "144d2d040fd151c32027eb88a24238f6ca294122c4e75d1d767bc26cb2b8b6d7",
         ),
         (
             "bullet-kernel",
-            "5e45f68e8a682b8f474ff73bfa0b35545af3a77f3a13534fa4f462c6e1e1451d",
+            "5ac1b2c114587970e152c0ea8f73a273fec4c2c1512bc2c82aa8acb32ebf48d8",
             "b703dc10751eb777347511bafae7b9d125752c5b75d590135fcf2156f698f0ff",
         ),
         (
             "bullet-portal",
-            "41d796d45036e41f4f8999935c9cacde2c50c3f051dca49cb4ec6221c5fd6aeb",
+            "60931e893c27c8b91a0beada139469074f2802c1488409acbb8f79d1bd7411b9",
             "83e80d3f981ef39d4f7a84fbf06b6ffb9d05254c491525eed6c8941bb697da22",
         ),
     ];

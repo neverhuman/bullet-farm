@@ -38,7 +38,7 @@ validate_workflow_source .github/workflows/ci.yml \
   a6a4e78bc68635a5dff3f896b95a4940adecd9858505c5bb1781ecf73e41ab3e \
   HOSTED_REQUIRED_SOURCE_DRIFT || exit 1
 validate_workflow_source .github/workflows/scheduled.yml \
-  e284e768a81d1ff83a5e453c3b81fbd3df0762e172367378af845e87502b422f \
+  700c2b023ef5279c6e99f990575e3e7232b150b32a8ab8b1ef0004948bbc0cfc \
   HOSTED_SCHEDULED_SOURCE_DRIFT || exit 1
 validate_workflow_source ops/ci/platform-refusal.sh \
   ec629aaa37a6a6bde8553a171c411f3829971bc1179fa282992d75b5da945266 \
@@ -223,7 +223,14 @@ for job in macos windows; do
   require_text "$block" \
     'uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0' \
     SCHEDULED_PYTHON_ACTION_DRIFT
-  require_text "$block" 'python-version: "3.12.12"' SCHEDULED_PYTHON_VERSION_DRIFT
+  # The minor series is pinned, not the patch. ops/ci/rust-toolchain-boundary.sh
+  # accepts any ^Python 3\.12\.[0-9]+$ and then verifies the resolved binary by
+  # digest, so pinning the patch here proved nothing the boundary did not already
+  # prove, and it cost the macOS lane every run it ever had: setup-python refused
+  # with "The version '3.12.12' with architecture 'arm64' was not found for macOS
+  # 15.7.9". Asserting the series still stops a silent jump to 3.13, which is what
+  # this guard is actually for.
+  require_text "$block" 'python-version: "3.12"' SCHEDULED_PYTHON_VERSION_DRIFT
   require_text "$block" 'components: clippy' SCHEDULED_CLIPPY_COMPONENT_MISSING
 done
 platform_source="$(<ops/ci/platform-refusal.sh)"
