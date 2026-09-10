@@ -1,8 +1,15 @@
 // Walk Shift Brief + Control Tower + closed Head chip on a real farmd session.
 // Cookie is read from the operator store in-process and never printed.
-import { chromium } from "playwright";
+import { createRequire } from "node:module";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
+
+const portalRoot = process.env.BULLET_RECORD_PORTAL_ROOT;
+if (!portalRoot) {
+  console.error("PORTAL_ROOT_REQUIRED");
+  process.exit(2);
+}
+const { chromium } = createRequire(`${portalRoot}/package.json`)("playwright");
 
 const origin = process.env.BULLET_RECORD_PORTAL_ORIGIN ?? "http://127.0.0.1:7420";
 const stateFile = process.env.BULLET_RECORD_SESSION_FILE;
