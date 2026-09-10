@@ -1,7 +1,7 @@
 # Bullet Farm documentation map
 
 Status: **pre-release; release authority remains blocked**  
-Last reviewed: 2026-08-25
+Last reviewed: 2026-09-10
 
 This file is the hub documentation index. Do not add `docs/INDEX.md`.
 A document can explain a decision, but it cannot make a command, receipt,
@@ -42,6 +42,36 @@ Candidate, Evidence result, effect, or release true.
 The release index is deliberately fail-closed. `BLOCKED`, `UNKNOWN`, a missing
 tool, a skipped test, a zero-test run, or a simulator receipt does not become
 green through documentation.
+
+## Operator surface
+
+The commands an operator actually runs. This section exists because the index
+carried none of them for its first three weeks while they were already the
+primary way anyone touches this product.
+
+| Command | What it does | Authority |
+| --- | --- | --- |
+| `bullet auth login --stdin < TOKEN` | Exchanges a one-time, ten-minute bootstrap token for a private durable session. Never takes a credential as an argument. | [runbooks/dogfood-admission-kit.md](runbooks/dogfood-admission-kit.md) |
+| `bullet auth status` | Reports the operator and session identity and its expiry, or refuses `AUTH_REQUIRED`. | [boundaries.md](boundaries.md) |
+| `bullet tui` | The operator console. Browses authenticated durable work; `Ctrl+C` detaches the client and leaves the daemon running. | [testing.md](testing.md) |
+| `bullet coding submit` | Submits a durable `run_coding` command against loopback farmd. | [runbooks/dogfood.md](runbooks/dogfood.md) |
+| `bullet coding board` / `watch` | Reads the atomic operator board: hold, fleet, sessions, outbox, harness. | [runbooks/dogfood.md](runbooks/dogfood.md) |
+| `bullet coding list` / `status` / `task` / `retry` | Discovers this operator's durable commands, including after local journal loss. | [runbooks/dogfood.md](runbooks/dogfood.md) |
+| `bullet coding harness-check` | Inspects the local harness environment. Daemon runtime admission is a separate, unknown question. | [assurance/product-gaps.md](assurance/product-gaps.md) |
+| `bullet run show` | Reads a run receipt back, verifies its digest and chain, then renders it. | [architecture.md](architecture.md) |
+| `bullet mission` | Browses authenticated missions. | [architecture.md](architecture.md) |
+| `bullet provider live-conformance` | Policy-gated provider conformance, fail-closed at runtime observation. | [decisions/0012-policy-v1alpha2-live-admission.md](decisions/0012-policy-v1alpha2-live-admission.md) |
+| `bullet authority keygen` / `mint-launch-grant` | Operator-held launch-grant authority and offline minting. | [decisions/0011-signed-launch-grant-and-egress-isolation.md](decisions/0011-signed-launch-grant-and-egress-isolation.md) |
+| `bullet dogfood` | Internal dogfood compose. Not a release profile and not live-conformance. | [decisions/0015-dogfood-track.md](decisions/0015-dogfood-track.md) |
+| `bullet transaction` | The five-plane transaction receipt. Currently ABSENT and ineligible. | [release.md](release.md) |
+| `bullet-family doctor --json` | This checkout and its family, as JSON. Exits 3 when BLOCKED, by design. | [README.md](README.md) |
+| `bullet-family check <fast\|required\|release\|scorecard\|dogfood>` | The gate surfaces. `check release` is BLOCKED on every profile. | [release.md](release.md) |
+| `bullet-family coord …` | Coordinator verbs. Forbidden while the operating hold stands. | [runbooks/coordinator-recovery.md](runbooks/coordinator-recovery.md) |
+
+Colour on every one of these follows a single rule: `NO_COLOR` when present and
+non-empty disables it, `CLICOLOR_FORCE` paints a pipe, a `dumb` or absent `TERM`
+is never painted, and `--no-color`, `--plain` and `--color=<auto|always|never>`
+override the environment.
 
 ## Explanatory documents
 
@@ -155,6 +185,154 @@ to all 46 global crosswalk rows; the `docs` lane
 refuses a stale copy. Live-provider, live-forge,
 package, signing, and release evidence must use their separately admitted lanes
 and exact subjects; the commands above do not substitute for them.
+
+## Complete document inventory
+
+Every tracked Markdown document under `docs/`, so that a document cannot exist
+here without appearing in the index. `tests/assurance_controls.rs` asserts this
+list stays complete; it had drifted to 54 unlisted documents out of 91 before
+that control existed, including every decision record and every runbook. Being
+listed is not an endorsement: a document can explain a decision, and it still
+cannot make a command, receipt, Candidate, Evidence result, effect, or release
+true.
+
+
+### Top level
+
+- [architecture.md](architecture.md) — Architecture entrypoint
+- [boundaries.md](boundaries.md) — Trust and repository boundaries
+- [code-map.md](code-map.md) — Bullet Farm code map
+- [errors.md](errors.md) — Error and repair contract
+- [glossary.md](glossary.md) — Glossary
+- [phase-9-10.md](phase-9-10.md) — Historical Phase 9–10 sketch
+- [release.md](release.md) — Bullet Farm release contract
+- [testing.md](testing.md) — Test and evidence strategy
+- [workplan.md](workplan.md) — Bullet Farm opportunity workplan
+
+
+### Architecture
+
+- [architecture/evolutionary-control.md](architecture/evolutionary-control.md) — Evolutionary multi-agent control
+- [architecture/overview.md](architecture/overview.md) — Architecture
+
+
+### Assurance, gap registers and campaign plans
+
+- [assurance/canonicalization.md](assurance/canonicalization.md) — Canonical document pipeline
+- [assurance/closure-roadmap.md](assurance/closure-roadmap.md) — Bullet Farm closure roadmap
+- [assurance/competitor-snapshot.md](assurance/competitor-snapshot.md) — Competitor comparison snapshot
+- [assurance/corpus-coverage.generated.md](assurance/corpus-coverage.generated.md) — Corpus coverage (generated)
+- [assurance/deep-audit-20260909.md](assurance/deep-audit-20260909.md) — Bullet Farm: production and delivery audit, 9 September 2026
+- [assurance/dogfood-execution-plan.md](assurance/dogfood-execution-plan.md) — Dogfood execution plan (v0 read-only, then v1 writing)
+- [assurance/execution-plan.md](assurance/execution-plan.md) — Bullet Farm finish execution plan
+- [assurance/full-product-dogfood-plan.md](assurance/full-product-dogfood-plan.md) — Full-product dogfood bridge
+- [assurance/health-checkpoint-20260909.md](assurance/health-checkpoint-20260909.md) — Health checkpoint after the production audit
+- [assurance/health-observations-20260908.md](assurance/health-observations-20260908.md) — health observations 20260908
+- [assurance/invariant-crosswalk.generated.md](assurance/invariant-crosswalk.generated.md) — Invariant crosswalk
+- [assurance/invariant-registry.md](assurance/invariant-registry.md) — Invariant registry contract
+- [assurance/launch-plan.md](assurance/launch-plan.md) — Historical launch-plan checkpoint
+- [assurance/nightshift-fusion-plan.md](assurance/nightshift-fusion-plan.md) — Nightshift fusion plan
+- [assurance/orphan-inventory.generated.md](assurance/orphan-inventory.generated.md) — Typed assurance inventory (Wave 0)
+- [assurance/path-to-100.md](assurance/path-to-100.md) — Path to 100 — closing every gap, fairly
+- [assurance/phase-1-dependency-map.md](assurance/phase-1-dependency-map.md) — Gate 0 dependency map
+- [assurance/prerequisite-observations-20260908.md](assurance/prerequisite-observations-20260908.md) — Local production prerequisite checkpoints
+- [assurance/product-gaps.md](assurance/product-gaps.md) — Product gap register
+- [assurance/production-prerequisite-checkpoints.md](assurance/production-prerequisite-checkpoints.md) — Local production prerequisite checkpoints
+- [assurance/release-truth.generated.md](assurance/release-truth.generated.md) — Release truth
+- [assurance/scorecard.generated.md](assurance/scorecard.generated.md) — Scorecard (generated)
+- [assurance/spec-crosswalk.md](assurance/spec-crosswalk.md) — Spec §38 implementation crosswalk
+- [assurance/v1-closure-plan.md](assurance/v1-closure-plan.md) — Historical Safety-Complete V1 checkpoint
+- [assurance/xbabe2-development-closeout.md](assurance/xbabe2-development-closeout.md) — xbabe2 development closeout
+
+
+### Brand — mascots
+
+- [brand/mascots/01-fence-the-goat.md](brand/mascots/01-fence-the-goat.md) — 1. Fence the Goat
+- [brand/mascots/02-the-combine.md](brand/mascots/02-the-combine.md) — 2. The Combine
+- [brand/mascots/03-hashfire-the-moth.md](brand/mascots/03-hashfire-the-moth.md) — 3. Hashfire the Moth
+- [brand/mascots/04-one-rail-tractor.md](brand/mascots/04-one-rail-tractor.md) — 4. The One-Rail Tractor
+- [brand/mascots/05-barn-owl-attestor.md](brand/mascots/05-barn-owl-attestor.md) — 5. The Barn-Owl Attestor
+- [brand/mascots/README.md](brand/mascots/README.md) — Bullet Farm mascot concepts
+
+
+### Decision records
+
+- [decisions/0001-provider-execution-mode.md](decisions/0001-provider-execution-mode.md) — 0001 — Provider execution mode: providers propose, BulletGit writes
+- [decisions/0002-jeryu-forge-requirements.md](decisions/0002-jeryu-forge-requirements.md) — 0002 — Jeryu as the Bullet Farm effect target: requirements and do-not-disturb rules
+- [decisions/0003-five-trust-planes.md](decisions/0003-five-trust-planes.md) — ADR 0003: Five trust planes and principal separation
+- [decisions/0004-scope-amendment-tracks.md](decisions/0004-scope-amendment-tracks.md) — ADR 0004: Scope amendment tracks
+- [decisions/0005-signed-authority-key-lifecycle.md](decisions/0005-signed-authority-key-lifecycle.md) — ADR 0005: Signed authority and key lifecycle
+- [decisions/0006-trusted-time-restore-replay.md](decisions/0006-trusted-time-restore-replay.md) — ADR 0006: Trusted time, restore epoch, and replay
+- [decisions/0007-sandbox-secret-taint.md](decisions/0007-sandbox-secret-taint.md) — ADR 0007: Sandbox, secrets, and tainted tool data
+- [decisions/0008-forge-gates.md](decisions/0008-forge-gates.md) — ADR 0008: Local Jeryu and GitHub are separate gates
+- [decisions/0009-data-retention-audit-anchor.md](decisions/0009-data-retention-audit-anchor.md) — ADR 0009: Data classification, retention, and audit anchoring
+- [decisions/0010-supply-chain-policy.md](decisions/0010-supply-chain-policy.md) — ADR 0010: Supply-chain and release policy
+- [decisions/0011-signed-launch-grant-and-egress-isolation.md](decisions/0011-signed-launch-grant-and-egress-isolation.md) — 0011 — Signed launch grants and provider egress isolation
+- [decisions/0012-policy-v1alpha2-live-admission.md](decisions/0012-policy-v1alpha2-live-admission.md) — 0012 — Policy v1alpha2: operator-ratified live provider admission
+- [decisions/0013-operator-decision-register.md](decisions/0013-operator-decision-register.md) — ADR 0013: Operator decision register
+- [decisions/0014-corpus-dispositions.md](decisions/0014-corpus-dispositions.md) — ADR 0014 — Corpus dispositions: what "addressed" means for the historical vision
+- [decisions/0015-dogfood-track.md](decisions/0015-dogfood-track.md) — 0015 — The dogfood track: `DOGFOOD_RUN` operational observations and `dogfood-local-v0`
+- [decisions/0016-legacy-contract-semantic-closure.md](decisions/0016-legacy-contract-semantic-closure.md) — ADR 0016: Legacy contract semantic closure
+- [decisions/0017-catalog-type-expression-proof-annex.md](decisions/0017-catalog-type-expression-proof-annex.md) — ADR 0017 normative proof and admission annex
+- [decisions/0017-catalog-type-expression-vocabulary.md](decisions/0017-catalog-type-expression-vocabulary.md) — ADR 0017: Catalog type-expression vocabulary
+- [decisions/0018-evidence-authenticity-publication.md](decisions/0018-evidence-authenticity-publication.md) — ADR 0018: Evidence authenticity and publication
+- [decisions/0019-w11-proof-support-correction.md](decisions/0019-w11-proof-support-correction.md) — ADR 0019: W11 proof support correction
+- [decisions/0020-w11-test-inventory-baseline-correction.md](decisions/0020-w11-test-inventory-baseline-correction.md) — ADR 0020: W11 test-inventory baseline correction
+
+
+### Demo media
+
+- [demo-gif/README.md](demo-gif/README.md) — Private native capture and rendering
+
+
+### Exceptions
+
+- [exceptions/README.md](exceptions/README.md) — Dated exceptions
+
+
+### Paper
+
+- [paper/README.md](paper/README.md) — Bullet Farm paper and executive brief
+
+
+### README live media
+
+- [readme-live-media/README.md](readme-live-media/README.md) — Historical and operator-supplied media
+
+
+### README media
+
+- [readme-media/README.md](readme-media/README.md) — Reproducible README media
+
+
+### Runbooks
+
+- [runbooks/README.md](runbooks/README.md) — Runbooks
+- [runbooks/backup-restore.md](runbooks/backup-restore.md) — SQLite backup and quarantined restore
+- [runbooks/coordinator-recovery.md](runbooks/coordinator-recovery.md) — Coordinator recovery production
+- [runbooks/dogfood-admission-kit.md](runbooks/dogfood-admission-kit.md) — Dogfood admission kit (operator)
+- [runbooks/dogfood.md](runbooks/dogfood.md) — Dogfood the family (operator board)
+- [runbooks/effect-reconciliation.md](runbooks/effect-reconciliation.md) — Effect reconciliation — the offline half
+- [runbooks/fleet.md](runbooks/fleet.md) — Fleet runbook
+- [runbooks/live-conformance.md](runbooks/live-conformance.md) — Live provider conformance — admission, ratification, and the nightly lane
+- [runbooks/platform-refusal.md](runbooks/platform-refusal.md) — Platform refusal — what each binary does off the supported runner
+- [runbooks/publication.md](runbooks/publication.md) — Exact-source aggregate publication
+- [runbooks/release-build.md](runbooks/release-build.md) — Release build containment boundary
+- [runbooks/schema-removal.md](runbooks/schema-removal.md) — Schema removal — `UNSUPPORTED_SCHEMA` sites and what an operator can do
+- [runbooks/setup-recovery.md](runbooks/setup-recovery.md) — Setup recovery drill
+- [runbooks/signer-rotation.md](runbooks/signer-rotation.md) — Signer rotation — launch-grant key today, release-signing key not provisioned
+- [runbooks/source-setup.md](runbooks/source-setup.md) — Source setup and installation boundary
+
+
+### Specification sources
+
+- [spec/CENTERRAIL_FINAL_ADAPTIVE_MULTI_FRONTIER_ENGINEERING_SPEC.md](spec/CENTERRAIL_FINAL_ADAPTIVE_MULTI_FRONTIER_ENGINEERING_SPEC.md) — Centerrail
+- [spec/GASTOWN_OPEN_ISSUES_RISK_AUDIT_FOR_CENTERRAIL.md](spec/GASTOWN_OPEN_ISSUES_RISK_AUDIT_FOR_CENTERRAIL.md) — Gas Town Open-Issue Risk Audit
+- [spec/POTENTIAL_DRAFT.md](spec/POTENTIAL_DRAFT.md) — BULLETFARM — The Definitive Multi-Agent Coding Engine
+- [spec/README.md](spec/README.md) — Historical design corpus
+- [spec/git_role.md](spec/git_role.md) — Executive conclusion
+- [spec/nightshift.md](spec/nightshift.md) — nightshift
+- [spec/paper.md](spec/paper.md) — Bullet Farm — IEEE white-paper record
 
 ## Maintenance rule
 
