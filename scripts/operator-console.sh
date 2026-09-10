@@ -95,7 +95,7 @@ done
   || refuse NPM_PIN "expected npm $PINNED_NPM_VERSION, found $(npm --version)"
 
 if [[ -z "$farmd_bin" || -z "$bullet_bin" ]]; then
-  ( cd "$KERNEL" && cargo build --locked -p bullet --bin bullet -p bullet-farmd ) \
+  ( cd "$KERNEL" && cargo build --locked -p bullet --bin bullet -p bullet-farmd --bin bullet-farmd ) \
     || refuse BUILD_FAILED "cargo build --locked -p bullet --bin bullet -p bullet-farmd"
   [[ -n "$bullet_bin" ]] || bullet_bin="$KERNEL/target/debug/bullet"
   [[ -n "$farmd_bin" ]] || farmd_bin="$KERNEL/target/debug/bullet-farmd"
