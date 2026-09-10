@@ -40,6 +40,13 @@ Historical recordings remain available in the source snapshot:
   vendor explanation sessions and a Portal form demonstration, with their
   original limitations. They do not establish the requested provider workflow.
 
+Current HOLD-honest operator console (real authenticated loopback farmd on
+xbabe2; not an installer; not VERIFIED; HOLD remains):
+
+- [operator TUI](bullet-farm/media/operator-console/operator-tui.gif)
+- [operator Portal](bullet-farm/media/operator-console/operator-portal.gif)
+- [captions](bullet-farm/media/operator-console/README.md)
+
 These assets are historical evidence, not the current operator showcase. The
 three retained bridge GIFs do not meet the required native capture geometry.
 The installed TUI and packaged Portal must still demonstrate the same real
