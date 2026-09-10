@@ -118,10 +118,18 @@ jobs:
           components: rustfmt, clippy
       - name: Install checksum-pinned actionlint 1.7.8
         run: bash ops/ci/install-actionlint.sh
+      # ops/ci/observation-test.sh replays every lane's observation shape from a
+      # real one taken on this runner, and ops/ci/artifact-check.sh requires each
+      # lane's own tool versions, so the lint job carries the union: cargo-deny
+      # and zizmor for the security and required shapes, Java for contract.
       - uses: taiki-e/install-action@b6ff580856c41316412a0b9b60540fbc6f8c82cc # v2.86.7
         with:
-          tool: shellcheck@0.10.0,cargo-nextest@0.9.137
+          tool: shellcheck@0.10.0,cargo-nextest@0.9.137,cargo-deny@0.19.8,zizmor@1.25.2
           fallback: none
+      - uses: actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520 # v5.4.0
+        with:
+          distribution: temurin
+          java-version: "21"
       - name: Install locked b3sum 1.8.2 for the lint lane doctor
         run: cargo install --locked --version 1.8.2 b3sum
       # ops/ci/rust-toolchain-boundary-test.sh exercises the history lane, whose
