@@ -389,7 +389,7 @@ enforce_rust_build_subject() {
         expected=e3a213e0d222e94d213cafbc20932eb3f76c643b4dd63756acf95192df2aa310
         ;;
       devnode/tui/Cargo.toml)
-        expected=e7de1ce77d1c5573bd0b53edbf55aa9cb3b21979bff8aa18244597f222b61a31
+        expected=7ada32a34feb7779d382d5fecedc4ee0f9b24b743a7769ec5f4ae060bf48c60f
         ;;
       devnode/tui/Cargo.lock)
         expected=efa9e735ab167412e00f1fe184b83026d62f317a2d9bbd51dba7576365908401
