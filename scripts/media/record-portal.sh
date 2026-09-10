@@ -89,7 +89,7 @@ LIST="$FRAMES/frames.ffconcat"
 } >"$LIST"
 
 ( cd "$FRAMES" && "$FFMPEG" -nostdin -hide_banner -loglevel error -y -f concat -safe 0 -i frames.ffconcat \
-  -vf "fps=5,scale=${PORTAL_WIDTH}:${PORTAL_HEIGHT}:flags=neighbor,split[s0][s1];[s0]palettegen=max_colors=64:stats_mode=full[p];[s1][p]paletteuse=dither=none" \
+  -vf "scale=${PORTAL_WIDTH}:${PORTAL_HEIGHT}:flags=neighbor,split[s0][s1];[s0]palettegen=max_colors=64:stats_mode=full[p];[s1][p]paletteuse=dither=none" \
   "$OUT/$NAME.gif" ) || die RENDER gif
 
 "$FFMPEG" -nostdin -hide_banner -loglevel error -y -i "$OUT/$NAME.gif" \
