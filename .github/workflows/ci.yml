@@ -117,6 +117,8 @@ jobs:
         with:
           tool: shellcheck@0.10.0,cargo-nextest@0.9.137
           fallback: none
+      - name: Install locked b3sum 1.8.2 for the lint lane doctor
+        run: cargo install --locked --version 1.8.2 b3sum
       - name: Install hash-locked Draft 2020-12 validator
         run: |
           bash ops/ci/install-readme-jsonschema.sh
