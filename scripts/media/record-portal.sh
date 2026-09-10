@@ -74,23 +74,23 @@ PYTHON="$(command -v python3)"
 mapfile -t HOLDS < <(jq -r '.[].hold_cs' "$FRAMES/frames.json")
 mapfile -t FILES < <(jq -r '.[].file' "$FRAMES/frames.json")
 ((${#FILES[@]} >= 1 && ${#FILES[@]} <= 64)) || die FRAMES "need 1..64 frames"
-LIST="$OUT/frames.ffconcat"
+LIST="$FRAMES/frames.ffconcat"
 {
   printf 'ffconcat version 1.0\n'
   idx=0
   for file in "${FILES[@]}"; do
     hold="${HOLDS[$idx]}"
     ((hold >= 2)) || die FRAME_DELAY "$hold"
-    printf "file '%s'\n" "$FRAMES/$file"
+    printf "file '%s'\n" "$file"
     awk -v cs="$hold" 'BEGIN { printf "duration %.2f\n", cs/100 }'
     idx=$((idx + 1))
   done
-  printf "file '%s'\n" "$FRAMES/${FILES[-1]}"
+  printf "file '%s'\n" "${FILES[-1]}"
 } >"$LIST"
 
-"$FFMPEG" -nostdin -hide_banner -loglevel error -y -i "$LIST" \
+( cd "$FRAMES" && "$FFMPEG" -nostdin -hide_banner -loglevel error -y -f concat -safe 0 -i frames.ffconcat \
   -vf "fps=5,scale=${PORTAL_WIDTH}:${PORTAL_HEIGHT}:flags=neighbor,split[s0][s1];[s0]palettegen=max_colors=64:stats_mode=full[p];[s1][p]paletteuse=dither=none" \
-  "$OUT/$NAME.gif" || die RENDER gif
+  "$OUT/$NAME.gif" ) || die RENDER gif
 
 "$FFMPEG" -nostdin -hide_banner -loglevel error -y -i "$OUT/$NAME.gif" \
   -f framemd5 "$OUT/$NAME.frames.framemd5" || die RENDER framemd5
