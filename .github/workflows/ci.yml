@@ -112,6 +112,13 @@ jobs:
         run: bash ops/ci/install-ripgrep.sh
       - name: Install checksum-pinned just 1.58.0
         run: bash ops/ci/install-just.sh
+      # ops/ci/family-observation-test.sh takes a real family-contract observation
+      # on this runner, and that lane records rustc_pinned/cargo_pinned from
+      # `rustup run 1.97.1`. The Hub itself builds with 1.95.0, so the pinned
+      # kernel toolchain is installed first and 1.95.0 is made the default last.
+      - uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b
+        with:
+          toolchain: 1.97.1
       - uses: dtolnay/rust-toolchain@b3b07ba8b418998c39fb20f53e8b695cdcc8de1b
         with:
           toolchain: 1.95.0
