@@ -127,6 +127,12 @@ const EXPECTED: &[ExpectedLane] = &[
         "operator-local Rust 1.97.1 build and test observation",
         false,
     ),
+    lane(
+        "devnode",
+        "bash scripts/ci-local.sh devnode",
+        "development-host-only real console over a pseudo-terminal and real browser against an authenticated daemon; refused on any hosted runner",
+        true,
+    ),
 ];
 
 const DISPATCH: &[ExpectedDispatch] = &[
@@ -192,6 +198,7 @@ const DISPATCH: &[ExpectedDispatch] = &[
         "ops/ci/toolchain-pinned.sh",
         &[],
     ),
+    dispatch("devnode", "devnode", "ops/ci/devnode.sh", &[]),
     dispatch(
         "all",
         "required",
