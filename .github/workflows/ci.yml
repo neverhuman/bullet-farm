@@ -103,6 +103,9 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+          # ops/ci/rust-toolchain-boundary-test.sh exercises the history lane,
+          # and ops/ci/history.sh refuses a shallow clone by design.
+          fetch-depth: 0
       - name: Install checksum-pinned ripgrep 14.1.1
         run: bash ops/ci/install-ripgrep.sh
       - name: Install checksum-pinned just 1.58.0
@@ -168,6 +171,8 @@ jobs:
         with:
           tool: cargo-nextest@0.9.137
           fallback: none
+      - name: Populate the locked registry for the offline dependency graph
+        run: cargo fetch --locked
       - id: lane
         if: ${{ !cancelled() }}
         name: Wire contracts and pinned formal models
