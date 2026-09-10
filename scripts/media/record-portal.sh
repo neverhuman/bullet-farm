@@ -113,6 +113,10 @@ members_json() {
     | map({key: .[0], value: {oid: .[1], dirty: (.[2] == "true")}}) | from_entries'
 }
 
+GIF_FRAMES="$("$FFPROBE" -v error -select_streams v:0 -count_frames -show_entries stream=nb_read_frames -of csv=p=0 -- "$OUT/$NAME.gif")"
+[[ "$GIF_FRAMES" =~ ^[0-9]+$ ]] || die FRAMES "ffprobe frame count"
+export GIF_FRAMES
+
 python3 - "$OUT" "$NAME" "$PORTAL_SELF" "$BULLET_BIN" "$FARMD_BIN" "$HOST" \
   "$(members_json)" "$FFMPEG" "$PYTHON" <<'PY'
 import hashlib, json, os, subprocess, sys
@@ -187,7 +191,7 @@ manifest = {
     },
     "capture_sha256": sha(obs),
     "render_receipt_sha256": sha(receipt_path),
-    "portal": {"frames": len(receipt["frames"])},
+    "portal": {"frames": int(os.environ["GIF_FRAMES"])},
     "claims": run["claims"],
     "release_eligible": False,
 }
