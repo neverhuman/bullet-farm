@@ -124,6 +124,10 @@ jobs:
           fallback: none
       - name: Install locked b3sum 1.8.2 for the lint lane doctor
         run: cargo install --locked --version 1.8.2 b3sum
+      # ops/ci/rust-toolchain-boundary-test.sh exercises the history lane, whose
+      # observation must record a gitleaks version like source-scan and security.
+      - name: Install gitleaks 8.21.2 for the history lane
+        run: bash ops/ci/install-gitleaks.sh
       - name: Install hash-locked Draft 2020-12 validator
         run: |
           bash ops/ci/install-readme-jsonschema.sh
