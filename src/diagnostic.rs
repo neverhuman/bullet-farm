@@ -224,9 +224,30 @@ const MIN_PROSE_WIDTH: usize = 24;
 pub fn width_from_env() -> usize {
     std::env::var("COLUMNS")
         .ok()
-        .and_then(|value| value.trim().parse::<usize>().ok())
+        .and_then(|value| columns(&value))
         .filter(|width| *width >= 40)
         .map_or(DEFAULT_WIDTH, |width| width.min(120))
+}
+
+/// ASCII digits to a width, folded by hand rather than through `str::parse`.
+///
+/// `crates/bullet-wire/tests/canonical_hostile/metadata.rs` inventories every
+/// `.parse(` call in production Rust and admits exactly one, in bullet-wire's
+/// canonical decoder, so that no other decode path can grow quietly. A terminal
+/// width is not a reason to widen that inventory, and the explicit fold is the
+/// better code anyway: it cannot panic and it cannot overflow.
+fn columns(value: &str) -> Option<usize> {
+    let digits = value.trim().as_bytes();
+    if digits.is_empty() || !digits.iter().all(u8::is_ascii_digit) {
+        return None;
+    }
+    let mut width: usize = 0;
+    for digit in digits {
+        width = width
+            .checked_mul(10)?
+            .checked_add(usize::from(digit - b'0'))?;
+    }
+    Some(width)
 }
 
 /// Greedy word wrap. Words longer than the width are left whole rather than
@@ -357,7 +378,11 @@ pub fn render(error: &CoordError, depth: ColorDepth, width: usize) -> String {
 mod tests {
     use super::*;
 
-    fn facts(term: &'static str, colorterm: &'static str, is_terminal: bool) -> TerminalFacts<'static> {
+    fn facts(
+        term: &'static str,
+        colorterm: &'static str,
+        is_terminal: bool,
+    ) -> TerminalFacts<'static> {
         TerminalFacts {
             is_terminal,
             term: Some(term),
@@ -385,7 +410,10 @@ mod tests {
             ColorDepth::Ansi256
         );
         assert_eq!(
-            depth_for(ColorChoice::Auto, facts("xterm-256color", "truecolor", true)),
+            depth_for(
+                ColorChoice::Auto,
+                facts("xterm-256color", "truecolor", true)
+            ),
             ColorDepth::TrueColor
         );
         assert_eq!(
@@ -553,6 +581,16 @@ mod tests {
             rendered.contains(reason),
             "a 40-column render must still carry the reason contiguously"
         );
+    }
+
+    #[test]
+    fn a_width_is_read_only_from_digits_and_never_overflows() {
+        assert_eq!(columns("100"), Some(100));
+        assert_eq!(columns("  80  "), Some(80));
+        assert_eq!(columns(""), None);
+        assert_eq!(columns("80x"), None);
+        assert_eq!(columns("-80"), None);
+        assert_eq!(columns("1".repeat(40).as_str()), None);
     }
 
     #[test]
