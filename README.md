@@ -29,6 +29,9 @@ cd bulletfarm
 
 This is the aggregate root, with the Hub under `bullet-farm/`. A source clone
 is not a trusted installer and not VERIFIED. Operating HOLD remains.
+Public installation is not available. The checked-in `family.lock` is a
+diagnostic schema-2 snapshot; it cannot authorize source acquisition or a
+release install.
 
 | Tool | Pin |
 | --- | --- |
