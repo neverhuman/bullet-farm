@@ -21,8 +21,8 @@ Hub ([PR #16](https://github.com/neverhuman/bullet-farm/pull/16)):
 - Default no-args `bullet` is the TUI after login. `coding stop` stays
   `STOP_UNIMPLEMENTED`. Ctrl+C detaches the TUI only.
 
-Kernel ([PR #18](https://github.com/neverhuman/bullet-kernel/pull/18); oid
-after merge onto `main`):
+Kernel ([PR #18](https://github.com/neverhuman/bullet-kernel/pull/18) merged
+`088e53ad` on `main`):
 
 - No-args `bullet` runs `tui`. `coding harness-bind` produces the three
   ledger identities. `harness-check` is BOUND only when all seventeen

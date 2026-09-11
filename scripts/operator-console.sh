@@ -208,7 +208,6 @@ if [[ -n "$worker_reason" ]]; then
   printf 'worker=UNBOUND reason=%s\n' "$worker_reason"
 else
   manifest="$data_dir/worker/binary-manifest.json"
-  mkdir -m 0700 -p -- "$data_dir/worker"
   setsid bash "$loop_sh" \
     --data-dir "$data_dir" \
     --manifest "$manifest" \
