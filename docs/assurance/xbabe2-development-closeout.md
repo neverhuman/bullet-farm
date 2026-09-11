@@ -18,20 +18,20 @@ maps current repairs and retained failures. No product/profile status is promote
 
 | Existing obligation | Latest measured component evidence | Immediate work |
 | --- | --- | --- |
-| H1 / Hub | Reviewed reconciliation committed locally at62829222; console17 plus readiness negative, UI/Head33 and hostile8 passed. | Resolve foreign media-checker custody; run complete required/scheduled lanes over exact reconciled source. |
-| H1 / Kernel | Restored server authentication, alias, early paint, exact Submissions and safe containment refusal; failed proposals retained. | Default durable Head, owner-bound CLI acknowledgements, real task/Candidate/lease producer and qualified contained native lifecycle. |
-| H2 / Kernel | At88de763, r4 retained1266 fast+34 contract passes but failed docs. At5f859709, r5 failed three40s backup timeouts with1136 unexecuted; original r1 report loss remains preserved. | Reconcile active foreign branch custody; measure unchanged backup tests under controlled concurrency; complete required and continuous source proof. |
-| H2 / Portal | Local e178db3 adds reference-link10 tests to reviewed fixture repairs. Required-r1 failed after360 tests/build; new image ABI14 passed, first collection refused actual ldd lookup. | Repair/re-execute collection and cross-mount mutation fixture, then exact admitted required; unchanged compiler control alone is insufficient. Coverage88% and actual browsers remain separate. |
+| H1 / Hub | Reviewed reconciliation62829222 and ADR migration-reference repair6f730bf9; console17 plus readiness negative, UI/Head33 and hostile8 passed. | Resolve foreign media-checker custody; run complete required/scheduled lanes over exact reconciled source. |
+| H1 / Kernel | Restored authentication, alias, early paint, exact Submissions and containment refusal. New default TUI/startup5 and distinct lease SQLite2/worker1 pass independent review. | Durable Head, owner-bound CLI acknowledgements, real WorkPackage/Candidate producer, identical-payload nonce admission and contained native lifecycle. |
+| H2 / Kernel | R4 retained1266 fast+34 contract passes but failed docs; r5 had three40s timeouts/1136 unexecuted. Reconciled source now passes five backup cases serially and at four threads with unchanged timeout. | Execute complete required over reviewed new identities and continuous source proof; original r1 report loss and r4/r5 failures remain non-passing. |
+| H2 / Portal | Exact e178db3 full required7e526 independently accepted:360 fast/build, five atomic observations and monitor FINISHED. Actual changed/restored compilation refuses despite rustc0 and equal ending source. | Coverage88%, actual browser campaigns, hosted admission and native-platform proof remain separate; historical required/collection/handshake failures are retained. |
 | U1 / TUI | Actual canonical operator-tui12/12,126 artifacts, independent review and source endpoint readback. | Installed/provider/continuous source/performance/media acceptance remains open; recorded terminal events are not full recordings. |
-| C1 / delivery | Workflow pins/topology reconciled at62829222; actual Nextest36 publication library tests passed. Earlier libtest32/36 failure retained;53 definitions/55 cells remains a dated observation. | All actual event/cell executions/artifacts, auditor/native qualification, aggregate acceptance and five protection packets. |
+| C1 / delivery | Nextest36 publication tests; sealed auditor helper21 and audit policy18 pass component review. Nine community templates reviewed; public linked guidance still stale. | Actual native audit/fresh observation, all event/cell artifacts, native custody, aggregate generation/publication/read-back and five protection packets. |
 | M1 / public media | Later Cursor handoff records Hub #14 dark HOLD/PENDING clip, three PENDING submissions, no worker Attempt. | Preserve blank historical asset and diagnostic replacement; qualify installed real coding and exact public fetch-back separately. |
 | R1 / installation | No newly qualified signed service or provider enrollment. | Keep Operating HOLD; prepare operator packets only after their concrete engineering prerequisites. |
 
 The original 18-source/12-evidence capsule and rejected Portal revisions remain
 preserved. Source manifest SHA-256 is `32a922258dbd3f9e0e8b8dc128ecbbc65e02869fccd1ddf38e63e947c0ee6e23`;
 evidence manifest is `17294415e7f4c4c3a01b991f7f5924afd47750674acc4fc64ba5c5c22c188792`.
-New source/evidence archive6481af4c3eddea0c4ce538a93aac361218d958e305226aa55d1e1c16fd6ab6d6 preserves accepted local subjects. Never discard newer bytes or replay under a new identity.
-Cursor3478b57d reintroduces failed-process promotion and unsafe schema writes; reconcile exact reviewed source and every writer's release before integration.
+Archives r4/r5/r6 retain exact closed source and evidence; [audit continuation](deep-audit-20260911.md#first-measured-implementation-cycle) records hashes and scope. Never discard newer bytes or replay under a new identity.
+Cursor3478b57d and fetched088e53ad are preserved repair inputs. Root branch restored after writer release; unsafe failed-process promotion/schema writes were not imported.
 The Linux monitor rejects changed-and-restored compiler inputs; retain overflow,
 lost-custody and tool/config/lookup drift as non-passing. It is not a cross-platform
 or hosted admission receipt. Hold a full source freeze across every proof stage.
@@ -126,7 +126,7 @@ Keep `POST /api/v1/commands` as the only mutation ingress. Generate Rust, JSON
 Schema, OpenAPI and TypeScript from authoritative contracts; remove duplicate
 handwritten DTOs. Add execution tables through supported append-only upgrades,
 preserving schema-27 history, IDs and exact historical retries. Explicitly amend
-ADR0018's old migration24 packet: that number now belongs to operator sessions. Obsolete new
+ADR0018's corrected successor rule: migration24 belongs to operator sessions. Obsolete new
 authority-bearing submissions refuse explicitly; historical reads remain valid.
 
 | Packet / existing workstream | Implementation and failure acceptance |
@@ -422,7 +422,7 @@ publication; publishing the evidence must not be its own circular prerequisite.
 
 | Delivery stage | Ordered engineering exit; names are milestones, not certification shortcuts |
 | --- | --- |
-| First measured cycle / foundation | Finish Portal full proof and hosted admission; integrate reviewed actual Tuiwright route/validator; review Cursor media repair; repair dangerous current runbooks; preserve exact source and all failures. |
+| First measured cycle / foundation | Portal full local proof accepted; finish current Kernel required, hosted admission and auditor execution; retain actual Tuiwright evidence, reconcile media custody and repair public guidance. |
 | Second measured cycle / connected execution | Durable Head→server admission→native lifecycle/recovery→atomic Candidate→independent verifier. Complete fresh-generation consumer and supervised upgrade; prepare concrete operator packets. |
 | Delivery foundation / internal alpha | Repair every scheduled defect in the audit, actual auditor execution and native custody; execute complete applicable member/aggregate events with validated artifacts; exact reviewed protection and integration. |
 | First admitted dogfood | Signed persistent service and qualified Claude/Codex/Cursor perform the first real task through Candidate, verification and approved integration. Begin here once admission passes. |

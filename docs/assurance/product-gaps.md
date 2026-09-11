@@ -36,19 +36,29 @@ for current repairs and re-read exact source before implementation.
 The [first measured implementation cycle](deep-audit-20260911.md#first-measured-implementation-cycle)
 adds reviewed authentication/alias/startup repairs, exact Submissions, safe provider
 refusal, failed-proposal preservation, console recovery and actual12-case Tuiwright.
-The accepted local source snapshots are Hub `62829222`, Kernel `5f859709` and
-Portal `e178db3`. Kernel required-r4 preserved1266 fast and34 contract passes but
-failed documentation; r5 then timed out three backup tests with1136 unexecuted.
-The earlier overwritten raw report remains lost. Portal's full required remains
-pending: its first new container collection refused a library lookup, while the
-cross-mount mutation fixture failed before making a mutation. The unchanged
-compiler control passed; this alone does not qualify continuous source custody.
-Hub's36 publication library tests passed under actual Nextest; full Hub checks
-still await foreign media-checker custody. The newer Cursor Kernel proposal
-`3478b57d` reintroduces failed-process promotion and unsafe pre-admission writes;
-it requires reconciliation with the preserved reviewed branch. Historical main
-merges, PENDING submissions and diagnostic clips establish no installed provider
-execution, aggregate fetch-back or complete engineering/dogfood gate.
+Portal `e178db3` now has an independently accepted complete local required pass:
+360 fast tests, production build and all five atomic lanes, with continuous source
+monitoring and final artifact read-back. Earlier collection, mutation-handshake
+and required failures remain preserved. A repaired real compiler regression
+observes changed-and-restored source and refuses despite compiler0 and equal
+ending bytes. Coverage88%, actual browser campaigns and hosted admission remain
+separate obligations. Kernel `5f859709` is restored with all refs preserved;
+fetched `088e53ad` retains the unsafe `3478b57d` proposal tree and is repair input.
+New default aliases enter the existing TUI; five startup tests pass, including six
+simultaneous blocked-credential clients. The distinct lease operation key passes
+two real SQLite collision/replay tests and the worker argv case. These reviewed
+components do not implement durable Head or the missing WorkPackage/Candidate
+producer. Required-r4/r5 failures and the earlier lost raw report remain retained;
+five backup tests now pass serially and with four threads, without changing the
+40-second limit. A full current Kernel run remains necessary.
+Hub `6f730bf9` corrects ADR0018's migration reference; its36 publication library
+tests remain earlier exact component evidence. Nine reviewed community template
+changes await integration and publication; public security/contribution contents
+remain stale despite HTTP200. Full Hub checks await foreign media-checker custody.
+BulletGit's checksum-bound sealed auditor helper passes21 component cases and its
+policy/report repair passes18; actual native audit and fresh observation binding
+remain incomplete. Historical merges, PENDING submissions and diagnostic clips
+establish no installed provider execution, aggregate fetch-back or complete gate.
 
 The [9 September deep audit](deep-audit-20260909.md) records the current production
 bridge, all CI execution gaps, actual account/runtime discovery, media defects and
@@ -101,7 +111,7 @@ Production admission, supervised upgrades, account-aware dispatch, termination
 and durable finalization, browser response-loss recovery, complete hosted CI and
 all profile campaigns remain open. All G1–G18 remain `DESIGNED`; all 18 product
 plus two diagnostic profiles remain `BLOCKED`. The typed inventory is unchanged:
-this documentation packet claims no newly admitted runtime evidence.
+this documentation packet admits no installed or provider execution.
 
 This is the best-known current gap inventory, not a completeness proof. Every
 blocked capability listed below has an owner document, a fail-closed checker,

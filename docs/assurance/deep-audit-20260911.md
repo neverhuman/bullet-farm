@@ -272,8 +272,8 @@ Correct current instructions while preserving dated historical evidence:
   Remove current advice to run coordinator verbs during Operating HOLD.
 - Correct effect-reconciliation advice that equates APPLIED with dispatch or
   recommends a new request key after UNKNOWN. Preserve exact identity and read-back.
-- Amend ADR0018's proposed migration24 filename: current migration24 is operator
-  sessions and history reaches27. Use the next supported append-only migration.
+- ADR0018's migration reference is corrected in local `6f730bf9`: migration24
+  remains operator sessions; allocate only after the supported prefix and later migrations.
 - Align policy rollback guidance with immutable successor generations and authority
   high-water; never silently delete/replace a ratified policy in place.
 - Update source-origin prose in member SPLIT files, release/setup instructions,
@@ -356,11 +356,11 @@ requires its own public fetch-back. Neither clip qualifies provider coding.
 | T3 / T4 | Generic signed-in execution now refuses before launch without admitted containment. Runner rejects nonzero, unknown or timed-out completion before applying a proposal and retains failed proposal bytes. Claude projection preserves original native evidence before identity validation. | Writable containment and native lifecycle; actual worker/provider-child fixture with valid WorkPackage, Candidate source and lease; independent settlement and verification. |
 | H2 / C1 | Actual canonical Tuiwright `operator-tui` completed12/12 identities with126 verified artifacts, six-client blocked startup and revocation recovery. Review `c92711d7e8526aa090d107480502be83ba97d08bd78faeada8fd2a1959fd3ba5`. | Synthetic credentials/backend make this local component evidence; no installed/provider, continuous source, percentile or media qualification. |
 | H1 / U1 | Contributor console17 cases plus unsafe-readiness negative passed; restored Hub UI route and Head receipt refusal passed33 component cases. | Actual Portal browser lane, persistent Rust service/process custody and stranger installation. |
-| H2 / Portal | Source recovery50, farmd30+2 real host refusals and lifecycle36 passed. Local `e178db3` adds reference-link10 tests; the old checker failed8 of those10. | Required-r1 failed after360 tests/build. New container collection and actual cross-mount mutation qualification still fail; complete admitted required, coverage88% and browser lanes remain open. |
-| H2 / Kernel | Required-r1 lost its original fast XML. Reviewed retention16/failure-observation6 repairs preserve subsequent reports. Required-r4 at `88de763` retained1266 fast, group5 and34 contract passes before docs failed. | At `5f859709`, required-r5 ran130 tests:127 passed, three40s timeouts,1136 unexecuted. No complete pass or continuous-custody acceptance follows; source handoff and measured repair precede rerun. |
+| H2 / Portal | Exact `e178db3` full required7e526 passed360 fast/build and all five atomic lanes with continuous monitoring and final read-back; independent acceptance below. | Earlier required/collection/handshake failures remain retained. Coverage88%, actual browsers, hosted admission and native-platform proof remain open. |
+| H2 / Kernel | Required-r1 lost its original fast XML. Reviewed retention16/failure-observation6 repairs preserve subsequent reports. Required-r4 at `88de763` retained1266 fast, group5 and34 contract passes before docs failed. | At `5f859709`, required-r5 ran130 tests:127 passed, three40s timeouts,1136 unexecuted. No complete pass or continuous-custody acceptance follows; source handoff is resolved and focused backup measurement passes, full rerun remains. |
 | C1 / scheduled | Reused PR7 pinned tools and Windows-safe hostile filename;8/8 hostile tests passed,21 other generated outputs stayed identical. Local Hub `62829222` reconciles actual workflow pins/topology; Nextest36 publication library cases passed. | Prior libtest32/36 failure retained. Full Hub proof awaits foreign checker custody; scheduled/native/auditor, event triggers, aggregate and protection acceptance remain open. |
 
-The 13:11 UTC continuation binds accepted local Kernel commit
+The historical 13:11 UTC continuation binds accepted local Kernel commit
 `5f8597095726411f9a726c36a47b509674369d29`, Hub
 `62829222a4f27aa5dcc2af13f8cde55221a8ada6` and Portal
 `e178db36491520516287f1193dc4825ac8165d32`. Kernel r2/r3 failures exposed a readonly
@@ -393,6 +393,60 @@ preserves109 closed entries including exact committed source archives for all
 three accepted local subjects. Every archive byte and original source read-back
 matched. Later runtime records remain separate private evidence; preservation
 alone grants no source, signing, enrollment, integration or publication authority.
+
+The 14:50 UTC continuation preserves all preceding failures. Canonical Kernel is
+restored to `5f859709`; its all-ref bundle has SHA-256
+`e5311c41ac379443ccf98629ebd07fa264a1bbf4c252a13f972504bac92839ab`.
+Fetched `088e53ad81cdb9bf67fba92e4251fbc2b1e9dab6` has the `3478b57d` tree;
+unsafe proposals were not imported. Reviewed new source separates submission and
+lease-acquisition keys: actual SQLite2 collision/reopen/replay tests and worker1
+pass (review `4eb9ff5099bb13823b5ad76305a9e224dc3c821b7516b32df5a177e54deb46b1`).
+Default `bullet`/`bulletfarm` enter the existing TUI, with startup5 passing and
+six concurrent blocked-credential clients; review
+`6ecf136594b2879e0d9b71736a6b1e8c7b2ee8a10aee1f6a73666342ee6108a9`.
+The initial test fixtures correctly failed unsafe directory permissions; their
+original failures and explicit700 repair are retained. Durable Head, WorkPackage/
+Candidate production and identical-payload nonce admission remain open. Backup5
+pass serially and with four threads, unchanged40s timeout; this does not establish
+the cause of r5's full-run timeouts. Actual enumeration is1316 total/1270 standalone;
+removing exactly the four executed additions recovers both old identity digests.
+
+Repaired actual compiler control `5ededa89` passes; restored case `c8256a8e`
+records two writes during rustc execution and returns SOURCE_MUTATION75 although
+rustc exits0 and ending hashes match. Independent review `a8537bcf` accepts this
+Linux component pair. Portal required7e526 finishes at14:21:36 on exact
+`e178db36491520516287f1193dc4825ac8165d32`, tree
+`e2a445bc335a7895a26fc7d3a389890e2632d84f`. Its five atomic observations cover
+fast360/build, lint, contract5, security and docs; required is a composite and has
+no sixth `required.json`. Monitor24 ordered acknowledgements end FINISHED0;
+proof child0, terminal0 and exact container removal/read-back pass. All781 regular
+artifact hashes/829 entries and final source/dependency/tool subjects match.
+Independent review SHA-256
+`c1de89229d6b327a9db645a81d9ebf20a2cf6326c1902eeb96ab279018374c93`
+accepts local required only. The outer runtime result's original
+`proof_accepted:false` is preserved; it is not the semantic proof consumer.
+
+Durable r5 archive SHA-256
+`744773483b314c72f7dd471534c9896cf213c8dd4504f0e4fcd5cc07365be242`
+retains955 entries including the compiler pair. R6 archive SHA-256
+`c9f3fc707047549128c5cdafbe040754f1c6598195d8c8734f7eac4baee0f0cb`
+retains867 entries including closed Portal runtime/admission/review, source bundle,
+lease/startup failures and passes, and exact Hub6f730bf9/Portal source archives.
+R6 inventory SHA-256 is
+`00dd33a1e83556316edd12f7470210d363feab292beb0125c455e8b2a39fa888`;
+every archived entry and original read-back matches. Portal's proof write
+suspension was explicitly released at14:41; future edits need fresh claims/proof.
+Active later packets and build caches are excluded from these closed archives.
+
+BulletGit's sealed checksum-pinned auditor helper21 and native-policy/report18
+component cases pass independent review. Actual installed auditor execution and
+fresh dispatcher/doctor/observation binding are still in progress. Hub6f730bf9
+corrects ADR0018's migration number; nine community source templates have bounded
+review `a308325bd224989d10c03c34afaf13432bc3cc91b8233b9594bc713a4ba81f1a`.
+Unauthenticated GET retained stale published SECURITY/CONTRIBUTING bodies; earlier
+HTTP200 observations prove reachability only. Aggregate generation, publication,
+content fetch-back, private reporting enablement and adopted ownership/conduct
+remain unaccepted. None of these component results clears Operating HOLD.
 
 The private first-cycle source archive has SHA-256
 `a49a0101d8b031b8632631bf54a5a3f73be3a5fba2e16a7279f077f3548c5a7f`;
