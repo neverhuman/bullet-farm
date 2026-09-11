@@ -124,8 +124,11 @@ Operating HOLD remains. `release_eligible` is false.
 ![Same operator, Shift Brief and Control Tower with Head honesty; Send omitted](media/operator-console/operator-portal.gif)
 
 Captions and manifests: [`media/operator-console/README.md`](media/operator-console/README.md).
-Stage-one VHS tapes above stay the reproducible component set (`just readme-check`).
-Validate the pair with `scripts/readme-real-check.sh`.
+These are Tape A: unsigned console, HOLD honest, PENDING rows. Tape B — a
+`bullet` TUI plus `coding submit` / `coding board` sequence after an enrolled
+turn or typed provider refusal — is not captured yet. Do not treat Tape A as
+that turn. Stage-one VHS tapes above stay the reproducible component set
+(`just readme-check`). Validate the pair with `scripts/readme-real-check.sh`.
 
 ## Private capture and rendering
 
