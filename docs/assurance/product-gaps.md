@@ -36,39 +36,69 @@ for current repairs and re-read exact source before implementation.
 The [first measured implementation cycle](deep-audit-20260911.md#first-measured-implementation-cycle)
 adds reviewed authentication/alias/startup repairs, exact Submissions, refusal
 before provider launch, failed-proposal preservation and console recovery.
-At the20:20 UTC refresh, Kernel `22015ba1` includes reviewed server12/CLI19 mutation
-session regressions and actual1326 total/1280 standalone enumeration. Its full
-required run exits100:24 passed, one startup test failed,1255 unexecuted. A later
-diagnostics-only14 pass does not reproduce or repair it; the subsequent nonpanicking
-fixture diagnostic has formatting checks only. Historicale164 required1278+5+34
-and Tuiwright12 remain accepted for that source, with all earlier failures retained.
-Default aliases still enter the TUI. Durable Head, historical journal ownership,
-owner-epoch callbacks, real WorkPackage/Candidate production, shared budgets,
-useful gates, independent verifier and contained native lifecycle remain open.
-Portal `b64fdad2` canonical rendered24 is now independently accepted1248bac5 with
-continuous source custody and original reports. Historicalb291 required372/build
-and coverage372 preserve unchanged floors and their exact subjects. Current required
-c575 final admission was rejected7d4fe0e2 before tests: all12,447 file identities
-matched but .git directory timestamps changed after preflight; cause unassigned.
-Its exact container was stopped137/removed, retaining65 entries. Current coverage
-and occupied-listener negative remain unexecuted. Missing-CUPS, collector,
-wrong-tool-role and changed/restored-source failures remain preserved.
-BulletGit `fba3fe5d` integrates Rust callers after independent5df7eb09 acceptance
-of source44 and100 native outcomes. The original private driver exit75 from its
-report parser remains retained; independent replay does not relabel that run.
-Canonical shell matrix, current enumeration/required/native audit remain pending.
-Last native audit9510 still fails72/85(raw83), three hard/six soft; no floor changed.
-Hub full proof still needs foreign checker custody. Public aggregate3b7b474b has
-zero workflows and root LICENSE/SECURITY/CONTRIBUTING404; private reporting is
-disabled on all five repositories at the20:11 API refresh. New Hub58a742ce and
-Kernel088e53ad remote push workflows pass, but differ from accepted local sources.
-Current diagnostic GIFs differ in dates/source/work identities, have provider=none
-and Candidate=null; the Portal manifest declares four frames. The earlier narrow
-Claude DOGFOOD_RUN is preserved, not promoted to the installed campaign. At21:00 UTC
-the old temporary work tree and late reviews/reports are absent. Durable r13 rehashes
-correctly but excludes CLI19, current Kernel required/diagnostics, rendered24, Git100,
-c575 and planning-refresh evidence. Those historical observations above require
-recovered originals or fresh execution before current acceptance; source commits remain.
+Late temporary reports/reviews are unavailable. Durable r13 rehashes, but excludes
+CLI19, current Kernel run/diagnostics, rendered24, Git100, c575 and planning-refresh
+originals. Historical observations require recovered originals or fresh execution
+before current acceptance. Source commits survive; the availability correction has
+durable review e1ed240a. The retained Claude temporary-directory probe is separate
+from provider execution and did not require a directory ownership repair.
+Kernel `16e1152`/tree513278e1 integrates diagnostic2 reviewed6892ab99 over22015ba1.
+The1326/1280 inventory remains; historical required failed24 pass/one startup/1255 unexecuted. R1 built/listed
+successfully, then falsely refused an access-time change while copying evidence.
+R2 failed22/26 on the custody directory's0775 ancestry. After the recorded same-inode
+0700 correction, r3 passed26/26 with zero skips, result8bc7eaf5. Independent84582dc2
+accepts this local diagnostic subset; it does not establish the original failure's
+cause or close full required. Preserved full required-r1 at16e1152 exited100:680/1280
+completed,678 passed/two failed/600 unexecuted; no later lanes ran. The original startup
+case passed2.544s. Listener path replacement hit an overlong Unix socket path; restart
+fault cleanup reported a surviving descendant. Accepted harness diagnosticffae9758
+supports short TMPDIR and active adopted-zombie reaping; its deferred sample follows
+test end and cannot prove state-Z throughout the two-second wait. No product repair is inferred.
+Fresh required-r2 on clean16e1152 exits0, result82f207df:1280 fast,5 lint-receipt and34
+contract cases pass with zero failed/skipped cases; all mapped lanes finish and lock releases.
+Before/after source/index/tools match. Independent26e07c77 accepts local required only;
+continuous source monitoring, current Tuiwright and installed/hosted credit remain separate.
+Durable Head, owner/epoch recovery, real task/Candidate production, shared budgets,
+useful gates, independent verification and contained native lifecycle remain open.
+Portal b291 required/coverage and b64 rendered24 remain historical observations,
+subject to the missing late originals above. Current b64 required c575 refused before
+tests on directory-identity drift. Current required/coverage, occupied-listener
+negative and native/hosted qualification remain pending. Fresh ABI14/loader review27d64574
+and fixed required-launch preparation9b977a3f are accepted within those scopes only;
+REQUIRED2 final admission7b7ff5ba refused .git timestamp drift at23:09:17.609583282; all8261 files matched.
+No selector/intent/tests; cause unassigned. Exact owner cancellation eb2bc74d retained83 entries,
+verified161f12e0: exit137, no OOM, container removed, no cleanup errors. No proof credit.
+BulletGit `bd054116`/treec0ab now passes canonical audit-components and custody routes:
+100 selected=100 completed,100 pass/zero skips,26 shell cases plus bootstrap checks;
+resultf433ba76, native binary0e190025 and JUnitf6e571ae are retained durably. Source,
+index and tools match before/after; independent126e788b accepts the local runtime evidence.
+The uncalled Python observer2 is retired at15e484d5/tree60cf2233 after review0fe4c724;
+the remaining242 tracked files are unchanged. Full required-r1 at15e exits1:fast62 pass,
+lint refuses non-executable bootstrap helpers; later lanes did not run. The mode-only
+repair preserves bytes, acceptedfb6f0b60/integratedd774b5f. Required-r2 exposed stale171 contract pin;
+fresh enumeration62/271/333 includes the100 real auditor cases, review91868520, integratedad62fe3.
+Required-r3 onad62 exits1, resulta80264ce:62 fast pass, exact333 inventory passes, then formatting
+refuses seven files; contract/security/docs unexecuted. Originals retained; formatting repair pending.
+Original r1 failed on Just1.21 parsing the real score recipe, before nextest/custody.
+The reviewed doctor0dbb and private JUnit-store repair are integrated; actual old1.21
+refusal/new1.51 acceptance and lint-x checks pass. Current full required/native audit
+remain pending. Last9510 audit stays72/85(raw83), three hard/six soft; no floor changed.
+Hub9463675 retains reviewed entry/caption/strict-byte corrections. New e31f963/tree0ea8db22
+integrates primary-status and scratch fixture4, independent3660d9d4:12 actual wrapper cases,
+doctor/custody/scratch controls pass; original9 status failures and host-capacity defect retained.
+Doctor/tool and VHS image prerequisites pass; full required and complete failure-artifact custody pending.
+Checker1f1a was released at21:11; independent aefb82d2 review does not accept full
+media qualification. Peak/stripe/one-good-frame acceptance, generated command/Attempt/
+receipt labels, unbound provider claims and GIF-derived/optional masters remain unresolved.
+Only the strict50,000,000-byte boundary is fixed, with baseline-only review5680b27e.
+The larger checker0148 remains unaccepted in preserved stash22c97f9269c44d096f00c5317dcc9bc0173ba4ec
+(receipt50a4a295); the working checker is reviewed1b3f7261. Full Hub/recording proof remain pending.
+The dated20:11 public-state observations remain: aggregate3b7b474b has zero workflows
+and root LICENSE/SECURITY/CONTRIBUTING404; all five private-reporting settings disabled.
+Hub58a742ce/Kernel088e53ad push passes bind different remote subjects. Diagnostic GIFs
+have separate sources/times, provider none/null Candidate, four Portal frames and a
+padded TUI raster. The earlier narrow Claude DOGFOOD_RUN remains historical component
+evidence, separate from installed three-provider and synchronized campaign acceptance.
 No result here clears Operating HOLD, installed admission, aggregate delivery or a profile.
 
 The [9 September deep audit](deep-audit-20260909.md) records the current production

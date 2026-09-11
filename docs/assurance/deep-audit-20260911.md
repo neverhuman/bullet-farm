@@ -358,7 +358,7 @@ requires its own public fetch-back. Neither clip qualifies provider coding.
 | H1 / U1 | Contributor console17 cases plus unsafe-readiness negative passed; restored Hub UI route and Head receipt refusal passed33 component cases. | Actual Portal browser lane, persistent Rust service/process custody and stranger installation. |
 | H2 / Portal | Exactb291ccf2 full required372/build/five lanes and coverage372 accepted with continuous custody. Currentb64fdad2 fixes occupied-server reuse/strict port; actual Chromium ABI/rendering accepted. | Current full required/coverage/rendered24, occupied-listener negative, hosted admission and native custody remain open. |
 | H2 / Kernel | Exacte164eb62 required-r10 passes1278 fast+5 lint-receipt+34 contract and all five lanes, review53b2c1b0; current Tuiwright12 passes review408f30f3. | Local component scope only; continuous custody, installed/live and hosted/aggregate acceptance remain open. All original report loss/r4–r9 failures survive. |
-| C1 / scheduled | Reused PR7 pinned tools and Windows-safe hostile filename;8/8 hostile tests passed,21 other generated outputs stayed identical. Local Hub `62829222` reconciles actual workflow pins/topology; Nextest36 publication library cases passed. | Prior libtest32/36 failure retained. Full Hub proof awaits foreign checker custody; scheduled/native/auditor, event triggers, aggregate and protection acceptance remain open. |
+| C1 / scheduled | Reused PR7 pinned tools and Windows-safe hostile filename;8/8 hostile tests passed,21 other generated outputs stayed identical. Local Hub `62829222` reconciles actual workflow pins/topology; Nextest36 publication library cases passed. | Prior libtest32/36 failure retained. Checker writer release is now complete; full Hub proof and semantic media repair remain pending, as do scheduled/native/auditor, event triggers, aggregate and protection acceptance. |
 
 The historical 13:11 UTC continuation binds accepted local Kernel commit
 `5f8597095726411f9a726c36a47b509674369d29`, Hub
@@ -453,31 +453,31 @@ review53b2c1b0/76 artifacts; Tuiwright12 has137 files/694 events, review408f30f3
 R7 passed11/13 with2 failures; r8 passed64/65 with1 failure; r9 passed1278 fast then
 failed Clippy. Focused14 mission/UI/startup,68 coding and12 HTTP/session remain separate.
 
-The20:20 continuation binds Kernel22015ba1/treeb276eb5c: reviewed server12/CLI19 mutation session acknowledgement; inventory1326=1280+3+34+9.
-Current required-r1 exits100:24 pass/one startup failure/1255 unexecuted, resultf3b1d045,
-79 archived artifacts981840e5,952 source/index/tools unchanged; no continuous custody.
-The missing Synthetic PTY mission is unresolved: diagnostics-only14 passed; reviewer
-found a diagnostic unwind panic, then try_lock repair received formatting checks only.
-Prepared preceding26-test reproduction and current Tuiwright are unexecuted. No
-durable Head, complete task/Candidate producer, contained native PTY or verifier claim.
+Kernel16e1152/tree513278e1 integrates diagnostic2 reviewed6892ab99 over22015ba1;1326=1280+3+34+9 inventory remains.
+Original required-r1 failed24 pass/one startup failure/1255 unexecuted; late originals are unavailable.
+Fresh durable startup r1 built/listed0, then falsely refused access-time drift during evidence copy.
+R2 passed4/failed22 on0775 custody ancestry before intended scenarios. Root changed its owned dated
+folder to0700 on the same inode, receipt ae4d32, without changing home/source/Claude directories.
+R3 then passed26/26, zero skips, native/final0, result8bc7eaf5; independent84582dc2 accepts the local diagnostic.
+Preserved full-r1 failed678pass/2fail/600unexecuted; startup passed2.544s. New r2 result82f207df exits0 on clean16e1152:1280fast/5lint-receipt/34contract pass, zero failed/skipped cases, all lanes finish; independent26e07c77 accepts local required only.
+Accepted harness correctionffae9758 supports short TMPDIR/active reaping, but deferred sample follows test end, not the whole two-second wait. No product fix/continuous monitor/installed credit.
+Historical Portalb291 required372/build/five lanes and coverage372 retain their narrower subjects.
+B64 rendered24/fe559 and c575 refusal remain historical records whose late originals are unavailable.
+C575 refused before selector/tests on .git directory timestamps despite matching file identities.
+Fresh ABI14/loader27d64574 and launcher9b977a3f accepted. REQUIRED2 final admission7b7ff5ba refused .git drift23:09:17.609583282 despite8261 files matching; cause unassigned. No selector/intent/tests. Cancellationeb2bc74d/83-entry inventory8fa27be3 independently161f12e0 accepted:137/no OOM/container removed/no cleanup errors. Required/coverage/occupied-negative remain open;
+missing-CUPS, collector, wrong-tool-role and source-change refusals remain part of the failure record.
 
-Historical Portalb291/tree7b4f07c4 required372/build/five lanes and coverage372 retain
-reviews965ec244/75f942c3, READY+22 CHECKED+FINISHED0 and unchanged floors/ratchets.
-Currentb64fdad2/tree51ea1bd8 canonical rendered24 passes under continuous monitor
-READY→FINISHED0; fe559 result52864bce,518 entries/478 hashes, independent1248bac5.
-The qualified imagea5f3b099 adds CUPS; missing-CUPS57f14, collector2ada and wrong-tool
-role9b89 failures remain preserved. Chrome/fc-list are explicit executable subjects.
-Current required c575 final admission is rejected7d4fe0e2: all12,447 file identities
-match but .git directory timestamps changed at20:12:54; cause unassigned. No selector,
-intent or tests; exact stop137/removal retains65 entries, result8b679536, inventoryff8a6dd0.
-Current coverage/occupied-listener negative and hosted/native custody remain open.
-
-BulletGitfba3fe5d/treee497ca17 integrates coherent Rust callers: source44 and100 native
-outcomes independently accepted5df7eb09. Original private driver75/report-parser
-failure remains unchanged; strict independent replay accepted outcomes, not that exit.
-Previous264d helper88/review812647af remains historical. Canonical shell matrix,
-current inventory/required and native audit are unexecuted. Last9510 audit still
-fails72/85(raw83), three hard/six soft, failed consumer75; no broad exclusions or lower floor.
+BulletGit cleanbd054116/treec0ab now completes canonical audit-components0 and custody0, resultf433ba76:
+100 selected=100 completed/pass, zero skips, native binary0e190025, JUnitf6e571ae,26 shell cases plus
+bootstrap27 checks. Before/after source/index/tools match, groups exited; independent126e788b accepts local runtime evidence.
+Original r1 failed on Just1.21 parsing the actual score recipe before nextest/custody; all raw outputs survive.
+Reviewed doctor0dbb checks that parse, with old1.21 refusal/new1.51 acceptance; private JUnit-store repair
+is integrated. These are fresh durable results, not recovery of missing prior100/driver75 originals.
+Observer2 retired15e484d5, review0fe4c724. Git required-r1:62pass/lint mode refusal; repairfb6f0b60/d774b5f. R2 refused171 contract pin; actual62/271/333 enumeration includes100 auditor cases, accepted91868520/ad62fe3. R3a80264ce atad62:62pass/exact333 inventory then seven-file fmt refusal; later lanes unexecuted, no survivors/lock. Repair pending. Last9510 audit72/85(raw83), three hard/six soft.
+Hub9463675 retains docs5/strict-byte2 review5680b27e. CI4 integratede31f963/tree0ea8db22 review3660d9d4:12 actual primary-status cases and doctor/custody/scratch controls pass; original9 status failures and false host-capacity negative retained. Doctor/tools/VHS image accepted; full required/artifact custody pending.
+Checker1f1a released21:11, but independent aefb82d2 full-media review is NOT_ACCEPTED: peak/stripe/one-frame
+acceptance, generated command/Attempt/receipt labels, unbound providers and GIF-derived/optional masters remain open.
+Only byte limit fixed; larger0148 preserved unaccepted in stash22c97f9269c44d096f00c5317dcc9bc0173ba4ec, receipt50a4a295. Working checker1b3f7261 reviewed; full Hub/media pending.
 
 The20:11 GitHub API refresh retains raw bodies under private public-state-201110:
 Hub58a742ce push34606413545 and Kernel088e53ad push34601873207 pass; neither binds
@@ -494,6 +494,6 @@ r10 `ebf0ab29842a58d8c6b50c1a6451423bf2110c48201117657e229abcd00c131c`, r11 `a16
 r12 `3a061552c62adb4c81adbbc798513b04d858e779e676521f889fe3c5e23bbe54`, r13 `b5e8e0a1915c93362cfc74ad80a572610c66647c09d1b3e6eec0ab097d3d58aa`.
 R12 retains630 entries and the exact226MB ELF exception after its128MiB preflight failure;
 r13 retains400 including mutation-server evidence/CUPS qualification. At21:00 the old temporary tree and late reviews/reports are absent; r13 rehashes but excludes CLI19/current Kernel run/diagnostics, fe559, Git100, c575 and planning-refresh. Historical outcomes above are unavailable for current revalidation; recover or rerun into durable storage.
-Canonical source persists. Original source/Tuiwright archives
+Canonical source persists; durable availability review e1ed240a and the actual Claude temporary-directory probe are retained separately, with no provider-turn or ownership-repair credit. Original source/Tuiwright archives
 remain `a49a0101d8b031b8632631bf54a5a3f73be3a5fba2e16a7279f077f3548c5a7f` and `68cdfd598e88aeac1cc3e40fc1f9743e0b3b3739b52717c33a17ef726a30c02e`.
 G1–G18 remain DESIGNED; all18 profiles remain BLOCKED; Operating HOLD is unchanged.
