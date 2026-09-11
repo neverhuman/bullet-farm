@@ -37,9 +37,17 @@ Admits or creates the 0700 data dir, provisions `custody/lease-transport.key`
 once, writes `custody/peer-registry.json` (`farmd_uid`, `socket_gid`, one
 runner with `runner_epoch: 1`), launches farmd under `setsid` with 0600 logs,
 waits for `/health`, takes the one-time bootstrap token, exchanges it for a
-cookie and CSRF token, and writes a 0600 `session.json`. It prints only
-`origin`, `farmd`, `pid`, `data_dir`, `session_file`, `bootstrap_path` and
-`log`; the token, cookie and CSRF value never reach stdout.
+cookie and CSRF token, and writes a 0600 `session.json`. `--leave-bootstrap`
+skips that exchange (the token file stays for `bullet auth login`) but still
+writes the same session schema with empty cookie/CSRF so `worker-loop.sh` can
+read the lease socket and runner id. It prints only `origin`, `farmd`, `pid`,
+`data_dir`, `session_file`, `bootstrap_path` and `log`; the token, cookie and
+CSRF value never reach stdout.
+
+The unsigned contributor console, `../operator-console.sh` (`just console`),
+uses `--leave-bootstrap`, starts Vite, and starts `worker-loop.sh` when farmd,
+runner, gitd, verifier, and `transaction_offline` all exist as absolute
+executables. Missing gitd or a subject is `worker=UNBOUND`, not a hang.
 
 `bootstrap_path=token_file` means the farmd binary lists `--bootstrap-token-file`
 and the token travelled through a 0600 file. `bootstrap_path=stdout` means the
@@ -251,16 +259,16 @@ All four scripts print `DOGFOOD_OPS_<CODE>: <value>` on stderr and exit 1
   `harness-check` proves that seventeen environment variables are non-empty in
   the process that ran it — nothing about whether farmd, the ledger or the
   runner would accept those values.
-* **The dogfood loop is not closed.** `BULLET_HARNESS_WORK_PACKAGE_ID`,
-  `BULLET_HARNESS_CANDIDATE_REQUEST_DIGEST` and
-  `BULLET_HARNESS_IDEMPOTENCY_KEY` have no producer; until they do, a
-  `run_coding` command cannot be driven end to end from this operator path.
-* **Credentials do not reach the provider.** `--credential` is recorded and
-  admitted, but `claude_dogfood_args()` in
-  `apps/bullet-runner/src/bin/bullet-command-worker/child/coding.rs` emits no
-  `--dogfood-credential` flag, and `child.rs` clears the child environment. A
-  real Claude turn launched through farmd would therefore start with no staged
-  credential.
+* **The three ledger identities have producers.** `prepare-harness.sh`
+  writes them when `--command-id` / `--request-digest` / `--idempotency-key`
+  are supplied. Kernel `bullet coding harness-bind` prints the same seed
+  (`bullet.coding-work-package.v1\\0{command_id}`). `harness-check` is BOUND
+  only when all seventeen `BULLET_HARNESS_*` names are present; the other
+  fourteen still come from this script plus the session `serve.sh` wrote.
+* **Credentials reach the child only as an admitted flag.** `child.rs` still
+  `env_clear()`s. When `BULLET_HARNESS_DOGFOOD_CREDENTIALS` is set, the
+  worker emits `--dogfood-credential` and does not log the bytes. A missing
+  credential is a typed refuse, not a silent empty home.
 * **serve.sh is not an installed daemon.** It is a foreground-launched loopback
   farmd under the operator's own uid, with no unit file, no restart policy, no
   log rotation, and no `--kernel-authority-socket`.
