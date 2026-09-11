@@ -208,6 +208,11 @@ if [[ -n "$worker_reason" ]]; then
   printf 'worker=UNBOUND reason=%s\n' "$worker_reason"
 else
   manifest="$data_dir/worker/binary-manifest.json"
+  harness_env="$data_dir/harness/harness.env"
+  env_file_args=()
+  if [[ -f "$harness_env" && ! -L "$harness_env" ]]; then
+    env_file_args=(--env-file "$harness_env")
+  fi
   setsid bash "$loop_sh" \
     --data-dir "$data_dir" \
     --manifest "$manifest" \
@@ -217,6 +222,7 @@ else
     --runner "$runner_bin" \
     --gitd "$gitd_bin" \
     --verifier "$verifier_bin" \
+    "${env_file_args[@]}" \
     >"$data_dir/logs/worker-loop.stdout" 2>"$data_dir/logs/worker-loop.stderr" &
   worker_pid=$!
   printf '%s\n' "$worker_pid" >"$data_dir/worker.pid"
