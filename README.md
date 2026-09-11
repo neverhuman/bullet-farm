@@ -117,7 +117,7 @@ These two recordings are real authenticated loopback farmd sessions on xbabe2.
 They are not a trusted installer, not VERIFIED, and not a Claude replace.
 Operating HOLD remains. `release_eligible` is false.
 
-![HOLD-honest operator TUI on loopback farmd: CONNECTING then HOLD, empty fleet, UNBOUND](media/operator-console/operator-tui.gif)
+![HOLD-honest operator TUI on loopback farmd: CONNECTING then HOLD, PENDING coding rows, UNBOUND](media/operator-console/operator-tui.gif)
 
 ![Same operator, Shift Brief and Control Tower with Head honesty; Send omitted](media/operator-console/operator-portal.gif)
 

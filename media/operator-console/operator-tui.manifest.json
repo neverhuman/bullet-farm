@@ -2,10 +2,10 @@
   "account": "REDACTED",
   "binaries": {
     "bullet": {
-      "sha256": "46a9becf5e9829d631feeb9ad518308cc22e49e6ec79ffdede7142b2f972d915"
+      "sha256": "42cbb8efbf0356828287615cfa2ff7a581fa9512cfa93442b1d03f80352a4bfd"
     },
     "bullet-farmd": {
-      "sha256": "7267c87936032661464339a0918bf6bba562d6d7511779d14f5093f8437fe0e7"
+      "sha256": "b21497d5bc70a7fee7fad3366c1702097b722dd7a84d553e620bff8c738c93f7"
     }
   },
   "canvas": {
@@ -16,25 +16,25 @@
     "offset_x": 3,
     "offset_y": 1
   },
-  "capture_sha256": "600fb98c19d02a24ae7b26afefa09fd569edd92c2acdb28da93ad979693aa7ac",
+  "capture_sha256": "dc2a39c3737b32f4b07539d7500f5ca067206fabeb1975cdd8b58952b448ed2d",
   "claims": [
     "local-observation",
     "no-gate-cleared",
     "real-recording"
   ],
   "gif": {
-    "bytes": 226592,
-    "sha256": "7341abeb65d5ab28cb745ab228d14294915258c3f6fc4d873ea1b7e79abe9353"
+    "bytes": 244815,
+    "sha256": "1b55423d63f4d9501068e431e1f30a6b3289b9a9c2abec4905cdc450bf92fc30"
   },
   "host": "xbabe2",
   "kind": "terminal",
   "master": {
-    "cast_sha256": "d71d890154089ac95814b9a416380b05befd771f2622ded912ee48c13b7f8e34"
+    "cast_sha256": "53a673d2d3f10b23defcab2cf2f455689ae7a2860556c0dd7bbba46cebe6a6cb"
   },
   "members": {
     "bullet-farm": {
-      "dirty": true,
-      "oid": "5ef8dedc26e038b29e79bb3dd31d1cfeba6b61ba"
+      "dirty": false,
+      "oid": "76076e9ced368cdce7d3e39823d2bdc4c7d67804"
     },
     "bullet-git": {
       "dirty": false,
@@ -42,7 +42,7 @@
     },
     "bullet-kernel": {
       "dirty": true,
-      "oid": "899f878fc914533d4f5d44f5b67c6e4c462c3413"
+      "oid": "53f6d96c335fb28cff7e631d8faa668681761dfb"
     },
     "bullet-portal": {
       "dirty": false,
@@ -58,13 +58,13 @@
     "algorithm": "sha256",
     "digest": "ea24d61fdb4ae2316d819bb7af386333fcc03834f8a5b63e89da8ec751007089"
   },
-  "recorded_at": "2026-09-11T01:19:09Z",
+  "recorded_at": "2026-09-11T04:42:30Z",
   "recorder": {
     "path": "scripts/media/record-tui.sh",
     "sha256": "b4991706d3314a60cb138bd8e873665b32528e1ec62748be85d8604dc3c62406"
   },
   "release_eligible": false,
-  "render_receipt_sha256": "5cf19af2adba484766116db90afadef9bfe8e6eca0ffb6f3c03077ef8a2d5727",
+  "render_receipt_sha256": "e228857f1c054192982715750e95ac1b7780c2e383520949849c62a9594cf61a",
   "render_tools": {
     "agg": {
       "sha256": "59673469d625df6f55c72159c84ffbb7af1348ac379d0e79db43f4b80fb986a3",
