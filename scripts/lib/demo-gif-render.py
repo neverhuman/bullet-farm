@@ -393,7 +393,7 @@ def main():
                 need(not args.strict_lossless or fidelity["gif_rgb"] == "EXACT", "GIF_RGB_QUANTIZED")
             else:
                 gif = args.output / "derivative.gif"
-                run.run([str(args.agg), "--renderer", "fontdue", "--theme", "github-light", "--speed", "1",
+                run.run([str(args.agg), "--renderer", "fontdue", "--theme", "github-dark", "--speed", "1",
                          "--idle-time-limit", "600", "--last-frame-duration", "0", str(source / "session.cast"), str(gif)])
                 fidelity = {"gif_rgb": "UNVERIFIED_NO_ORIGINAL_RGB_MASTER", "master_rgb": "NOT_AVAILABLE",
                             "gif_rgb_sha256": decoded(run, args.ffmpeg, gif, gif_geometry(gif)),

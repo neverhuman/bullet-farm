@@ -417,7 +417,16 @@ if kind == "terminal":
             refuse("CAST_EVENT", f"line {number}")
         prior = event[0]
         plain.append(event[2])
-    scan_text(ANSI.sub("", "".join(plain)), f"{name}.cast", declared, cast=True)
+    blob = "".join(plain)
+    stripped = ANSI.sub("", blob)
+    printable = sum(1 for ch in stripped if ch.isprintable())
+    if printable < 500:
+        refuse("CAST_ENTROPY", f"printable={printable}<500")
+    if not re.search(r"\x1b\[[0-9]*;[0-9]*H", blob):
+        refuse("CAST_ENTROPY", "zero cursor-position CSI")
+    if not re.search(r"\x1b\[[0-9;]*[34]8;2;", blob):
+        refuse("CAST_ENTROPY", "zero 38;2/48;2 SGR")
+    scan_text(stripped, f"{name}.cast", declared, cast=True)
     scan_text(cast_text, f"{name}.cast(raw)", declared, cast=True)
 else:
     framemd5_path = root / f"{name}.frames.framemd5"
@@ -495,8 +504,9 @@ real_fixture() {  # dir name
   real_fixture_gif "$dir/$name.gif" 1920x1080
   printf '%s\n' \
     '{"version": 2, "width": 126, "height": 29, "timestamp": 1788960494, "title": "self-test"}' \
-    '[0.01, "o", "\u001b[1mreadme-real-check\u001b[0m self-test fixture\r\n"]' \
-    '[0.5, "o", "done\r\n"]' >"$dir/$name.cast"
+    '[0.01, "o", "\u001b[2J\u001b[1;1H\u001b[38;2;255;196;77m\u001b[48;2;8;16;31mreadme-real-check self-test fixture\u001b[0m\r\n"]' \
+    '[0.5, "o", "HOLD-honest dark board  pad-for-entropy-gate  xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\r\n"]' \
+    '[0.8, "o", "done\r\n"]' >"$dir/$name.cast"
   jq -nS --arg name "$name" --arg zero "$zero" --arg oid "$oid" \
     --arg cmd "cmd_$hex1" --arg atm "atm_$hex2" --arg receipt "$hex3" '{
       schema: "bullet.real-media.v1", kind: "terminal", name: $name,
@@ -637,6 +647,13 @@ real_self_test() {
   real_expect_refusal UNSAFE_FILE 'symlinked gif'
   real_case; real_manifest_edit '.terminal.cols = 80'
   real_expect_refusal CAST_GEOMETRY 'cast/manifest grid mismatch'
+  real_case
+  printf '%s\n' \
+    '{"version": 2, "width": 126, "height": 29, "timestamp": 1788960494, "title": "self-test"}' \
+    '[0.3, "o", "\u001b[m\u001b[m\u001b[0m\u001b[?25l"]' \
+    '[0.4, "o", "ok\r\n"]' >"$REAL_CASE/$REAL_NAME.cast"
+  real_refresh "$REAL_CASE" "$REAL_NAME"
+  real_expect_refusal CAST_ENTROPY 'low-entropy white-tape cast'
   rnd="$(printf 'readme-real-check self-test token' | sha256sum)"; rnd="${rnd%% *}"
   real_case; real_cast_append "boot_${rnd:0:32}"
   real_expect_refusal TOKEN_IN_CAST 'boot_ token in cast'

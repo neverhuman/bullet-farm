@@ -35,7 +35,7 @@ TUI_HEIGHT=1080
 TUI_FONT_SIZE=14
 TUI_LINE_HEIGHT=1.4
 TUI_FONT_FAMILY=agg-default-chain
-TUI_THEME=github-light
+TUI_THEME=github-dark
 TUI_RENDERER=fontdue
 TUI_MEMBERS=(bullet-farm bullet-git bullet-kernel bullet-portal)
 
@@ -258,9 +258,21 @@ tui_record() {
   export BULLET_RECORD_BULLET_BIN="$TUI_BULLET"
   export BULLET_RECORD_FARMD_BIN="$TUI_FARMD"
   tui_say "recording ${TUI_COLS}x${TUI_ROWS} for at most ${TUI_MAX_SECONDS}s"
+  # Product TUI runs on this outer PTY. Keys are written to the master here so
+  # narrate-operator-tui.py can exec bullet tui without a nested pty.fork().
+  local -a inject=()
+  if ((TUI_SELF_TEST == 0)); then
+    inject=(
+      --inject-delay 1.2 --inject-gap 0.7 --min-after-inject 1.5
+      --inject $'\x0b' --inject j --inject j --inject j --inject j --inject j
+      --inject j --inject $'\r' --inject $'\x0b' --inject j --inject $'\r'
+      --inject '?' --inject $'\x1b' --inject r --inject $'\x03'
+    )
+  fi
   "$TUI_PYTHON" -I "$TUI_HUB/scripts/lib/demo-gif-pty-record.py" \
     --cast "$TUI_CAPTURE/session.cast" --transcript "$TUI_CAPTURE/transcript.txt" \
     --cols "$TUI_COLS" --rows "$TUI_ROWS" --max-seconds "$TUI_MAX_SECONDS" \
+    "${inject[@]}" \
     --title "bullet-farm record-tui $TUI_NAME" -- "$TUI_WORK/pty-launcher.sh" || status=$?
   printf '%s\n' "$status" >"$TUI_OUT/narration-exit.txt"
   if ((status != 0)); then
@@ -272,7 +284,46 @@ tui_record() {
   inventory="$(cd -- "$TUI_CAPTURE" && printf '%s\n' * | sort | tr '\n' ' ')"
   [[ "$inventory" == "producer.exit session.cast session.cast.raw session.cast.result.json transcript.txt " ]] ||
     tui_die CAPTURE_INVENTORY "$inventory"
+  tui_cast_sanity
   TUI_CAPTURE_SHA="$(tui_sha "$TUI_CAPTURE/session.cast.result.json")"
+}
+
+# Refuse empty or theme-only tapes before agg spends a render. The published
+# white operator-tui.gif had 107 printable chars, no CUP, and no truecolor SGR.
+tui_cast_sanity() {
+  local report
+  report="$("$TUI_PYTHON" -I - "$TUI_CAPTURE/session.cast" <<'PY'
+import json
+import re
+import sys
+
+ansi = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1b\\))")
+cup = re.compile(r"\x1b\[[0-9]*;[0-9]*H")
+truecolor = re.compile(r"\x1b\[[0-9;]*[34]8;2;")
+payload = []
+for line in open(sys.argv[1], encoding="utf-8").read().splitlines()[1:]:
+    event = json.loads(line)
+    if isinstance(event, list) and len(event) == 3 and event[1] == "o" and isinstance(event[2], str):
+        payload.append(event[2])
+blob = "".join(payload)
+plain = ansi.sub("", blob)
+printable = sum(1 for ch in plain if ch.isprintable())
+cups = len(cup.findall(blob))
+colors = len(truecolor.findall(blob))
+errors = []
+if printable < 500:
+    errors.append(f"printable={printable}<500")
+if cups == 0:
+    errors.append("zero cursor-position CSI")
+if colors == 0:
+    errors.append("zero 38;2/48;2 SGR")
+if errors:
+    sys.stderr.write("RECORD_TUI_CAST_ENTROPY: " + "; ".join(errors) + "\n")
+    sys.exit(1)
+print(f"printable={printable} cup={cups} truecolor={colors}")
+PY
+  )" || tui_die CAST_ENTROPY "cast failed the pre-render entropy gate"
+  tui_say "cast-sanity $report"
 }
 
 # --- render ------------------------------------------------------------------
@@ -510,17 +561,26 @@ tui_self_test_narration() {
 # nothing, touches no family repository, and prints nothing the stage-two
 # redaction screen has to refuse: no path, no address, no undeclared digest.
 set -u
-bold=$'\033[1m'
-dim=$'\033[38;5;245m'
-green=$'\033[38;5;35m'
+# Enough paint for CAST_ENTROPY: 500+ printable, CUP, and truecolor SGR.
+# No path, address, or undeclared 64-hex.
+navy=$'\033[48;2;8;16;31m'
+amber=$'\033[38;2;255;196;77m'
+dim=$'\033[38;2;140;160;190m'
 off=$'\033[0m'
-printf '%srecord-tui --self-test%s   synthetic narration: no provider, no spend\n' "$bold" "$off"
-sleep 0.7
-for step in "one capture reserved" "one run directory bound" "one proof directory bound"; do
-  printf '  %s->%s %s\n' "$dim" "$off" "$step"
-  sleep 0.6
+printf '%s\033[2J\033[1;1H%s%srecord-tui --self-test%s\n' "$navy" "$amber" $'\033[1m' "$off"
+printf '%s\033[2;1H%ssynthetic narration: no provider, no spend%s\n' "$navy" "$dim" "$off"
+sleep 0.5
+line=3
+for step in "one capture reserved" "one run directory bound" "one proof directory bound" \
+  "outer PTY keeps geometry" "dark theme reaches agg" "entropy gate sees paint"; do
+  printf '%s\033[%s;1H%s->%s %s%s\n' "$navy" "$line" "$amber" "$dim" "$step" "$off"
+  line=$((line + 1))
+  sleep 0.35
 done
-printf '  %sthis clears no gate and proves only that the recorder runs%s\n' "$green" "$off"
+printf '%s\033[%s;1H%sthis clears no gate and proves only that the recorder runs%s\n' \
+  "$navy" "$line" "$amber" "$off"
+# Pad so a collapsed idle tape still has >=500 printable characters.
+python3 -c 'print(" HOLD-honest self-test board " * 20)'
 python3 - "$BULLET_RECORD_RUN_JSON" "$BULLET_RECORD_RUN_ID" <<'PY'
 import hashlib
 import json
