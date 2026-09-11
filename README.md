@@ -35,23 +35,30 @@ release install.
 
 | Tool | Pin |
 | --- | --- |
-| Rust | 1.95.0 |
+| Rust (Hub) | 1.95.0 |
+| Rust (Kernel) | 1.97.1 |
 | Node | 22.23.2 |
 | npm | 10.9.8 |
 
 ```bash
 cd bullet-farm
-just preview
-# doctor BLOCKED / exit 3 is expected on the schema-2 lock
-just console -- --data-dir "$HOME/.local/state/bullet-operator-console"
+just -- console --data-dir "$HOME/.local/state/bullet-operator-console"
 ```
+
+Use Just with support for the checked-in `[positional-arguments]` recipes
+(1.51.0 supports them), plus the Linux tools listed in the runbook. Rustup
+selects each member's checked-in toolchain. The console launcher returns after
+startup and leaves farmd and Vite running; it is not a supervised installed
+service, and its later `--stop` command refuses.
 
 Then `bullet auth login` and `bullet tui` as in the
 [unsigned loopback console runbook](docs/runbooks/loopback-console.md)
 and [`CONTRIBUTING.md`](CONTRIBUTING.md).
-`just setup` is the blocked signed-installer wrapper; it refuses without an
-external admitted `bullet-family` binary and still returns `UNSUPPORTED_SCHEMA`
-on the checked-in lock. See [source-setup](docs/runbooks/source-setup.md).
+`just setup` is a source-bootstrap wrapper. It requires an admitted external
+`bullet-family` and explicit Cargo/Node/npm paths, then refuses the checked-in
+schema-2 lock with `UNSUPPORTED_SCHEMA`; it does not install a signed service.
+`just preview` requires the independent canonical member checkouts and is not an
+aggregate-clone acceptance command. See [source setup](docs/runbooks/source-setup.md).
 
 Development and family proof use the four independent canonical member
 checkouts: `neverhuman/bullet-farm`, `neverhuman/bullet-kernel`,
@@ -111,19 +118,30 @@ Offline suites validate bounded protocol transcripts. They do not execute a live
 
 [Static fallback](docs/readme-media/provider-safety/fallback.png) · [Accessible transcript](docs/readme-media/provider-safety/transcript.txt) · [Reproduction manifest](docs/readme-media/provider-safety/manifest.json)
 
-## Real xbabe2 operator console (not replayable)
+## Retained xbabe2 console diagnostics
 
-These two recordings are real authenticated loopback farmd sessions on xbabe2.
-They are not a trusted installer, not VERIFIED, and not a Claude replace.
-Operating HOLD remains. `release_eligible` is false.
+These captures document local UI diagnostics from different times and source
+versions. Both manifests declare provider `none`, a null Candidate, and
+`release_eligible: false`. They do not demonstrate a synchronized provider task.
+Operating HOLD remains.
 
-![HOLD-honest operator TUI on loopback farmd: CONNECTING then HOLD, PENDING coding rows, UNBOUND](media/operator-console/operator-tui.gif)
+![Retained operator TUI diagnostic; native raster padded to a 1920×1080 canvas](media/operator-console/operator-tui.gif)
 
-![Same operator, Shift Brief and Control Tower with Head honesty; Send omitted](media/operator-console/operator-portal.gif)
+![Retained Portal diagnostic assembled from four frames in a separate capture](media/operator-console/operator-portal.gif)
 
-Captions and manifests: [`media/operator-console/README.md`](media/operator-console/README.md).
-Stage-one VHS tapes above stay the reproducible component set (`just readme-check`).
-Validate the pair with `scripts/readme-real-check.sh`.
+The [captions and manifests](media/operator-console/README.md) disclose the
+source versions, timing and geometry limits. Their generated command, Attempt
+and receipt labels are diagnostic labels, not Kernel-issued transaction proof.
+The existing [xbabe2 work order](docs/assurance/xbabe2-development-closeout.md#real-1080p-capture-as-maintained-source)
+requires installed operation, real authenticated provider tasks, continuous
+native-resolution recordings of the same campaign, independent verification,
+approved integration and matched excerpts before publication acceptance.
+
+The earlier [contained Claude Candidate recording](media/dogfood/README.md)
+remains historical component evidence with a cleanup refusal; it does not
+establish that installed workflow. The VHS tapes above are a separate component
+set with their own `just readme-check` lane. No current media-checker result
+establishes the full recording requirements.
 
 ## Private capture and rendering
 

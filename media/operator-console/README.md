@@ -1,20 +1,31 @@
-# Real xbabe2 operator console (not replayable)
+# Retained xbabe2 console diagnostics
 
-These GIFs are stage-two real recordings of an authenticated loopback farmd
-on the xbabe2 development host. They are **not** a trusted installer, not
-VERIFIED, and not a Claude replacement. Operating HOLD remains. `release_eligible`
-is false.
+These GIFs retain local UI observations. Both manifests declare provider `none`
+(version `0.0.0`), `candidate_id: null` and `release_eligible: false`. They do not
+show real provider coding, an independently verified Candidate or approved
+integration. Operating HOLD remains.
 
-They are not the stage-one VHS component tapes. Those stay under
-`docs/readme-media/` and still pass `just readme-check`.
+| Capture | Recorded time (UTC) | Source and capture limits |
+| --- | --- | --- |
+| [TUI](operator-tui.gif) · [manifest](operator-tui.manifest.json) | 2026-09-11 04:42:30 | Kernel `53f6d96c` marked dirty; Portal `d00c88ae`. Native raster 1913×1078 from a 225×54 terminal, padded to a 1920×1080 canvas. |
+| [Portal](operator-portal.gif) · [manifest](operator-portal.manifest.json) | 2026-09-10 20:17:01 | Portal `00b13bfa` marked dirty; Kernel `1d477119`. Four frames at 1920×1080. |
 
-| Artifact | What the tape shows |
-| --- | --- |
-| `operator-tui.gif` | `bullet tui` first paint CONNECTING then HOLD / LIVE n / UNBOUND / `HEAD_RUNTIME_BINDING_REQUIRED` / `STOP_UNIMPLEMENTED`, Portal-titled jump list, empty-fleet honesty, help, detach |
-| `operator-portal.gif` | Same farmd and operator: Shift Brief (`RELEASE DECISION: unknown`), Control Tower HOLD / LIVE n, Head chip honesty. Send is omitted |
+These are separate captures with different source and binary subjects. They
+cannot establish the same operator, farmd invocation, campaign interval or
+durable task in both interfaces. Their command, Attempt and receipt fields are
+generated diagnostic labels, not Kernel-issued records or persistence receipts.
+The TUI's padded canvas does not satisfy native 1920×1080 capture.
 
-Geometry is 1920×1080. The TUI native grid is 225×54 (about 1913×1078) expanded
-by `GIF_LOGICAL_SCREEN_EXPANSION`. Account in each manifest is `REDACTED`.
+Retained UI states include CONNECTING, HOLD/UNBOUND, blocked Head Send and an
+unknown release decision. Stage-one VHS component tapes under
+[`docs/readme-media/`](../../docs/readme-media/) have a separate check lane.
+A media-checker success alone cannot qualify the contents, provenance or timing
+of these recordings; no full recording acceptance is claimed here.
 
-Validate with `scripts/readme-real-check.sh` against this directory. A passing
-check is a local observation, not a gate clearance.
+The [existing xbabe2 work order](../../docs/assurance/xbabe2-development-closeout.md#real-1080p-capture-as-maintained-source)
+requires uninterrupted installed TUI/Portal recordings of the same real task
+through authenticated provider execution, Candidate preservation, independent
+verification and approved integration read-back. Original frames, timestamps,
+lossless masters and accessible transcripts must support synchronized contiguous
+excerpts, each native 1920×1080 and strictly below 50,000,000 bytes. Those production
+recordings, acceptance and approved publication/fetch-back remain outstanding.
