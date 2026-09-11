@@ -18,13 +18,16 @@ requests; historical request identities and destinations remain intact. Supporti
 source PRs and audit scores do not establish complete aggregate CI. Separately
 accepted Jeryu self-hosting and forge-certification obligations remain in scope.
 
-As of Hub `4609eb9` / Kernel `53f6d96` (2026-09-11 closeout merge): v2 coding
-binding is conditional; the public `operator-tui.gif` is the dark HOLD +
-PENDING-rows tape from Hub #14, not the historical blank light GIF and not
-empty-fleet-only; scheduled cells remain named and may be red (hosted
-required is the merge gate); Operating HOLD and `live_admission_enabled=false`
-remain; Cursor live ACP is still unproved (`CURSOR_ACP_EVENTS_EMPTY`, Fork B).
-G1–G18 stay DESIGNED. Historical blank-GIF diagnosis is not deleted.
+As of Hub `58a742ce` / Kernel `088e53ad` (2026-09-11 ASAP operator loop on
+`main`; closeout merge was Hub `4609eb9` / Kernel `53f6d96`): v2 coding
+binding is conditional; `just console` can start a command-worker loop; a
+loopback claim typed `COMMAND_CODING_HARNESS_UNBOUND` (verification key);
+the public `operator-tui.gif` is the dark HOLD + PENDING-rows tape from Hub
+#14, not the historical blank light GIF and not empty-fleet-only; scheduled
+cells remain named and may be red (hosted required is the merge gate);
+Operating HOLD and `live_admission_enabled=false` remain; Cursor live ACP is
+still unproved (`CURSOR_ACP_EVENTS_EMPTY`, Fork B). G1–G18 stay DESIGNED.
+Historical blank-GIF diagnosis is not deleted.
 
 The [9 September deep audit](deep-audit-20260909.md) records the current production
 bridge, all CI execution gaps, actual account/runtime discovery, media defects and
