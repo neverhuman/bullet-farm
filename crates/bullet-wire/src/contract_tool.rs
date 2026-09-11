@@ -202,7 +202,13 @@ fn hostile_cases() -> BTreeMap<PathBuf, Vec<u8>> {
         ("invalid-utf8.json", b"{\"x\":\"\xff\"}"),
         ("lf.json", b"{\n\"x\":1\n}"),
         ("non-nfc.json", br#"{"x":"e\u0301"}"#),
-        ("nul.json", br#"{"x":"\u0000"}"#),
+        // Named for what it contains, not "nul.json": `nul` is a reserved device
+        // name on Windows, so git refuses to create the file and the whole
+        // repository cannot be checked out there. That is not a hypothetical —
+        // it is why every Windows lane in this repository failed the first time
+        // one was ever dispatched, with "invalid path
+        // 'fixtures/hostile/cases/nul.json'" and git exit 128.
+        ("nul-character.json", br#"{"x":"\u0000"}"#),
         ("raw-control.json", b"{\"x\":\"\x1b\"}"),
         ("zero-width.json", br#"{"x":"a\u200bb"}"#),
     ];
