@@ -6,6 +6,37 @@ belongs under `Unreleased`.
 
 ## Unreleased
 
+### v0.2.0-operator-cli
+
+Named operator-CLI campaign, not a schema-3 lock and not `self-hosted-v1`.
+`release_eligible` stays false. Operating HOLD stays printed.
+
+Hub (this repository, after PR #11 and this PR):
+
+- Recorder paints the product TUI (`github-dark`, outer PTY, `CAST_ENTROPY`
+  gate) so `operator-tui.gif` is a readable 1920×1080 dark empty-fleet tape,
+  not an off-white slide.
+- `prepare-harness.sh` issues work-package IDs from the admitted command, not
+  dry-run seeds.
+
+Kernel (proposed in [neverhuman/bullet-kernel#17](https://github.com/neverhuman/bullet-kernel/pull/17);
+not on kernel `main` until that PR merges):
+
+- v2 `run_coding` admission binds nonce and quota so farmd can dispatch an
+  admitted task.
+- v0.2 D1 is HTTP then the real `bullet-runner` plus a stub: one failure is
+  retained and a second spawn is refused. Spawned command-worker → gitd is not
+  claimed.
+- Codex signed-in argv can emit a `PatchProposal`. Cursor stream-json without
+  a proposal is `CURSOR_ACP_EVENTS_EMPTY` (Fork B; not live ACP). A text ping
+  is not a turn.
+- `bullet tui` overlays admitted coding commands when mission tables are empty
+  and redacts 64-hex ids. Rows stay queued/unknown. They are not VERIFIED.
+
+Hosted **required** on member `main` is the merge gate. Scheduled Jankurai is
+machine-local; hosted required is the merge gate. Fixing hosted Jankurai is G8,
+not this version.
+
 ### Added
 
 - Canonical v1alpha1 policy and wire contracts with hostile fixtures, generated

@@ -6,9 +6,10 @@
 # This wrapper grants no authority and spends nothing: it never launches a
 # provider, never reads credential bytes, and never submits a command.
 #
-# Three of the seventeen REQUIRED names have no producer anywhere in the kernel
-# today. This script says so on stdout, marks them PLACEHOLDER_DRY_RUN_ONLY in
-# the env file, and refuses to pretend otherwise. See scripts/dogfood/README.md.
+# Work-package, candidate digest, and idempotency are ledger-issued when
+# --command-id, --request-digest, and --idempotency-key are supplied (same
+# seed as the command worker). Without those, the three names stay
+# PLACEHOLDER_DRY_RUN_ONLY. See scripts/dogfood/README.md.
 set -euo pipefail
 umask 077
 
@@ -24,6 +25,9 @@ usage: prepare-harness.sh --data-dir <abs 0700 dir> --source-repo <abs git repo>
                           [--provider claude] [--max-budget-usd 0.75]
                           [--bullet <bullet bin>] [--harness-path /usr/bin:/bin]
                           [--allow-placeholders]
+                          [--command-id <cmd_64hex>]
+                          [--request-digest <64hex>]
+                          [--idempotency-key <key>]
        prepare-harness.sh --help
 
 Reads the 0600 session file serve.sh wrote (lease socket, farmd uid/gid, farmd
@@ -34,10 +38,10 @@ command worker's child stage consumes:
   apps/bullet-runner/.../child/coding.rs           each name -> one bullet-runner flag
   apps/bullet-runner/.../child.rs                  HOME comes from BULLET_HARNESS_HOME
 
-Real inputs are derived from the operator's own state. Names with no producer
-are written as PLACEHOLDER_DRY_RUN_ONLY:<value> and reported by name; with
---allow-placeholders the script still exits 0 on a BOUND harness-check, but the
-env file is only good for a dry run, never for a billable turn.
+Real inputs are derived from the operator's own state. When --command-id,
+--request-digest, and --idempotency-key are all supplied, the three ledger
+producers match the command worker. Otherwise they are written as
+PLACEHOLDER_DRY_RUN_ONLY:<value>; --allow-placeholders acknowledges a dry run.
 
 The env file is NOT a shell script. Each line is exactly NAME=VALUE with a raw
 value; values containing a newline are refused. worker-loop.sh --env-file reads
@@ -66,6 +70,9 @@ max_budget_usd="0.75"
 bullet_bin="${BULLET_BIN:-}"
 harness_path="/usr/bin:/bin"
 allow_placeholders=0
+command_id=""
+request_digest=""
+idempotency_from_ledger=""
 declare -a gate_ids=() scopes=() credentials=()
 
 while [[ $# -gt 0 ]]; do
@@ -86,6 +93,9 @@ while [[ $# -gt 0 ]]; do
     --bullet) bullet_bin="${2:-}"; shift 2 ;;
     --harness-path) harness_path="${2:-}"; shift 2 ;;
     --allow-placeholders) allow_placeholders=1; shift ;;
+    --command-id) command_id="${2:-}"; shift 2 ;;
+    --request-digest) request_digest="${2:-}"; shift 2 ;;
+    --idempotency-key) idempotency_from_ledger="${2:-}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) refuse ARG_UNKNOWN "$1" ;;
   esac
@@ -257,26 +267,41 @@ mv -f -- "$candidate_tmp" "$candidate_key_file"
 [[ "$(stat -Lc '%u:%a:%h' -- "$candidate_key_file")" == "$(id -u):600:1" ]] \
   || refuse CANDIDATE_KEY_CUSTODY_INVALID "$(stat -Lc '%u:%a:%h' -- "$candidate_key_file")"
 
-# --- names with no producer in the kernel today -----------------------------
-# WorkPackageId::from_seed is blake3("wpk:<seed>") (crates/domain/src/ids.rs),
-# so the shape below is exactly what the Kernel would mint -- but no Kernel
-# selection, ledger row, or CLI produced it. It is a placeholder.
-placeholder_seed="dogfood-ops:$data_dir:$base_sha:$gate_id:$scope"
-work_package_id="wpk_$(printf 'wpk:%s' "$placeholder_seed" | b3sum --no-names | tr -d ' \n')"
-candidate_request_digest="$(printf 'candidate-request:%s' "$placeholder_seed" | sha256sum | cut -c1-64)"
-idempotency_key="dfk_$(printf 'idem:%s' "$placeholder_seed" | sha256sum | cut -c1-32)"
-declare -a placeholder_names=(
-  BULLET_HARNESS_WORK_PACKAGE_ID
-  BULLET_HARNESS_CANDIDATE_REQUEST_DIGEST
-  BULLET_HARNESS_IDEMPOTENCY_KEY
-)
+# --- ledger-issued producers, or honest placeholders ------------------------
+# Worker seed: WorkPackageId::from_seed("bullet.coding-work-package.v1\0{command_id}")
+# which is blake3("wpk:bullet.coding-work-package.v1\0{command_id}").
+declare -a placeholder_names=()
+if [[ -n "$command_id" || -n "$request_digest" || -n "$idempotency_from_ledger" ]]; then
+  [[ "$command_id" =~ ^cmd_[0-9a-f]{64}$ ]] || refuse COMMAND_ID_INVALID "$command_id"
+  [[ "$request_digest" =~ ^[0-9a-f]{64}$ ]] || refuse REQUEST_DIGEST_INVALID "expected 64 lowercase hex"
+  [[ -n "$idempotency_from_ledger" && "$idempotency_from_ledger" != *$'\n'* ]] \
+    || refuse IDEMPOTENCY_KEY_INVALID "single-line key required with --command-id"
+  work_package_id="wpk_$(printf 'wpk:bullet.coding-work-package.v1\0%s' "$command_id" | b3sum --no-names | tr -d ' \n')"
+  candidate_request_digest="$request_digest"
+  idempotency_key="$idempotency_from_ledger"
+else
+  placeholder_seed="dogfood-ops:$data_dir:$base_sha:$gate_id:$scope"
+  work_package_id="wpk_$(printf 'wpk:%s' "$placeholder_seed" | b3sum --no-names | tr -d ' \n')"
+  candidate_request_digest="$(printf 'candidate-request:%s' "$placeholder_seed" | sha256sum | cut -c1-64)"
+  idempotency_key="dfk_$(printf 'idem:%s' "$placeholder_seed" | sha256sum | cut -c1-32)"
+  placeholder_names=(
+    BULLET_HARNESS_WORK_PACKAGE_ID
+    BULLET_HARNESS_CANDIDATE_REQUEST_DIGEST
+    BULLET_HARNESS_IDEMPOTENCY_KEY
+  )
+fi
 
 # --- assemble ---------------------------------------------------------------
 declare -a names=() values=()
 put() { names+=("$1"); values+=("$2"); }
 put BULLET_HARNESS_HOME "$harness_home"
-put BULLET_HARNESS_WORK_PACKAGE_ID "PLACEHOLDER_DRY_RUN_ONLY:$work_package_id"
-put BULLET_HARNESS_CANDIDATE_REQUEST_DIGEST "PLACEHOLDER_DRY_RUN_ONLY:$candidate_request_digest"
+if [[ ${#placeholder_names[@]} -gt 0 ]]; then
+  put BULLET_HARNESS_WORK_PACKAGE_ID "PLACEHOLDER_DRY_RUN_ONLY:$work_package_id"
+  put BULLET_HARNESS_CANDIDATE_REQUEST_DIGEST "PLACEHOLDER_DRY_RUN_ONLY:$candidate_request_digest"
+else
+  put BULLET_HARNESS_WORK_PACKAGE_ID "$work_package_id"
+  put BULLET_HARNESS_CANDIDATE_REQUEST_DIGEST "$candidate_request_digest"
+fi
 put BULLET_HARNESS_CANDIDATE_VERIFICATION_KEY "$candidate_key_file"
 put BULLET_HARNESS_WORKSPACE_ROOT "$workspace_root"
 put BULLET_HARNESS_SOURCE_REPO "$source_repo"
@@ -285,7 +310,11 @@ put BULLET_HARNESS_PRESERVATION "$preservation_dir"
 put BULLET_HARNESS_OBJECTIVE "$objective"
 put BULLET_HARNESS_GATE_ID "$gate_id"
 put BULLET_HARNESS_SCOPE "$scope"
-put BULLET_HARNESS_IDEMPOTENCY_KEY "PLACEHOLDER_DRY_RUN_ONLY:$idempotency_key"
+if [[ ${#placeholder_names[@]} -gt 0 ]]; then
+  put BULLET_HARNESS_IDEMPOTENCY_KEY "PLACEHOLDER_DRY_RUN_ONLY:$idempotency_key"
+else
+  put BULLET_HARNESS_IDEMPOTENCY_KEY "$idempotency_key"
+fi
 put BULLET_HARNESS_LEASE_SOCKET "$lease_socket"
 put BULLET_HARNESS_FARMD_UID "$farmd_uid"
 put BULLET_HARNESS_SOCKET_GID "$socket_gid"
@@ -302,10 +331,9 @@ put BULLET_HARNESS_DOGFOOD_KEY_ID "${BULLET_DOGFOOD_KEY_ID:-dogfood-runner-1}"
 put BULLET_HARNESS_DOGFOOD_RECEIPT "$dogfood_receipt"
 put BULLET_HARNESS_DOGFOOD_MAX_BUDGET_USD "$max_budget_usd"
 if [[ ${#credentials[@]} -gt 0 ]]; then
-  # Recorded for the operator only. The worker's Claude argv builder
-  # (child/coding.rs claude_dogfood_args) emits no --dogfood-credential flag,
-  # so this value reaches nothing today.
-  put BULLET_HARNESS_DOGFOOD_CREDENTIALS "NOT_CONSUMED_BY_WORKER:$(IFS=';'; printf '%s' "${credentials[*]}")"
+  # Forwarded by the worker as --dogfood-credential. This script never reads
+  # credential bytes; only the source path, target, and caller digest are kept.
+  put BULLET_HARNESS_DOGFOOD_CREDENTIALS "$(IFS=';'; printf '%s' "${credentials[*]}")"
 fi
 
 env_tmp="$env_file.tmp.$$"
@@ -355,17 +383,29 @@ for name in BULLET_HARNESS_DOGFOOD_DATA_DIR BULLET_HARNESS_DOGFOOD_POLICY \
   printf '  %s %s\n' "$name" "$state"
 done
 
-printf '\nno producer in the kernel today (values are dry-run placeholders):\n'
-for name in "${placeholder_names[@]}"; do
-  printf '  %s PLACEHOLDER_DRY_RUN_ONLY\n' "$name"
-done
-printf '  BULLET_HARNESS_DOGFOOD_CREDENTIALS is recorded but never reaches bullet-runner:\n'
-printf '    child/coding.rs claude_dogfood_args() emits no --dogfood-credential flag.\n'
+if [[ ${#placeholder_names[@]} -gt 0 ]]; then
+  printf '\nno producer in the kernel today (values are dry-run placeholders):\n'
+  for name in "${placeholder_names[@]}"; do
+    printf '  %s PLACEHOLDER_DRY_RUN_ONLY\n' "$name"
+  done
+else
+  printf '\nledger producers (match the command worker):\n'
+  printf '  BULLET_HARNESS_WORK_PACKAGE_ID %s\n' "$work_package_id"
+  printf '  BULLET_HARNESS_CANDIDATE_REQUEST_DIGEST <64hex>\n'
+  printf '  BULLET_HARNESS_IDEMPOTENCY_KEY <admitted key>\n'
+fi
+if [[ ${#credentials[@]} -gt 0 ]]; then
+  printf '  BULLET_HARNESS_DOGFOOD_CREDENTIALS PRESENT (worker forwards --dogfood-credential; bytes unread here)\n'
+fi
 
 [[ "$outcome" == BOUND ]] || { printf 'DOGFOOD_OPS_HARNESS_UNBOUND: %s\n' "$check_json" >&2; exit 2; }
-if [[ "$allow_placeholders" -eq 0 ]]; then
+if [[ ${#placeholder_names[@]} -gt 0 && "$allow_placeholders" -eq 0 ]]; then
   printf 'DOGFOOD_OPS_HARNESS_PLACEHOLDERS_PRESENT: %s\n' "${placeholder_names[*]}" >&2
   printf 'this env file is dry-run only; pass --allow-placeholders to acknowledge\n' >&2
   exit 1
 fi
-printf '\nBOUND (dry-run only: %s carry placeholders)\n' "${placeholder_names[*]}"
+if [[ ${#placeholder_names[@]} -gt 0 ]]; then
+  printf '\nBOUND (dry-run only: %s carry placeholders)\n' "${placeholder_names[*]}"
+else
+  printf '\nBOUND (ledger-issued work-package, digest, and idempotency)\n'
+fi

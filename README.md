@@ -117,7 +117,7 @@ These two recordings are real authenticated loopback farmd sessions on xbabe2.
 They are not a trusted installer, not VERIFIED, and not a Claude replace.
 Operating HOLD remains. `release_eligible` is false.
 
-![HOLD-honest operator TUI on loopback farmd: CONNECTING then HOLD, LIVE n, UNBOUND](media/operator-console/operator-tui.gif)
+![HOLD-honest operator TUI on loopback farmd: CONNECTING then HOLD, empty fleet, UNBOUND](media/operator-console/operator-tui.gif)
 
 ![Same operator, Shift Brief and Control Tower with Head honesty; Send omitted](media/operator-console/operator-portal.gif)
 
@@ -241,7 +241,7 @@ just readme-render         # pinned VHS image, network disabled
 just readme-check          # claims, media, hashes, limits, double render
 ```
 
-The primary delivery target is [github.com/neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm), assembled from the four supporting source repositories. Hosted Actions and protected integration are not yet active on that aggregate. The Hub defines local and hosted lane sources, but a definition is not a successful run; no CI badge is published before exact-subject execution and branch-protection read-back. New requests select GitHub through the committed publication configuration; the [publication runbook](docs/runbooks/publication.md) describes preparation and required execution evidence under the [delivery plan](docs/assurance/full-product-dogfood-plan.md). Retained publication requests keep their original identities; JeRyu self-hosting remains a separate release obligation.
+The primary delivery target is [github.com/neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm), assembled from the four supporting source repositories. Hosted Actions and protected integration are not yet active on that aggregate. The Hub defines local and hosted lane sources, but a definition is not a successful run; no CI badge is published before exact-subject execution and branch-protection read-back. New requests select GitHub through the committed publication configuration; the [publication runbook](docs/runbooks/publication.md) describes preparation and required execution evidence under the [delivery plan](docs/assurance/full-product-dogfood-plan.md). Retained publication requests keep their original identities; JeRyu self-hosting remains a separate release obligation. Scheduled Jankurai is machine-local; hosted required is the merge gate.
 
 Documentation: [index](docs/README.md) · [paper sources](docs/paper/README.md) · [workplan](docs/workplan.md) · [CI policy](docs/testing.md) · [license](LICENSE)
 
