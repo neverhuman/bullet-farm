@@ -227,8 +227,8 @@ for path in (gif_path, manifest_path):
     if not path.exists() and not path.is_symlink():
         refuse("MISSING_FILE", path.name)
 gif_bytes = gif_path.lstat().st_size
-if gif_bytes > max_gif:
-    refuse("SIZE", f"{gif_bytes} > {max_gif}")
+if gif_bytes >= max_gif:
+    refuse("SIZE", f"{gif_bytes} >= {max_gif}; strictly below required")
 gif_data = safe_read(gif_path)
 manifest_data = safe_read(manifest_path, 1024 * 1024)
 manifest_text = manifest_data.decode("utf-8", "replace")
@@ -586,6 +586,8 @@ real_self_test() {
 
   real_case; real_fixture_gif "$REAL_CASE/$REAL_NAME.gif" 1280x720; real_refresh "$REAL_CASE" "$REAL_NAME"
   real_expect_refusal GEOMETRY 'wrong geometry 1280x720'
+  real_case; truncate -s "$REAL_MAX_GIF_BYTES" "$REAL_CASE/$REAL_NAME.gif"
+  real_expect_refusal SIZE 'gif exactly at byte limit'
   real_case; truncate -s $((REAL_MAX_GIF_BYTES + 1)) "$REAL_CASE/$REAL_NAME.gif"
   real_expect_refusal SIZE 'oversize gif'
   real_case; real_manifest_edit 'del(.host)'
