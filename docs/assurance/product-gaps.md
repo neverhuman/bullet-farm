@@ -35,30 +35,34 @@ for current repairs and re-read exact source before implementation.
 
 The [first measured implementation cycle](deep-audit-20260911.md#first-measured-implementation-cycle)
 adds reviewed authentication/alias/startup repairs, exact Submissions, refusal
-before provider launch, failed-proposal preservation, console recovery and actual12-case Tuiwright.
-Portal `e178db3` has an independently accepted complete local required pass:
-360 fast tests, build and five atomic lanes with continuous source monitoring.
-Current `b291ccf2` also passes372 exact coverage tests, zero skips, all unchanged
-global and seven-file ratchets, continuous custody and final read-back. Its full
-required and browser campaigns remain separate. Failed collection, original
-required, changed/restored compilation and prelaunch identity observations survive.
-Kernel `68ffa9f7` passes all five local required lanes:1270 fast, five lint-receipt
-and34 contract cases. New `bb405556` integrates reviewed CLI authenticated-read
-and UI fixtures:16 focused plus11 Rust UI cases pass; actual enumeration measures
-1324 total/1278 standalone. Required-r7 failed after13 tests:11 passed, two mission request-count assertions
-failed and1265 remained unexecuted. Repair and current Tuiwright are pending. No prior pass transfers to this successor. Default aliases enter the
-existing TUI; durable Head, WorkPackage/Candidate production, native lifecycle and
-TUI owner-epoch/mutation acknowledgement remain open. Original r1 report loss and
-r4/r5 failures are retained; backup40s limits were not increased.
-Hub community templates are locally integrated; published security/contribution
-contents remain stale. Full Hub checks await foreign media-checker custody.
-BulletGit `9510fd99` integrates independently reviewed audit plumbing with77
-component cases. The actual checksum-pinned native audit executes and fails72/85
-(raw83), with three hard findings. Its failed observation is correctly refused by
-the artifact consumer. Rust evidence-helper migration, actual hosted audit and
-auditor classification repair are pending; no threshold was lowered. Archives
-r7–r10 preserve exact closed sources, successes and failures. None of this clears
-Operating HOLD or establishes installed providers, aggregate delivery or a profile.
+before provider launch, failed-proposal preservation and console recovery.
+Current Kernel `e164eb62` passes all five local required lanes:1278 fast,
+five lint-receipt and34 contract cases. Independent review53b2c1b0 verifies
+all76 retained artifacts, exact test identities and unchanged952 source/index
+subjects. Current canonical Tuiwright also passes all12 cases with137 retained
+files,694 ordered events and fresh binaries; review408f30f3. These are local
+component results without continuous Kernel custody. Earlier r7/r8 failures and
+r9's1278-fast-pass followed by Clippy failure remain preserved. Focused repairs
+passed14 mission/UI/startup,68 coding and12 session/HTTP cases before this run.
+Default aliases enter the existing TUI; durable Head, owner-epoch callbacks,
+mutation acknowledgements, real WorkPackage/Candidate production and contained
+native lifecycle remain open. No installed/provider/performance/media credit follows.
+Portal `b291ccf2` has accepted complete required372/build/five-lane and coverage372
+passes with continuous source monitoring and unchanged global/seven-file floors.
+Current `b64fdad2` fixes occupied-server reuse and enforces the selected Vite port.
+Its new pinned browser image launches/renders Chromium and exits cleanly under
+actual ABI/component reviewb41baffb; current full required/coverage and canonical
+rendered24 remain unexecuted. The 18:12 UTC collection57f14d5b refused75 on missing libcups.so.2 before any tests; its55 artifacts remain preserved. Earlier required, collection, changed/restored
+compilation and prelaunch identity observations remain preserved.
+BulletGit `264d9cbf` integrates the Rust audit report/observation helper with88
+individually executed tests and independent review812647af. Caller migration,
+current full checks and nextest enumeration remain pending. The last actual native
+audit at9510fd99 still fails72/85 (raw83), with three hard/six soft findings;
+its failed artifact is refused. Hosted audit and scanner classification need repairs;
+no score floor was lowered. Hub community templates are locally integrated;
+published content remains stale and full Hub proof awaits foreign checker custody.
+Archives r7–r12 preserve exact closed sources, successes and failures. None of this
+clears Operating HOLD or establishes installed providers, aggregate delivery or a profile.
 
 The [9 September deep audit](deep-audit-20260909.md) records the current production
 bridge, all CI execution gaps, actual account/runtime discovery, media defects and
