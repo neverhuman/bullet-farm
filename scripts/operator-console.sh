@@ -155,12 +155,15 @@ serve_report="$(cat "$serve_out")"
 rm -f -- "$serve_out"
 printf '%s\n' "$serve_report"
 
+farmd_url="$(printf '%s\n' "$serve_report" | sed -n 's/^farmd=//p' | tail -n 1)"
+[[ "$farmd_url" =~ ^http://127\.0\.0\.1:[0-9]+$ ]] || farmd_url="http://${bind}"
+portal_port="${portal_origin##*:}"
+export BULLET_PORTAL_PORT="$portal_port"
+export BULLET_FARMD_TEST_PROXY="$farmd_url"
 setsid bash "$HUB/scripts/portal.sh" >"$data_dir/logs/portal.log" 2>&1 &
 portal_pid=$!
 printf '%s\n' "$portal_pid" >"$data_dir/portal.pid"
 
-farmd_url="$(printf '%s\n' "$serve_report" | sed -n 's/^farmd=//p' | tail -n 1)"
-[[ "$farmd_url" =~ ^http://127\.0\.0\.1:[0-9]+$ ]] || farmd_url="http://${bind}"
 printf 'portal=%s\n' "$portal_origin"
 
 kernel_debug="${CARGO_TARGET_DIR:-$KERNEL/target}/debug"
