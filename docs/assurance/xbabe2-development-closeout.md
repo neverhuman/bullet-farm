@@ -4,8 +4,7 @@ Status: **Implementation detail; no production or release admission**
 Owner: Bullet Farm maintainers  
 Last reviewed: 2026-09-11
 
-This is subordinate to the [full-product plan](full-product-dogfood-plan.md),
-[G1–G18 register](product-gaps.md) and existing typed profile inventory.
+This follows the [full-product plan](full-product-dogfood-plan.md), [G1–G18 register](product-gaps.md) and typed profile inventory.
 The [health checkpoint](health-checkpoint-20260909.md) records accepted subjects
 and retained failures. Those authorities and the existing DF/WP identifiers remain
 unchanged; this document supplies the detailed execution and verification order.
@@ -19,12 +18,12 @@ maps current repairs and retained failures. No product/profile status is promote
 | Existing obligation | Latest measured component evidence | Immediate work |
 | --- | --- | --- |
 | H1 / Hub | Reviewed reconciliation62829222 and ADR migration-reference repair6f730bf9; console17 plus readiness negative, UI/Head33 and hostile8 passed. | Resolve foreign media-checker custody; run complete required/scheduled lanes over exact reconciled source. |
-| H1 / Kernel | Current e164eb62 preserves authenticated/alias/early-paint/exact-Submissions repairs; mission14, coding68 and session/HTTP12 repairs precede the accepted current full run. | Durable Head, owner-epoch callbacks/mutation acknowledgements, real WorkPackage/Candidate producer and contained native lifecycle. |
-| H2 / Kernel | Exacte164eb62/treeb02e3841 required-r10 passes1278 fast+5 lint-receipt+34 contract and all five local lanes; review53b2c1b0 validates76 artifacts and unchanged952 source/index subjects. | Continuous source proof and hosted/aggregate paths remain open. Preserve r7/r8 failed fixtures, r9 Clippy failure, original raw-report loss and r4/r5 failures. |
-| H2 / Portal | Exactb291ccf2 full required372/build/five lanes and coverage372 pass with continuous monitor, unchanged floors and final read-back. Currentb64fdad2 fixes occupied-server reuse/strict port; actual pinned Chromium ABI/rendering accepted. | Current full required/coverage, canonical rendered24/occupied-listener negative, hosted admission and native custody remain open. The 18:12 UTC collection57f14d5b refused75 on missing libcups.so.2 before tests; its55 artifacts and earlier failures survive. |
-| U1 / TUI | Currente164eb62 canonical operator-tui completes12/12 with fresh binaries,137 retained files and694 ordered events; independent review408f30f3 verifies identities and process settlement. | Installed/provider/continuous source/performance/media acceptance remains open; fixture backend and credentials are component evidence. |
-| C1 / delivery | BulletGit264d9cbf Rust helper88 actual tests accepted812647af; Python callers still active. Last native audit9510fd99 fails72/85, failed artifact refused. Nine community templates locally integrated; public content stale. | Connect Rust callers, enumerate/run current checks, repair hosted audit/classification, qualify all event/cell artifacts/native custody, aggregate publication/read-back and five protection packets. |
-| M1 / public media | Later Cursor handoff records Hub #14 dark HOLD/PENDING clip, three PENDING submissions, no worker Attempt. | Preserve blank historical asset and diagnostic replacement; qualify installed real coding and exact public fetch-back separately. |
+| H1 / Kernel | Current22015ba1/treeb276eb5c integrates authenticated mutation acknowledgement/server12 and CLI19 focused passes, plus actual1326 total/1280 standalone inventory. | Durable Head, journal owner/epoch recovery, actual WorkPackage/Candidate source and contained native lifecycle remain open. |
+| H2 / Kernel | Current required-r1 exits100:24 pass, one startup failure,1255 of1280 unexecuted. Historicale164 required1278+5+34 remains accepted only for that source. | Reproduce the actual preceding26-test group, fix the observed cause, then full required and current Tuiwright. Diagnostics-only14 passed without reproducing the failure; later nonpanicking fixture diagnostic is untested natively. Preserve every original failure. |
+| H2 / Portal | Currentb64fdad2 canonical rendered24 passes under continuous custody; independent1248bac5 accepts fe559 originals. Historicalb291 required372/build/five lanes and coverage372 retain their narrower subjects. | Current required c575 final admission rejected7d4fe0e2 before tests: .git timestamps changed, all12,447 file identities matched, cause unassigned. Exact container stopped137/removed;65 entries retained. Coverage/occupied negative and hosted/native qualification remain open. |
+| U1 / TUI | Historicale164 canonical operator-tui12 has independent408f30f3 acceptance; current startup failure prevents transferring that result. | Finish current six-client startup qualification, then installed/provider/performance/media acceptance; fixture backend and credentials remain component evidence. |
+| C1 / delivery | BulletGitfba3fe5d/treee497ca17 integrates Rust callers. Independent5df7eb09 accepts source44/native100 while preserving the private driver's parser exit75; last native audit9510 still fails72/85. | Run the rebound canonical shell matrix, retire replaced Python only after accepted caller proof, enumerate/run current required/audit; finish hosted/native/event/aggregate/protection acceptance. |
+| M1 / public media | Current TUI/Portal manifests have different dates, source and work identities; both say provider=none/Candidate=null, Portal declares four frames. | Preserve diagnostic clips and earlier narrow Claude DOGFOOD_RUN; neither qualifies installed three-provider approved integration or synchronized campaign media. |
 | R1 / installation | No newly qualified signed service or provider enrollment. | Keep Operating HOLD; prepare operator packets only after their concrete engineering prerequisites. |
 
 The original 18-source/12-evidence capsule and rejected Portal revisions remain
@@ -49,35 +48,35 @@ failure evidence and uncertain cost for the latter, including read failures,
 truncation, canaries, nonzero exit, timeout and missing terminal frames. A forked
 process, a CLI exit and a billed model turn are separate observations.
 
-## Packet order and acceptance contracts
+## Packet order, faster delivery and retiring Markdown coordination
 
-Each row is a workstream implemented as separately reviewed packets of at most
-four claimed files. A row is not permission to claim its entire surface. Root owns
-integration; two workers implement disjoint packets; an independent reviewer
-challenges both the implementation and the evidence. Canonical checkouts only.
+One integrator, two disjoint workers and one independent reviewer use canonical
+checkouts and at most four exact files per packet. Each names the operator behavior,
+dependency, negative case and semantic consumer; measure usable transitions.
 
-H1/H2 (DF-W0a/b) finish reconciled source, exact independent review, clean member
-and dependency-ordered family proofs. H3/H4 (DF-706) admit the actual Jankurai
-source/dependency closure, retained safe/unsafe detector regressions and full audits
-at score90, zero caps/hard findings with reviewed medium dispositions. C1/C2
-(DF-W0a,104,502,706) execute the complete member/aggregate event matrices, preserve
-source history, exact review/expected-old integration and resulting-main read-back.
-The concrete R/T/P/U/M packets below implement the transaction. D1 (DF-701) uses
-deterministic faults through the real services before credentialed execution;
-D2/D3 (W8) retain the twelve-task campaign and seven-day matched observation.
+| Ordered work / existing IDs | Concrete next delivery and completion condition |
+| --- | --- |
+| H1/H2, C1 first measured cycle | Re-establish Portal input custody after c575 refusal, then run current required, coverage and occupied-listener proof; diagnose Kernel startup under its preceding workload and rerun complete required/Tuiwright; execute Git's prepared shell matrix, inventory/required/native audit. Reconcile remote088e53ad/58a742ce with reviewed local source. Hub proof still needs foreign checker release. |
+| R1/R2 plus T1 second measured cycle | Implement the preserved fresh-generation consumer and supervised schema-27 upgrade; persist task revision/repository/base/scope/criteria/gates/dependencies and server-owned graph/WorkPackage/Variant/Candidate source together. A restart must recover the same admitted task without fabricated relations. |
+| T2/T3/U1 connected Head | Add durable account capacity/budgets, turn/start/native identities and assistant history consumer together. Current history rejects assistant rows and message receipts assume the original pending outbox; preserve historical receipts while admitting new Head progress. Deliver goal→clarification→accepted task in the real CLI, with response-loss/restart tests. |
+| T3/T4 native execution | One supervisor owns both protocol and native-terminal modes, fenced controller epochs, input delivery state, containment and observed process termination. Same-stack fixtures must exercise real child starts and every recovery boundary before live admission. Unknown termination retains custody/reservations. |
+| T5/T6 independent outcome | Produce complete Candidate sources, normalize observed edits, execute admitted useful project gates and reconstruct under independent verifier/effect identities. Settle artifacts/Attempt/leases/audit atomically before cleanup; test cleanup/expiry/requeue and ambiguous effects, not just a returned terminate error. |
+| C1/C2/H3/H4 delivery track | In parallel, finish audited source/tool prerequisites, score90/zero-cap/zero-hard release policy, current event/cell artifact validation, aggregate generation and five exact protection packets. Keep local85 audit ratchets distinct from the stricter release floor; no unavailable result passes. |
+| R/P/D1 first admitted task | Signed persistent Ubuntu service, complete predecessor admission/checkpoint, qualified Claude/Codex/Cursor accounts and approved destination. A real bounded change must survive detach/restart, independent verification and exact approved integration read-back before manual coordination is retired. |
+| D2/D3/M1 adoption and publication | Begin the twelve-task campaign immediately after first admission; prepare capture tooling earlier, record continuous originals during real use, then Antigravity/sixteen tasks, lifecycle/public preview and seven-day matched daily-use acceptance. Team/saga/universal certification stays later and explicit. |
 
-T3 is provider-capable wiring only: it admits no live execution before T4
-durable stop/reclaim guarantees, D1 same-stack fake-provider proof and the
-required operational/account checkpoints. Implement and test M1 tooling before
-D2; actual recordings span D2 and are retained through D3 observation.
-
-T4 cannot be closed by moving an ignored `terminate()` error to a later return.
-Recheck cleanup, heartbeat expiry, paused-state expiry and every release/requeue
-path on current source; retaining an absorbing quarantined Attempt with its lease can obstruct
-global expiry, while releasing that lease removes writer custody. Define and test
-the durable stop/redispatch ownership contract first. Reuse the existing retained
-worker state and exact settlement machinery where suitable; introduce any new
-execution tables only through the supervised upgrade mechanism.
+Integrate repeated private preparation into the existing Bash CI wrapper and Rust
+monitor: automatic inventory/tool binding, fresh admission, retained reports and
+continuous custody. Reuse qualified immutable mechanisms, never stale results.
+Keep private build caches, serialize heavy work on xbabe2, review disjoint work
+while it runs, and measure build/test/review/queue/operator-wait time separately.
+Cursor rotated the4,502,552-byte chat at20:18 after the refused c575 container
+settled. Root verified archive6eea5e6b and its original writer-prefix hash. Future
+rotations require actual writer/reader handoff; retain byte-offset segment bindings.
+Import history as provenance only. New claims, leases, budgets, handoffs, retries,
+incidents and approval prompts must become Bullet-owned records visible in CLI/Portal;
+Markdown becomes an export. Prove second-agent/lost-client/daemon-restart recovery
+without manual log edits; the frozen coordinator is never silently recovered.
 
 ## The real production connection, in implementation order
 
@@ -159,6 +158,7 @@ lifetime. Avoid a framework migration or a second command/permission engine.
 | `bullet chat`, `bullet tui` | Explicit create/continue/list/recover conversations; full mission→task→Attempt→native session browsing, attach/detach and durable history. Opening any row/palette/dialog never mutates. |
 | `bullet setup` | Guided GitHub aggregate/source onboarding with Jeryu compatibility, admitted bootstrap tools and working `just setup`, private authentication, provider selection/readiness, access verification and optional linking. Missing prerequisites give exact remediation; no credential retrieval from logs. |
 | Power-user adoption | Publish a tested Cursor/Claude/Codex workflow and capability matrix, shell completions, stable configuration/JSON contracts, recovery examples and actionable diagnostics. Measure time from a clean install to the first verified change with strangers; maintain contribution/release/upgrade guidance without promising interchangeable vendor flags. |
+| README / M1,C1 | Repair Hub README, publication/root/README and loopback/source guides together: product purpose/status, verified installation, one goal→approved change walkthrough, native attach/recovery, provider capability matrix, paired labelled media/full originals/transcripts/provenance, contribution/security links. Generate the aggregate from exact members. Until installed acceptance, label diagnostics and unavailable commands explicitly; never advertise future chat/setup/serve as working. |
 | `bullet serve` | Ensure installed supervised service is running and print access instructions; explicit `--foreground` development mode uses selected persistent state. Refuse to imply installation from a local binary or an agent's terminal session. |
 | TUI interaction | Header connection/workspace/operator/freshness; navigation; main conversation/view; inspector criteria/scope/blockers/lifecycle/evidence/actions; footer controls/acknowledgement. Midnight background, readable text, cyan navigation, amber prompts, monochrome and NO_COLOR. Keep Ctrl+K, Tab/BackTab, arrows/j/k, Enter, Escape, ?, r and ordinary-view Ctrl+C detach without stealing editor text. Multiline Enter/newline and Ctrl+Enter/submit are composition-safe. |
 | Native terminals (T3/T4/U1) | `bullet agent <provider>`, `sessions` and `attach` bind an admitted task/account to explicit `protocol` or `native_terminal` mode. Rust PTY custody survives client/SSH disconnects; authenticated observers share one acknowledged controller with a fenced epoch. Persist bounded ordered input before writes; retain unknown delivery without replay. In native terminals Ctrl+C reaches the provider and Ctrl+] then `d` detaches. Both modes require the same admitted containment, budget and preservation boundaries; unknown providers refuse before launch. |
@@ -422,7 +422,7 @@ publication; publishing the evidence must not be its own circular prerequisite.
 
 | Delivery stage | Ordered engineering exit; names are milestones, not certification shortcuts |
 | --- | --- |
-| First measured cycle / foundation | Earlier full Portal/Kernel required and current Portal coverage accepted; finish current required/Tuiwright, repair actual native audit findings and hosted admission, reconcile media custody and publish corrected guidance. |
+| First measured cycle / foundation | Historical Portalb291 required/coverage and Kernele164 required/Tuiwright accepted; repair current Kernel startup/Portal custody, complete current lanes/native audit/hosted admission, reconcile media custody and publish corrected guidance. |
 | Second measured cycle / connected execution | Durable Head→server admission→native lifecycle/recovery→atomic Candidate→independent verifier. Complete fresh-generation consumer and supervised upgrade; prepare concrete operator packets. |
 | Delivery foundation / internal alpha | Repair every scheduled defect in the audit, actual auditor execution and native custody; execute complete applicable member/aggregate events with validated artifacts; exact reviewed protection and integration. |
 | First admitted dogfood | Signed persistent service and qualified Claude/Codex/Cursor perform the first real task through Candidate, verification and approved integration. Begin here once admission passes. |
@@ -431,9 +431,9 @@ publication; publishing the evidence must not be its own circular prerequisite.
 | Daily-use release candidate | Seven-day surviving-change observation, matched manual human-time/cost baseline, security/accessibility/performance and lifecycle acceptance; stranger onboarding succeeds. |
 | Stable/profile releases | Semantic consumers accept every applicable requirement. Retain separate self-hosted/universal/evolution/team/saga and platform/forge/provider qualifications; never turn a preview into blanket certification. |
 
-First repair concrete current CI blockers before expanding matrices: the Portal
-fixture recovery defect, missing hosted monitor bootstrap and real auditor lane;
-coverage/scanner provisioning; Lychee/runtime/hostile filename; native macOS/Windows
+First repair current Kernel startup, Portal c575 directory custody/current lanes,
+and BulletGit canonical audit execution; retain the repaired historical Portal fixture.
+Then hosted monitor/auditor/scanner, Lychee/runtime/hostile filename, native macOS/Windows
 custody and primary failure retention. Then execute exact current-source scheduled
 lanes, complete aggregate executors/observation validation and all five protection
 packets. Derive event/matrix applicability each time; manual execution does not
