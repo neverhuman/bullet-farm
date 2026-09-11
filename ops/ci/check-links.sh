@@ -2,6 +2,8 @@
 # Check local Markdown links and fragments without making network requests.
 set -euo pipefail
 
+# shellcheck source=ops/ci/markdown-inputs.sh
+source "$(dirname "${BASH_SOURCE[0]}")/markdown-inputs.sh"
 default_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 root="$default_root"
 if [[ "${1:-}" == "--root" ]]; then
@@ -27,7 +29,8 @@ if [[ "$#" -gt 0 ]]; then
 else
   scan_default_inventory=true
   cd "$canonical_root"
-  mapfile -t markdown_files < <(printf '%s\n' README.md; rg --files docs -g '*.md' | LC_ALL=C sort)
+  collect_markdown_inputs "$canonical_root" member
+  markdown_files=("${MARKDOWN_INPUTS[@]}")
 fi
 [[ "${#markdown_files[@]}" -gt 0 ]] || { printf '[ci] MARKDOWN_INVENTORY_EMPTY: no Markdown files\n' >&2; exit 1; }
 

@@ -238,6 +238,10 @@ fn padded_document(size: usize) -> Vec<u8> {
 
 #[test]
 fn hostile_fixture_files_fail_with_stable_reason_codes() {
+    assert!(
+        !root().join("fixtures/hostile/cases/nul.json").exists(),
+        "the Windows-reserved fixture basename must be removed after generation"
+    );
     let expected = BTreeMap::from([
         ("bidi.json", "DIRECTIONAL_CONTROL_FORBIDDEN"),
         ("bom.json", "UTF8_BOM_FORBIDDEN"),

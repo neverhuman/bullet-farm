@@ -1,15 +1,13 @@
 #!/usr/bin/env bash
-# Unsigned loopback operator console: farm init + farmd + Vite Portal +
-# command-worker loop. Reuses scripts/dogfood/serve.sh --leave-bootstrap so
-# the one-time token stays on disk for `bullet auth login`. Never prints the
-# token, cookie, or CSRF.
+# Unsigned loopback operator console: farm init + farmd + Vite Portal.
+# Reuses scripts/dogfood/serve.sh --leave-bootstrap so the one-time token
+# stays on disk for `bullet auth login`. Never prints the token, cookie, or CSRF.
 set -euo pipefail
 umask 077
 
 HUB="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FAMILY="$(cd "$HUB/.." && pwd)"
 KERNEL="$FAMILY/bullet-kernel"
-GIT="$FAMILY/bullet-git"
 PORTAL="$FAMILY/bullet-portal"
 # shellcheck source=ops/ci/toolchain-pins.sh
 source "$HUB/ops/ci/toolchain-pins.sh"
@@ -19,7 +17,7 @@ usage() {
 usage: operator-console.sh --data-dir <abs dir under $HOME>
                            [--bind 127.0.0.1:7420]
                            [--portal-origin http://127.0.0.1:5173]
-                           [--bullet <abs>] [--farmd <abs>]
+                           [--bullet <abs>] [--farmd <abs>] [--ready-timeout-s 30]
        operator-console.sh --stop --data-dir <abs dir>
        operator-console.sh --help
 
@@ -30,7 +28,7 @@ not under /tmp. There is no implicit default.
 
 Next commands (token is never printed):
   bullet auth login --farmd <farmd> --origin <portal-origin> --stdin < bootstrap_file
-  bullet            (TTY; same as bullet tui)
+  bullet tui
   open <portal-origin>  (paste the token only if login has not consumed it)
 EOF
 }
@@ -46,14 +44,20 @@ portal_origin="http://127.0.0.1:5173"
 bullet_bin="${BULLET_BIN:-}"
 farmd_bin="${BULLET_FARMD_BIN:-}"
 stop=0
+ready_timeout_s=30
 
 while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --data-dir|--bind|--portal-origin|--bullet|--farmd|--ready-timeout-s)
+      [[ $# -ge 2 && -n "$2" ]] || refuse ARG_VALUE_MISSING "$1" ;;
+  esac
   case "$1" in
     --data-dir) data_dir="${2:-}"; shift 2 ;;
     --bind) bind="${2:-}"; shift 2 ;;
     --portal-origin) portal_origin="${2:-}"; shift 2 ;;
     --bullet) bullet_bin="${2:-}"; shift 2 ;;
     --farmd) farmd_bin="${2:-}"; shift 2 ;;
+    --ready-timeout-s) ready_timeout_s="$2"; shift 2 ;;
     --stop) stop=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) refuse ARG_UNKNOWN "$1" ;;
@@ -71,32 +75,24 @@ case "$data_dir" in
   "$FAMILY"|"$FAMILY"/*|"$HUB"|"$HUB"/*) refuse DATA_DIR_INSIDE_CLONE "$data_dir" ;;
 esac
 
+# A persisted PID is an observation, not permission to signal a process. Safe
+# cross-invocation stop requires the installed Rust supervisor's process custody.
 if [[ "$stop" -eq 1 ]]; then
-  worker_pid_file="$data_dir/worker.pid"
-  if [[ -f "$worker_pid_file" ]]; then
-    worker_pid="$(<"$worker_pid_file")"
-    if [[ "$worker_pid" =~ ^[0-9]+$ ]] && kill -0 "$worker_pid" 2>/dev/null; then
-      kill -TERM -- "-$worker_pid" 2>/dev/null || kill -TERM "$worker_pid" 2>/dev/null || true
-    fi
-    rm -f -- "$worker_pid_file"
-  fi
-  portal_pid_file="$data_dir/portal.pid"
-  if [[ -f "$portal_pid_file" ]]; then
-    portal_pid="$(<"$portal_pid_file")"
-    if [[ "$portal_pid" =~ ^[0-9]+$ ]] && kill -0 "$portal_pid" 2>/dev/null; then
-      kill -TERM -- "-$portal_pid" 2>/dev/null || kill -TERM "$portal_pid" 2>/dev/null || true
-    fi
-    rm -f -- "$portal_pid_file"
-  fi
-  exec bash "$HUB/scripts/dogfood/serve.sh" --stop --data-dir "$data_dir"
+  refuse STOP_CUSTODY_UNAVAILABLE "persisted PIDs cannot authorize signals; state retained for supervised recovery"
 fi
 
 [[ "$bind" =~ ^127\.0\.0\.1:[0-9]+$ ]] || refuse BIND_NOT_LOOPBACK "$bind"
 [[ "$portal_origin" =~ ^http://(127\.0\.0\.1|localhost):[0-9]+$ ]] \
   || refuse PORTAL_ORIGIN_NOT_LOOPBACK "$portal_origin"
+bind_port="${bind##*:}"
+portal_port="${portal_origin##*:}"
+[[ ${#bind_port} -le 5 && $((10#$bind_port)) -le 65535 ]] || refuse BIND_PORT_INVALID "$bind"
+[[ ${#portal_port} -le 5 && $((10#$portal_port)) -ge 1 && $((10#$portal_port)) -le 65535 ]] \
+  || refuse PORTAL_PORT_INVALID "$portal_origin"
+[[ "$ready_timeout_s" =~ ^[1-9][0-9]?$ ]] || refuse READY_TIMEOUT_INVALID "$ready_timeout_s (want 1..99)"
 [[ -d "$KERNEL" && -d "$PORTAL" ]] || refuse FAMILY_LAYOUT "need bullet-kernel and bullet-portal siblings"
 
-for tool in cargo curl node npm setsid; do
+for tool in cargo curl node npm setsid realpath stat flock jq; do
   command -v "$tool" >/dev/null 2>&1 || refuse TOOL_MISSING "$tool"
 done
 [[ "$(node --version)" == "v$PINNED_NODE_VERSION" ]] \
@@ -104,16 +100,9 @@ done
 [[ "$(npm --version)" == "$PINNED_NPM_VERSION" ]] \
   || refuse NPM_PIN "expected npm $PINNED_NPM_VERSION, found $(npm --version)"
 
-built_kernel=0
 if [[ -z "$farmd_bin" || -z "$bullet_bin" ]]; then
-  ( cd "$KERNEL" && cargo build --locked \
-      -p bullet --bin bullet --bin transaction_offline \
-      -p bullet-farmd --bin bullet-farmd \
-      -p bullet-runner --bin bullet-runner --bin bullet-command-worker \
-      -p bullet-verifier --bin bullet-verifier-fixture \
-      --features bullet-verifier/fixture-executor ) \
-    || refuse BUILD_FAILED "cargo build --locked console worker subjects"
-  built_kernel=1
+  ( cd "$KERNEL" && cargo build --locked -p bullet --bin bullet -p bullet-farmd --bin bullet-farmd ) \
+    || refuse BUILD_FAILED "cargo build --locked -p bullet --bin bullet -p bullet-farmd"
   [[ -n "$bullet_bin" ]] || bullet_bin="$KERNEL/target/debug/bullet"
   [[ -n "$farmd_bin" ]] || farmd_bin="$KERNEL/target/debug/bullet-farmd"
 fi
@@ -122,12 +111,31 @@ fi
 bullet_bin="$(realpath -e -- "$bullet_bin")"
 farmd_bin="$(realpath -e -- "$farmd_bin")"
 
-if [[ ! -e "$data_dir" ]]; then
-  mkdir -m 0700 -- "$data_dir"
-fi
-if [[ ! -e "$data_dir/logs" ]]; then
-  mkdir -m 0700 -- "$data_dir/logs"
-fi
+# Validate existing ancestry before mkdir or farm init can follow a symlink.
+[[ "$(realpath -m -- "$data_dir")" == "$data_dir" ]] || refuse DATA_DIR_NOT_CANONICAL "$data_dir"
+ancestor="$data_dir"
+while [[ "$ancestor" != / ]]; do
+  if [[ -e "$ancestor" || -L "$ancestor" ]]; then
+    [[ -d "$ancestor" && ! -L "$ancestor" ]] || refuse DATA_DIR_UNTRUSTED "$ancestor"
+    perm="$(stat -Lc '%a' -- "$ancestor")"
+    [[ $((8#$perm & 8#002)) -eq 0 ]] || refuse DATA_DIR_UNTRUSTED "$ancestor (world writable)"
+  fi
+  ancestor="$(dirname -- "$ancestor")"
+done
+mkdir -p -- "$data_dir"
+[[ "$(stat -Lc '%u:%a:%F' -- "$data_dir")" == "$(id -u):700:directory" ]] \
+  || refuse DATA_DIR_UNTRUSTED "$data_dir (want self-owned 0700)"
+path="$data_dir/logs"
+[[ ! -L "$path" ]] || refuse DATA_DIR_UNTRUSTED "$path"
+[[ -e "$path" ]] || mkdir -m 0700 -- "$path"
+[[ "$(stat -Lc '%u:%a:%F' -- "$path")" == "$(id -u):700:directory" ]] \
+  || refuse DATA_DIR_UNTRUSTED "$path"
+[[ ! -L "$data_dir/operator-console.lock" ]] || refuse DATA_DIR_UNTRUSTED "console lock symlink"
+exec {console_lock}>"$data_dir/operator-console.lock"
+flock -n "$console_lock" || refuse ALREADY_STARTING "$data_dir"
+for path in "$data_dir/portal.pid" "$data_dir/farmd.pid"; do
+  [[ ! -e "$path" && ! -L "$path" ]] || refuse PID_STATE_UNRECONCILED "$path; preserved without signaling"
+done
 export BULLET_DATA_DIR="$data_dir"
 "$bullet_bin" farm init || refuse FARM_INIT_FAILED "$data_dir"
 
@@ -137,110 +145,100 @@ export BULLET_DATA_DIR="$data_dir"
   npm ci --ignore-scripts --no-audit --no-fund
 )
 
-# serve.sh admits the 0700 data dir and starts farmd with the token left in place.
-serve_out="$(mktemp)"
-if ! bash "$HUB/scripts/dogfood/serve.sh" \
-  --data-dir "$data_dir" \
-  --bind "$bind" \
-  --portal-origin "$portal_origin" \
-  --farmd "$farmd_bin" \
-  --leave-bootstrap >"$serve_out"; then
-  kill -TERM -- "-$portal_pid" 2>/dev/null || true
-  rm -f -- "$data_dir/portal.pid"
-  cat "$serve_out" >&2 || true
-  rm -f -- "$serve_out"
-  refuse FARMD_START_FAILED "see $data_dir/logs"
-fi
-serve_report="$(cat "$serve_out")"
-rm -f -- "$serve_out"
-printf '%s\n' "$serve_report"
+# Keep serve.sh alive as farmd's owner until both interfaces are ready. On
+# failure or interruption only this invocation's children receive signals.
+startup_dir="$(mktemp -d "$data_dir/logs/console-startup.XXXXXXXX")"
+serve_out="$startup_dir/serve.stdout"
+: >"$serve_out"
+serve_pid=""
+portal_pid=""
+startup_complete=0
+cleanup() {
+  local status=$?
+  trap - EXIT INT TERM
+  if [[ "$startup_complete" -eq 0 ]]; then
+    if [[ -n "$portal_pid" ]]; then
+      kill -TERM -- "-$portal_pid" 2>/dev/null || true
+      for ((shutdown_tick=0; shutdown_tick<40; shutdown_tick++)); do
+        kill -0 -- "-$portal_pid" 2>/dev/null || break
+        sleep 0.05
+      done
+      if [[ "$shutdown_tick" -eq 40 ]]; then kill -KILL -- "-$portal_pid" 2>/dev/null || true; fi
+      wait "$portal_pid" 2>/dev/null || true
+      if kill -0 -- "-$portal_pid" 2>/dev/null; then
+        printf 'OPERATOR_CONSOLE_CLEANUP_UNRESOLVED: portal group %s; retained %s\n' "$portal_pid" "$data_dir/portal.pid" >&2
+      else
+        rm -f -- "$data_dir/portal.pid"
+      fi
+    fi
+    if [[ -n "$serve_pid" ]]; then
+      kill -TERM -- "-$serve_pid" 2>/dev/null || true
+      for ((shutdown_tick=0; shutdown_tick<100; shutdown_tick++)); do
+        kill -0 "$serve_pid" 2>/dev/null || break
+        sleep 0.05
+      done
+      if kill -0 "$serve_pid" 2>/dev/null; then
+        printf 'OPERATOR_CONSOLE_CLEANUP_UNRESOLVED: launcher %s; retained %s\n' "$serve_pid" "$startup_dir/serve.pid" >&2
+      else
+        wait "$serve_pid" 2>/dev/null || true
+      fi
+    fi
+  fi
+  exit "$status"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+setsid bash "$HUB/scripts/dogfood/serve.sh" \
+  --data-dir "$data_dir" --bind "$bind" --portal-origin "$portal_origin" \
+  --farmd "$farmd_bin" --leave-bootstrap --ready-timeout-s "$ready_timeout_s" \
+  --startup-ack-file "$startup_dir/ack" >"$serve_out" 2>"$startup_dir/serve.stderr" {console_lock}>&- &
+serve_pid=$!
+printf '%s\n' "$serve_pid" >"$startup_dir/serve.pid"
+for ((tick=0; tick<ready_timeout_s*20; tick++)); do
+  if grep -qx 'startup=ready' "$serve_out"; then break; fi
+  if ! kill -0 "$serve_pid" 2>/dev/null; then
+    wait "$serve_pid" 2>/dev/null || true
+    serve_pid=""
+    refuse FARMD_START_FAILED "see $startup_dir/serve.stderr"
+  fi
+  sleep 0.05
+done
+grep -qx 'startup=ready' "$serve_out" || refuse FARMD_START_FAILED "see $startup_dir/serve.stderr"
+farmd_url="$(sed -n 's/^farmd=//p' "$serve_out")"
+[[ "$farmd_url" =~ ^http://127\.0\.0\.1:[0-9]+$ ]] || refuse FARMD_REPORT_INVALID "$serve_out"
 
-farmd_url="$(printf '%s\n' "$serve_report" | sed -n 's/^farmd=//p' | tail -n 1)"
-[[ "$farmd_url" =~ ^http://127\.0\.0\.1:[0-9]+$ ]] || farmd_url="http://${bind}"
-portal_port="${portal_origin##*:}"
-export BULLET_PORTAL_PORT="$portal_port"
-export BULLET_FARMD_TEST_PROXY="$farmd_url"
-setsid bash "$HUB/scripts/portal.sh" >"$data_dir/logs/portal.log" 2>&1 &
+BULLET_PORTAL_PORT="$portal_port" BULLET_FARMD_TEST_PROXY="$farmd_url" \
+  setsid bash "$HUB/scripts/portal.sh" >"$startup_dir/portal.log" 2>&1 </dev/null {console_lock}>&- &
 portal_pid=$!
 printf '%s\n' "$portal_pid" >"$data_dir/portal.pid"
-
+portal_ready=0
+for ((tick=0; tick<ready_timeout_s*10; tick++)); do
+  kill -0 "$portal_pid" 2>/dev/null || refuse PORTAL_EXITED "see $startup_dir/portal.log"
+  kill -0 "$serve_pid" 2>/dev/null || refuse FARMD_EXITED "see $startup_dir/serve.stderr"
+  # Vite prints Local only after its own strict-port bind succeeds. A preexisting
+  # listener must not qualify this invocation while npm is still starting.
+  if grep -Eq "Local:.*http://127[.]0[.]0[.]1:$portal_port/" "$startup_dir/portal.log" \
+    && curl --fail --silent --max-time 1 "$portal_origin/" >"$startup_dir/portal.html" 2>/dev/null \
+    && grep -q 'id="root"' "$startup_dir/portal.html" \
+    && curl --fail --silent --max-time 1 "$portal_origin/health" >"$startup_dir/proxy-health.json" 2>/dev/null \
+    && jq -e '.status == "ok"' "$startup_dir/proxy-health.json" >/dev/null 2>&1; then
+    portal_ready=1
+    break
+  fi
+  sleep 0.1
+done
+[[ "$portal_ready" -eq 1 ]] || refuse PORTAL_NOT_READY "see $startup_dir"
+kill -0 "$portal_pid" 2>/dev/null || refuse PORTAL_EXITED "see $startup_dir/portal.log"
+printf 'ready\n' >"$startup_dir/ack"
+wait "$serve_pid" || refuse FARMD_START_FAILED "see $startup_dir/serve.stderr"
+serve_pid=""
+startup_complete=1
+cat "$serve_out"
 printf 'portal=%s\n' "$portal_origin"
-
-kernel_debug="${CARGO_TARGET_DIR:-$KERNEL/target}/debug"
-worker_bin="${BULLET_COMMAND_WORKER_BIN:-$kernel_debug/bullet-command-worker}"
-runner_bin="${BULLET_RUNNER_BIN:-$kernel_debug/bullet-runner}"
-verifier_bin="${BULLET_VERIFIER_FIXTURE_BIN:-$kernel_debug/bullet-verifier-fixture}"
-transaction_offline_bin="${BULLET_TRANSACTION_OFFLINE_BIN:-$kernel_debug/transaction_offline}"
-gitd_bin="${BULLET_GITD_BIN:-$GIT/target/debug/bullet-gitd}"
-loop_sh="$HUB/scripts/dogfood/worker-loop.sh"
-if [[ "$built_kernel" -eq 1 && -f "$GIT/crates/bullet-gitd/Cargo.toml" && ! -x "$gitd_bin" ]]; then
-  ( cd "$GIT" && cargo build --locked -p bullet-gitd --bin bullet-gitd ) \
-    || refuse GITD_BUILD_FAILED "cargo build --locked -p bullet-gitd --bin bullet-gitd"
-  gitd_bin="$GIT/target/debug/bullet-gitd"
-fi
-worker_reason=""
-if [[ ! -x "$loop_sh" ]]; then
-  worker_reason=WORKER_LOOP_MISSING
-elif [[ ! -f "$data_dir/session.json" ]]; then
-  worker_reason=SESSION_FILE_MISSING
-else
-  missing=""
-  for labeled in "WORKER:$worker_bin" "RUNNER:$runner_bin" "GITD:$gitd_bin" \
-      "VERIFIER:$verifier_bin" "TRANSACTION_OFFLINE:$transaction_offline_bin"; do
-    label="${labeled%%:*}"
-    path="${labeled#*:}"
-    if [[ ! -x "$path" ]]; then
-      missing="${missing:+$missing,}$label"
-    fi
-  done
-  if [[ -n "$missing" ]]; then
-    worker_reason="WORKER_MANIFEST_UNBOUND:$missing"
-  fi
-fi
-if [[ -z "$worker_reason" ]]; then
-  worker_bin="$(realpath -e -- "$worker_bin")"
-  runner_bin="$(realpath -e -- "$runner_bin")"
-  gitd_bin="$(realpath -e -- "$gitd_bin")"
-  verifier_bin="$(realpath -e -- "$verifier_bin")"
-  transaction_offline_bin="$(realpath -e -- "$transaction_offline_bin")"
-fi
-if [[ -n "$worker_reason" ]]; then
-  printf 'worker=UNBOUND reason=%s\n' "$worker_reason"
-else
-  manifest="$data_dir/worker/binary-manifest.json"
-  harness_env="$data_dir/harness/harness.env"
-  env_file_args=()
-  if [[ -f "$harness_env" && ! -L "$harness_env" ]]; then
-    env_file_args=(--env-file "$harness_env")
-  fi
-  setsid bash "$loop_sh" \
-    --data-dir "$data_dir" \
-    --manifest "$manifest" \
-    --worker "$worker_bin" \
-    --transaction-offline "$transaction_offline_bin" \
-    --farmd "$farmd_bin" \
-    --runner "$runner_bin" \
-    --gitd "$gitd_bin" \
-    --verifier "$verifier_bin" \
-    "${env_file_args[@]}" \
-    >"$data_dir/logs/worker-loop.stdout" 2>"$data_dir/logs/worker-loop.stderr" &
-  worker_pid=$!
-  printf '%s\n' "$worker_pid" >"$data_dir/worker.pid"
-  sleep 0.2
-  if ! kill -0 "$worker_pid" 2>/dev/null; then
-    wait "$worker_pid" 2>/dev/null || true
-    printf 'worker=UNBOUND reason=WORKER_START_FAILED see=%s/logs/worker-loop.stderr\n' "$data_dir"
-    rm -f -- "$data_dir/worker.pid"
-  else
-    printf 'worker=started pid=%s\n' "$worker_pid"
-    printf 'manifest=%s\n' "$manifest"
-  fi
-fi
-
 printf 'next=bullet auth login --farmd %s --origin %s --stdin < bootstrap_file\n' \
   "$farmd_url" "$portal_origin"
 printf 'next=bullet tui\n'
-printf 'next=bullet\n'
 printf 'note=just dev cannot create a session; this wrapper can.\n'
 printf 'note=unsigned local console; HOLD remains; not VERIFIED.\n'
-printf 'note=coding stop is STOP_UNIMPLEMENTED; Ctrl+C detaches the TUI only.\n'
+printf 'note=cross-invocation stop requires qualified process custody; PID files are diagnostic only.\n'
