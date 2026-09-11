@@ -36,12 +36,19 @@ for current repairs and re-read exact source before implementation.
 The [first measured implementation cycle](deep-audit-20260911.md#first-measured-implementation-cycle)
 adds reviewed authentication/alias/startup repairs, exact Submissions, safe provider
 refusal, failed-proposal preservation, console recovery and actual12-case Tuiwright.
-Portal fixture repairs are committed at `79c47734`; its complete required rerun is
-pending. Kernel's1266+34 execution lost the original fast raw report and remains
-nonpassing for retention; the repaired16-case report suite needs the full rerun.
-Later Cursor evidence records Hub #11/#12/#14 and Kernel #17 on main, three PENDING
-submissions and no worker Attempt. The dark Hub clip is diagnostic; public aggregate
-fetch-back and real installed provider media remain separate obligations.
+The accepted local source snapshots are Hub `62829222`, Kernel `5f859709` and
+Portal `e178db3`. Kernel required-r4 preserved1266 fast and34 contract passes but
+failed documentation; r5 then timed out three backup tests with1136 unexecuted.
+The earlier overwritten raw report remains lost. Portal's full required remains
+pending: its first new container collection refused a library lookup, while the
+cross-mount mutation fixture failed before making a mutation. The unchanged
+compiler control passed; this alone does not qualify continuous source custody.
+Hub's36 publication library tests passed under actual Nextest; full Hub checks
+still await foreign media-checker custody. The newer Cursor Kernel proposal
+`3478b57d` reintroduces failed-process promotion and unsafe pre-admission writes;
+it requires reconciliation with the preserved reviewed branch. Historical main
+merges, PENDING submissions and diagnostic clips establish no installed provider
+execution, aggregate fetch-back or complete engineering/dogfood gate.
 
 The [9 September deep audit](deep-audit-20260909.md) records the current production
 bridge, all CI execution gaps, actual account/runtime discovery, media defects and
