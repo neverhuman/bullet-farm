@@ -2,13 +2,19 @@
 
 Status: **offline worker reconciliation available; live read-back blocked**  
 Owner: Bullet Farm maintainers  
-Last reviewed: 2026-08-25  
+Last reviewed: 2026-09-11  
 Component receipt baselines (minimum; replay current-head lanes before use): bullet-kernel `c4731aa` (authenticated offline command reconciliation), bullet-farm `347da232`,
 bullet-portal `6b294ce` (projection rules and same-origin component proof)
 
 This runbook covers what an operator can settle **today**: a `PENDING` public command that no execution
 adapter will ever pick up. It does not cover live forge read-back; that half cannot be written until the
 Jeryu or GitHub effect lanes have a receipt (see §5).
+
+Loopback claim is a different path: `scripts/dogfood/worker-loop.sh` re-invokes
+`bullet-command-worker` against an unsigned console session. That is not
+`--worker-token-file` offline reconcile. A claim that types
+`COMMAND_CODING_HARNESS_UNBOUND` is a harness refuse, not “no worker.” Live
+turns still need operator enrollments.
 
 ## 1. The ladder
 
