@@ -2,51 +2,51 @@
   "account": "REDACTED",
   "binaries": {
     "bullet": {
-      "sha256": "7a55b89202ee0b62feb14800ac7bb56252fee6fbe6de90379df64aab1c5e3677"
+      "sha256": "46a9becf5e9829d631feeb9ad518308cc22e49e6ec79ffdede7142b2f972d915"
     },
     "bullet-farmd": {
       "sha256": "7267c87936032661464339a0918bf6bba562d6d7511779d14f5093f8437fe0e7"
     }
   },
   "canvas": {
-    "background_rgb": "eceff4",
+    "background_rgb": "171b21",
     "method": "GIF_LOGICAL_SCREEN_EXPANSION",
     "native_height": 1078,
     "native_width": 1913,
     "offset_x": 3,
     "offset_y": 1
   },
-  "capture_sha256": "d0d7f35fde8580011fd3d304cce4b4fa795bbf7306efa789c76711ee08e29529",
+  "capture_sha256": "600fb98c19d02a24ae7b26afefa09fd569edd92c2acdb28da93ad979693aa7ac",
   "claims": [
     "local-observation",
     "no-gate-cleared",
     "real-recording"
   ],
   "gif": {
-    "bytes": 11610,
-    "sha256": "e1c3b09627e6c05893137e26ce7f6e2d78391c071a3bff444a664844b7bfb557"
+    "bytes": 226592,
+    "sha256": "7341abeb65d5ab28cb745ab228d14294915258c3f6fc4d873ea1b7e79abe9353"
   },
   "host": "xbabe2",
   "kind": "terminal",
   "master": {
-    "cast_sha256": "1fc2d307688a0bc214b5b977db4fcb3e39ea4a46460f4b78a12b5909f8b907ea"
+    "cast_sha256": "d71d890154089ac95814b9a416380b05befd771f2622ded912ee48c13b7f8e34"
   },
   "members": {
     "bullet-farm": {
-      "dirty": false,
-      "oid": "ace452e9aabd2ea12fdaff60c01a735a5d411878"
+      "dirty": true,
+      "oid": "5ef8dedc26e038b29e79bb3dd31d1cfeba6b61ba"
     },
     "bullet-git": {
       "dirty": false,
       "oid": "4e33103673f535fde871ef26cffe05460674293b"
     },
     "bullet-kernel": {
-      "dirty": false,
-      "oid": "1d4771197434b29fb116c808eed9c69e310a0c42"
+      "dirty": true,
+      "oid": "899f878fc914533d4f5d44f5b67c6e4c462c3413"
     },
     "bullet-portal": {
-      "dirty": true,
-      "oid": "00b13bfa299a80f1b390505663eff7b4c6c35a8e"
+      "dirty": false,
+      "oid": "d00c88ae1122c7cbad13ff7228bdf9a24424d9a9"
     }
   },
   "name": "operator-tui",
@@ -58,13 +58,13 @@
     "algorithm": "sha256",
     "digest": "ea24d61fdb4ae2316d819bb7af386333fcc03834f8a5b63e89da8ec751007089"
   },
-  "recorded_at": "2026-09-10T20:12:54Z",
+  "recorded_at": "2026-09-11T01:19:09Z",
   "recorder": {
     "path": "scripts/media/record-tui.sh",
-    "sha256": "e7732cf919df828403d3f5db5dea94517c29a5b37b02b544e2c4da13b46603a9"
+    "sha256": "b4991706d3314a60cb138bd8e873665b32528e1ec62748be85d8604dc3c62406"
   },
   "release_eligible": false,
-  "render_receipt_sha256": "308c9d5bc02c5e4aa10efeb6dabe6f110f775e29c7d8b2914f71a565b92c2829",
+  "render_receipt_sha256": "5cf19af2adba484766116db90afadef9bfe8e6eca0ffb6f3c03077ef8a2d5727",
   "render_tools": {
     "agg": {
       "sha256": "59673469d625df6f55c72159c84ffbb7af1348ac379d0e79db43f4b80fb986a3",
@@ -92,6 +92,6 @@
     "line_height": 1.4,
     "renderer": "fontdue",
     "rows": 54,
-    "theme": "github-light"
+    "theme": "github-dark"
   }
 }
