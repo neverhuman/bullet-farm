@@ -67,8 +67,20 @@ release_proof_lock() {
   }
 }
 
+# Keep the first failure while reporting later observation/custody failures.
+# Stderr belongs to the caller's retained log; this is not an artifact receipt.
+observed_status() {
+  local lane="$1" stage="$2" primary="$3" secondary="$4" final="$3"
+  [[ "$final" -ne 0 ]] || final="$secondary"
+  if [[ "$secondary" -ne 0 ]]; then
+    printf 'ci-local: CI_SECONDARY_FAILURE lane=%s stage=%s primary=%s secondary=%s\n' \
+      "$lane" "$stage" "$primary" "$secondary" >&2 || return "$final"
+  fi
+  return "$final"
+}
+
 run_observed_locked() {
-  local lane="$1" script="$2" status artifact command_count observation_status
+  local lane="$1" script="$2" status artifact command_count observation_status custody_status
   shift 2
   local -a produced=() commands=("bash scripts/ci-doctor.sh $lane")
   command -v realpath >/dev/null 2>&1 || {
@@ -116,18 +128,21 @@ run_observed_locked() {
     done
   fi
   command_count="${#commands[@]}"
-  verify_proof_lock || return $?
+  verify_proof_lock || {
+    custody_status=$?
+    observed_status "$lane" post-lane-custody "$status" "$custody_status"
+    return $?
+  }
   set +e
   CI_COMMAND_COUNT="$command_count" bash scripts/ci-observation.sh "$lane" "$status" \
     "${commands[@]}" "${produced[@]}"
   observation_status=$?
   set -e
-  [[ "$observation_status" -eq 0 ]] || return "$observation_status"
-  return "$status"
+  observed_status "$lane" observation "$status" "$observation_status"
 }
 
 run_observed() {
-  local lane="$1" status
+  local lane="$1" status release_status=0
   # A lane that begins with little free space can exhaust the filesystem
   # mid-write and leave a partial artifact behind: a truncated observation or an
   # incomplete lock record. The floor is therefore checked before this lane may
@@ -141,8 +156,8 @@ run_observed() {
   else
     status=$?
   fi
-  release_proof_lock || return $?
-  return "$status"
+  release_proof_lock || release_status=$?
+  observed_status "$lane" release "$status" "$release_status"
 }
 
 lane="${1:-required}"

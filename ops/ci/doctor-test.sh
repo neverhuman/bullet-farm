@@ -3,6 +3,8 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
+bash "$REPO_ROOT/ops/ci/observed-status-test.sh"
+
 declare -A MISSING_TOOLS=()
 declare -A STUBBED_TOOLS=()
 

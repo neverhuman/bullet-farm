@@ -190,13 +190,18 @@ set -e
 grep -q -F -e 'ci-local: CI_PROOF_DISK_FLOOR:' "$fixture/mirror.out" || fail 'no typed refusal from the lane'
 
 # A refused floor never becomes success, even when the refusal is the only thing
-# that went wrong: L2's precedence rule applied to this gate.
+# that went wrong: L2's precedence rule applied to this gate. Hosts can have more
+# free space than the maximum floor; bind this negative to exactly one KiB below.
 set +e
 ( export CI_SCRATCH_FLOOR_MIB_OVERRIDE=262144
+  ci_scratch_free_kib() { printf '%s\n' "$((262144 * 1024 - 1))"; }
   mirror_run_observed fast ) >"$fixture/mirror-bound.out" 2>&1
 mirror_status=$?
 set -e
 [[ "$mirror_status" -eq 69 ]] || fail "a raised floor returned $mirror_status, expected 69"
+grep -q -F -e 'ci-local: CI_PROOF_DISK_FLOOR:' "$fixture/mirror-bound.out" \
+  || fail 'no typed raised-floor refusal from the lane'
+[[ ! -e "$fixture/mirror-built" ]] || fail 'a raised-floor lane built something'
 [[ ! -e "$mirror_root/.git/bullet-ci.lock.d" ]] || fail 'a refused lane left a lock behind'
 
 set +e
