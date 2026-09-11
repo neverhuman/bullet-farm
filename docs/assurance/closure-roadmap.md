@@ -2,7 +2,7 @@
 
 Status: **ACTIVE plan; not runtime, receipt, or release authority**  
 Owner: Bullet Farm maintainers  
-Last reconciled: 2026-08-25
+Last reconciled: 2026-09-11
 
 This is the dependency-ordered route from the current component-proved family
 to the named release profiles. The executable decision always wins:
@@ -12,10 +12,8 @@ bullet-family check release --profile <profile> \
   --receipts <absolute-admitted-registry> --json
 ```
 
-Every profile is currently `BLOCKED`. A completed engineering item is not a
-release fact until its exact current-family receipt passes the condition-specific
-semantic verifier. The historical 26-gate page and `linux-preview` are
-diagnostics only.
+Every profile remains `BLOCKED` until exact current-family receipts pass their semantic verifier.
+The historical 26-gate/`linux-preview` diagnostics and current evidence are indexed in [product-gaps.md](product-gaps.md).
 
 ## Product order
 
@@ -30,6 +28,16 @@ diagnostics only.
 
 `linux-preview` may diagnose a subset of Ubuntu/Jeryu/Claude conditions, but
 it cannot replace `self-hosted-v1` or authorize a tag.
+
+The [current work order](xbabe2-development-closeout.md#exit-checkpoints-and-final-read-back)
+overlays four delivery gates: engineering foundation → admitted internal dogfood →
+public preview → complete documented product. The first internal task requires a signed
+persistent Ubuntu service, qualified Claude/Codex/Cursor, real Head/task/Runner/Candidate/
+independent-gate/integration flow and approved GitHub delivery; it does not redefine
+`self-hosted-v1`'s Claude/Jeryu contract. Twelve tasks and seven-day survival follow first
+admission. Antigravity/sixteen tasks and real paired media qualify the later showcase.
+Waves 9, 10 and 11 each depend on Wave 8, not on one another; eligible work may run in parallel.
+Team must pass before saga. Apply each gate's actual dependencies, not unrelated breadth.
 
 ## Seven functions, five authorities
 
@@ -47,9 +55,8 @@ new credential or completion vote.
 | Effect and delivery | Delivery/integration | Broker, attestor, and integrator use separate workload identities and reconcile exact desired state by read-back |
 | Evidence and audit | Evidence/audit | Observer and auditor own durable observation and audit subjects; Portal is a non-authoritative reader |
 
-No authority may substitute for another. Provider exit zero is not Candidate
-identity, writer tests are not independent Evidence, dispatch success is not a
-reconciled effect, and Portal green is not completion.
+No authority substitutes for another: provider exit is not Candidate identity, writer
+tests are not independent Evidence, dispatch is not a reconciled effect, and UI green is not completion.
 
 ## Waves 0–11
 
@@ -88,12 +95,10 @@ to Wave 0. Release remains `BLOCKED` throughout.
 Objective: make every later receipt refer to one immutable language and family.
 
 - Publish signed immutable wire/member tags and the reviewed Jeryu capability tag.
-  At the clean prospective Hub head, generate the schema-3 family and external-
-  component locks from those authenticated non-Hub subjects, commit the lock,
-  sign the Hub tag last, and verify that exact Hub tag contains the generated
-  lock. Run `bullet-family lock generate --tag <prospective-version> --subjects
-  <absolute-path>` before the Hub tag exists; generation reads Hub `HEAD`, so a
-  pre-existing Hub tag would make the order circular.
+  At clean prospective Hub HEAD, generate schema-3 family/external locks from authenticated
+  non-Hub subjects; commit the lock, sign Hub last and verify its tag contains that lock.
+  Run `bullet-family lock generate --tag <prospective-version> --subjects <absolute-path>`
+  before the Hub tag exists: generation reads HEAD, so a pre-existing tag is circular.
 - Publish one `bullet-wire-v1` artifact consumed by exact tag/digest from every
   repository. It owns recursively closed Authority, Transaction, Forge,
   Evolution, and Release records; eliminate duplicate Candidate/digest semantics
@@ -123,9 +128,10 @@ predecessors: OD-D, OD-E, and the reviewed Jeryu tag.
 
 Objective: Kernel becomes the sole durable scheduler and authority issuer.
 
-- Cut one release SQLite baseline. Prototype databases move forward only by
-  explicit export → verify → import; they are never silently migrated in
-  place, adopted as release state, or destroyed.
+- Preserve the supported schema-27 prefix and append-only supervised upgrades, including
+  maintenance ownership, interruption/retry and high-water-preserving rollback. Historical
+  prototype state uses explicit export → verify → import, never silent adoption/destruction.
+  New installations initialize independent admitted state; xbabe2 retains its preservation checkpoint.
 - Normalize Mission, graph revision, Variant, Attempt, workspace generation,
   scope, policy/routing/configuration generation, authority epoch, budget,
   reservation, freeze, and intervention state; no JSON blob is authoritative.
@@ -206,10 +212,11 @@ authority, and all primary forges implement the same honest semantic port.
 - Bind Candidate and Integration manifests to mandatory toolchain, environment,
   policy, lineage, repository, graph, scope, gates, and every proof-root
   component; keep the two roots distinct. Admit an absolute digest-pinned Git
-  binary, bounded output/deadlines, 128 paths, and 32 MiB aggregate content.
-- Atomically persist Candidate, Attempt success, package `Prepared`, lease
-  release, event, audit link, and verifier outbox. Bound replay archives and
-  require signed audit linkage; cleanup requires a preservation receipt.
+  binary, bounded output/deadlines, 128 operations, 1 MiB/write, 32 MiB aggregate content and 16
+  selected gates; agree on metadata/preimage and worst-case escaped transport bounds.
+- After observed termination atomically persist Candidate/artifacts, outcome-specific Attempt,
+  package state, lease settlement, event/audit and verifier outbox. Failed-run proposals never
+  imply Attempt success. Bound replay archives; require signed audit linkage and exact preservation before cleanup.
 - Implement the forge semantic port: authenticated capability handshake,
   expected-old-OID delivery, immutable-ref read-back, idempotent PR/MR,
   exact-SHA proof check, protected integration, target read-back, observation,
@@ -236,7 +243,11 @@ integration, and observation without identity collapse or ambiguity laundering.
 - Accept only signed `VerificationIntentV1` and immutable `GateSpecV1` IDs.
   Reconstruct the Candidate/CAS/environment/toolchain in verifier-owned S1/S2
   workcells. Derive independence from OS identity, artifact custody, and
-  conflict policy, never an environment boolean.
+  conflict policy, never an environment boolean. Recipes bind executable/argv/environment,
+  workdir/source/base, dependencies/configuration, limits, selected tests and report parser.
+  Repository scripts remain untrusted; providers select admitted IDs, not arbitrary shell.
+  Require actual selected/completed assertions; zero-test, stale/incomplete reports or exit zero
+  alone cannot pass. Recipe changes invalidate affected evidence.
 - Sign Evidence and ProofBundle with verifier-owned keys. Separate product and
   research holdout stores, users, keys, custodians, and query ledgers.
 - Give broker, attestor, integrator, and observer distinct credentials and claim
@@ -269,23 +280,24 @@ ambiguity laundering.
 Objective: expose only durable, command-correlated product state through the
 operator and workload boundaries.
 
-- Serve operator traffic only at `/api/v1`; workload transitions use
-  peer-authenticated UDS at `/internal/v1`. Legacy `/v1` returns typed
-  `API_VERSION_RETIRED` and performs no mutation.
+- Serve operator traffic at `/api/v1`; `/commands` is domain mutation ingress, with dedicated
+  authenticated session lifecycle routes. Workloads use peer-authenticated `/internal/v1` UDS;
+  legacy `/v1` returns `API_VERSION_RETIRED` without mutation.
 - Refuse off-loopback startup without TLS, OIDC Authorization Code + PKCE,
   origin allowlist, secure cookies, CSRF, RBAC, upstream phishing-resistant MFA,
-  and two-person high-risk approval. Every mutation requires idempotency key and
+  and two-person high-risk approval. Every domain mutation requires idempotency key and
   expected revision and returns `CommandReceiptV1`.
 - Add signed internal dispatch, typed reconciliation, pagination, bounded
   queries, authenticated resumable SSE, bounded queues, atomic snapshot
   watermarks, and typed `RESYNC_REQUIRED`.
 - Finish `/livez`, `/readyz`, restricted `/metrics`, OpenTelemetry correlation,
-  capacity/backpressure, freeze countdown, incident, intervention, approval,
-  restore, and audit-anchor workflows.
+  capacity/backpressure, freeze countdown, incident, intervention, approval, restore and audit anchors.
+  Telemetry stays off by default; diagnostic export is explicit, reviewable and secret-safe.
+  Project preferences cannot grant scope/credentials/effects or switch subscriptions to paid API keys.
 - Finish all 15 Portal surfaces. Under `self-hosted-v1`, every surface is durable
   or explicitly `OUT_OF_PROFILE`; under `evolution-v1`, all 15 are durable. The
-  default Shift Brief names the exact unproved claim, subject, evidence class,
-  freshness, blocker, and next authorized action.
+  default Shift Brief names exact claim/subject/evidence/freshness/blocker/next action.
+  OUT_OF_PROFILE cannot close a missing backend or the complete-product all 15-surface obligation.
 - Embed exact manifest-verified Portal bytes under same-origin CSP/security
   headers; arbitrary release-time `VITE_BULLET_API` is refused. Meet WCAG 2.2 AA
   through keyboard, focus, live-announcement, responsive/auth, axe, and manual
@@ -340,19 +352,14 @@ Exit: the twelve-boundary offline receipt passes and every offline
 Objective: first GA on Ubuntu with one approved Claude identity and protected
 local Jeryu transaction.
 
-1. **Checkpoint A — Claude.** Stop for signed operator approval of policy
-   v1alpha2 generation ≥2, the
-   provider-runner key, exact Claude service profile, budget, expiry, and
-   rollback.
-2. Run one bounded read-only Claude conformance turn; prove native protocol,
-   exact binary/profile, credential isolation, egress, settlement, teardown,
-   and signed receipt.
-3. **Checkpoint B — Jeryu.** Only after Checkpoint A passes, stop again for
-   distinct Jeryu broker, attestor, integrator, and observer credentials plus
-   one exact protected test repository.
-4. Run one low-risk Claude + Jeryu transaction through Candidate, proof,
-   delivery, exact-SHA check, protected integration, read-back, and observation
-   without sharing credentials or reusing an earlier transaction's Candidate.
+1. **Checkpoint A — Claude.** Obtain signed operator approval of policy v1alpha2 generation≥2,
+   provider-runner key, exact service profile, budget, expiry and rollback.
+2. Run bounded read-only Claude conformance: exact native protocol/binary/profile, credential
+   isolation, egress, settlement, teardown and signed receipt. This is not coding acceptance.
+3. **Checkpoint B — Jeryu.** After A passes obtain distinct broker/attestor/integrator/observer
+   credentials and one exact protected test repository.
+4. Run low-risk Claude/Jeryu through Candidate/proof/delivery/exact-SHA check/protected integration/
+   read-back/observation; share no credentials and reuse no earlier transaction's Candidate.
 5. Preserve any failure as failure; the profile remains HOLD/REJECT rather than
    synthesizing a pass or retrying an ambiguous effect.
 
@@ -458,8 +465,7 @@ Objective: add distributed authority without weakening single-host semantics.
   subjects across every partition and recovery boundary; extend proof-aware
   query/fetch without leaking holdouts or protected context.
 
-Exit: `team-v1` passes first; `saga-v1` then passes from a distinct receipt set.
-Neither can retroactively satisfy `self-hosted-v1` or `universal-v1`.
+Exit: team passes before saga from distinct receipts; neither retroactively satisfies self-hosted/universal.
 
 ## Gap-to-wave ownership
 
@@ -486,10 +492,8 @@ Neither can retroactively satisfy `self-hosted-v1` or `universal-v1`.
 
 ## Owner handoff rule
 
-For every wave, the implementing owner must leave: exact repository commit and
-tree IDs; clean status; claim and handoff IDs; commands and pinned tool versions;
-zero-test/skip counts; sanitized artifact hashes; negative-test outcomes; the
-remaining BLOCKED conditions; and the next executable command. A separate
-reviewer must compare the changed-path set and receipt subject before the
-orchestrator commits. No handoff, CI observation, demo, or prose assertion is a
-substitute for the receipt class named by the exit.
+For every wave retain commits/trees, clean status, claims/handoffs, exact commands/tools,
+selected/completed identities and zero-test/skip counts, original reports/artifact hashes,
+negative outcomes, remaining BLOCKED conditions and the next actual command. Independent
+review compares changed paths and receipt subjects before integration. Handoff/CI/demo/prose
+never substitutes for the receipt class named by the exit.
