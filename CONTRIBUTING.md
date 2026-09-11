@@ -31,8 +31,9 @@ custody. Do not create Git worktrees or set CI variables to bypass admission.
 
 The unsigned console requires Linux, both checked-in Rust toolchains
 (Hub 1.95.0 and Kernel 1.97.1), Node 22.23.2, npm 10.9.8 and
-Just, plus Git, Bash, curl, jq, sed, GNU coreutils and util-linux (setsid and
-flock). It starts local farmd and a Vite Portal in the selected state directory.
+Just with support for the checked-in `[positional-arguments]` recipes
+(1.51.0 supports them), plus Git, Bash, curl, jq, sed, GNU coreutils and
+util-linux (setsid and flock). It starts local farmd and a Vite Portal in the selected state directory.
 For a new local instance, choose a new directory. From `bullet-farm/`:
 
 ```bash
@@ -41,11 +42,14 @@ just -- console --data-dir "$HOME/.local/state/bullet-operator-console"
 
 Place `--` before the recipe name; putting it after `console` forwards an
 unsupported argument. Select a state directory under your home, outside the
-clone and `/tmp`. Keep the launcher terminal open. Its access instructions
-identify the farmd and Portal origins and the private bootstrap file; never
-paste that token into a public report. Stop this foreground launcher with
-Ctrl+C. A later `--stop` invocation refuses because persisted PIDs do not grant
-process custody; preserve its state for supervised recovery.
+clone and `/tmp`. The launcher returns after startup, leaving farmd and Vite
+running. Its access instructions identify their origins and the private
+bootstrap file; never paste that token into a public report. Closing the launcher
+terminal or pressing Ctrl+C afterward does not provide supervised shutdown.
+A later `--stop` invocation refuses because persisted PIDs do not grant process
+custody. Preserve state and logs for reconciliation; deleting PID files is not
+recovery. See the [loopback guide](docs/runbooks/loopback-console.md) for login
+and the current lifecycle limits.
 
 `just setup` still requires an admitted external bootstrap and explicit tool
 subjects, then refuses the checked-in schema-2 lock. `just preview` is for the

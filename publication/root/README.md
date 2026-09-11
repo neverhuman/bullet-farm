@@ -47,18 +47,21 @@ separate canonical family layout and the currently blocked `just setup` path.
 A source archive or shallow clone does not carry the full Git history needed
 for canonical proof or exact publication verification.
 
-For the unsigned local console, install Just and the additional tools listed in
-the [contributor guide](bullet-farm/CONTRIBUTING.md), then from `bullet-farm/`:
+For the unsigned local console, use Just with support for the checked-in
+`[positional-arguments]` recipes (1.51.0 supports them), plus the tools in the
+[contributor guide](bullet-farm/CONTRIBUTING.md). From `bullet-farm/`:
 
 ```bash
 just -- console --data-dir "$HOME/.local/state/bullet-operator-console"
 ```
 
-This keeps the console in the foreground and uses the selected state directory.
-For a new local instance, choose a new directory under your home, outside the
-clone and outside `/tmp`.
-The launcher prints access instructions and refuses unsupported prerequisites.
-Its component checks do not qualify installed service or provider operation.
+The launcher returns after startup, leaving farmd and Vite running in the
+selected state directory. For a new local instance, choose a new directory under
+your home, outside the clone and `/tmp`. The launcher prints access instructions
+and refuses unsupported prerequisites. Closing its terminal does not provide
+supervised shutdown, and later `--stop` refuses because persisted PIDs do not
+grant process custody. Its component checks do not qualify installed service,
+restart/stop or provider operation; preserve state for reconciliation.
 `just preview` and canonical proof lanes require independent member checkouts;
 they are not aggregate-clone acceptance commands.
 
