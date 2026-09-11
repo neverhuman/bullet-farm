@@ -356,9 +356,43 @@ requires its own public fetch-back. Neither clip qualifies provider coding.
 | T3 / T4 | Generic signed-in execution now refuses before launch without admitted containment. Runner rejects nonzero, unknown or timed-out completion before applying a proposal and retains failed proposal bytes. Claude projection preserves original native evidence before identity validation. | Writable containment and native lifecycle; actual worker/provider-child fixture with valid WorkPackage, Candidate source and lease; independent settlement and verification. |
 | H2 / C1 | Actual canonical Tuiwright `operator-tui` completed12/12 identities with126 verified artifacts, six-client blocked startup and revocation recovery. Review `c92711d7e8526aa090d107480502be83ba97d08bd78faeada8fd2a1959fd3ba5`. | Synthetic credentials/backend make this local component evidence; no installed/provider, continuous source, percentile or media qualification. |
 | H1 / U1 | Contributor console17 cases plus unsafe-readiness negative passed; restored Hub UI route and Head receipt refusal passed33 component cases. | Actual Portal browser lane, persistent Rust service/process custody and stranger installation. |
-| H2 / Portal | Source recovery50, farmd30 plus2 real host refusals, and lifecycle36 cases passed with independent review; exact repairs committed at `79c47734`. | Required-r1 failed after360 unit tests/build and its passing lint prefix; complete new required remains pending. Review also caught missing tools/config lookups and a real Python/libc package update before launch. |
-| H2 / Kernel | Required-r1 executed1266 standalone plus34 contract identities and returned0 across mapped lanes. The lint subgroup overwrote the original fast raw report, so retention acceptance failed. Reviewed repair preserves distinct subgroup reports and primary failure when staging fails;16 retention cases and6 valid failure observations passed. | Complete required rerun, raw identities/report retention and continuous source monitor across real compilation; old lost raw evidence is not reconstructed. |
-| C1 / scheduled | Reused PR7 pinned Lychee/scanner/runtime repairs and regenerated the Windows-safe hostile filename;8/8 hostile tests passed,21 other generated outputs stayed identical. | Independent final integration, complete actual scheduled/native/auditor lanes, trigger qualification and aggregate acceptance. |
+| H2 / Portal | Source recovery50, farmd30+2 real host refusals and lifecycle36 passed. Local `e178db3` adds reference-link10 tests; the old checker failed8 of those10. | Required-r1 failed after360 tests/build. New container collection and actual cross-mount mutation qualification still fail; complete admitted required, coverage88% and browser lanes remain open. |
+| H2 / Kernel | Required-r1 lost its original fast XML. Reviewed retention16/failure-observation6 repairs preserve subsequent reports. Required-r4 at `88de763` retained1266 fast, group5 and34 contract passes before docs failed. | At `5f859709`, required-r5 ran130 tests:127 passed, three40s timeouts,1136 unexecuted. No complete pass or continuous-custody acceptance follows; source handoff and measured repair precede rerun. |
+| C1 / scheduled | Reused PR7 pinned tools and Windows-safe hostile filename;8/8 hostile tests passed,21 other generated outputs stayed identical. Local Hub `62829222` reconciles actual workflow pins/topology; Nextest36 publication library cases passed. | Prior libtest32/36 failure retained. Full Hub proof awaits foreign checker custody; scheduled/native/auditor, event triggers, aggregate and protection acceptance remain open. |
+
+The 13:11 UTC continuation binds accepted local Kernel commit
+`5f8597095726411f9a726c36a47b509674369d29`, Hub
+`62829222a4f27aa5dcc2af13f8cde55221a8ada6` and Portal
+`e178db36491520516287f1193dc4825ac8165d32`. Kernel r2/r3 failures exposed a readonly
+shell-variable collision and stale inventory command; focused repairs passed.
+R4 then failed documentation freshness. The reviewed documentation repair changed
+no backup implementation or Nextest configuration before r5's timeouts. R5's
+ending951 source hashes, HEAD and index matched; it had no continuous monitor.
+The later external checkout switch does not transfer that result to its branch.
+
+The independently reviewed container image was built from the closed context;
+14 real ABI/version probes passed. Actual unchanged compiler control `e6990f25`
+passed with a read-only source bind, observed rustc/FIFO identity, compiler0,
+monitor FINISHED, terminal0 and verified removal. Restored case `76d99e16` failed
+on handshake publication before any mutation; its intended negative remains
+unexecuted. Collection `3357f722` refused the actual `bin/../lib` loader path and
+emitted INCOMPLETE. Its cleanup also rejected a different Docker absence message.
+Original failures, reports and cleanup observations remain retained; no full proof
+or containment/profile acceptance is inferred from these preparation results.
+
+Read-only review of newer Cursor Kernel `3478b57d` found real filesystem/egress
+composition but unsafe pre-admission schema truncation, unbounded output/runtime,
+nonzero-exit completion/promotion, missing writable/runtime/credential admission
+and a test accepting unrelated early refusal. Exact source pairs are preserved in
+review packet `4e5cbfde199b9548432c9f4a8acc5fa8d56f808fdf831417efc1a1f802bafa6b`.
+It requires reconciliation; neither branch substitutes for the other's review.
+
+Durable archive `first-cycle-components-r4.tar.gz`, SHA-256
+`6481af4c3eddea0c4ce538a93aac361218d958e305226aa55d1e1c16fd6ab6d6`,
+preserves109 closed entries including exact committed source archives for all
+three accepted local subjects. Every archive byte and original source read-back
+matched. Later runtime records remain separate private evidence; preservation
+alone grants no source, signing, enrollment, integration or publication authority.
 
 The private first-cycle source archive has SHA-256
 `a49a0101d8b031b8632631bf54a5a3f73be3a5fba2e16a7279f077f3548c5a7f`;

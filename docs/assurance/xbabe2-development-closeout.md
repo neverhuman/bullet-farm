@@ -18,20 +18,20 @@ maps current repairs and retained failures. No product/profile status is promote
 
 | Existing obligation | Latest measured component evidence | Immediate work |
 | --- | --- | --- |
-| H1 / Hub | Console17 plus readiness negative and restored UI/Head refusal33 passed. PR7 hostile8/8 and generatorcheck passed. | Review final reconciliation, preserve foreign checker custody, commit exact source and run complete required/scheduled lanes. |
+| H1 / Hub | Reviewed reconciliation committed locally at62829222; console17 plus readiness negative, UI/Head33 and hostile8 passed. | Resolve foreign media-checker custody; run complete required/scheduled lanes over exact reconciled source. |
 | H1 / Kernel | Restored server authentication, alias, early paint, exact Submissions and safe containment refusal; failed proposals retained. | Default durable Head, owner-bound CLI acknowledgements, real task/Candidate/lease producer and qualified contained native lifecycle. |
-| H2 / Kernel | Required-r1 ran1266 standalone+34 contract and all mapped scripts returned0, but lint overwrote original fast raw report. Repaired retention16 includes6 valid staging-failure observations. | Retention predicate remains nonpassing until complete rerun; add continuous source monitoring rather than relying on ending hashes. |
-| H2 / Portal | Reviewed recovery50, farmd30+2host refusals, lifecycle36; committed79c47734. Required-r1 failed after360 tests/build. | Full admitted required rerun after exact tool/configuration closure and Python/libc update reconciliation; coverage88% floor and actual browser lane stay separate. |
+| H2 / Kernel | At88de763, r4 retained1266 fast+34 contract passes but failed docs. At5f859709, r5 failed three40s backup timeouts with1136 unexecuted; original r1 report loss remains preserved. | Reconcile active foreign branch custody; measure unchanged backup tests under controlled concurrency; complete required and continuous source proof. |
+| H2 / Portal | Local e178db3 adds reference-link10 tests to reviewed fixture repairs. Required-r1 failed after360 tests/build; new image ABI14 passed, first collection refused actual ldd lookup. | Repair/re-execute collection and cross-mount mutation fixture, then exact admitted required; unchanged compiler control alone is insufficient. Coverage88% and actual browsers remain separate. |
 | U1 / TUI | Actual canonical operator-tui12/12,126 artifacts, independent review and source endpoint readback. | Installed/provider/continuous source/performance/media acceptance remains open; recorded terminal events are not full recordings. |
-| C1 / delivery | Six stale workflow pins identified from exact historical/current YAML; current observation53 definitions/55 cells. | Exact catalog/event applicability, all executions/artifacts, auditor/native qualification, aggregate and five protection packets. |
+| C1 / delivery | Workflow pins/topology reconciled at62829222; actual Nextest36 publication library tests passed. Earlier libtest32/36 failure retained;53 definitions/55 cells remains a dated observation. | All actual event/cell executions/artifacts, auditor/native qualification, aggregate acceptance and five protection packets. |
 | M1 / public media | Later Cursor handoff records Hub #14 dark HOLD/PENDING clip, three PENDING submissions, no worker Attempt. | Preserve blank historical asset and diagnostic replacement; qualify installed real coding and exact public fetch-back separately. |
 | R1 / installation | No newly qualified signed service or provider enrollment. | Keep Operating HOLD; prepare operator packets only after their concrete engineering prerequisites. |
 
 The original 18-source/12-evidence capsule and rejected Portal revisions remain
 preserved. Source manifest SHA-256 is `32a922258dbd3f9e0e8b8dc128ecbbc65e02869fccd1ddf38e63e947c0ee6e23`;
 evidence manifest is `17294415e7f4c4c3a01b991f7f5924afd47750674acc4fc64ba5c5c22c188792`.
-Never broadly pop stashes, discard newer bytes or replay a restored request under
-a new identity. Confirm every writer's current release before integration.
+New source/evidence archive6481af4c3eddea0c4ce538a93aac361218d958e305226aa55d1e1c16fd6ab6d6 preserves accepted local subjects. Never discard newer bytes or replay under a new identity.
+Cursor3478b57d reintroduces failed-process promotion and unsafe schema writes; reconcile exact reviewed source and every writer's release before integration.
 The Linux monitor rejects changed-and-restored compiler inputs; retain overflow,
 lost-custody and tool/config/lookup drift as non-passing. It is not a cross-platform
 or hosted admission receipt. Hold a full source freeze across every proof stage.
