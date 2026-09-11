@@ -2,7 +2,7 @@
 
 Status: **contributor procedure; not installation or release authority**  
 Owner: Bullet Farm maintainers  
-Last reviewed: 2026-09-10
+Last reviewed: 2026-09-11
 
 This is the stranger path: clone [neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm),
 build from source, start loopback farmd, log in, and open the HOLD-honest TUI
@@ -31,11 +31,11 @@ into issues, AGENT_CHAT, or README examples.
 | Step | Honest result |
 | --- | --- |
 | `just preview` | `doctor` **BLOCKED**, exit **3**. That is success for the schema-2 lock. |
-| `just console` | Non-secret lines only: `origin=`, `farmd=`, `pid=`, `data_dir=`, `bootstrap_file=`. |
-| `bullet auth login` | AUTHENTICATED. Do not publish operator or session hex. |
-| `bullet tui` | CONNECTING, then `HOLD · LIVE n · UNBOUND · HEAD_RUNTIME_BINDING_REQUIRED · STOP_UNIMPLEMENTED`. Empty fleet is zero rows, not a green fleet. |
+| `just console` | Non-secret lines only: `origin=`, `farmd=`, `pid=`, `data_dir=`, `bootstrap_file=`, `session_file=`, `portal=`, and either `worker=started` or a typed `worker=UNBOUND reason=`. |
+| `bullet` (TTY) or `bullet tui` | CONNECTING, then `HOLD · LIVE n · UNBOUND · HEAD_RUNTIME_BINDING_REQUIRED · STOP_UNIMPLEMENTED`. Empty fleet is zero rows, not a green fleet. |
 | Portal Shift Brief | `RELEASE DECISION: unknown`. |
 | Portal Head | Send stays blocked (`HEAD_RUNTIME_BINDING_REQUIRED`). |
+| Portal Control Tower | Same command ids the TUI shows. A submit can leave `PENDING` and become an attempt **or** a typed harness/manifest refusal. LIVE n is not “agents finished”. |
 
 `just dev` starts HTTP shells **without** a bootstrap token. It cannot create a
 session. Use `just console`.
@@ -53,31 +53,42 @@ just preview
 just console -- --data-dir "$HOME/.local/state/bullet-operator-console"
 ```
 
-The wrapper builds `bullet` and `bullet-farmd` when `BULLET_BIN` /
-`BULLET_FARMD_BIN` are unset, runs `farm init`, starts farmd on
-`127.0.0.1:7420` with `--leave-bootstrap`, and starts Vite on
-`127.0.0.1:5173` with a matching `--portal-origin`. It never prints the token.
+The wrapper builds `bullet`, `bullet-farmd`, the command-worker subjects, and
+sibling `bullet-gitd` when those bins are unset, runs `farm init`, starts farmd
+on `127.0.0.1:7420` with `--leave-bootstrap`, starts Vite on `127.0.0.1:5173`
+with a matching `--portal-origin`, and starts `scripts/dogfood/worker-loop.sh`
+with a `bullet.command-worker-binary-manifest.v1` when every subject exists.
+Missing gitd or a binary is `worker=UNBOUND`, not a hang. It never prints the
+token. `--stop` signals this invocation's worker, Portal, and farmd groups.
 
 If `127.0.0.1:7420` is already bound, pass `--bind 127.0.0.1:<free-port>`
-(and a matching free Portal origin if 5173 is taken).
+(and a matching free Portal origin if 5173 is taken). Do not restomp an
+existing operator farmd unless you intend to.
 
 Login consumes the one-time token. Use a redirect; do not `cat` the file:
 
 ```bash
 cd ../bullet-kernel
 # Use the farmd= and origin= / bootstrap_file= lines printed by just console.
+# After login, no-args `bullet` is the TUI (same as `bullet tui`).
 ./target/debug/bullet auth login \
   --farmd http://127.0.0.1:7420 \
   --origin http://127.0.0.1:5173 \
   --stdin < "$HOME/.local/state/bullet-operator-console/custody/bootstrap.token"
-./target/debug/bullet tui
+./target/debug/bullet
 ```
 
 Open <http://127.0.0.1:5173>. If login already consumed the token, the browser
 needs its own cookie: use **Check session** only when this browser already
 authenticated, or provision a new bootstrap file with
 `bullet-farmd --provision-bootstrap-token` (never print it) and paste it into
-the Portal token field. Head Send stays blocked.
+the Portal token field. Head Send stays blocked. `bullet coding stop` stays
+`STOP_UNIMPLEMENTED`. Ctrl+C detaches the TUI; farmd work continues.
+
+After a `coding submit`, `bullet coding harness-bind` produces the three
+ledger identities. `prepare-harness.sh` still writes the other bindings.
+`harness-check` is BOUND only when all seventeen `BULLET_HARNESS_*` names are
+present.
 
 Stop:
 
@@ -92,8 +103,8 @@ just console -- --stop --data-dir "$HOME/.local/state/bullet-operator-console"
 - Lift Operating HOLD or set `live_admission=true`
 - Execute Portal Head Send or native `bullet talk` / `ask` / `head`
 - Settle production `coding submit` as a Candidate / Evidence / Effect
-- Spawn Claude, Codex, Cursor, or Antigravity
-- Claim VERIFIED or a trusted installer
+- Claim VERIFIED, a trusted installer, or that LIVE n means agents finished
+- Treat a Cursor text ping or a Codex `{stdout, exit}` pair as a turn
 
 Stage-one VHS tapes stay under `docs/readme-media/`. Real xbabe2 GIFs live in
 [`../../media/operator-console/`](../../media/operator-console/) and are not

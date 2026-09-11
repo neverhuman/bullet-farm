@@ -15,7 +15,11 @@ fn portal_launcher_enforces_the_same_origin_vite_proxy() {
         "browser API requests must use Vite's same-origin proxy"
     );
     assert!(
-        PORTAL_LAUNCHER.contains("npm run dev -- --host 127.0.0.1 --port 5173"),
+        PORTAL_LAUNCHER.contains("npm run dev -- --host 127.0.0.1 --port \"$portal_port\""),
         "the development server must stay bound to loopback"
+    );
+    assert!(
+        PORTAL_LAUNCHER.contains("BULLET_PORTAL_PORT"),
+        "the printed console origin must be able to select the Vite port"
     );
 }

@@ -25,8 +25,10 @@ id, launch bullet-farmd under setsid (logs in <data-dir>/logs/, 0600), wait for
 binary lists it, else scraped from stdout), exchange it for cookie+csrf via
 curl with an exact Origin header, and write <session-file> (0600 JSON).
 --leave-bootstrap skips that exchange and leaves the token file for
-`bullet auth login`; it never prints the token. Prints only non-secret lines:
-origin=, farmd=, pid=, data_dir=, session_file=, bootstrap_path=, log=.
+`bullet auth login`; it never prints the token. It still writes a 0600
+session file with the lease socket, runner id, and farmd identity the
+command worker needs; cookie and CSRF stay empty. Prints only non-secret
+lines: origin=, farmd=, pid=, data_dir=, session_file=, bootstrap_path=, log=.
 
 Stop: send SIGTERM to farmd's process group (pid from <data-dir>/farmd.pid),
 escalate to SIGKILL after 10s, remove the pid file and the session file.
@@ -275,15 +277,37 @@ jq -e '.status == "ok"' "$data_dir/logs/health.json" >/dev/null \
 origin="$farmd_base"
 [[ -n "$portal_origin" ]] && origin="$portal_origin"
 
+write_ops_session() {
+  local cookie="$1" csrf="$2"
+  local session_tmp="$session_file.tmp.$$"
+  jq -n --arg origin "$origin" --arg farmd "$farmd_base" --arg bind "$bind" \
+    --arg cookie "$cookie" --arg csrf "$csrf" \
+    --argjson farmd_pid "$farmd_pid" --arg lease_socket "$lease_socket" \
+    --arg registry "$registry" --arg key "$key" --arg started_at "$started_at" \
+    --arg data_dir "$data_dir" --arg runner_id "$runner_id" --argjson runner_epoch "$runner_epoch" \
+    --argjson farmd_uid "$uid" --argjson socket_gid "$gid" --arg bootstrap_path "$bootstrap_path" \
+    --arg log "$log_file" --arg farmd_bin "$farmd_bin" '
+    {schema_version:"bullet.dogfood-ops-session.v1",
+     origin:$origin, farmd:$farmd, bind:$bind, cookie:$cookie, csrf:$csrf,
+     farmd_pid:$farmd_pid, farmd_bin:$farmd_bin, lease_socket:$lease_socket,
+     registry:$registry, key:$key, started_at:$started_at, data_dir:$data_dir,
+     runner_id:$runner_id, runner_epoch:$runner_epoch, farmd_uid:$farmd_uid,
+     socket_gid:$socket_gid, bootstrap_path:$bootstrap_path, log:$log}
+  ' >"$session_tmp"
+  chmod 0600 -- "$session_tmp"
+  mv -f -- "$session_tmp" "$session_file"
+}
+
 # ---------------------------------------------------------------------------
 # obtain the bootstrap token without echoing it
 # ---------------------------------------------------------------------------
 if [[ "$leave_bootstrap" -eq 1 ]]; then
+  write_ops_session "" ""
   printf 'origin=%s\n' "$origin"
   printf 'farmd=%s\n' "$farmd_base"
   printf 'pid=%s\n' "$farmd_pid"
   printf 'data_dir=%s\n' "$data_dir"
-  printf 'session_file=\n'
+  printf 'session_file=%s\n' "$session_file"
   printf 'bootstrap_path=%s\n' "$bootstrap_path"
   [[ -n "$token_file" ]] && printf 'bootstrap_file=%s\n' "$token_file"
   printf 'log=%s\n' "$log_file"
@@ -326,23 +350,7 @@ rm -f -- "$exchange_body"
 # ---------------------------------------------------------------------------
 # session file (0600) and the non-secret report
 # ---------------------------------------------------------------------------
-session_tmp="$session_file.tmp.$$"
-jq -n --arg origin "$origin" --arg farmd "$farmd_base" --arg bind "$bind" \
-  --arg cookie "bullet_session=$cookie_value" --arg csrf "$csrf" \
-  --argjson farmd_pid "$farmd_pid" --arg lease_socket "$lease_socket" \
-  --arg registry "$registry" --arg key "$key" --arg started_at "$started_at" \
-  --arg data_dir "$data_dir" --arg runner_id "$runner_id" --argjson runner_epoch "$runner_epoch" \
-  --argjson farmd_uid "$uid" --argjson socket_gid "$gid" --arg bootstrap_path "$bootstrap_path" \
-  --arg log "$log_file" --arg farmd_bin "$farmd_bin" '
-  {schema_version:"bullet.dogfood-ops-session.v1",
-   origin:$origin, farmd:$farmd, bind:$bind, cookie:$cookie, csrf:$csrf,
-   farmd_pid:$farmd_pid, farmd_bin:$farmd_bin, lease_socket:$lease_socket,
-   registry:$registry, key:$key, started_at:$started_at, data_dir:$data_dir,
-   runner_id:$runner_id, runner_epoch:$runner_epoch, farmd_uid:$farmd_uid,
-   socket_gid:$socket_gid, bootstrap_path:$bootstrap_path, log:$log}
-' >"$session_tmp"
-chmod 0600 -- "$session_tmp"
-mv -f -- "$session_tmp" "$session_file"
+write_ops_session "bullet_session=$cookie_value" "$csrf"
 cookie_value=""
 csrf=""
 
