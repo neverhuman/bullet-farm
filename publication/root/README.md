@@ -75,10 +75,12 @@ Follow the [security reporting guidance](bullet-farm/SECURITY.md) before sharing
 vulnerability details. Private reporting was disabled on all five repositories
 when checked on 2026-09-11; request a private contact without public details.
 
-The four members carry [Apache-2.0 notices](bullet-farm/LICENSE). Retain the
-member notices and separately licensed third-party material, including the
-Kernel qualification assets' MIT and OFL notices. Root license and community
-file publication remain part of public-release preparation.
+For setup questions or bug reports, see [Support](SUPPORT.md). The issue forms
+ask for a reproduction and the exact source or installed version.
+
+The aggregate uses [Apache-2.0](LICENSE); retain the member notices and
+[third-party notices](NOTICE), including the Kernel qualification assets' MIT
+and OFL licenses. Public-release acceptance remains pending.
 
 ## Recording evidence
 
