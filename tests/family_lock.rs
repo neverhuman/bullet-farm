@@ -532,10 +532,21 @@ fn public_cli_admits_only_generate_and_verify() {
     let usage = lock_cli(&root, &[]);
     assert_eq!(usage.status.code(), Some(2));
     let usage_error = String::from_utf8(usage.stderr).unwrap();
+    // The listing is grouped rather than run together, so each verb carries its
+    // own signature on its own line. Asserting the two lines separately is
+    // stricter than the single concatenated string this replaced: it would now
+    // catch a verb whose arguments drifted while the other verb's did not.
     assert!(
-        usage_error.contains(
-            "lock <generate --tag VERSION --subjects ABSOLUTE_PATH|verify --tag VERSION>"
-        )
+        usage_error.contains("lock generate --tag VERSION --subjects ABSOLUTE_PATH"),
+        "usage must name generate with its exact arguments: {usage_error}"
+    );
+    assert!(
+        usage_error.contains("lock verify --tag VERSION"),
+        "usage must name verify with its exact arguments: {usage_error}"
+    );
+    assert!(
+        !usage_error.contains("lock check"),
+        "usage must not advertise the retired verb: {usage_error}"
     );
 
     let legacy = lock_cli(&root, &["lock", "check", "--tag", "v1.0.0"]);

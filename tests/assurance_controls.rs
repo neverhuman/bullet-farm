@@ -395,6 +395,82 @@ fn public_lock_recipe_uses_verify_vocabulary() {
     assert!(!justfile.contains("-- lock check"));
 }
 
+#[test]
+fn the_documentation_index_lists_every_document_and_the_operator_surface() {
+    // The index carried none of the operator commands for its first three weeks
+    // while they were already the primary way anyone touches this product, and it
+    // had drifted to 54 unlisted documents out of 91. Curation is a habit and
+    // habits drift; this is the control.
+    let index = read("docs/README.md");
+
+    // Every command the CLI actually exposes, so a new surface cannot ship
+    // undocumented. `bullet serve` and `bullet setup` are deliberately absent:
+    // they are not merged, and an index that named them would be claiming a
+    // command this tree does not have.
+    for command in [
+        "bullet auth login",
+        "bullet auth status",
+        "bullet tui",
+        "bullet coding submit",
+        "bullet coding board",
+        "bullet coding harness-check",
+        "bullet run show",
+        "bullet mission",
+        "bullet provider live-conformance",
+        "bullet authority keygen",
+        "bullet dogfood",
+        "bullet transaction",
+        "bullet-family doctor",
+        "bullet-family coord",
+    ] {
+        assert!(
+            index.contains(command),
+            "the documentation index does not name the operator command `{command}`"
+        );
+    }
+
+    let mut unlisted = Vec::new();
+    let mut counted = 0usize;
+    let mut stack = vec![root().join("docs")];
+    while let Some(dir) = stack.pop() {
+        let entries = fs::read_dir(&dir)
+            .unwrap_or_else(|error| panic!("read_dir {}: {error}", dir.display()));
+        for entry in entries {
+            let path = entry.expect("directory entry").path();
+            if path.is_dir() {
+                stack.push(path);
+                continue;
+            }
+            if path.extension().is_none_or(|extension| extension != "md") {
+                continue;
+            }
+            let relative = path
+                .strip_prefix(root().join("docs"))
+                .expect("docs-relative path")
+                .to_string_lossy()
+                .replace('\\', "/");
+            if relative == "README.md" {
+                continue;
+            }
+            counted += 1;
+            if !index.contains(&relative) {
+                unlisted.push(relative);
+            }
+        }
+    }
+    unlisted.sort();
+    assert!(
+        unlisted.is_empty(),
+        "{} of {counted} documents under docs/ are absent from docs/README.md: {}",
+        unlisted.len(),
+        unlisted.join(", ")
+    );
+    assert!(
+        counted >= 90,
+        "expected at least ninety indexed documents, walked {counted}"
+    );
+}
+
 #[cfg(unix)]
 #[path = "assurance_controls/recipes.rs"]
 mod recipes;

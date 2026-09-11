@@ -8,7 +8,55 @@ use std::{ffi::OsString, path::PathBuf};
 
 use crate::coord::{CoordError, discover_family_root};
 
-const USAGE: &str = "usage: bullet-family [--root PATH] <doctor --json|setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]|release <build|verify|extract|receipt-verify> [options]|checkout verify|hub check|deps check|lock <generate --tag VERSION --subjects ABSOLUTE_PATH|verify --tag VERSION>|fuse --source <local|lock>|check <fast|required|release|scorecard|dogfood> [options]|preservation-bind --outer-inventory ABSOLUTE_PATH --hub-inventory ABSOLUTE_PATH --out ABSOLUTE_PATH|coord <init|claim|heartbeat|handoff|receipt|receipt-group|correct-receipt|correct-receipt-group|recovery-inspect|recovery-provenance|recovery-build-observe|recovery-authorization-draft|recovery-authorization-message|recovery-authorization-signature-import|recovery-manifest|recover-rollover|recovery-plan|recovery-proof|recovery-review|recovery-request|adopt|wave0-observe|wave0-review|incident-observe|incident-verify|status> [options]>";
+/// The command listing printed on any unrecognised argument.
+///
+/// It is grouped rather than run together because the previous form was a
+/// single 985-character line: correct, complete, and unreadable at any terminal
+/// width. `diagnostic::render` prints this verbatim rather than rewrapping it.
+const USAGE: &str = "\
+usage: bullet-family [--root PATH] [--color auto|always|never] <command>
+
+hub
+  doctor --json                    this checkout and its family, as JSON
+  hub check                        hub-only conformance
+  deps check                       dependency policy
+  checkout verify                  custody of the four member checkouts
+  setup --root PATH --source jeryu --cargo-bin ABSOLUTE_PATH
+        --node-bin ABSOLUTE_PATH --npm-cli ABSOLUTE_PATH [--offline]
+
+gates
+  check fast [--json]
+  check required [--json]
+  check scorecard [--json]
+  check dogfood [--json] [--track TRACK]
+  check release --profile PROFILE --receipts ABSOLUTE_PATH
+        [--json | --report [--portable]]
+
+family
+  lock generate --tag VERSION --subjects ABSOLUTE_PATH
+  lock verify --tag VERSION
+  fuse --source <local|lock>
+  preservation-bind --outer-inventory ABSOLUTE_PATH
+        --hub-inventory ABSOLUTE_PATH --out ABSOLUTE_PATH
+
+release
+  release <build|verify|extract|receipt-verify> [options]
+
+coordinator
+  coord <verb> [options]
+    lifecycle  init claim heartbeat handoff adopt status
+    receipts   receipt receipt-group correct-receipt correct-receipt-group
+    recovery   recovery-inspect recovery-provenance recovery-build-observe
+               recovery-authorization-draft recovery-authorization-message
+               recovery-authorization-signature-import recovery-manifest
+               recover-rollover recovery-plan recovery-proof recovery-review
+               recovery-request
+    review     wave0-observe wave0-review incident-observe incident-verify
+
+colour
+  --no-color, --plain and --color never all disable it. NO_COLOR is honoured,
+  CLICOLOR_FORCE overrides a pipe, and a dumb TERM is never painted.
+";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CliOutcome {
