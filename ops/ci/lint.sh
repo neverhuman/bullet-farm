@@ -52,4 +52,8 @@ bash ops/ci/checkout-subject-test.sh
 bash ops/ci/doctor-test.sh
 bash ops/ci/workflow-policy.sh
 bash ops/ci/dev-supervision-test.sh
+# Disposable native-tool contracts and real loopback/process component checks.
+bash scripts/operator-console-test.sh
+# Dispatch/refusal components use synthetic children; member suites qualify separately.
+bash ops/ci/xbabe2-local-ui-test.sh
 log "lint lane passed"

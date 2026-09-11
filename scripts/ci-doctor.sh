@@ -22,7 +22,7 @@ case "$lane" in
   required) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-deny cargo-nextest chmod cmp comm cp curl date docker file gitleaks grep java jsonschema ln mktemp rg rmdir rustc rustfmt sha1sum shellcheck stat tee zizmor) ;;
   family|family-contract) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-deny cargo-nextest chmod cmp comm cp curl date docker file gitleaks grep java jsonschema ln mktemp node npm rg rmdir rustc rustfmt rustup sha1sum shellcheck stat tee uname zizmor) ;;
   history) tools=("${baseline[@]}" cat gitleaks xargs) ;;
-  links) tools=("${baseline[@]}" lychee rg) ;;
+  links) tools=("${baseline[@]}" lychee mktemp rg) ;;
   advisory) tools=("${baseline[@]}" cargo cargo-deny date rustc) ;;
   coverage) tools=("${baseline[@]}" cargo cargo-llvm-cov cargo-nextest cmp comm grep ln mktemp rustc) ;;
   platform) tools=("${baseline[@]}" cargo cargo-clippy grep rustc uname) ;;

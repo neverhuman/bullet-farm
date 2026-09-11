@@ -1,40 +1,70 @@
 # Contributing
 
-Status: **contributor map; not install or release authority**  
-Last reviewed: 2026-09-10
+Status: **source contribution guidance; installed release remains blocked**
 
-A clone of [neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm) is
-the public entry. Member origins are `neverhuman/bullet-farm`,
-`neverhuman/bullet-kernel`, `neverhuman/bullet-git`, and
-`neverhuman/bullet-portal`. Do not create Git worktrees.
+Last reviewed: 2026-09-11
 
-## Local console (unsigned)
+The public entry is [neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm),
+one aggregate checkout containing four member source trees. Source changes belong
+in the corresponding member repository:
 
-Pin Rust **1.95.0**, Node **22.23.2**, and npm **10.9.8**. Then:
+| Files in the aggregate | Pull request destination |
+| --- | --- |
+| `bullet-farm/` | [Hub](https://github.com/neverhuman/bullet-farm) |
+| `bullet-kernel/` | [Kernel](https://github.com/neverhuman/bullet-kernel) |
+| `bullet-git/` | [BulletGit](https://github.com/neverhuman/bullet-git) |
+| `bullet-portal/` | [Portal](https://github.com/neverhuman/bullet-portal) |
+
+Root aggregate files are generated from the Hub's `publication/root/` templates
+and `publication/config.json`. Propose those changes in the Hub. Reviewed member
+commits are then captured into an aggregate publication; direct aggregate edits
+fail regeneration checks. Independent review and approval of publication remain
+separate from local source work.
+
+## Source builds and local console
+
+Follow [source setup](docs/runbooks/source-setup.md) for the aggregate build
+commands and the different canonical family layout. Canonical proof requires
+four independent member checkouts and their admitted tool/source subjects; an
+aggregate subtree, source archive or shallow history does not provide that
+custody. Do not create Git worktrees or set CI variables to bypass admission.
+
+The unsigned console requires Linux, both checked-in Rust toolchains
+(Hub 1.95.0 and Kernel 1.97.1), Node 22.23.2, npm 10.9.8 and
+Just, plus Git, Bash, curl, jq, sed, GNU coreutils and util-linux (setsid and
+flock). It starts local farmd and a Vite Portal in the selected state directory.
+For a new local instance, choose a new directory. From `bullet-farm/`:
 
 ```bash
-cd bullet-farm
-just preview          # doctor BLOCKED / exit 3 is expected
-just console -- --data-dir "$HOME/.local/state/bullet-operator-console"
+just -- console --data-dir "$HOME/.local/state/bullet-operator-console"
 ```
 
-Follow [`docs/runbooks/loopback-console.md`](docs/runbooks/loopback-console.md).
-`just setup` is the blocked installer and still refuses on the schema-2
-`family.lock`. Operating HOLD remains. This is not VERIFIED.
+Place `--` before the recipe name; putting it after `console` forwards an
+unsupported argument. Select a state directory under your home, outside the
+clone and `/tmp`. Keep the launcher terminal open. Its access instructions
+identify the farmd and Portal origins and the private bootstrap file; never
+paste that token into a public report. Stop this foreground launcher with
+Ctrl+C. A later `--stop` invocation refuses because persisted PIDs do not grant
+process custody; preserve its state for supervised recovery.
 
-Do not paste bootstrap tokens, cookies, CSRF values, or home paths into issues
-or pull requests.
+`just setup` still requires an admitted external bootstrap and explicit tool
+subjects, then refuses the checked-in schema-2 lock. `just preview` is for the
+canonical family and expects a BLOCKED diagnosis. Neither command establishes
+installed service, provider execution, or release certification. Operating HOLD
+remains in effect.
 
-## Packets
+## Verification and review
 
-- At most four claimed files per change.
-- Root is the Kernel integrator for `Cargo.toml`, generated contracts, and
-  `talk.rs` (absent). Do not invent `bullet talk` / `ask` / `head`.
-- Agents never write provider keys, enrollments, or operator-decision lines.
-- Hosted merge is the five secretless lanes plus `required`. Do not add
-  Tuiwright, Head Playwright, or `xbabe2-head` to workflows.
+Keep changes small and explain the behavior, exact source commit, focused checks,
+and remaining limitations in the pull request. Follow the owning member's local
+instructions and mapped checks; preserve failures as well as successful results.
+A skipped, unavailable or zero-test result cannot stand in for required execution.
+Canonical required lanes need their own source and tool admission.
 
-## Review
+Changes to provider enrollment, signing, forge effects and release publication
+retain their separate approval requirements. Opening a source pull request does
+not grant those effects. Keep credentials and private diagnostic contents out of
+issues and pull requests; use [security reporting](SECURITY.md) for vulnerabilities.
 
-Open PRs against the member that owns the bytes. The aggregate snapshot is a
-copy, not source authority.
+Members carry Apache-2.0 notices; see [LICENSE](LICENSE). Preserve third-party
+licenses and attribution when changing or redistributing their files.

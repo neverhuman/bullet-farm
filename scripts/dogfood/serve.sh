@@ -28,8 +28,8 @@ curl with an exact Origin header, and write <session-file> (0600 JSON).
 `bullet auth login`; it never prints the token. Prints only non-secret lines:
 origin=, farmd=, pid=, data_dir=, session_file=, bootstrap_path=, log=.
 
-Stop: send SIGTERM to farmd's process group (pid from <data-dir>/farmd.pid),
-escalate to SIGKILL after 10s, remove the pid file and the session file.
+Stop: refuses until qualified cross-invocation process custody is available.
+Persisted PID and session files remain intact; they never authorize signals.
 
 Defaults: --bind 127.0.0.1:7420; --farmd from $BULLET_FARMD_BIN;
 --session-file <data-dir>/session.json. The portal origin defaults to farmd's
@@ -53,6 +53,7 @@ session_file=""
 ready_timeout_s=30
 stop=0
 leave_bootstrap=0
+startup_ack_file=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -62,6 +63,7 @@ while [[ $# -gt 0 ]]; do
     --farmd) farmd_bin="${2:-}"; shift 2 ;;
     --session-file) session_file="${2:-}"; shift 2 ;;
     --ready-timeout-s) ready_timeout_s="${2:-}"; shift 2 ;;
+    --startup-ack-file) startup_ack_file="${2:-}"; shift 2 ;;
     --leave-bootstrap) leave_bootstrap=1; shift ;;
     --stop) stop=1; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -87,32 +89,7 @@ pid_file="$data_dir/farmd.pid"
 # --stop
 # ---------------------------------------------------------------------------
 if [[ "$stop" -eq 1 ]]; then
-  [[ -f "$pid_file" ]] || refuse NOT_RUNNING "$pid_file absent"
-  pid="$(<"$pid_file")"
-  [[ "$pid" =~ ^[0-9]+$ ]] || refuse PID_FILE_INVALID "$pid_file"
-  if kill -0 "$pid" 2>/dev/null; then
-    kill -TERM -- "-$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null || true
-    stopped=0
-    for _ in $(seq 1 200); do
-      if ! kill -0 "$pid" 2>/dev/null; then stopped=1; break; fi
-      sleep 0.05
-    done
-    if [[ "$stopped" -eq 0 ]]; then
-      kill -KILL -- "-$pid" 2>/dev/null || kill -KILL "$pid" 2>/dev/null || true
-      sleep 0.2
-      printf 'stop=killed pid=%s\n' "$pid"
-    else
-      printf 'stop=terminated pid=%s\n' "$pid"
-    fi
-  else
-    printf 'stop=already-exited pid=%s\n' "$pid"
-  fi
-  rm -f -- "$pid_file"
-  if [[ -f "$session_file" ]]; then
-    rm -f -- "$session_file"
-    printf 'session_file=removed %s\n' "$session_file"
-  fi
-  exit 0
+  refuse STOP_CUSTODY_UNAVAILABLE "persisted PIDs cannot authorize signals; state retained for supervised recovery"
 fi
 
 # ---------------------------------------------------------------------------
@@ -147,12 +124,8 @@ else
 fi
 [[ "$(realpath -e -- "$data_dir")" == "$data_dir" ]] || refuse DATA_DIR_NOT_CANONICAL "$data_dir"
 
-if [[ -f "$pid_file" ]]; then
-  old_pid="$(<"$pid_file")"
-  if [[ "$old_pid" =~ ^[0-9]+$ ]] && kill -0 "$old_pid" 2>/dev/null; then
-    refuse ALREADY_RUNNING "pid $old_pid ($pid_file)"
-  fi
-  rm -f -- "$pid_file"
+if [[ -e "$pid_file" || -L "$pid_file" ]]; then
+  refuse PID_STATE_UNRECONCILED "$pid_file; preserved without signaling"
 fi
 
 for sub in logs custody; do
@@ -239,6 +212,34 @@ farmd_args=(--data-dir "$data_dir" --bind "$bind"
 [[ -n "$portal_origin" ]] && farmd_args+=(--portal-origin "$portal_origin")
 [[ -n "$token_file" ]] && farmd_args+=(--bootstrap-token-file "$token_file")
 
+# Only this invocation's child can be cleaned up. A persisted PID never grants
+# custody. The optional acknowledgement keeps ownership through Portal startup.
+farmd_pid=""
+launch_complete=0
+cleanup_launch() {
+  local status=$?
+  trap - EXIT INT TERM
+  if [[ "$launch_complete" -eq 0 && -n "$farmd_pid" ]]; then
+    kill -TERM -- "-$farmd_pid" 2>/dev/null || true
+    for ((shutdown_tick=0; shutdown_tick<40; shutdown_tick++)); do
+      kill -0 -- "-$farmd_pid" 2>/dev/null || break
+      sleep 0.05
+    done
+    if [[ "$shutdown_tick" -eq 40 ]]; then kill -KILL -- "-$farmd_pid" 2>/dev/null || true; fi
+    wait "$farmd_pid" 2>/dev/null || true
+    if kill -0 -- "-$farmd_pid" 2>/dev/null; then
+      printf 'DOGFOOD_OPS_CLEANUP_UNRESOLVED: farmd group %s; retained %s\n' "$farmd_pid" "$pid_file" >&2
+    else
+      rm -f -- "$pid_file"
+      [[ -z "$token_file" ]] || rm -f -- "$token_file"
+    fi
+  fi
+  exit "$status"
+}
+trap cleanup_launch EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
 setsid "$farmd_bin" "${farmd_args[@]}" >"$log_file" 2>&1 </dev/null &
 farmd_pid=$!
 printf '%s\n' "$farmd_pid" >"$pid_file"
@@ -247,9 +248,6 @@ fail_launch() {
   # Never leak the bootstrap line from the log into the operator's terminal.
   sed -e 's/^Bullet Farm one-time bootstrap: .*/Bullet Farm one-time bootstrap: <redacted>/' \
     -n -e '1,40p' "$log_file" >&2 || true
-  kill -TERM -- "-$farmd_pid" 2>/dev/null || true
-  rm -f -- "$pid_file"
-  [[ -n "$token_file" ]] && rm -f -- "$token_file"
   refuse "$1" "$2"
 }
 
@@ -287,6 +285,22 @@ if [[ "$leave_bootstrap" -eq 1 ]]; then
   printf 'bootstrap_path=%s\n' "$bootstrap_path"
   [[ -n "$token_file" ]] && printf 'bootstrap_file=%s\n' "$token_file"
   printf 'log=%s\n' "$log_file"
+  if [[ -n "$startup_ack_file" ]]; then
+    [[ "$startup_ack_file" == "$data_dir"/logs/console-startup.*/ack && ! -e "$startup_ack_file" ]] \
+      || fail_launch STARTUP_ACK_INVALID "$startup_ack_file"
+    printf 'startup=ready\n'
+    acknowledged=0
+    for ((tick=0; tick<(ready_timeout_s+2)*40; tick++)); do
+      kill -0 "$farmd_pid" 2>/dev/null || fail_launch FARMD_EXITED "log=$log_file"
+      if [[ -f "$startup_ack_file" && ! -L "$startup_ack_file" && "$(<"$startup_ack_file")" == ready ]]; then
+        acknowledged=1
+        break
+      fi
+      sleep 0.05
+    done
+    [[ "$acknowledged" -eq 1 ]] || fail_launch STARTUP_NOT_ACKNOWLEDGED "$startup_ack_file"
+  fi
+  launch_complete=1
   exit 0
 fi
 
@@ -353,3 +367,5 @@ printf 'data_dir=%s\n' "$data_dir"
 printf 'session_file=%s\n' "$session_file"
 printf 'bootstrap_path=%s\n' "$bootstrap_path"
 printf 'log=%s\n' "$log_file"
+
+launch_complete=1

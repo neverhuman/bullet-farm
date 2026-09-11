@@ -18,13 +18,30 @@ requests; historical request identities and destinations remain intact. Supporti
 source PRs and audit scores do not establish complete aggregate CI. Separately
 accepted Jeryu self-hosting and forge-certification obligations remain in scope.
 
-As of Hub `4609eb9` / Kernel `53f6d96` (2026-09-11 closeout merge): v2 coding
-binding is conditional; the public `operator-tui.gif` is the dark HOLD +
-PENDING-rows tape from Hub #14, not the historical blank light GIF and not
-empty-fleet-only; scheduled cells remain named and may be red (hosted
-required is the merge gate); Operating HOLD and `live_admission_enabled=false`
-remain; Cursor live ACP is still unproved (`CURSOR_ACP_EVENTS_EMPTY`, Fork B).
-G1–G18 stay DESIGNED. Historical blank-GIF diagnosis is not deleted.
+The [11 September full audit](deep-audit-20260911.md) is the latest dated repair
+input, with [159-file baseline coverage](deep-audit-20260911.inventory.json),
+107 member docs and six exact outer mirrors. At its recorded baseline it confirmed
+the blank public TUI GIF, reviewed the dark diagnostic proposal and recorded CI
+failures, unexecuted cells and the missing Head/admission/native/verifier chain.
+The [updated work order](xbabe2-development-closeout.md) gives bounded implementation
+packets, all fifteen surfaces, daily CLI/channels, complete failure campaigns,
+installed/provider/media milestones and all active research/profile/WP obligations.
+Historical Hub f431/Kernel899 required passes remain exact component evidence;
+Portal d00's admitted required failed after fast/build. Concurrent proposals and later
+documentation cannot inherit those passes. All G/profile/HOLD statuses stay unchanged.
+
+The older dated observations below remain historical evidence; use the latest audit
+for current repairs and re-read exact source before implementation.
+
+The [first measured implementation cycle](deep-audit-20260911.md#first-measured-implementation-cycle)
+adds reviewed authentication/alias/startup repairs, exact Submissions, safe provider
+refusal, failed-proposal preservation, console recovery and actual12-case Tuiwright.
+Portal fixture repairs are committed at `79c47734`; its complete required rerun is
+pending. Kernel's1266+34 execution lost the original fast raw report and remains
+nonpassing for retention; the repaired16-case report suite needs the full rerun.
+Later Cursor evidence records Hub #11/#12/#14 and Kernel #17 on main, three PENDING
+submissions and no worker Attempt. The dark Hub clip is diagnostic; public aggregate
+fetch-back and real installed provider media remain separate obligations.
 
 The [9 September deep audit](deep-audit-20260909.md) records the current production
 bridge, all CI execution gaps, actual account/runtime discovery, media defects and
@@ -47,6 +64,16 @@ Reviewed local CI adapter/transfer/generator packets (`5b11bfb3`, `599b2ae8`,
 `974f5de2`) and Portal custody/inventory packets (`9f53fe6a`, `29d02c34`) add
 component evidence. Portal passes 183 unit tests; final complete and hosted checks
 remain required. The typed inventory stays unchanged and blocked.
+
+The [10 September closeout update](xbabe2-development-closeout.md) records local
+Portal checkpoint `2aa9f90a` and its independently reviewed conversation-recovery,
+authenticated-owner and proof-monitor component work. Its 360 unit, 24 Chromium
+and five portable bundle results remain separate observations pending a complete
+admitted current-source proof and hosted execution. The selected public format is
+paired synchronized GIF excerpts plus uninterrupted full recordings and transcripts;
+no existing fixture capture or HOLD-only navigation clip satisfies the real
+Head/provider/integration demonstration. All product and profile statuses remain
+unchanged.
 
 Exact historical accepted subjects and failed attempts remain in the
 [checkpoint](production-prerequisite-checkpoints.md),

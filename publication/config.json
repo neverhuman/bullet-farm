@@ -4,7 +4,10 @@
   "root_files": {
     ".github/workflows/publication.yml": "publication/root/.github/workflows/publication.yml",
     "AGENTS.md": "publication/root/AGENTS.md",
+    "CONTRIBUTING.md": "publication/root/CONTRIBUTING.md",
+    "LICENSE": "publication/root/LICENSE",
     "README.md": "publication/root/README.md",
+    "SECURITY.md": "publication/root/SECURITY.md",
     "repos.manifest.toml": "publication/root/repos.manifest.toml"
   }
 }

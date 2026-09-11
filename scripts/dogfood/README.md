@@ -11,7 +11,7 @@ printed, and every refusal is typed `DOGFOOD_OPS_<CODE>: <value>` on stderr.
 
 | Script | Role |
 | --- | --- |
-| `serve.sh` | start/stop one loopback `bullet-farmd`, exchange the one-time bootstrap for a session |
+| `serve.sh` | start one loopback `bullet-farmd`, exchange the one-time bootstrap for a session |
 | `prepare-harness.sh` | derive the whole `BULLET_HARNESS_*` set and prove the binding with `bullet coding harness-check` |
 | `worker-loop.sh` | build the binary manifest and re-invoke the one-shot `bullet-command-worker` |
 | `../stage-rust-toolchain.sh` | stage a root-owned immutable Rust 1.97.1 under `$HOME` and print the operator's `sudo` commands |
@@ -46,9 +46,34 @@ and the token travelled through a 0600 file. `bootstrap_path=stdout` means the
 binary predates that flag and the token was scraped from its startup line. Both
 are supported; the printed value says which one ran.
 
-Stop with `serve.sh --stop --data-dir "$LANE/data"`. It SIGTERMs farmd's whole
-process group, escalates to SIGKILL after ten seconds, and removes the pid and
-session files.
+`serve.sh --stop --data-dir "$LANE/data"` currently refuses with
+`DOGFOOD_OPS_STOP_CUSTODY_UNAVAILABLE`. A persisted PID cannot establish process
+ownership, so the wrapper preserves the PID and session files without signaling.
+Cross-invocation stop and restart await qualified Rust supervision. Existing PID
+state also refuses a new launch until its custody has been reconciled.
+
+The unsigned contributor console, `../operator-console.sh`, uses this wrapper
+with `--leave-bootstrap`. It creates missing private nested directories under
+`$HOME`, passes the selected Portal port and observed farmd address to Vite's
+same-origin proxy, and prints connection instructions after both interfaces are
+ready. The Portal must emit a fresh Vite bind message for the selected port and
+serve its page and proxied health response; a preexisting listener cannot qualify
+a delayed new launch.
+
+During startup, farmd remains owned by its launcher until the console acknowledges
+Portal readiness. Failure or interruption cleans up only process groups launched
+by that invocation. A group that remains observable after bounded escalation
+produces `CLEANUP_UNRESOLVED` and retains its PID state. This is local component
+supervision; escaped descendants, installed service recovery and durable native
+session custody remain unqualified. The console's `--stop` likewise refuses
+persisted-PID signaling.
+
+Run `bash scripts/operator-console-test.sh` from the Hub for the disposable
+component matrix, also dispatched by the canonical lint lane. It uses fake tool
+contracts with real loopback HTTP, proxy traversal, Unix sockets and child
+processes. Its source hashes, per-case outputs and process markers are retained
+in the printed temporary evidence directory. This suite does not authenticate a
+provider or qualify an installed service.
 
 ### 2. prepare-harness
 
@@ -180,8 +205,10 @@ All four scripts print `DOGFOOD_OPS_<CODE>: <value>` on stderr and exit 1
 | `BIND_NOT_LOOPBACK` | `--bind` is not `127.0.0.1:<port>` |
 | `PORTAL_ORIGIN_NOT_LOOPBACK` | `--portal-origin` is not an exact loopback origin |
 | `DATA_DIR_ANCESTOR_WORLD_WRITABLE` / `_SYMLINK` / `_MISSING` | an ancestor would make the kernel refuse the proof root (this is what rules out `/tmp`) |
-| `ALREADY_RUNNING` | the pid file names a live process |
-| `PID_FILE_INVALID` / `NOT_RUNNING` | `--stop` found no usable pid file |
+| `PID_STATE_UNRECONCILED` | existing PID state requires custody reconciliation before a new launch |
+| `STOP_CUSTODY_UNAVAILABLE` | `--stop` cannot establish ownership from persisted PID state; no process is signaled |
+| `CLEANUP_UNRESOLVED` | the current invocation could not establish process-group cleanup; PID state is retained |
+| `STARTUP_ACK_INVALID` / `STARTUP_NOT_ACKNOWLEDGED` | contributor-console startup acknowledgement is invalid or absent |
 | `SUBDIR_UNTRUSTED` / `SOCKET_DIR_UNTRUSTED` | `logs/`, `custody/` or `socket/` exists with the wrong owner or mode |
 | `SOCKET_PATH_TOO_LONG` | the lease socket path exceeds the `sun_path` budget |
 | `KEY_PROVISION_FAILED` / `_INVALID` / `KEY_CUSTODY_INVALID` | `--provision-lease-transport-key` failed, or the key is not a self-owned 0600 64-byte file |

@@ -1,11 +1,7 @@
 # Bullet Farm
 
-This is the primary integration repository for Bullet Farm on
-[GitHub](https://github.com/neverhuman/bulletfarm). It preserves all four
-supporting source repositories. Their exact
-commit, tree, object format, and immutable source refs are recorded in
-[`publication.json`](publication.json). The original source objects are retained
-under `refs/tags/bullet-source/v1/<member>/<commit>`.
+[neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm) is the public
+aggregate Git repository. It contains four member source trees:
 
 | Member | Role |
 | --- | --- |
@@ -14,29 +10,80 @@ under `refs/tags/bullet-source/v1/<member>/<commit>`.
 | [bullet-git](bullet-git/README.md) | Candidate graph, journal, and proof roots |
 | [bullet-portal](bullet-portal/README.md) | Operations portal |
 
-Each member retains its existing source authority. The aggregate contains every
-member tree and retains the original source objects. The publication tool verifies
-those trees; hosted CI and protected integration still require exact-subject
-execution and authoritative read-back.
+Generated snapshots record each member's commit, tree, object format and source
+ref in [`publication.json`](publication.json). Original source objects are retained
+under `refs/tags/bullet-source/v1/<member>/<commit>`. An aggregate clone has one
+Git checkout; its member directories are source trees, not independent checkouts.
 
-Bullet is not release certified. See the existing
+Bullet is not release certified. The existing
 [G1–G18 register](bullet-farm/docs/assurance/product-gaps.md) and
-[full-product plan](bullet-farm/docs/assurance/full-product-dogfood-plan.md).
-Version-2 root workflows derive from the reviewed 53-job/55-invocation member
-inventory. Missing execution profiles remain explicit refusals. Complete member,
-family, scheduled and operational certification campaigns remain required.
-Human review is required for integration; local fixture checks do not establish
-hosted success. JeRyu self-hosting and native forge qualification remain separate
-release obligations.
+[full-product plan](bullet-farm/docs/assurance/full-product-dogfood-plan.md)
+track the remaining work. Generated workflows derive jobs and matrix cells from
+the reviewed member catalog; unavailable execution remains non-passing.
+Installed operation, authenticated provider tasks, independent verification and
+approved integration require their own evidence. Operating HOLD remains.
 
-Clone, pin Rust 1.95.0 / Node 22.23.2 / npm 10.9.8, then from `bullet-farm/`:
-`just preview` (doctor BLOCKED / exit 3 is expected) and
-`just console -- --data-dir "$HOME/.local/state/bullet-operator-console"`.
-That is the unsigned local console, not `just setup`. Procedure:
-[loopback-console runbook](bullet-farm/docs/runbooks/loopback-console.md).
+## Clone and build from source
 
-Current HOLD-honest operator console (real authenticated loopback farmd on
-xbabe2; not an installer; not VERIFIED; HOLD remains; not a Claude replace):
+Use Linux, Git, Node 22.23.2 and npm 10.9.8. Install both checked-in Rust
+toolchains: 1.95.0 for the Hub and 1.97.1 for Kernel. Rustup selects the
+member's `rust-toolchain.toml` when running its commands:
+
+```bash
+git clone https://github.com/neverhuman/bulletfarm.git
+cd bulletfarm
+git rev-parse HEAD
+
+(cd bullet-kernel && cargo build --locked -p bullet --bin bullet \
+  -p bullet-farmd --bin bullet-farmd)
+(cd bullet-portal && npm ci && npm run build)
+```
+
+Record the clone commit with any build report. These commands compile source;
+they do not install a persistent service or establish release qualification.
+Clean-host builds and lifecycle acceptance remain required. The
+[source setup guide](bullet-farm/docs/runbooks/source-setup.md) explains the
+separate canonical family layout and the currently blocked `just setup` path.
+A source archive or shallow clone does not carry the full Git history needed
+for canonical proof or exact publication verification.
+
+For the unsigned local console, install Just and the additional tools listed in
+the [contributor guide](bullet-farm/CONTRIBUTING.md), then from `bullet-farm/`:
+
+```bash
+just -- console --data-dir "$HOME/.local/state/bullet-operator-console"
+```
+
+This keeps the console in the foreground and uses the selected state directory.
+For a new local instance, choose a new directory under your home, outside the
+clone and outside `/tmp`.
+The launcher prints access instructions and refuses unsupported prerequisites.
+Its component checks do not qualify installed service or provider operation.
+`just preview` and canonical proof lanes require independent member checkouts;
+they are not aggregate-clone acceptance commands.
+
+## Contributions, security and licensing
+
+Open source changes against the member repository that owns the files; see
+[Contributing](bullet-farm/CONTRIBUTING.md). Root files are generated from the
+Hub's `publication/root/` templates and `publication/config.json`. Submit root
+changes there so reviewed generation preserves exact member trees. Human review
+and approved publication remain required; a direct aggregate edit fails
+regeneration checks.
+
+Follow the [security reporting guidance](bullet-farm/SECURITY.md) before sharing
+vulnerability details. Private reporting was disabled on all five repositories
+when checked on 2026-09-11; request a private contact without public details.
+
+The four members carry [Apache-2.0 notices](bullet-farm/LICENSE). Retain the
+member notices and separately licensed third-party material, including the
+Kernel qualification assets' MIT and OFL notices. Root license and community
+file publication remain part of public-release preparation.
+
+## Recording evidence
+
+Retained operator-console diagnostics (local loopback observation;
+not installed or provider qualification; Operating HOLD remains):
 
 - [operator TUI](bullet-farm/media/operator-console/operator-tui.gif)
 - [operator Portal](bullet-farm/media/operator-console/operator-portal.gif)
@@ -59,6 +106,3 @@ task/run/Attempt/Candidate/review/integration identities, with authenticated
 provider execution and preserved original timing. Follow the existing
 [xbabe2 capture specification](bullet-farm/docs/assurance/xbabe2-development-closeout.md).
 No three-provider or four-provider milestone is claimed here.
-
-Root files are generated from the Hub's `publication/root/` templates. Change the
-source template and republish; direct aggregate edits fail regeneration checks.

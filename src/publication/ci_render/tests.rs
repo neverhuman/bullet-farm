@@ -55,23 +55,13 @@ fn assert_reviewed_timeouts() {
     for minutes in [0, 1, 5, u16::MAX] {
         let mut invalid = catalog.clone();
         invalid[0].jobs[0].timeout_minutes = minutes;
-        assert_eq!(
-            ci_inventory::canonical_catalog(&invalid)
-                .err()
-                .unwrap()
-                .code(),
-            "PUBLICATION_CI_TIMEOUT_INVALID"
-        );
+        let error = ci_inventory::canonical_catalog(&invalid).err().unwrap();
+        assert_eq!(error.code(), "PUBLICATION_CI_TIMEOUT_INVALID");
     }
     let mut unknown = catalog;
     unknown[0].jobs.last_mut().unwrap().id = "unknown_job";
-    assert_eq!(
-        ci_inventory::canonical_catalog(&unknown)
-            .err()
-            .unwrap()
-            .code(),
-        "PUBLICATION_CI_TIMEOUT_INVALID"
-    );
+    let error = ci_inventory::canonical_catalog(&unknown).err().unwrap();
+    assert_eq!(error.code(), "PUBLICATION_CI_TIMEOUT_INVALID");
 }
 
 #[test]
@@ -83,7 +73,11 @@ fn generated_topology_preserves_dependencies_matrices_events_and_real_producer()
     let mut manifest = request.manifest.clone();
     manifest.tool_config.schema_version = V2.into();
     let files = render(&store.objects, &manifest, &catalog).unwrap();
-    assert_eq!(files.len(), manifest.tool_config.root_files.len() + 4);
+    let scheduled = catalog.iter().filter(|w| w.scope == "SCHEDULED").count();
+    assert_eq!(
+        files.len(),
+        manifest.tool_config.root_files.len() + scheduled
+    );
     let primary = String::from_utf8(files[PRIMARY].clone()).unwrap();
     assert!(primary.contains("  push:\n  merge_group:\n    types: [checks_requested]"));
     assert!(primary.contains("PUBLICATION_CI_BOOTSTRAP_EVENT_UNSUPPORTED"));
@@ -104,6 +98,7 @@ fn generated_topology_preserves_dependencies_matrices_events_and_real_producer()
         .unwrap();
     assert!(bootstrap.contains("    timeout-minutes: 30\n"));
     let mut counts = (1, 1);
+    let mut unavailable = 0;
     for workflow in &catalog {
         let path = if workflow.scope == "REQUIRED" {
             PRIMARY.into()
@@ -193,6 +188,7 @@ fn generated_topology_preserves_dependencies_matrices_events_and_real_producer()
                 }
                 assert!(!block.contains("cargo build"));
             } else {
+                unavailable += 1;
                 assert!(block.trim_end().ends_with("          exit 1"));
             }
             counts.0 += 1;
@@ -209,7 +205,14 @@ fn generated_topology_preserves_dependencies_matrices_events_and_real_producer()
             assert!(text.contains(&format!("cron: '{cron}'")));
         }
     }
-    assert_eq!(counts, (53, 55));
+    let jobs = catalog.iter().flat_map(|w| &w.jobs).collect::<Vec<_>>();
+    assert_eq!(
+        counts,
+        (
+            jobs.len(),
+            jobs.iter().map(|j| j.os.len().max(1)).sum::<usize>()
+        )
+    );
     assert_eq!(
         files
             .values()
@@ -217,7 +220,7 @@ fn generated_topology_preserves_dependencies_matrices_events_and_real_producer()
                 .matches("PUBLICATION_CI_RUNTIME_ADMISSION_UNAVAILABLE")
                 .count())
             .sum::<usize>(),
-        51
+        unavailable
     );
     assert!(bootstrap.contains("ci-transfer.sh prepare"));
     assert!(bootstrap.contains("steps.transfer.outputs.transfer_sha256"));
@@ -233,7 +236,7 @@ fn generated_topology_preserves_dependencies_matrices_events_and_real_producer()
                 && (line.contains(":REQUIRED:") || line.contains(":SCHEDULED:"))
         })
         .count();
-    assert_eq!(rendered_jobs + 1, 53);
+    assert_eq!(rendered_jobs + 1, jobs.len());
     let expected_ids = catalog
         .iter()
         .filter(|w| w.scope == "REQUIRED")

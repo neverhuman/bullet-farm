@@ -11,7 +11,7 @@ const UBUNTU: &str = "ubuntu-24.04";
 const MATRIX: &str = "${{ matrix.os }}";
 const PORTABLE: [&str; 2] = ["macos-15", "windows-2025"];
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Eq, PartialEq, Serialize)]
 pub(super) struct Job {
     pub id: &'static str,
     pub needs: Vec<&'static str>,
@@ -170,22 +170,22 @@ pub(super) fn reviewed() -> Vec<Workflow> {
     let pins = [
         (
             "bullet-farm",
-            "52c7841a5a4c6ab4a2321fce6b18755552da49d5b0e065c7be4925ad0880a1fb",
-            "e284e768a81d1ff83a5e453c3b81fbd3df0762e172367378af845e87502b422f",
+            "a6a4e78bc68635a5dff3f896b95a4940adecd9858505c5bb1781ecf73e41ab3e",
+            "700c2b023ef5279c6e99f990575e3e7232b150b32a8ab8b1ef0004948bbc0cfc",
         ),
         (
             "bullet-git",
-            "fd628b973138e9a27a7c2e7c1a6d700fc6675647b0049fd0ba14e84dfcb64f82",
-            "7a9a8db8573a90467c5c62783cfb016f8e7ba31e3449fe81c4780d429a03a9fc",
+            "7e7f03bfc74e9fb87f0f46aae726a6a455bac0ae9b7208989653ea46325bf1ce",
+            "144d2d040fd151c32027eb88a24238f6ca294122c4e75d1d767bc26cb2b8b6d7",
         ),
         (
             "bullet-kernel",
-            "5e45f68e8a682b8f474ff73bfa0b35545af3a77f3a13534fa4f462c6e1e1451d",
+            "5ac1b2c114587970e152c0ea8f73a273fec4c2c1512bc2c82aa8acb32ebf48d8",
             "b703dc10751eb777347511bafae7b9d125752c5b75d590135fcf2156f698f0ff",
         ),
         (
             "bullet-portal",
-            "41d796d45036e41f4f8999935c9cacde2c50c3f051dca49cb4ec6221c5fd6aeb",
+            "6637ec9e3d1ba4d971c229ca0aa04dd022d8ec86b67188680a355ff81b595dc1",
             "83e80d3f981ef39d4f7a84fbf06b6ffb9d05254c491525eed6c8941bb697da22",
         ),
     ];
@@ -224,12 +224,12 @@ pub(super) fn canonical_catalog(workflows: &[Workflow]) -> Result<Vec<Workflow>>
         .map(|w| (w.member, w.path))
         .collect::<BTreeSet<_>>();
     require(
-        workflows.len() == 8 && actual == expected,
+        workflows.len() == expected.len() && actual == expected,
         "PUBLICATION_CI_WORKFLOW_INVENTORY_INVALID",
     )?;
     let mut catalog = workflows.to_vec();
     catalog.sort_by_key(|w| (w.member, w.path));
-    let mut counts = (0, 0, 0);
+    let reviewed = reviewed();
     for workflow in &mut catalog {
         require(
             workflow.scope
@@ -280,9 +280,6 @@ pub(super) fn canonical_catalog(workflows: &[Workflow]) -> Result<Vec<Workflow>>
                     || (item.runner == MATRIX && item.os == PORTABLE),
                 "PUBLICATION_CI_MATRIX_INVALID",
             )?;
-            counts.0 += usize::from(workflow.scope == "REQUIRED");
-            counts.1 += usize::from(workflow.scope == "SCHEDULED");
-            counts.2 += item.os.len().max(1);
         }
         let mut reached = BTreeSet::new();
         loop {
@@ -297,10 +294,25 @@ pub(super) fn canonical_catalog(workflows: &[Workflow]) -> Result<Vec<Workflow>>
             }
         }
         require(reached == ids, "PUBLICATION_CI_DEPENDENCY_CYCLE")?;
+        let mut expected_jobs = reviewed
+            .iter()
+            .find(|w| w.member == workflow.member && w.path == workflow.path)
+            .expect("workflow inventory validated above")
+            .jobs
+            .clone();
+        expected_jobs.sort_by_key(|j| j.id);
+        for item in &mut expected_jobs {
+            item.needs.sort();
+            item.os.sort();
+        }
+        require(
+            ids == expected_jobs.iter().map(|j| j.id).collect(),
+            "PUBLICATION_CI_JOB_INVENTORY_INVALID",
+        )?;
+        require(
+            workflow.jobs == expected_jobs,
+            "PUBLICATION_CI_JOB_TOPOLOGY_INVALID",
+        )?;
     }
-    require(
-        counts == (27, 26, 55),
-        "PUBLICATION_CI_JOB_INVENTORY_INVALID",
-    )?;
     Ok(catalog)
 }

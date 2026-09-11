@@ -331,7 +331,12 @@ fn document_at(
         invocations,
     };
     require(
-        plan.invocation_count == 55,
+        plan.invocation_count
+            == catalog
+                .iter()
+                .flat_map(|w| &w.jobs)
+                .map(|j| j.os.len().max(1))
+                .sum::<usize>(),
         "PUBLICATION_CI_INVOCATION_INVENTORY_INVALID",
     )?;
     Ok(Document {

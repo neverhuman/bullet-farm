@@ -2,25 +2,57 @@
 
 Status: **existing-family contributor proof available; trusted public installation blocked**
 Owner: Bullet Farm maintainers  
-Last reviewed: 2026-08-26
+Last reviewed: 2026-09-11
 
-The public discovery index is
-[`https://github.com/neverhuman/bulletfarm`](https://github.com/neverhuman/bulletfarm)
-(not `neverhuman/bullet-farm`). A hub clone from that URL is not a trusted
-install and does not create the other three family members.
+The public source entry is
+[neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm). It is one Git
+repository containing the Hub, Kernel, BulletGit and Portal source trees. A clone
+includes all four directories. The member-only repository
+[neverhuman/bullet-farm](https://github.com/neverhuman/bullet-farm) contains the Hub.
+Neither clone installs a trusted service.
 
-This runbook distinguishes three surfaces that must not be conflated.
-
-| Surface | Current authority |
+| Source layout or tool | Current use |
 | --- | --- |
-| Existing canonical family | contributor development and local proof |
-| `scripts/setup.sh` | build-free external `bullet-family` selection; no signed package admission |
-| Signed prebuilt installer | required for public release; not published |
+| Aggregate clone | Browse and compile the four member source trees |
+| Four independent member checkouts | Canonical family development and admitted local proof |
+| `scripts/setup.sh` | External bootstrap selection; currently Jeryu-only and blocked by the checked-in lock |
+| Signed prebuilt installer | Public-release requirement; not published |
+
+## Aggregate source builds
+
+From a normal aggregate clone, member build commands use its relative paths:
+
+```bash
+git clone https://github.com/neverhuman/bulletfarm.git
+cd bulletfarm
+(cd bullet-kernel && cargo build --locked -p bullet --bin bullet \
+  -p bullet-farmd --bin bullet-farmd)
+(cd bullet-portal && npm ci && npm run build)
+```
+
+Install the checked-in Rust toolchains: Hub 1.95.0 and Kernel 1.97.1. Rustup
+selects the member's `rust-toolchain.toml`. Use Node 22.23.2 and npm 10.9.8.
+Record the aggregate commit with
+results. Clean-host builds and lifecycle qualification still need execution;
+these commands are source compilation, not an installed-product receipt.
+For the unsigned console, see [Contributing](../../CONTRIBUTING.md).
+
+The aggregate's member directories do not have separate `.git` directories.
+Do not run canonical family proof or `just preview` as an aggregate acceptance
+shortcut. Publication verification requires the complete recorded objects and
+history; source archives and shallow clones do not supply that custody. Archive
+builds and unrelated-home/path-with-spaces onboarding remain unqualified.
+`bullet-publish reconstruct` is restricted to admitted disposable GitHub Actions
+roots; setting CI variables does not authorize local reconstruction.
 
 ## Existing canonical family
 
 The family root contains four ordinary independent clones named by
-`repos.manifest.toml`. Never create Git worktrees. Before running family proof:
+`repos.manifest.toml`, with each member owning its own `.git` directory. A portable
+schema-1.3.0 manifest uses `split_root = "."` and the four member basenames; the
+consumer still requires an explicitly admitted root. The aggregate's portable
+manifest does not transform its source subdirectories into canonical checkouts.
+Never create Git worktrees. Before running family proof:
 
 ```bash
 cargo run --locked --quiet --bin bullet-family -- doctor --json; echo EXIT=$?
@@ -56,7 +88,9 @@ bullet-family setup --root <family-root> --source jeryu \
   --npm-cli <absolute-npm-cli> [--offline]
 ```
 
-It is not a curl-pipe installer or release trust root. The wrapper performs
+The wrapper accepts only the pinned Jeryu source path; GitHub source onboarding
+has not been implemented. It is not a curl-pipe installer or release trust root.
+The wrapper performs
 path and file-shape checks, but does not authenticate its selected executable
 as a signed package subject; the Rust boundary separately admits and seals the
 dependency tools. The checked-in alpha lock is schema 2, so a hub-only clone
