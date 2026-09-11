@@ -32,8 +32,10 @@ release obligations.
 Clone, pin Rust 1.95.0 / Node 22.23.2 / npm 10.9.8, then from `bullet-farm/`:
 `just preview` (doctor BLOCKED / exit 3 is expected) and
 `just console -- --data-dir "$HOME/.local/state/bullet-operator-console"`.
-That is the unsigned local console, not `just setup`. Procedure:
+After login, no-args `bullet` is the TUI. That is the unsigned local console,
+not `just setup`. Procedure:
 [loopback-console runbook](bullet-farm/docs/runbooks/loopback-console.md).
+LIVE n on the tape is not “agents finished.”
 
 Current HOLD-honest operator console (real authenticated loopback farmd on
 xbabe2; not an installer; not VERIFIED; HOLD remains; not a Claude replace):
