@@ -493,7 +493,7 @@ r8 `b2cf309c238652441a2633f18911ae7b9e4ef6291ac9bca466def172cef77609`, r9 `18fa9
 r10 `ebf0ab29842a58d8c6b50c1a6451423bf2110c48201117657e229abcd00c131c`, r11 `a16a0625339a4d51d5fab69d3e5a211a9ae569b48f024d09ef1e151b6eb72ea3`,
 r12 `3a061552c62adb4c81adbbc798513b04d858e779e676521f889fe3c5e23bbe54`, r13 `b5e8e0a1915c93362cfc74ad80a572610c66647c09d1b3e6eec0ab097d3d58aa`.
 R12 retains630 entries and the exact226MB ELF exception after its128MiB preflight failure;
-r13 retains400 including mutation-server evidence/CUPS qualification. Newer originals
-remain separate pending next durable capsule. Original source/Tuiwright archives
+r13 retains400 including mutation-server evidence/CUPS qualification. At21:00 the old temporary tree and late reviews/reports are absent; r13 rehashes but excludes CLI19/current Kernel run/diagnostics, fe559, Git100, c575 and planning-refresh. Historical outcomes above are unavailable for current revalidation; recover or rerun into durable storage.
+Canonical source persists. Original source/Tuiwright archives
 remain `a49a0101d8b031b8632631bf54a5a3f73be3a5fba2e16a7279f077f3548c5a7f` and `68cdfd598e88aeac1cc3e40fc1f9743e0b3b3739b52717c33a17ef726a30c02e`.
 G1–G18 remain DESIGNED; all18 profiles remain BLOCKED; Operating HOLD is unchanged.

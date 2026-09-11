@@ -15,7 +15,7 @@ The [11 September audit](deep-audit-20260911.md) preserves its159-file baseline;
 its [first measured cycle](deep-audit-20260911.md#first-measured-implementation-cycle)
 maps current repairs and retained failures. No product/profile status is promoted.
 
-| Existing obligation | Latest measured component evidence | Immediate work |
+| Existing obligation | Historical measured observations; late originals unavailable at21:00 | Immediate work |
 | --- | --- | --- |
 | H1 / Hub | Reviewed reconciliation62829222 and ADR migration-reference repair6f730bf9; console17 plus readiness negative, UI/Head33 and hostile8 passed. | Resolve foreign media-checker custody; run complete required/scheduled lanes over exact reconciled source. |
 | H1 / Kernel | Current22015ba1/treeb276eb5c integrates authenticated mutation acknowledgement/server12 and CLI19 focused passes, plus actual1326 total/1280 standalone inventory. | Durable Head, journal owner/epoch recovery, actual WorkPackage/Candidate source and contained native lifecycle remain open. |
@@ -29,7 +29,7 @@ maps current repairs and retained failures. No product/profile status is promote
 The original 18-source/12-evidence capsule and rejected Portal revisions remain
 preserved. Source manifest SHA-256 is `32a922258dbd3f9e0e8b8dc128ecbbc65e02869fccd1ddf38e63e947c0ee6e23`;
 evidence manifest is `17294415e7f4c4c3a01b991f7f5924afd47750674acc4fc64ba5c5c22c188792`.
-Archives r4–r12 retain exact closed source and evidence; [audit continuation](deep-audit-20260911.md#first-measured-implementation-cycle) records hashes and scope. Never discard newer bytes or replay under a new identity.
+Archives r4–r13 retain older closed evidence; [audit continuation](deep-audit-20260911.md#first-measured-implementation-cycle) records the21:00 loss of newer temporary reports/reviews. Preserve current source; recover originals or rerun into durable private storage before acceptance, with fresh run identities.
 Cursor3478b57d and fetched088e53ad are preserved repair inputs. Root branch restored after writer release; unsafe failed-process promotion/schema writes were not imported.
 The Linux monitor rejects changed-and-restored compiler inputs; retain overflow,
 lost-custody and tool/config/lookup drift as non-passing. It is not a cross-platform
@@ -56,7 +56,7 @@ dependency, negative case and semantic consumer; measure usable transitions.
 
 | Ordered work / existing IDs | Concrete next delivery and completion condition |
 | --- | --- |
-| H1/H2, C1 first measured cycle | Re-establish Portal input custody after c575 refusal, then run current required, coverage and occupied-listener proof; diagnose Kernel startup under its preceding workload and rerun complete required/Tuiwright; execute Git's prepared shell matrix, inventory/required/native audit. Reconcile remote088e53ad/58a742ce with reviewed local source. Hub proof still needs foreign checker release. |
+| H1/H2, C1 first measured cycle | Recover or regenerate missing late proof inputs/reports in durable private storage. Re-establish Portal custody/current lanes after c575; reproduce Kernel startup and rerun required/Tuiwright; rebuild Git canonical shell/inventory/required/audit proof from current tracked source. Reconcile remote088e53ad/58a742ce with local source. Hub proof still needs foreign checker release. |
 | R1/R2 plus T1 second measured cycle | Implement the preserved fresh-generation consumer and supervised schema-27 upgrade; persist task revision/repository/base/scope/criteria/gates/dependencies and server-owned graph/WorkPackage/Variant/Candidate source together. A restart must recover the same admitted task without fabricated relations. |
 | T2/T3/U1 connected Head | Add durable account capacity/budgets, turn/start/native identities and assistant history consumer together. Current history rejects assistant rows and message receipts assume the original pending outbox; preserve historical receipts while admitting new Head progress. Deliver goal→clarification→accepted task in the real CLI, with response-loss/restart tests. |
 | T3/T4 native execution | One supervisor owns both protocol and native-terminal modes, fenced controller epochs, input delivery state, containment and observed process termination. Same-stack fixtures must exercise real child starts and every recovery boundary before live admission. Unknown termination retains custody/reservations. |

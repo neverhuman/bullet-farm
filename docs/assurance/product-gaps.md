@@ -64,8 +64,11 @@ disabled on all five repositories at the20:11 API refresh. New Hub58a742ce and
 Kernel088e53ad remote push workflows pass, but differ from accepted local sources.
 Current diagnostic GIFs differ in dates/source/work identities, have provider=none
 and Candidate=null; the Portal manifest declares four frames. The earlier narrow
-Claude DOGFOOD_RUN is preserved, not promoted to the installed campaign. Archives
-r7–r13 retain prior closed evidence; newer originals remain retained separately.
+Claude DOGFOOD_RUN is preserved, not promoted to the installed campaign. At21:00 UTC
+the old temporary work tree and late reviews/reports are absent. Durable r13 rehashes
+correctly but excludes CLI19, current Kernel required/diagnostics, rendered24, Git100,
+c575 and planning-refresh evidence. Those historical observations above require
+recovered originals or fresh execution before current acceptance; source commits remain.
 No result here clears Operating HOLD, installed admission, aggregate delivery or a profile.
 
 The [9 September deep audit](deep-audit-20260909.md) records the current production
