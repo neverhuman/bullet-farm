@@ -140,7 +140,7 @@ the [work order](xbabe2-development-closeout.md#real-1080p-capture-as-maintained
 
 ## Every hosted CI lane and protection gap
 
-The current YAML enumeration has **53 job definitions and 55 expanded cells**:
+The baseline YAML enumeration has **53 job definitions and 55 expanded cells**:
 27 required-workflow cells and 28 scheduled cells. Required and scheduled are
 different event sets. All 27 required cells pass on recorded remote member mains.
 For scheduled cells on those mains, six pass, six fail and 16 are unexecuted
@@ -448,52 +448,52 @@ HTTP200 observations prove reachability only. Aggregate generation, publication,
 content fetch-back, private reporting enablement and adopted ownership/conduct
 remain unaccepted. None of these component results clears Operating HOLD.
 
-The 18:10 UTC continuation binds Kernel e164eb629b76ec25a9ec0ec20acf727ef09f39cc,
-tree b02e3841918ee3fed6872474bfa383feeefb6cc4. Required-r10 completes all five
-local lanes:1278 fast,5 lint-receipt and34 contract identities; review53b2c1b0
-verifies76 original artifacts and unchanged952 source/index/tool subjects.
-Current Tuiwright12 passes with137 retained files,694 ordered events and fresh
-Bullet12f54e91/harness e52214b1; independent review408f30f3 verifies child settlement.
-Earlier r7 passed11 of13 with2 failures; r8 passed64 of65 with1 failure; r9 passed1278 fast then failed Clippy;
-all raw reports remain retained. Focused repairs passed14 mission/UI/startup,
-68 coding and12 HTTP/session cases. No continuous Kernel custody claim follows.
+Historical Kernel e164eb62/treeb02e3841 passes required1278+5+34 across five lanes,
+review53b2c1b0/76 artifacts; Tuiwright12 has137 files/694 events, review408f30f3.
+R7 passed11/13 with2 failures; r8 passed64/65 with1 failure; r9 passed1278 fast then
+failed Clippy. Focused14 mission/UI/startup,68 coding and12 HTTP/session remain separate.
 
-Portal b291ccf286ed2e9f3421152009ffc00dbb1e3371/tree7b4f07c4 passes complete
-required372/build/five lanes: run e509 has READY+22 CHECKED+FINISHED0,819 artifacts,
-772 hashes and8,481 final host-input hashes; independent review965ec244.
-Coverage bacc passes372, lines97.23/statements94.37/functions96.62/branches89.44%,
-all unchanged floors/exclusions and seven-file ratchets; review75f942c3.
-Current b64fdad2d56fdfb992a11ca41f5211807dded1cd/tree51ea1bd8 repairs server reuse
-and strict port; source review1d318c57. Pinned browser image eefe4f09 builds offline
-from21 retained packages and actually runs Chromium151.0.7922.34, renders800×600,
-records native exit0/no signal and exact container removal; reviewb41baffb.
-The 18:12 UTC rendered collection57f14d5b refused75 on missing libcups.so.2 before any tests; all55 artifacts remain preserved.
-Current required/coverage, canonical rendered24 and occupied-listener negative
-remain unexecuted. Earlier a259 prelaunch refusal retains zero executed tests;
-optional Git locking is the likely identity-drift cause, not an observed write trace.
+The20:20 continuation binds Kernel22015ba1/treeb276eb5c: reviewed server12/CLI19 mutation session acknowledgement; inventory1326=1280+3+34+9.
+Current required-r1 exits100:24 pass/one startup failure/1255 unexecuted, resultf3b1d045,
+79 archived artifacts981840e5,952 source/index/tools unchanged; no continuous custody.
+The missing Synthetic PTY mission is unresolved: diagnostics-only14 passed; reviewer
+found a diagnostic unwind panic, then try_lock repair received formatting checks only.
+Prepared preceding26-test reproduction and current Tuiwright are unexecuted. No
+durable Head, complete task/Candidate producer, contained native PTY or verifier claim.
 
-BulletGit264d9cbf370127fca66622c4ecfff8d2a0659b6f/tree163d458c integrates Rust
-report/observation helpers:88 tests executed individually from the freshly compiled binary,182 raw artifacts,
-30 exact source/lock subjects; independent review812647af. Missing native/validation
-streams now refuse; compile/type/fixture failures and rejected predecessors remain.
-Python callers remain active until coherent migration and actual current checks.
-The last actual native audit9510fd99 still fails72/85(raw83), three hard/six soft;
-failed consumer75 LOCAL_AUDIT_NOT_PASSING remains expected. Hosted audit absence,
-Python ownership and ignored Cargo-probe misclassification need actual repairs.
-No broad exclusion, fake workflow or lower85 threshold is accepted.
+Historical Portalb291/tree7b4f07c4 required372/build/five lanes and coverage372 retain
+reviews965ec244/75f942c3, READY+22 CHECKED+FINISHED0 and unchanged floors/ratchets.
+Currentb64fdad2/tree51ea1bd8 canonical rendered24 passes under continuous monitor
+READY→FINISHED0; fe559 result52864bce,518 entries/478 hashes, independent1248bac5.
+The qualified imagea5f3b099 adds CUPS; missing-CUPS57f14, collector2ada and wrong-tool
+role9b89 failures remain preserved. Chrome/fc-list are explicit executable subjects.
+Current required c575 final admission is rejected7d4fe0e2: all12,447 file identities
+match but .git directory timestamps changed at20:12:54; cause unassigned. No selector,
+intent or tests; exact stop137/removal retains65 entries, result8b679536, inventoryff8a6dd0.
+Current coverage/occupied-listener negative and hosted/native custody remain open.
 
-Closed archive SHA-256 subjects:
-r7 `02f3c645d949afc15cd0703ae21767419e9cbbabafdbc4fa70228a8bf2831c79`;
-r8 `b2cf309c238652441a2633f18911ae7b9e4ef6291ac9bca466def172cef77609`;
-r9 `18fa9e72174c85e3195f8ddfdcbb7ee02b9e6ac010d67e728015f3a8c99d093e`;
-r10 `ebf0ab29842a58d8c6b50c1a6451423bf2110c48201117657e229abcd00c131c`;
-r11 `a16a0625339a4d51d5fab69d3e5a211a9ae569b48f024d09ef1e151b6eb72ea3`;
-r12 `3a061552c62adb4c81adbbc798513b04d858e779e676521f889fe3c5e23bbe54`.
-R11 retains Portal e509, Kernel r7/r8 and helper29; r12 retains630 entries including
-Kernel r9/r10/Tui12, Rust88, Portal server repair/browser ABI and committed sources.
-Originals/archive entries were read back; r12's226MB Bullet ELF is preserved through
-an exact size/hash exception after the original128MiB preflight failure. Active
-work/caches are excluded. Earlier first-cycle source/Tuiwright archives remain
-`a49a0101d8b031b8632631bf54a5a3f73be3a5fba2e16a7279f077f3548c5a7f` and
-`68cdfd598e88aeac1cc3e40fc1f9743e0b3b3739b52717c33a17ef726a30c02e`.
+BulletGitfba3fe5d/treee497ca17 integrates coherent Rust callers: source44 and100 native
+outcomes independently accepted5df7eb09. Original private driver75/report-parser
+failure remains unchanged; strict independent replay accepted outcomes, not that exit.
+Previous264d helper88/review812647af remains historical. Canonical shell matrix,
+current inventory/required and native audit are unexecuted. Last9510 audit still
+fails72/85(raw83), three hard/six soft, failed consumer75; no broad exclusions or lower floor.
+
+The20:11 GitHub API refresh retains raw bodies under private public-state-201110:
+Hub58a742ce push34606413545 and Kernel088e53ad push34601873207 pass; neither binds
+the local reviewed source. Git4e331036/Portal00b13bfa retain earlier required passes
+and failed manual scheduled runs. Aggregate3b7b474b has zero workflows and root
+LICENSE/SECURITY/CONTRIBUTING404. All five have private reporting disabled and no
+rulesets; aggregate/Hub/Git lack branch protection, Kernel/Portal still require0 reviews.
+No merge_group or schedule event appears in each retained latest100-run window;
+that bounded query is not an all-history absence proof. Regenerate matrix applicability.
+
+Closed archive SHA-256 subjects remain r7 `02f3c645d949afc15cd0703ae21767419e9cbbabafdbc4fa70228a8bf2831c79`,
+r8 `b2cf309c238652441a2633f18911ae7b9e4ef6291ac9bca466def172cef77609`, r9 `18fa9e72174c85e3195f8ddfdcbb7ee02b9e6ac010d67e728015f3a8c99d093e`,
+r10 `ebf0ab29842a58d8c6b50c1a6451423bf2110c48201117657e229abcd00c131c`, r11 `a16a0625339a4d51d5fab69d3e5a211a9ae569b48f024d09ef1e151b6eb72ea3`,
+r12 `3a061552c62adb4c81adbbc798513b04d858e779e676521f889fe3c5e23bbe54`, r13 `b5e8e0a1915c93362cfc74ad80a572610c66647c09d1b3e6eec0ab097d3d58aa`.
+R12 retains630 entries and the exact226MB ELF exception after its128MiB preflight failure;
+r13 retains400 including mutation-server evidence/CUPS qualification. Newer originals
+remain separate pending next durable capsule. Original source/Tuiwright archives
+remain `a49a0101d8b031b8632631bf54a5a3f73be3a5fba2e16a7279f077f3548c5a7f` and `68cdfd598e88aeac1cc3e40fc1f9743e0b3b3739b52717c33a17ef726a30c02e`.
 G1–G18 remain DESIGNED; all18 profiles remain BLOCKED; Operating HOLD is unchanged.
