@@ -2,7 +2,7 @@
 
 Status: **Implementation detail; no production or release admission**  
 Owner: Bullet Farm maintainers  
-Last reviewed: 2026-09-09
+Last reviewed: 2026-09-11
 
 This is subordinate to the [full-product plan](full-product-dogfood-plan.md),
 [G1–G18 register](product-gaps.md) and existing typed profile inventory.
@@ -17,6 +17,12 @@ renderer, verifier, fixtures and local commands are product source: they must be
 tracked in the supporting members and included in `neverhuman/bulletfarm`.
 
 ## Current evidence and immediate corrections
+
+As of Hub `76076e9` / Kernel `53f6d96` (2026-09-11): Hub #11/#12 and Kernel #17
+are on `main`. Public TUI is the dark empty-fleet tape. Kernel binding is
+conditional. v0.2 D1 is HTTP then real `bullet-runner` plus a stub, not spawned
+worker → gitd. Cursor Fork B stays typed. Scheduled remains named, not “all CI
+green.” HOLD is printed.
 
 | Subject | Established evidence | Remaining qualification |
 | --- | --- | --- |
