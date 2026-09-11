@@ -258,6 +258,11 @@ tui_record() {
   export BULLET_RECORD_BULLET_BIN="$TUI_BULLET"
   export BULLET_RECORD_FARMD_BIN="$TUI_FARMD"
   tui_say "recording ${TUI_COLS}x${TUI_ROWS} for at most ${TUI_MAX_SECONDS}s"
+  # Agent and CI shells often export NO_COLOR=1 / TERM=dumb. The product TUI
+  # treats NO_COLOR as monochrome (no 38;2), which is how a painted cast still
+  # fails CAST_ENTROPY. The outer PTY is a real color terminal.
+  unset NO_COLOR FORCE_COLOR
+  export TERM=xterm-256color COLORTERM=truecolor
   # Product TUI runs on this outer PTY. Keys are written to the master here so
   # narrate-operator-tui.py can exec bullet tui without a nested pty.fork().
   local -a inject=()
