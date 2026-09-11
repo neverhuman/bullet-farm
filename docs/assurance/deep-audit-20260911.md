@@ -352,12 +352,12 @@ requires its own public fetch-back. Neither clip qualifies provider coding.
 
 | Existing obligation | Implemented and reviewed component | Remaining acceptance |
 | --- | --- | --- |
-| H1 / R1 / TUI | Restored authenticated expected-session server reads, equivalent `bulletfarm` dispatcher, first paint before credential discovery, exact IDs and separate real Submissions observations. | CLI expected-session acknowledgement, default durable Head, complete paging and installed entrypoints remain open. |
+| H1 / R1 / TUI | Restored authenticated expected-session server and CLI reads, equivalent bulletfarm, early paint, exact IDs and separate real Submissions. | Mutation/session-owner callbacks, default durable Head, complete paging and installed entrypoints remain open. |
 | T3 / T4 | Generic signed-in execution now refuses before launch without admitted containment. Runner rejects nonzero, unknown or timed-out completion before applying a proposal and retains failed proposal bytes. Claude projection preserves original native evidence before identity validation. | Writable containment and native lifecycle; actual worker/provider-child fixture with valid WorkPackage, Candidate source and lease; independent settlement and verification. |
 | H2 / C1 | Actual canonical Tuiwright `operator-tui` completed12/12 identities with126 verified artifacts, six-client blocked startup and revocation recovery. Review `c92711d7e8526aa090d107480502be83ba97d08bd78faeada8fd2a1959fd3ba5`. | Synthetic credentials/backend make this local component evidence; no installed/provider, continuous source, percentile or media qualification. |
 | H1 / U1 | Contributor console17 cases plus unsafe-readiness negative passed; restored Hub UI route and Head receipt refusal passed33 component cases. | Actual Portal browser lane, persistent Rust service/process custody and stranger installation. |
-| H2 / Portal | Earlier e178db3 full required360/build/five lanes accepted; current b291 coverage372 and all unchanged floors pass with continuous source proof. | Current full required/browsers, hosted admission and native custody remain open; prior failures retained. |
-| H2 / Kernel | Required-r6 at68ffa9f7 passes1270 fast+5 lint-receipt+34 contract and all five lanes. Current bb405556 adds reviewed CLI16/UI11 and measured1324/1278 inventory. | Current required-r7 failed (11 passed/two mission request-count failures/1265 unexecuted); current Tuiwright pending; original report loss/r4/r5 failures survive, no continuous Kernel custody claim. |
+| H2 / Portal | Exactb291ccf2 full required372/build/five lanes and coverage372 accepted with continuous custody. Currentb64fdad2 fixes occupied-server reuse/strict port; actual Chromium ABI/rendering accepted. | Current full required/coverage/rendered24, occupied-listener negative, hosted admission and native custody remain open. |
+| H2 / Kernel | Exacte164eb62 required-r10 passes1278 fast+5 lint-receipt+34 contract and all five lanes, review53b2c1b0; current Tuiwright12 passes review408f30f3. | Local component scope only; continuous custody, installed/live and hosted/aggregate acceptance remain open. All original report loss/r4–r9 failures survive. |
 | C1 / scheduled | Reused PR7 pinned tools and Windows-safe hostile filename;8/8 hostile tests passed,21 other generated outputs stayed identical. Local Hub `62829222` reconciles actual workflow pins/topology; Nextest36 publication library cases passed. | Prior libtest32/36 failure retained. Full Hub proof awaits foreign checker custody; scheduled/native/auditor, event triggers, aggregate and protection acceptance remain open. |
 
 The historical 13:11 UTC continuation binds accepted local Kernel commit
@@ -448,50 +448,52 @@ HTTP200 observations prove reachability only. Aggregate generation, publication,
 content fetch-back, private reporting enablement and adopted ownership/conduct
 remain unaccepted. None of these component results clears Operating HOLD.
 
-The 16:36 UTC continuation binds current Kernel
-`bb405556b312274bbac09451266c67d672d8252c`, tree
-`9cb5753de3334aa1bbe2218a0e466e01cbae7fd2`. Earlier required-r6 at68ffa9f7
-passed1270 fast,5 lint-receipt and34 contract cases; review53f73acf accepts exact
-local execution without continuous custody. Current CLI16 and Rust UI11 component
-reviews5f11bd92/1fbe4df6 pass. Actual1324/1278 enumeration adds exactly8 identities
-and recovers prior digests when removed; reviewe86aac50. Current required-r7 failed
-after13 tests:11 passed, two mission request-count assertions failed and1265
-were unexecuted. All952 source/index bindings match; original61 artifacts survive.
-Current Tuiwright remains unexecuted. No source-pass inheritance follows.
+The 18:10 UTC continuation binds Kernel e164eb629b76ec25a9ec0ec20acf727ef09f39cc,
+tree b02e3841918ee3fed6872474bfa383feeefb6cc4. Required-r10 completes all five
+local lanes:1278 fast,5 lint-receipt and34 contract identities; review53b2c1b0
+verifies76 original artifacts and unchanged952 source/index/tool subjects.
+Current Tuiwright12 passes with137 retained files,694 ordered events and fresh
+Bullet12f54e91/harness e52214b1; independent review408f30f3 verifies child settlement.
+Earlier r7 passed11 of13 with2 failures; r8 passed64 of65 with1 failure; r9 passed1278 fast then failed Clippy;
+all raw reports remain retained. Focused repairs passed14 mission/UI/startup,
+68 coding and12 HTTP/session cases. No continuous Kernel custody claim follows.
 
-Portal b291ccf286ed2e9f3421152009ffc00dbb1e3371/tree7b4f07c4 now passes coverage372:
-lines97.23%, statements94.37%, functions96.62%, branches89.44%; all seven file
-ratchets and original floors/exclusions are unchanged. Runtime bacc has child0,
-READY+six CHECKED+FINISHED0,154 regular hashes/184 paths, exact removal and8,481
-final host-input hashes. Independent review
-`75f942c31171e0a8579c0354dce3cf68bfc11ee676d32bce93727dfa1ee38b95`
-accepts local diagnostic coverage only. Earlier a259 refused INPUT_IDENTITY_CHANGED
-before any test: source bytes matched but whole.git directory identity changed.
-Root's optional Git lock is the documented likely cause, not an observed write
-trace; all subsequent proof-window Git reads disable optional locks. No replay.
+Portal b291ccf286ed2e9f3421152009ffc00dbb1e3371/tree7b4f07c4 passes complete
+required372/build/five lanes: run e509 has READY+22 CHECKED+FINISHED0,819 artifacts,
+772 hashes and8,481 final host-input hashes; independent review965ec244.
+Coverage bacc passes372, lines97.23/statements94.37/functions96.62/branches89.44%,
+all unchanged floors/exclusions and seven-file ratchets; review75f942c3.
+Current b64fdad2d56fdfb992a11ca41f5211807dded1cd/tree51ea1bd8 repairs server reuse
+and strict port; source review1d318c57. Pinned browser image eefe4f09 builds offline
+from21 retained packages and actually runs Chromium151.0.7922.34, renders800×600,
+records native exit0/no signal and exact container removal; reviewb41baffb.
+The 18:12 UTC rendered collection57f14d5b refused75 on missing libcups.so.2 before any tests; all55 artifacts remain preserved.
+Current required/coverage, canonical rendered24 and occupied-listener negative
+remain unexecuted. Earlier a259 prelaunch refusal retains zero executed tests;
+optional Git locking is the likely identity-drift cause, not an observed write trace.
 
-BulletGit actual native audit at9510fd99/tree834f6b1b runs admitted Jankurai1.6.11
-with SHA-2569e6b8857, fails72/85 (raw83), and retains three hard/six soft findings.
-The failed audit consumer returns75 LOCAL_AUDIT_NOT_PASSING. Python CI evidence
-ownership is applicable and needs Rust migration; hosted audit is absent, while
-the scanner misses the real local wrapper and misclassifies an ignored nested
-Cargo compiler probe. These need real source/scanner repairs; no broad exclusion,
-fake workflow or lowered85 floor is accepted. Component77 review693acd02 and all
-original native reports/primary failures remain distinct from audit acceptance.
+BulletGit264d9cbf370127fca66622c4ecfff8d2a0659b6f/tree163d458c integrates Rust
+report/observation helpers:88 tests executed individually from the freshly compiled binary,182 raw artifacts,
+30 exact source/lock subjects; independent review812647af. Missing native/validation
+streams now refuse; compile/type/fixture failures and rejected predecessors remain.
+Python callers remain active until coherent migration and actual current checks.
+The last actual native audit9510fd99 still fails72/85(raw83), three hard/six soft;
+failed consumer75 LOCAL_AUDIT_NOT_PASSING remains expected. Hosted audit absence,
+Python ownership and ignored Cargo-probe misclassification need actual repairs.
+No broad exclusion, fake workflow or lower85 threshold is accepted.
 
-Closed archives have SHA-256:
+Closed archive SHA-256 subjects:
 r7 `02f3c645d949afc15cd0703ae21767419e9cbbabafdbc4fa70228a8bf2831c79`;
 r8 `b2cf309c238652441a2633f18911ae7b9e4ef6291ac9bca466def172cef77609`;
 r9 `18fa9e72174c85e3195f8ddfdcbb7ee02b9e6ac010d67e728015f3a8c99d093e`;
-r10 `ebf0ab29842a58d8c6b50c1a6451423bf2110c48201117657e229abcd00c131c`.
-R7 preserves closed Kernel-r6; r8 failed Portal-a259; r9 actual failed native audit;
-r10 accepted Portal-bacc and reviewed CLI/UI source/components. Each archive and
-original was read back; active work and build caches are excluded. No runtime,
-provider, release or Operating HOLD authority follows from preservation.
-
-The private first-cycle source archive has SHA-256
-`a49a0101d8b031b8632631bf54a5a3f73be3a5fba2e16a7279f077f3548c5a7f`;
-Tuiwright originals and failed/unexecuted precursors are retained in archive
+r10 `ebf0ab29842a58d8c6b50c1a6451423bf2110c48201117657e229abcd00c131c`;
+r11 `a16a0625339a4d51d5fab69d3e5a211a9ae569b48f024d09ef1e151b6eb72ea3`;
+r12 `3a061552c62adb4c81adbbc798513b04d858e779e676521f889fe3c5e23bbe54`.
+R11 retains Portal e509, Kernel r7/r8 and helper29; r12 retains630 entries including
+Kernel r9/r10/Tui12, Rust88, Portal server repair/browser ABI and committed sources.
+Originals/archive entries were read back; r12's226MB Bullet ELF is preserved through
+an exact size/hash exception after the original128MiB preflight failure. Active
+work/caches are excluded. Earlier first-cycle source/Tuiwright archives remain
+`a49a0101d8b031b8632631bf54a5a3f73be3a5fba2e16a7279f077f3548c5a7f` and
 `68cdfd598e88aeac1cc3e40fc1f9743e0b3b3739b52717c33a17ef726a30c02e`.
-These hashes identify retained private component evidence, not portable execution
-or release receipts. G1–G18 remain DESIGNED; all18 product profiles remain BLOCKED.
+G1–G18 remain DESIGNED; all18 profiles remain BLOCKED; Operating HOLD is unchanged.
