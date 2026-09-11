@@ -11,8 +11,9 @@ belongs under `Unreleased`.
 Contributor loopback only. Not first-GA, not schema-3, not a HOLD lift.
 `live_admission_enabled` stays false. `release_eligible` stays false.
 
-Hub ([PR #16](https://github.com/neverhuman/bullet-farm/pull/16) merged
-`33805d3` on `main`):
+Hub ([PR #16](https://github.com/neverhuman/bullet-farm/pull/16) `33805d3`,
+oid pin [PR #17](https://github.com/neverhuman/bullet-farm/pull/17) `58a742ce`
+on `main`):
 
 - `just console` starts farmd, Vite Portal, and `worker-loop.sh` when farmd,
   runner, gitd, verifier, and `transaction_offline` exist. Missing gitd is
@@ -58,19 +59,21 @@ Hub (this repository, after PR #11, #12, and #14):
 - `prepare-harness.sh` issues work-package IDs from the admitted command, not
   dry-run seeds.
 
-Kernel (on kernel `main` as of [neverhuman/bullet-kernel#17](https://github.com/neverhuman/bullet-kernel/pull/17)
-`53f6d96`):
+Kernel (on kernel `main` as of [neverhuman/bullet-kernel#18](https://github.com/neverhuman/bullet-kernel/pull/18)
+`088e53ad`; v0.2 closeout was #17 `53f6d96`):
 
 - v2 `run_coding` admission binds nonce and quota so farmd can dispatch an
   admitted task.
 - v0.2 D1 is HTTP then the real `bullet-runner` plus a stub: one failure is
-  retained and a second spawn is refused. Spawned command-worker → gitd is not
-  claimed.
+  retained and a second spawn is refused.
+- After ASAP, `just console` writes a `bullet.command-worker-binary-manifest.v1`
+  and starts `worker-loop.sh` when subjects exist. A loopback claim reached
+  `COMMAND_CODING_HARNESS_UNBOUND` (verification key); that is a typed refuse,
+  not “no worker.” Production gitd settlement and three-provider
+  attempt→proposal stay unclosed without operator enrollments.
 - Codex signed-in argv can emit a `PatchProposal`. Cursor stream-json without
   a proposal is `CURSOR_ACP_EVENTS_EMPTY` (Fork B; not live ACP). A text ping
-  is not a turn. Three-provider submit→attempt is unclosed: P1a/b/c reached
-  distinct PENDING submits; no worker attempt without an admitted
-  `bullet.command-worker-binary-manifest.v1`.
+  is not a turn.
 - `bullet tui` overlays admitted coding commands when mission tables are empty
   and redacts 64-hex ids. Rows stay queued/unknown. They are not VERIFIED.
 
