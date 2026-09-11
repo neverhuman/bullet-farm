@@ -2,8 +2,13 @@
 
 Status: Active  
 Owner: Bullet Farm maintainers  
-Last reviewed: 2026-09-07
+Last reviewed: 2026-09-11
 Applies to: agents working the split family at the outermost `repos.manifest.toml`
+
+The unsigned loopback path is [`loopback-console.md`](loopback-console.md).
+Script custody and `--env-file` rules live in
+[`../../scripts/dogfood/README.md`](../../scripts/dogfood/README.md).
+Neither document lifts Operating HOLD or admits `live_admission_enabled`.
 
 ## What is stopping acceleration (honest)
 
