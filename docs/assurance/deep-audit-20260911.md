@@ -356,8 +356,8 @@ requires its own public fetch-back. Neither clip qualifies provider coding.
 | T3 / T4 | Generic signed-in execution now refuses before launch without admitted containment. Runner rejects nonzero, unknown or timed-out completion before applying a proposal and retains failed proposal bytes. Claude projection preserves original native evidence before identity validation. | Writable containment and native lifecycle; actual worker/provider-child fixture with valid WorkPackage, Candidate source and lease; independent settlement and verification. |
 | H2 / C1 | Actual canonical Tuiwright `operator-tui` completed12/12 identities with126 verified artifacts, six-client blocked startup and revocation recovery. Review `c92711d7e8526aa090d107480502be83ba97d08bd78faeada8fd2a1959fd3ba5`. | Synthetic credentials/backend make this local component evidence; no installed/provider, continuous source, percentile or media qualification. |
 | H1 / U1 | Contributor console17 cases plus unsafe-readiness negative passed; restored Hub UI route and Head receipt refusal passed33 component cases. | Actual Portal browser lane, persistent Rust service/process custody and stranger installation. |
-| H2 / Portal | Exact `e178db3` full required7e526 passed360 fast/build and all five atomic lanes with continuous monitoring and final read-back; independent acceptance below. | Earlier required/collection/handshake failures remain retained. Coverage88%, actual browsers, hosted admission and native-platform proof remain open. |
-| H2 / Kernel | Required-r1 lost its original fast XML. Reviewed retention16/failure-observation6 repairs preserve subsequent reports. Required-r4 at `88de763` retained1266 fast, group5 and34 contract passes before docs failed. | At `5f859709`, required-r5 ran130 tests:127 passed, three40s timeouts,1136 unexecuted. No complete pass or continuous-custody acceptance follows; source handoff is resolved and focused backup measurement passes, full rerun remains. |
+| H2 / Portal | Earlier e178db3 full required360/build/five lanes accepted; current b291 coverage372 and all unchanged floors pass with continuous source proof. | Current full required/browsers, hosted admission and native custody remain open; prior failures retained. |
+| H2 / Kernel | Required-r6 at68ffa9f7 passes1270 fast+5 lint-receipt+34 contract and all five lanes. Current bb405556 adds reviewed CLI16/UI11 and measured1324/1278 inventory. | Current required-r7 failed (11 passed/two mission request-count failures/1265 unexecuted); current Tuiwright pending; original report loss/r4/r5 failures survive, no continuous Kernel custody claim. |
 | C1 / scheduled | Reused PR7 pinned tools and Windows-safe hostile filename;8/8 hostile tests passed,21 other generated outputs stayed identical. Local Hub `62829222` reconciles actual workflow pins/topology; Nextest36 publication library cases passed. | Prior libtest32/36 failure retained. Full Hub proof awaits foreign checker custody; scheduled/native/auditor, event triggers, aggregate and protection acceptance remain open. |
 
 The historical 13:11 UTC continuation binds accepted local Kernel commit
@@ -394,7 +394,7 @@ three accepted local subjects. Every archive byte and original source read-back
 matched. Later runtime records remain separate private evidence; preservation
 alone grants no source, signing, enrollment, integration or publication authority.
 
-The 14:50 UTC continuation preserves all preceding failures. Canonical Kernel is
+The historical 14:50 UTC continuation preserves all preceding failures. Canonical Kernel is
 restored to `5f859709`; its all-ref bundle has SHA-256
 `e5311c41ac379443ccf98629ebd07fa264a1bbf4c252a13f972504bac92839ab`.
 Fetched `088e53ad81cdb9bf67fba92e4251fbc2b1e9dab6` has the `3478b57d` tree;
@@ -447,6 +447,47 @@ Unauthenticated GET retained stale published SECURITY/CONTRIBUTING bodies; earli
 HTTP200 observations prove reachability only. Aggregate generation, publication,
 content fetch-back, private reporting enablement and adopted ownership/conduct
 remain unaccepted. None of these component results clears Operating HOLD.
+
+The 16:36 UTC continuation binds current Kernel
+`bb405556b312274bbac09451266c67d672d8252c`, tree
+`9cb5753de3334aa1bbe2218a0e466e01cbae7fd2`. Earlier required-r6 at68ffa9f7
+passed1270 fast,5 lint-receipt and34 contract cases; review53f73acf accepts exact
+local execution without continuous custody. Current CLI16 and Rust UI11 component
+reviews5f11bd92/1fbe4df6 pass. Actual1324/1278 enumeration adds exactly8 identities
+and recovers prior digests when removed; reviewe86aac50. Current required-r7 failed
+after13 tests:11 passed, two mission request-count assertions failed and1265
+were unexecuted. All952 source/index bindings match; original61 artifacts survive.
+Current Tuiwright remains unexecuted. No source-pass inheritance follows.
+
+Portal b291ccf286ed2e9f3421152009ffc00dbb1e3371/tree7b4f07c4 now passes coverage372:
+lines97.23%, statements94.37%, functions96.62%, branches89.44%; all seven file
+ratchets and original floors/exclusions are unchanged. Runtime bacc has child0,
+READY+six CHECKED+FINISHED0,154 regular hashes/184 paths, exact removal and8,481
+final host-input hashes. Independent review
+`75f942c31171e0a8579c0354dce3cf68bfc11ee676d32bce93727dfa1ee38b95`
+accepts local diagnostic coverage only. Earlier a259 refused INPUT_IDENTITY_CHANGED
+before any test: source bytes matched but whole.git directory identity changed.
+Root's optional Git lock is the documented likely cause, not an observed write
+trace; all subsequent proof-window Git reads disable optional locks. No replay.
+
+BulletGit actual native audit at9510fd99/tree834f6b1b runs admitted Jankurai1.6.11
+with SHA-2569e6b8857, fails72/85 (raw83), and retains three hard/six soft findings.
+The failed audit consumer returns75 LOCAL_AUDIT_NOT_PASSING. Python CI evidence
+ownership is applicable and needs Rust migration; hosted audit is absent, while
+the scanner misses the real local wrapper and misclassifies an ignored nested
+Cargo compiler probe. These need real source/scanner repairs; no broad exclusion,
+fake workflow or lowered85 floor is accepted. Component77 review693acd02 and all
+original native reports/primary failures remain distinct from audit acceptance.
+
+Closed archives have SHA-256:
+r7 `02f3c645d949afc15cd0703ae21767419e9cbbabafdbc4fa70228a8bf2831c79`;
+r8 `b2cf309c238652441a2633f18911ae7b9e4ef6291ac9bca466def172cef77609`;
+r9 `18fa9e72174c85e3195f8ddfdcbb7ee02b9e6ac010d67e728015f3a8c99d093e`;
+r10 `ebf0ab29842a58d8c6b50c1a6451423bf2110c48201117657e229abcd00c131c`.
+R7 preserves closed Kernel-r6; r8 failed Portal-a259; r9 actual failed native audit;
+r10 accepted Portal-bacc and reviewed CLI/UI source/components. Each archive and
+original was read back; active work and build caches are excluded. No runtime,
+provider, release or Operating HOLD authority follows from preservation.
 
 The private first-cycle source archive has SHA-256
 `a49a0101d8b031b8632631bf54a5a3f73be3a5fba2e16a7279f077f3548c5a7f`;
