@@ -1,7 +1,7 @@
 # Contributing
 
 Status: **contributor map; not install or release authority**  
-Last reviewed: 2026-09-10
+Last reviewed: 2026-09-11
 
 A clone of [neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm) is
 the public entry. Member origins are `neverhuman/bullet-farm`,
@@ -19,8 +19,9 @@ just console -- --data-dir "$HOME/.local/state/bullet-operator-console"
 ```
 
 Follow [`docs/runbooks/loopback-console.md`](docs/runbooks/loopback-console.md).
-`just setup` is the blocked installer and still refuses on the schema-2
-`family.lock`. Operating HOLD remains. This is not VERIFIED.
+After login, no-args `bullet` is the TUI. `just setup` is the blocked installer
+and still refuses on the schema-2 `family.lock`. Operating HOLD remains. This
+is not VERIFIED. Scheduled CI may stay red; hosted required is the merge gate.
 
 Do not paste bootstrap tokens, cookies, CSRF values, or home paths into issues
 or pull requests.

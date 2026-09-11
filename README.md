@@ -46,9 +46,11 @@ just preview
 just console -- --data-dir "$HOME/.local/state/bullet-operator-console"
 ```
 
-Then `bullet auth login` and `bullet tui` as in the
+Then `bullet auth login` and `bullet` (TTY; same as `bullet tui`) as in the
 [unsigned loopback console runbook](docs/runbooks/loopback-console.md)
-and [`CONTRIBUTING.md`](CONTRIBUTING.md).
+and [`CONTRIBUTING.md`](CONTRIBUTING.md). The console starts a command-worker
+when sibling gitd and the kernel worker subjects exist. HOLD remains. LIVE n
+is not “agents finished.”
 `just setup` is the blocked signed-installer wrapper; it refuses without an
 external admitted `bullet-family` binary and still returns `UNSUPPORTED_SCHEMA`
 on the checked-in lock. See [source-setup](docs/runbooks/source-setup.md).
