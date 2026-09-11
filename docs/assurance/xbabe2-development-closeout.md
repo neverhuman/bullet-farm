@@ -18,11 +18,12 @@ tracked in the supporting members and included in `neverhuman/bulletfarm`.
 
 ## Current evidence and immediate corrections
 
-As of Hub `76076e9` / Kernel `53f6d96` (2026-09-11): Hub #11/#12 and Kernel #17
-are on `main`. Public TUI is the dark empty-fleet tape. Kernel binding is
-conditional. v0.2 D1 is HTTP then real `bullet-runner` plus a stub, not spawned
-worker → gitd. Cursor Fork B stays typed. Scheduled remains named, not “all CI
-green.” HOLD is printed.
+As of Hub `4609eb9` / Kernel `53f6d96` (2026-09-11): Hub #11/#12/#14 and
+Kernel #17 are on `main`. Public TUI is the dark HOLD + PENDING-rows tape.
+Kernel binding is conditional. v0.2 D1 is HTTP then real `bullet-runner` plus
+a stub, not spawned worker → gitd. Cursor Fork B stays typed; P1a/b/c reached
+PENDING submits only (no worker attempt). Scheduled remains named, not “all
+CI green.” HOLD is printed.
 
 | Subject | Established evidence | Remaining qualification |
 | --- | --- | --- |
