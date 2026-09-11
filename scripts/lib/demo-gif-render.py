@@ -119,7 +119,8 @@ class Runner:
         out, err = [self.root / "logs" / f"{i:03}.{suffix}" for suffix in ["stdout", "stderr"]]
         def limits():
             resource.setrlimit(resource.RLIMIT_FSIZE, (MAX_FILE, MAX_FILE))
-            resource.setrlimit(resource.RLIMIT_AS, (2 * 1024**3, 2 * 1024**3))
+            # Real TUI casts decode to ~6 MiB RGB frames; ffmpeg's VAS exceeds 2 GiB.
+            resource.setrlimit(resource.RLIMIT_AS, (8 * 1024**3, 8 * 1024**3))
         need(time.monotonic() < self.deadline, "RENDER_DEADLINE")
         with out.open("xb") as stdout, err.open("xb") as stderr:
             child = subprocess.Popen(command, cwd=self.root, stdin=subprocess.DEVNULL,
@@ -393,7 +394,7 @@ def main():
                 need(not args.strict_lossless or fidelity["gif_rgb"] == "EXACT", "GIF_RGB_QUANTIZED")
             else:
                 gif = args.output / "derivative.gif"
-                run.run([str(args.agg), "--renderer", "fontdue", "--theme", "github-light", "--speed", "1",
+                run.run([str(args.agg), "--renderer", "fontdue", "--theme", "github-dark", "--speed", "1",
                          "--idle-time-limit", "600", "--last-frame-duration", "0", str(source / "session.cast"), str(gif)])
                 fidelity = {"gif_rgb": "UNVERIFIED_NO_ORIGINAL_RGB_MASTER", "master_rgb": "NOT_AVAILABLE",
                             "gif_rgb_sha256": decoded(run, args.ffmpeg, gif, gif_geometry(gif)),
