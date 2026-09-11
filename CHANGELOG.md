@@ -11,16 +11,17 @@ belongs under `Unreleased`.
 Named operator-CLI campaign, not a schema-3 lock and not `self-hosted-v1`.
 `release_eligible` stays false. Operating HOLD stays printed.
 
-Hub (this repository, after PR #11 and this PR):
+Hub (this repository, after PR #11, #12, and #14):
 
 - Recorder paints the product TUI (`github-dark`, outer PTY, `CAST_ENTROPY`
-  gate) so `operator-tui.gif` is a readable 1920×1080 dark empty-fleet tape,
-  not an off-white slide.
+  gate) so `operator-tui.gif` is a readable 1920×1080 dark tape with HOLD and
+  PENDING coding rows, not an off-white slide and not the historical blank
+  light GIF.
 - `prepare-harness.sh` issues work-package IDs from the admitted command, not
   dry-run seeds.
 
-Kernel (proposed in [neverhuman/bullet-kernel#17](https://github.com/neverhuman/bullet-kernel/pull/17);
-not on kernel `main` until that PR merges):
+Kernel (on kernel `main` as of [neverhuman/bullet-kernel#17](https://github.com/neverhuman/bullet-kernel/pull/17)
+`53f6d96`):
 
 - v2 `run_coding` admission binds nonce and quota so farmd can dispatch an
   admitted task.
@@ -29,7 +30,9 @@ not on kernel `main` until that PR merges):
   claimed.
 - Codex signed-in argv can emit a `PatchProposal`. Cursor stream-json without
   a proposal is `CURSOR_ACP_EVENTS_EMPTY` (Fork B; not live ACP). A text ping
-  is not a turn.
+  is not a turn. Three-provider submit→attempt is unclosed: P1a/b/c reached
+  distinct PENDING submits; no worker attempt without an admitted
+  `bullet.command-worker-binary-manifest.v1`.
 - `bullet tui` overlays admitted coding commands when mission tables are empty
   and redacts 64-hex ids. Rows stay queued/unknown. They are not VERIFIED.
 
