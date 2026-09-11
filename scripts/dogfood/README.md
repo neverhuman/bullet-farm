@@ -63,27 +63,26 @@ scripts/dogfood/prepare-harness.sh \
   --dogfood-data-dir /home/ubuntu/bullet-dogfood-2 \
   --dogfood-executable /usr/lib/bullet/providers/claude/2.1.266/bin/claude \
   --credential "$HOME/.claude/.credentials.json,.claude/.credentials.json,<blake3>" \
-  --bullet /abs/path/to/bullet --allow-placeholders
+  --bullet /abs/path/to/bullet \
+  --command-id cmd_<64hex> \
+  --request-digest <payload_digest from the 202> \
+  --idempotency-key <the submit key>
 ```
 
 Writes a 0600 env file, runs `bullet coding harness-check --json` with exactly
 that environment, and exits 0 only on `BOUND`. The env file is **not** a shell
 script: one `NAME=VALUE` line per binding with a raw value.
 
-Three of the seventeen REQUIRED names have no producer anywhere in the kernel
-today and are written as `PLACEHOLDER_DRY_RUN_ONLY:<value>`:
+When `--command-id`, `--request-digest`, and `--idempotency-key` are supplied,
+those three REQUIRED names are ledger-issued and match the command worker:
 
-* `BULLET_HARNESS_WORK_PACKAGE_ID` — a Kernel-selected work package. Nothing in
-  the operator path materializes one for `run_coding`. The value has the exact
-  `WorkPackageId::from_seed` shape (`blake3("wpk:<seed>")`) and no ledger row.
-* `BULLET_HARNESS_CANDIDATE_REQUEST_DIGEST` — the digest of a *registered*
-  Candidate-preparation source. Registration lives in the ledger; no CLI writes
-  a row.
-* `BULLET_HARNESS_IDEMPOTENCY_KEY` — the Kernel's pre-acquisition key. The
-  operator invents it; it is unrelated to the `run_coding` envelope's own key.
+* `BULLET_HARNESS_WORK_PACKAGE_ID` — `WorkPackageId::from_seed("bullet.coding-work-package.v1\\0{command_id}")`
+* `BULLET_HARNESS_CANDIDATE_REQUEST_DIGEST` — the admitted command request digest
+* `BULLET_HARNESS_IDEMPOTENCY_KEY` — the admitted command key
 
-Without `--allow-placeholders` the script refuses so nobody mistakes the env
-file for a live binding. Two things are real and derived, not invented:
+Without those flags the three names stay `PLACEHOLDER_DRY_RUN_ONLY:<value>` and
+`--allow-placeholders` is required so nobody mistakes a dry-run env for a live
+binding. Two other things are real and derived, not invented:
 
 * `BULLET_HARNESS_CANDIDATE_VERIFICATION_KEY` is written for real. farmd derives
   its Candidate-preparation signing key from the bytes of
@@ -214,7 +213,8 @@ All four scripts print `DOGFOOD_OPS_<CODE>: <value>` on stderr and exit 1
 | `ENV_VALUE_MULTILINE` | a binding value contains a newline, which the env-file shape forbids |
 | `HARNESS_CHECK_UNREADABLE` | `bullet coding harness-check --json` produced no readable report |
 | `HARNESS_UNBOUND` (exit 2) | at least one REQUIRED name is missing |
-| `HARNESS_PLACEHOLDERS_PRESENT` | the env file binds placeholders; pass `--allow-placeholders` to acknowledge a dry run |
+| `HARNESS_PLACEHOLDERS_PRESENT` | the env file binds placeholders; pass `--allow-placeholders` to acknowledge a dry run, or supply `--command-id` / `--request-digest` / `--idempotency-key` |
+| `COMMAND_ID_INVALID` / `REQUEST_DIGEST_INVALID` / `IDEMPOTENCY_KEY_INVALID` | ledger producer flags must be `cmd_`+64hex, 64 lowercase hex, and a single-line key together |
 
 ### `worker-loop.sh`
 
