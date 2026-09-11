@@ -1,7 +1,7 @@
 # Bullet Farm documentation map
 
 Status: **pre-release; release authority remains blocked**  
-Last reviewed: 2026-08-25
+Last reviewed: 2026-09-11
 
 This file is the hub documentation index. Do not add `docs/INDEX.md`.
 A document can explain a decision, but it cannot make a command, receipt,
@@ -81,6 +81,11 @@ green through documentation.
 - [`runbooks/backup-restore.md`](runbooks/backup-restore.md) covers receipt-bound
   SQLite snapshots and the mandatory restore quarantine.
 - [`runbooks/README.md`](runbooks/README.md) is the runbook index.
+- [`runbooks/loopback-console.md`](runbooks/loopback-console.md) is the
+  unsigned contributor console: `just console`, no-args `bullet` after login,
+  and a command-worker loop when sibling subjects exist. HOLD remains. It is
+  not `just setup` and not first-GA. `path-to-100.md` is a frozen 2026-08-25
+  snapshot and is not this loop’s finish line.
 - [`runbooks/fleet.md`](runbooks/fleet.md) is the agent coordination runbook:
   claims, heartbeats, handoffs, receipts, receipt corrections, and the
   orchestrator-only commit rule.

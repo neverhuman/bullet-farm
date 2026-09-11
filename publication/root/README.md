@@ -37,8 +37,10 @@ not `just setup`. Procedure:
 [loopback-console runbook](bullet-farm/docs/runbooks/loopback-console.md).
 LIVE n on the tape is not “agents finished.”
 
-Current HOLD-honest operator console (real authenticated loopback farmd on
-xbabe2; not an installer; not VERIFIED; HOLD remains; not a Claude replace):
+Current HOLD-honest operator console (Tape A: real authenticated loopback
+farmd on xbabe2; not an installer; not VERIFIED; HOLD remains; not a Claude
+replace). Tape B — `bullet` after an enrolled turn or typed provider refusal —
+is not captured yet.
 
 - [operator TUI](bullet-farm/media/operator-console/operator-tui.gif)
 - [operator Portal](bullet-farm/media/operator-console/operator-portal.gif)

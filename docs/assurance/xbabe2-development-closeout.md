@@ -18,12 +18,14 @@ tracked in the supporting members and included in `neverhuman/bulletfarm`.
 
 ## Current evidence and immediate corrections
 
-As of Hub `4609eb9` / Kernel `53f6d96` (2026-09-11): Hub #11/#12/#14 and
-Kernel #17 are on `main`. Public TUI is the dark HOLD + PENDING-rows tape.
-Kernel binding is conditional. v0.2 D1 is HTTP then real `bullet-runner` plus
-a stub, not spawned worker → gitd. Cursor Fork B stays typed; P1a/b/c reached
-PENDING submits only (no worker attempt). Scheduled remains named, not “all
-CI green.” HOLD is printed.
+As of Hub `58a742ce` / Kernel `088e53ad` (2026-09-11 ASAP on `main`; closeout
+merge was Hub `4609eb9` / Kernel `53f6d96`): Hub #16/#17 and Kernel #18 are
+on `main`. Public TUI is the dark HOLD + PENDING-rows tape. `just console`
+can start `worker-loop.sh`. A loopback claim typed
+`COMMAND_CODING_HARNESS_UNBOUND` (verification key); that is a typed refuse,
+not “three PENDING and no worker.” Cursor Fork B stays typed. Production
+gitd settlement and enrolled three-provider attempt→proposal stay unclosed.
+Scheduled remains named, not “all CI green.” HOLD is printed.
 
 | Subject | Established evidence | Remaining qualification |
 | --- | --- | --- |

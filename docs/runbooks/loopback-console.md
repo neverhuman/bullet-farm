@@ -58,8 +58,10 @@ sibling `bullet-gitd` when those bins are unset, runs `farm init`, starts farmd
 on `127.0.0.1:7420` with `--leave-bootstrap`, starts Vite on `127.0.0.1:5173`
 with a matching `--portal-origin`, and starts `scripts/dogfood/worker-loop.sh`
 with a `bullet.command-worker-binary-manifest.v1` when every subject exists.
-Missing gitd or a binary is `worker=UNBOUND`, not a hang. It never prints the
-token. `--stop` signals this invocation's worker, Portal, and farmd groups.
+If `$data_dir/harness/harness.env` exists, the wrapper passes `--env-file`.
+`COMMAND_CODING_HARNESS_UNBOUND` is idle-backoff, not a dead loop. Missing
+gitd or a binary is `worker=UNBOUND`, not a hang. It never prints the token.
+`--stop` signals this invocation's worker, Portal, and farmd groups.
 
 If `127.0.0.1:7420` is already bound, pass `--bind 127.0.0.1:<free-port>`
 (and a matching free Portal origin if 5173 is taken). Do not restomp an
