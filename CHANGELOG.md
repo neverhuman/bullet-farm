@@ -11,7 +11,8 @@ belongs under `Unreleased`.
 Contributor loopback only. Not first-GA, not schema-3, not a HOLD lift.
 `live_admission_enabled` stays false. `release_eligible` stays false.
 
-Hub ([PR #16](https://github.com/neverhuman/bullet-farm/pull/16)):
+Hub ([PR #16](https://github.com/neverhuman/bullet-farm/pull/16) merged
+`33805d3` on `main`):
 
 - `just console` starts farmd, Vite Portal, and `worker-loop.sh` when farmd,
   runner, gitd, verifier, and `transaction_offline` exist. Missing gitd is
