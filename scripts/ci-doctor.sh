@@ -28,9 +28,10 @@ case "$lane" in
   platform) tools=("${baseline[@]}" cargo cargo-clippy grep rustc uname) ;;
   audit) tools=("${baseline[@]}" jankurai) ;;
   toolchain-pinned) tools=("${baseline[@]}" b3sum cargo date grep rustc rustup tee) ;;
+  devnode) tools=("${baseline[@]}" cargo curl rustc) ;;
   all) tools=("${baseline[@]}" actionlint b3sum cargo cargo-clippy cargo-deny cargo-llvm-cov cargo-nextest cat chmod cmp comm cp curl date docker file gitleaks grep jankurai java jsonschema ln lychee mktemp node npm rg rmdir rustc rustfmt rustup sha1sum shellcheck stat tee uname xargs zizmor) ;;
   *)
-    echo "ci-doctor: expected source-scan|fast|lint|contract|security|docs|required|family|family-contract|history|links|advisory|coverage|platform|audit|toolchain-pinned|all" >&2
+    echo "ci-doctor: expected source-scan|fast|lint|contract|security|docs|required|family|family-contract|history|links|advisory|coverage|platform|audit|toolchain-pinned|all|devnode" >&2
     exit 2
     ;;
 esac

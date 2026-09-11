@@ -309,16 +309,36 @@ enforce_rust_compiler_boundary() {
 
 enforce_rust_build_subject() {
   local subject_root="${1:-$REPO_ROOT}" relative actual expected
+  local expected_product_manifests expected_proof_manifests
   local expected_manifests manifests
 
   initialize_rust_toolchain_tools || return 1
   verify_resolved_tool "$FIND_EXECUTABLE" "$FIND_EXECUTABLE_SHA256" find || return 1
   verify_resolved_tool "$SORT_EXECUTABLE" "$SORT_EXECUTABLE_SHA256" sort || return 1
-  expected_manifests="$(printf '%s\n' \
+  # Two classes, both pinned, never merged into one list.
+  #
+  # Product manifests are what ships. Proof manifests belong to harnesses that
+  # are never a product dependency, are never published, and are built by no
+  # lane other than the one they prove. crates/bullet-wire/fuzz/Cargo.toml set
+  # the precedent; devnode/tui/Cargo.toml is the console harness, built only by
+  # ops/ci/devnode.sh, which refuses to run anywhere but the development host.
+  #
+  # A proof harness is pinned rather than pruned so that adding one stays a
+  # reviewed act. Pruning ./devnode from the search would have made every future
+  # manifest under it invisible to this guard, which is the opposite of what the
+  # guard is for.
+  expected_product_manifests="$(printf '%s\n' \
     ./Cargo.toml \
     ./crates/bullet-linux-lease/Cargo.toml \
     ./crates/bullet-wire/Cargo.toml \
     ./crates/bullet-wire/fuzz/Cargo.toml)"
+  expected_proof_manifests="$(printf '%s\n' \
+    ./devnode/record/Cargo.toml \
+    ./devnode/tui/Cargo.toml)"
+  expected_manifests="$(
+    printf '%s\n%s\n' "$expected_product_manifests" "$expected_proof_manifests" \
+      | LC_ALL=C "$SORT_EXECUTABLE"
+  )"
   manifests="$(
     cd "$subject_root"
     "$FIND_EXECUTABLE" . \
@@ -339,7 +359,11 @@ enforce_rust_build_subject() {
     crates/bullet-wire/fuzz/Cargo.toml \
     Cargo.lock \
     crates/bullet-wire/fuzz/Cargo.lock \
-    rust-toolchain.toml
+    rust-toolchain.toml \
+    devnode/tui/Cargo.toml \
+    devnode/tui/Cargo.lock \
+    devnode/record/Cargo.toml \
+    devnode/record/Cargo.lock
   do
     [[ -f "$subject_root/$relative" && ! -L "$subject_root/$relative" ]] || {
       refuse RUST_BUILD_SUBJECT_INVALID "$relative is missing, not regular, or a symlink"
@@ -366,6 +390,18 @@ enforce_rust_build_subject() {
         ;;
       rust-toolchain.toml)
         expected=e3a213e0d222e94d213cafbc20932eb3f76c643b4dd63756acf95192df2aa310
+        ;;
+      devnode/tui/Cargo.toml)
+        expected=7ada32a34feb7779d382d5fecedc4ee0f9b24b743a7769ec5f4ae060bf48c60f
+        ;;
+      devnode/tui/Cargo.lock)
+        expected=efa9e735ab167412e00f1fe184b83026d62f317a2d9bbd51dba7576365908401
+        ;;
+      devnode/record/Cargo.toml)
+        expected=a0f1e12a32f99b3c1a5bb9b4d6d141aacd958af43c2fbbb93d749870b7cbf705
+        ;;
+      devnode/record/Cargo.lock)
+        expected=89e63ca487fcb48dea3402993902c4b74073e5bf99433bbe167e8fe3435b10e7
         ;;
     esac
     actual="$(sha256_lf_text_file "$subject_root/$relative")" || return 1

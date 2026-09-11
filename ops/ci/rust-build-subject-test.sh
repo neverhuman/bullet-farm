@@ -12,7 +12,9 @@ trap 'rm -rf -- "$fixture_root"' EXIT
 build_subject_root="$fixture_root/build-subject"
 mkdir -p \
   "$build_subject_root/crates/bullet-linux-lease" \
-  "$build_subject_root/crates/bullet-wire/fuzz"
+  "$build_subject_root/crates/bullet-wire/fuzz" \
+  "$build_subject_root/devnode/tui" \
+  "$build_subject_root/devnode/record"
 cp "$repo_root/Cargo.toml" "$build_subject_root/Cargo.toml"
 cp "$repo_root/crates/bullet-linux-lease/Cargo.toml" \
   "$build_subject_root/crates/bullet-linux-lease/Cargo.toml"
@@ -24,6 +26,12 @@ cp "$repo_root/Cargo.lock" "$build_subject_root/Cargo.lock"
 cp "$repo_root/crates/bullet-wire/fuzz/Cargo.lock" \
   "$build_subject_root/crates/bullet-wire/fuzz/Cargo.lock"
 cp "$repo_root/rust-toolchain.toml" "$build_subject_root/rust-toolchain.toml"
+# The proof-only console harness. It is staged here for the same reason it is
+# pinned in lib.sh: a harness that no lane can see is a harness nobody reviews.
+cp "$repo_root/devnode/tui/Cargo.toml" "$build_subject_root/devnode/tui/Cargo.toml"
+cp "$repo_root/devnode/tui/Cargo.lock" "$build_subject_root/devnode/tui/Cargo.lock"
+cp "$repo_root/devnode/record/Cargo.toml" "$build_subject_root/devnode/record/Cargo.toml"
+cp "$repo_root/devnode/record/Cargo.lock" "$build_subject_root/devnode/record/Cargo.lock"
 
 enforce_rust_build_subject "$build_subject_root"
 for subject in \
@@ -33,7 +41,11 @@ for subject in \
   crates/bullet-wire/fuzz/Cargo.toml \
   Cargo.lock \
   crates/bullet-wire/fuzz/Cargo.lock \
-  rust-toolchain.toml
+  rust-toolchain.toml \
+  devnode/tui/Cargo.toml \
+  devnode/tui/Cargo.lock \
+  devnode/record/Cargo.toml \
+  devnode/record/Cargo.lock
 do
   lf_digest="$(sha256_lf_text_file "$build_subject_root/$subject")"
   crlf_lines=0
@@ -95,6 +107,75 @@ grep -Fq CARGO_MANIFEST_INVENTORY_DRIFT \
 }
 rm -f -- "$build_subject_root/unexpected/Cargo.toml"
 rmdir -- "$build_subject_root/unexpected"
+
+# Proof-only class regressions. Each of these would have passed silently had the
+# guard pruned ./devnode from the search instead of pinning what lives there.
+
+# A second harness beside the pinned one is inventory drift, not a free pass.
+mkdir -p "$build_subject_root/devnode/second"
+printf '%s\n' \
+  '[package]' \
+  'name = "unreviewed-proof-harness"' \
+  'version = "0.0.0"' \
+  >"$build_subject_root/devnode/second/Cargo.toml"
+if enforce_rust_build_subject "$build_subject_root" \
+  >"$fixture_root/extra-proof-manifest.log" 2>&1; then
+  echo "RUST_BUILD_SUBJECT_CANARY_FAILED: a second devnode manifest was admitted" >&2
+  exit 1
+fi
+grep -Fq CARGO_MANIFEST_INVENTORY_DRIFT \
+  "$fixture_root/extra-proof-manifest.log" || {
+  echo "RUST_BUILD_SUBJECT_CANARY_INVALID: extra proof manifest failed for an unrelated reason" >&2
+  exit 1
+}
+rm -f -- "$build_subject_root/devnode/second/Cargo.toml"
+rmdir -- "$build_subject_root/devnode/second"
+
+# Removing the pinned harness is drift in the other direction.
+mv "$build_subject_root/devnode/tui/Cargo.toml" "$fixture_root/proof-manifest.hold"
+if enforce_rust_build_subject "$build_subject_root" \
+  >"$fixture_root/missing-proof-manifest.log" 2>&1; then
+  echo "RUST_BUILD_SUBJECT_CANARY_FAILED: a missing proof manifest was admitted" >&2
+  exit 1
+fi
+grep -Fq CARGO_MANIFEST_INVENTORY_DRIFT \
+  "$fixture_root/missing-proof-manifest.log" || {
+  echo "RUST_BUILD_SUBJECT_CANARY_INVALID: missing proof manifest failed for an unrelated reason" >&2
+  exit 1
+}
+mv "$fixture_root/proof-manifest.hold" "$build_subject_root/devnode/tui/Cargo.toml"
+enforce_rust_build_subject "$build_subject_root"
+
+# The proof harness is digest-pinned exactly as a product manifest is, so a
+# changed harness dependency is refused rather than absorbed.
+printf '%s\n' '' '[dev-dependencies.rustversion]' 'version = "=1.0.23"' \
+  >>"$build_subject_root/devnode/tui/Cargo.toml"
+if enforce_rust_build_subject "$build_subject_root" \
+  >"$fixture_root/proof-manifest-drift.log" 2>&1; then
+  echo "RUST_BUILD_SUBJECT_CANARY_FAILED: a changed proof manifest was admitted" >&2
+  exit 1
+fi
+grep -Fq RUST_BUILD_SUBJECT_DRIFT "$fixture_root/proof-manifest-drift.log" || {
+  echo "RUST_BUILD_SUBJECT_CANARY_INVALID: proof manifest drift failed for an unrelated reason" >&2
+  exit 1
+}
+cp "$repo_root/devnode/tui/Cargo.toml" "$build_subject_root/devnode/tui/Cargo.toml"
+
+# And so is its lock, which is what makes --locked mean anything in that lane.
+printf '%s\n' '' '# unreviewed edit' >>"$build_subject_root/devnode/tui/Cargo.lock"
+if enforce_rust_build_subject "$build_subject_root" \
+  >"$fixture_root/proof-lock-drift.log" 2>&1; then
+  echo "RUST_BUILD_SUBJECT_CANARY_FAILED: a changed proof lock was admitted" >&2
+  exit 1
+fi
+grep -Fq RUST_BUILD_SUBJECT_DRIFT "$fixture_root/proof-lock-drift.log" || {
+  echo "RUST_BUILD_SUBJECT_CANARY_INVALID: proof lock drift failed for an unrelated reason" >&2
+  exit 1
+}
+cp "$repo_root/devnode/tui/Cargo.lock" "$build_subject_root/devnode/tui/Cargo.lock"
+cp "$repo_root/devnode/record/Cargo.toml" "$build_subject_root/devnode/record/Cargo.toml"
+cp "$repo_root/devnode/record/Cargo.lock" "$build_subject_root/devnode/record/Cargo.lock"
+enforce_rust_build_subject "$build_subject_root"
 
 printf '%s\n' '' '[dependencies.rustversion]' 'version = "=1.0.23"' \
   >>"$build_subject_root/crates/bullet-wire/Cargo.toml"

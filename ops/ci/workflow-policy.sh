@@ -45,6 +45,27 @@ validate_workflow_source ops/ci/platform-refusal.sh \
   PLATFORM_LANE_SOURCE_DRIFT || exit 1
 workflows=(.github/workflows/ci.yml .github/workflows/scheduled.yml)
 
+# The devnode lane drives the real console over a PTY and the real browser
+# against an authenticated session. Both of those exist only on the development
+# host. A hosted copy could prove nothing stronger than "the binary starts",
+# while carrying the name of a lane that claims much more, so a hosted workflow
+# that so much as mentions it is refused here. ops/ci/devnode.sh refuses on the
+# same grounds from the inside; this is the outer half of that pair, and it is
+# the half a maintainer would trip over first.
+refuse_hosted_devnode_lane() {
+  local workflow="$1"
+  [[ -f "$workflow" && ! -L "$workflow" ]] \
+    || { refuse WORKFLOW_ENTRY_NOT_REGULAR "$workflow"; return 1; }
+  grep -Fq devnode "$workflow" \
+    && { refuse HOSTED_DEVNODE_LANE_FORBIDDEN \
+      "$workflow names the development-host-only devnode lane"; return 1; }
+  return 0
+}
+
+for workflow in "${workflows[@]}"; do
+  refuse_hosted_devnode_lane "$workflow" || exit 1
+done
+
 # The hosted audit job may be neutral only through this exact typed refusal
 # step, and its lane step must be the unconditional atomic lane; a step that
 # exits green or untyped without the pinned auditor is drift.
