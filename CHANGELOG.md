@@ -6,6 +6,31 @@ belongs under `Unreleased`.
 
 ## Unreleased
 
+### v0.2.0-operator-cli
+
+Named operator-CLI campaign, not a schema-3 lock and not `self-hosted-v1`.
+`release_eligible` stays false. Operating HOLD stays printed.
+
+- Hub recorder paints the product TUI (`github-dark`, outer PTY, cast entropy
+  gate) so `operator-tui.gif` is a readable 1920×1080 dark tape, not an
+  off-white slide.
+- Kernel v2 `run_coding` admission binds nonce and quota so farmd can dispatch
+  an admitted task. `CODING_BINDING_ADMISSION_UNAVAILABLE` means that binding
+  is missing.
+- Command-worker v2 claims derive work-package, candidate digest, and
+  idempotency from the ledger and forward Claude credential grants without
+  printing them.
+- A deterministic HTTP→dispatch failure settles once and does not spawn again.
+  Codex signed-in turns emit `payload.proposal` only when
+  `PatchProposal::extract_from_text` succeeds. Cursor live dispatch fails
+  closed on empty events (`CURSOR_ACP_EVENTS_EMPTY`); a text ping is not ACP.
+- `bullet tui` overlays admitted coding commands when mission tables are empty.
+  Rows stay queued/unknown. They are not VERIFIED and not a Claude replace.
+
+Hosted **required** on member `main` is the merge gate. Scheduled Jankurai is
+machine-local; hosted required is the merge gate. Fixing hosted Jankurai is G8,
+not this version.
+
 ### Added
 
 - Canonical v1alpha1 policy and wire contracts with hostile fixtures, generated
