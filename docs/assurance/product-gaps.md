@@ -34,31 +34,31 @@ The older dated observations below remain historical evidence; use the latest au
 for current repairs and re-read exact source before implementation.
 
 The [first measured implementation cycle](deep-audit-20260911.md#first-measured-implementation-cycle)
-adds reviewed authentication/alias/startup repairs, exact Submissions, safe provider
-refusal, failed-proposal preservation, console recovery and actual12-case Tuiwright.
-Portal `e178db3` now has an independently accepted complete local required pass:
-360 fast tests, production build and all five atomic lanes, with continuous source
-monitoring and final artifact read-back. Earlier collection, mutation-handshake
-and required failures remain preserved. A repaired real compiler regression
-observes changed-and-restored source and refuses despite compiler0 and equal
-ending bytes. Coverage88%, actual browser campaigns and hosted admission remain
-separate obligations. Kernel `5f859709` is restored with all refs preserved;
-fetched `088e53ad` retains the unsafe `3478b57d` proposal tree and is repair input.
-New default aliases enter the existing TUI; five startup tests pass, including six
-simultaneous blocked-credential clients. The distinct lease operation key passes
-two real SQLite collision/replay tests and the worker argv case. These reviewed
-components do not implement durable Head or the missing WorkPackage/Candidate
-producer. Required-r4/r5 failures and the earlier lost raw report remain retained;
-five backup tests now pass serially and with four threads, without changing the
-40-second limit. A full current Kernel run remains necessary.
-Hub `6f730bf9` corrects ADR0018's migration reference; its36 publication library
-tests remain earlier exact component evidence. Nine reviewed community template
-changes await integration and publication; public security/contribution contents
-remain stale despite HTTP200. Full Hub checks await foreign media-checker custody.
-BulletGit's checksum-bound sealed auditor helper passes21 component cases and its
-policy/report repair passes18; actual native audit and fresh observation binding
-remain incomplete. Historical merges, PENDING submissions and diagnostic clips
-establish no installed provider execution, aggregate fetch-back or complete gate.
+adds reviewed authentication/alias/startup repairs, exact Submissions, refusal
+before provider launch, failed-proposal preservation, console recovery and actual12-case Tuiwright.
+Portal `e178db3` has an independently accepted complete local required pass:
+360 fast tests, build and five atomic lanes with continuous source monitoring.
+Current `b291ccf2` also passes372 exact coverage tests, zero skips, all unchanged
+global and seven-file ratchets, continuous custody and final read-back. Its full
+required and browser campaigns remain separate. Failed collection, original
+required, changed/restored compilation and prelaunch identity observations survive.
+Kernel `68ffa9f7` passes all five local required lanes:1270 fast, five lint-receipt
+and34 contract cases. New `bb405556` integrates reviewed CLI authenticated-read
+and UI fixtures:16 focused plus11 Rust UI cases pass; actual enumeration measures
+1324 total/1278 standalone. Required-r7 failed after13 tests:11 passed, two mission request-count assertions
+failed and1265 remained unexecuted. Repair and current Tuiwright are pending. No prior pass transfers to this successor. Default aliases enter the
+existing TUI; durable Head, WorkPackage/Candidate production, native lifecycle and
+TUI owner-epoch/mutation acknowledgement remain open. Original r1 report loss and
+r4/r5 failures are retained; backup40s limits were not increased.
+Hub community templates are locally integrated; published security/contribution
+contents remain stale. Full Hub checks await foreign media-checker custody.
+BulletGit `9510fd99` integrates independently reviewed audit plumbing with77
+component cases. The actual checksum-pinned native audit executes and fails72/85
+(raw83), with three hard findings. Its failed observation is correctly refused by
+the artifact consumer. Rust evidence-helper migration, actual hosted audit and
+auditor classification repair are pending; no threshold was lowered. Archives
+r7–r10 preserve exact closed sources, successes and failures. None of this clears
+Operating HOLD or establishes installed providers, aggregate delivery or a profile.
 
 The [9 September deep audit](deep-audit-20260909.md) records the current production
 bridge, all CI execution gaps, actual account/runtime discovery, media defects and
