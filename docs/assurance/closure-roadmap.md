@@ -96,9 +96,10 @@ Objective: make every later receipt refer to one immutable language and family.
 
 - Publish signed immutable wire/member tags and the reviewed Jeryu capability tag.
   At clean prospective Hub HEAD, generate schema-3 family/external locks from authenticated
-  non-Hub subjects; commit the lock, sign Hub last and verify its tag contains that lock.
+  non-Hub subjects; commit the lock, sign the Hub tag last and verify its tag contains that lock.
   Run `bullet-family lock generate --tag <prospective-version> --subjects <absolute-path>`
-  before the Hub tag exists: generation reads HEAD, so a pre-existing tag is circular.
+  before the Hub tag exists: generation reads Hub `HEAD`; requiring a
+  pre-existing Hub tag would make the order circular.
 - Publish one `bullet-wire-v1` artifact consumed by exact tag/digest from every
   repository. It owns recursively closed Authority, Transaction, Forge,
   Evolution, and Release records; eliminate duplicate Candidate/digest semantics
