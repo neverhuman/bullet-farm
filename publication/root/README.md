@@ -23,6 +23,8 @@ the reviewed member catalog; unavailable execution remains non-passing.
 Installed operation, authenticated provider tasks, independent verification and
 approved integration require their own evidence. Operating HOLD remains.
 
+Public installation is not available.
+
 ## Clone and build from source
 
 The current Linux source build provides an authenticated CLI/TUI and a local

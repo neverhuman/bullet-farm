@@ -6,6 +6,8 @@ Bullet Farm is building the transaction boundary for coding agents: fenced autho
 
 **Current alpha:** the boundaries are component-proved; public installation, live providers, and the connected transaction remain blocked.
 
+Public installation is not available.
+
 **Primary integration repository:** [github.com/neverhuman/bulletfarm](https://github.com/neverhuman/bulletfarm)
 
 The publication tool assembles the four supporting member trees and preserves their exact source identities in the aggregate. `neverhuman/bullet-farm` is the supporting Hub repository. A source clone does not establish installation or release acceptance.
