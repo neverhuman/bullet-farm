@@ -108,6 +108,7 @@ expect_devnode_failure() {
   set -e
   [[ "$code" -ne 0 && "$output" == *"$expected"* ]] \
     || { refuse WORKFLOW_DEVNODE_HOSTILE_FAILED "$hostile code=$code output=$output"; exit 1; }
+  log "workflow devnode case=$hostile expected=$expected passed"
 }
 
 # A hosted job that runs the lane.
@@ -135,3 +136,31 @@ refuse_hosted_devnode_lane "$workflow_test_root/workflows/ci.yml" \
   || { refuse WORKFLOW_DEVNODE_HOSTILE_FAILED "real ci.yml was refused"; exit 1; }
 refuse_hosted_devnode_lane "$workflow_test_root/workflows/scheduled.yml" \
   || { refuse WORKFLOW_DEVNODE_HOSTILE_FAILED "real scheduled.yml was refused"; exit 1; }
+log "workflow devnode case=real-ci passed"
+log "workflow devnode case=real-scheduled passed"
+# Missing/non-file inputs and a failed read are refusals, never absence of the lane.
+expect_devnode_failure missing-workflow \
+  "$workflow_test_root/workflows/absent.yml" WORKFLOW_ENTRY_NOT_REGULAR
+mkdir "$workflow_test_root/workflows/directory.yml"
+expect_devnode_failure directory-workflow \
+  "$workflow_test_root/workflows/directory.yml" WORKFLOW_ENTRY_NOT_REGULAR
+rmdir "$workflow_test_root/workflows/directory.yml"
+(
+  grep() {
+    [[ "$#" -eq 3 && "$1" == -Fq && "$2" == devnode ]] || return 99
+    printf '%s\n' "$read_error_stage" >>"$workflow_test_root/read-error-marker"
+    return 2
+  }
+  read_error_stage=control
+  if grep -Fq devnode "$workflow_test_root/workflows/ci.yml"; then
+    refuse WORKFLOW_DEVNODE_HOSTILE_FAILED "failed-read control unexpectedly succeeded"
+    exit 1
+  else
+    [[ "$?" -eq 2 ]] || exit 1
+  fi
+  read_error_stage=guard
+  expect_devnode_failure read-error "$workflow_test_root/workflows/ci.yml" \
+    WORKFLOW_SOURCE_READ_FAILED
+)
+[[ "$(<"$workflow_test_root/read-error-marker")" == $'control\nguard' ]] \
+  || { refuse WORKFLOW_DEVNODE_HOSTILE_FAILED "expected one control read and one guard read"; exit 1; }
