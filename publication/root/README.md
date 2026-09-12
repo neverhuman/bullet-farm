@@ -23,7 +23,7 @@ the reviewed member catalog; unavailable execution remains non-passing.
 Installed operation, authenticated provider tasks, independent verification and
 approved integration require their own evidence. Operating HOLD remains.
 
-Public installation is not available.
+Public installation is not available. The checked-in [family.lock](bullet-farm/family.lock) is still schema 2, which the installer refuses. See the [source setup runbook](bullet-farm/docs/runbooks/source-setup.md) for the admitted bootstrap requirements.
 
 ## Clone and build from source
 
