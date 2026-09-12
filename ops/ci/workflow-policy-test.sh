@@ -99,3 +99,68 @@ sed -i 's|^        run: bash scripts/ci-local.sh audit$|        if: ${{ always()
 expect_audit_neutral_failure conditional-lane SCHEDULED_AUDIT_LANE_EXECUTION_DRIFT
 sed -i '/^  audit:$/,$d' "$workflow_test_root/workflows/scheduled.yml"
 expect_audit_neutral_failure missing-job SCHEDULED_JOB_MISSING
+
+expect_devnode_failure() {
+  local hostile="$1" workflow="$2" expected="${3-HOSTED_DEVNODE_LANE_FORBIDDEN}" output code
+  set +e
+  output="$(refuse_hosted_devnode_lane "$workflow" 2>&1)"
+  code=$?
+  set -e
+  [[ "$code" -ne 0 && "$output" == *"$expected"* ]] \
+    || { refuse WORKFLOW_DEVNODE_HOSTILE_FAILED "$hostile code=$code output=$output"; exit 1; }
+  log "workflow devnode case=$hostile expected=$expected passed"
+}
+
+# A hosted job that runs the lane.
+printf '%s\n' 'jobs:' '  devnode:' '    steps:' '      - run: ops/ci/devnode.sh' \
+  >"$workflow_test_root/workflows/hostile-devnode.yml"
+expect_devnode_failure named-lane "$workflow_test_root/workflows/hostile-devnode.yml"
+# A comment is enough: the name must not appear in a hosted workflow at all,
+# because a commented lane is one uncomment away from a false claim.
+printf '%s\n' 'name: ci' '# TODO: re-enable the devnode lane here' \
+  >"$workflow_test_root/workflows/hostile-devnode.yml"
+expect_devnode_failure commented-lane "$workflow_test_root/workflows/hostile-devnode.yml"
+# A matrix entry that reaches the lane through ci-local.sh names it too.
+printf '%s\n' 'jobs:' '  lanes:' '    strategy:' '      matrix:' \
+  '        lane: [fast, lint, devnode]' \
+  >"$workflow_test_root/workflows/hostile-devnode.yml"
+expect_devnode_failure matrix-lane "$workflow_test_root/workflows/hostile-devnode.yml"
+rm -- "$workflow_test_root/workflows/hostile-devnode.yml"
+# The guard refuses a substituted entry rather than reading through it.
+ln -s ci.yml "$workflow_test_root/workflows/hostile-devnode.yml"
+expect_devnode_failure symlinked-workflow \
+  "$workflow_test_root/workflows/hostile-devnode.yml" WORKFLOW_ENTRY_NOT_REGULAR
+rm -- "$workflow_test_root/workflows/hostile-devnode.yml"
+# And admits the two real hosted workflows, which name no such lane.
+refuse_hosted_devnode_lane "$workflow_test_root/workflows/ci.yml" \
+  || { refuse WORKFLOW_DEVNODE_HOSTILE_FAILED "real ci.yml was refused"; exit 1; }
+refuse_hosted_devnode_lane "$workflow_test_root/workflows/scheduled.yml" \
+  || { refuse WORKFLOW_DEVNODE_HOSTILE_FAILED "real scheduled.yml was refused"; exit 1; }
+log "workflow devnode case=real-ci passed"
+log "workflow devnode case=real-scheduled passed"
+# Missing/non-file inputs and a failed read are refusals, never absence of the lane.
+expect_devnode_failure missing-workflow \
+  "$workflow_test_root/workflows/absent.yml" WORKFLOW_ENTRY_NOT_REGULAR
+mkdir "$workflow_test_root/workflows/directory.yml"
+expect_devnode_failure directory-workflow \
+  "$workflow_test_root/workflows/directory.yml" WORKFLOW_ENTRY_NOT_REGULAR
+rmdir "$workflow_test_root/workflows/directory.yml"
+(
+  grep() {
+    [[ "$#" -eq 3 && "$1" == -Fq && "$2" == devnode ]] || return 99
+    printf '%s\n' "$read_error_stage" >>"$workflow_test_root/read-error-marker"
+    return 2
+  }
+  read_error_stage=control
+  if grep -Fq devnode "$workflow_test_root/workflows/ci.yml"; then
+    refuse WORKFLOW_DEVNODE_HOSTILE_FAILED "failed-read control unexpectedly succeeded"
+    exit 1
+  else
+    [[ "$?" -eq 2 ]] || exit 1
+  fi
+  read_error_stage=guard
+  expect_devnode_failure read-error "$workflow_test_root/workflows/ci.yml" \
+    WORKFLOW_SOURCE_READ_FAILED
+)
+[[ "$(<"$workflow_test_root/read-error-marker")" == $'control\nguard' ]] \
+  || { refuse WORKFLOW_DEVNODE_HOSTILE_FAILED "expected one control read and one guard read"; exit 1; }

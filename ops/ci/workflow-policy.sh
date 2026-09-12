@@ -45,6 +45,27 @@ validate_workflow_source ops/ci/platform-refusal.sh \
   PLATFORM_LANE_SOURCE_DRIFT || exit 1
 workflows=(.github/workflows/ci.yml .github/workflows/scheduled.yml)
 
+# A development-host lane cannot become hosted proof through a job, matrix or comment.
+refuse_hosted_devnode_lane() {
+  local workflow="$1" status
+  [[ -f "$workflow" && ! -L "$workflow" ]] \
+    || { refuse WORKFLOW_ENTRY_NOT_REGULAR "$workflow"; return 1; }
+  if grep -Fq devnode "$workflow"; then
+    refuse HOSTED_DEVNODE_LANE_FORBIDDEN \
+      "$workflow names the development-host-only devnode lane"
+    return 1
+  else
+    status=$?
+  fi
+  [[ "$status" -eq 1 ]] \
+    || { refuse WORKFLOW_SOURCE_READ_FAILED "$workflow grep exit=$status"; return 1; }
+  return 0
+}
+
+for workflow in "${workflows[@]}"; do
+  refuse_hosted_devnode_lane "$workflow" || exit 1
+done
+
 # The hosted audit job may be neutral only through this exact typed refusal
 # step, and its lane step must be the unconditional atomic lane; a step that
 # exits green or untyped without the pinned auditor is drift.
