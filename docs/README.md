@@ -240,6 +240,7 @@ true.
 - [assurance/invariant-crosswalk.generated.md](assurance/invariant-crosswalk.generated.md) — Invariant crosswalk
 - [assurance/invariant-registry.md](assurance/invariant-registry.md) — Invariant registry contract
 - [assurance/launch-plan.md](assurance/launch-plan.md) — Historical launch-plan checkpoint
+- [assurance/mvp-tui-delivery-plan.md](assurance/mvp-tui-delivery-plan.md) — Lean MVP and no-argument TUI delivery plan
 - [assurance/nightshift-fusion-plan.md](assurance/nightshift-fusion-plan.md) — Nightshift fusion plan
 - [assurance/orphan-inventory.generated.md](assurance/orphan-inventory.generated.md) — Typed assurance inventory (Wave 0)
 - [assurance/path-to-100.md](assurance/path-to-100.md) — Path to 100 — closing every gap, fairly
