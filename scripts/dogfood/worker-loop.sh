@@ -30,11 +30,13 @@ binary recorded in the session file.
 Each iteration logs one line to stdout and to <data-dir>/logs/worker-loop-*.log:
   <utc> iter=<n> exit=<code> result=<token> elapsed_ms=<n>
 
-NO_COMMAND is idle: the sleep doubles from --interval up to 8x. Any other
-result resets the backoff. --max-idle N exits 0 after N consecutive idle
-iterations (0, the default, loops until signalled). SIGTERM/SIGINT stop the
-loop after the running child finishes on its own; the child is started in its
-own session so a terminal signal cannot reach it.
+NO_COMMAND is idle: the sleep doubles from --interval up to 8x.
+COMMAND_CODING_HARNESS_UNBOUND is the same idle-backoff (the worker claimed
+and typed a harness refuse). Any other nonzero exit still stops the loop.
+--max-idle N exits 0 after N consecutive idle iterations (0, the default,
+loops until signalled). SIGTERM/SIGINT stop the loop after the running child
+finishes on its own; the child is started in its own session so a terminal
+signal cannot reach it.
 
 --env-file loads the BULLET_HARNESS_* bindings prepare-harness.sh wrote into the
 worker's environment; run_coding needs them, run_demo does not.
@@ -261,7 +263,17 @@ while [[ "$stop_requested" -eq 0 ]]; do
     "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$iteration" "$child_status" "$result" \
     "$((finished_ms - started_ms))")"
 
-  if [[ "$child_status" -ne 0 ]]; then
+  unbound=0
+  if grep -Fq COMMAND_CODING_HARNESS_UNBOUND "$out_file" 2>/dev/null \
+    || grep -Fq COMMAND_CODING_HARNESS_UNBOUND "$err_file" 2>/dev/null \
+    || [[ "$result" == *COMMAND_CODING_HARNESS_UNBOUND* ]]; then
+    unbound=1
+  fi
+
+  if [[ "$unbound" -eq 1 ]]; then
+    emit "$(printf '%s idle-backoff reason=COMMAND_CODING_HARNESS_UNBOUND iter=%d' \
+      "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$iteration")"
+  elif [[ "$child_status" -ne 0 ]]; then
     emit "$(printf '%s refusal iter=%d stderr=%s' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$iteration" "$err_file")"
     if [[ -s "$err_file" ]]; then
       while IFS= read -r refusal_line; do emit "  $refusal_line"; done <"$err_file"
@@ -270,7 +282,7 @@ while [[ "$stop_requested" -eq 0 ]]; do
     break
   fi
 
-  if [[ "$result" == NO_COMMAND ]]; then
+  if [[ "$result" == NO_COMMAND || "$unbound" -eq 1 ]]; then
     idle_streak=$((idle_streak + 1))
     if [[ "$max_idle" -gt 0 && "$idle_streak" -ge "$max_idle" ]]; then
       emit "$(printf '%s stop reason=max-idle idle=%d' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$idle_streak")"

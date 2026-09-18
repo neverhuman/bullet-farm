@@ -16,5 +16,10 @@ They are not the stage-one VHS component tapes. Those stay under
 Geometry is 1920×1080. The TUI native grid is 225×54 (about 1913×1078) expanded
 by `GIF_LOGICAL_SCREEN_EXPANSION`. Account in each manifest is `REDACTED`.
 
+This pair is Tape A. Tape B — no-args `bullet` plus one `coding submit` /
+`coding board` sequence after an enrolled Claude/Codex/Cursor turn or a typed
+provider refusal — is not in this directory yet. Do not caption Tape A as that
+turn. It is still not VERIFIED and not an installer.
+
 Validate with `scripts/readme-real-check.sh` against this directory. A passing
 check is a local observation, not a gate clearance.

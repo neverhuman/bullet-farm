@@ -145,10 +145,11 @@ Each iteration runs the one-shot worker in its own session and logs
 `<utc> iter=<n> exit=<code> result=<token> elapsed_ms=<n>` to stdout and to
 `<data-dir>/logs/worker-loop-*.log`. `NO_COMMAND` is idle and doubles the sleep
 from `--interval` up to eight times it; `--max-idle N` exits 0 after N
-consecutive idles. SIGTERM/SIGINT stop the loop only after the running child
-finishes on its own — a claim in flight is never killed or restarted. A nonzero
-worker exit is a typed refusal, not a transient: the loop prints the worker's
-stderr verbatim and stops with exit 1.
+consecutive idles. `COMMAND_CODING_HARNESS_UNBOUND` is the same idle-backoff
+(one log line, continue). SIGTERM/SIGINT stop the loop only after the running
+child finishes on its own — a claim in flight is never killed or restarted.
+Any other nonzero worker exit is a typed refusal, not a transient: the loop
+prints the worker's stderr verbatim and stops with exit 1.
 
 `--env-file` is required for `run_coding` and unnecessary for `run_demo`.
 
