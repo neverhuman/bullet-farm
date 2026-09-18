@@ -231,6 +231,7 @@ true.
 - [assurance/competitor-snapshot.md](assurance/competitor-snapshot.md) — Competitor comparison snapshot
 - [assurance/corpus-coverage.generated.md](assurance/corpus-coverage.generated.md) — Corpus coverage (generated)
 - [assurance/deep-audit-20260909.md](assurance/deep-audit-20260909.md) — Bullet Farm: production and delivery audit, 9 September 2026
+- [assurance/deep-audit-20260911.md](assurance/deep-audit-20260911.md) — Bullet Farm: full repair audit, 11 September 2026
 - [assurance/dogfood-execution-plan.md](assurance/dogfood-execution-plan.md) — Dogfood execution plan (v0 read-only, then v1 writing)
 - [assurance/execution-plan.md](assurance/execution-plan.md) — Bullet Farm finish execution plan
 - [assurance/full-product-dogfood-plan.md](assurance/full-product-dogfood-plan.md) — Full-product dogfood bridge

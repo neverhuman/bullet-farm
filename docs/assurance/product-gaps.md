@@ -18,16 +18,88 @@ requests; historical request identities and destinations remain intact. Supporti
 source PRs and audit scores do not establish complete aggregate CI. Separately
 accepted Jeryu self-hosting and forge-certification obligations remain in scope.
 
-As of Hub `58a742ce` / Kernel `088e53ad` (2026-09-11 ASAP operator loop on
-`main`; closeout merge was Hub `4609eb9` / Kernel `53f6d96`): v2 coding
-binding is conditional; `just console` can start a command-worker loop; a
-loopback claim typed `COMMAND_CODING_HARNESS_UNBOUND` (verification key);
-the public `operator-tui.gif` is the dark HOLD + PENDING-rows tape from Hub
-#14, not the historical blank light GIF and not empty-fleet-only; scheduled
-cells remain named and may be red (hosted required is the merge gate);
-Operating HOLD and `live_admission_enabled=false` remain; Cursor live ACP is
-still unproved (`CURSOR_ACP_EVENTS_EMPTY`, Fork B). G1–G18 stay DESIGNED.
-Historical blank-GIF diagnosis is not deleted.
+The [11 September full audit](deep-audit-20260911.md) is the latest dated repair
+input, with [159-file baseline coverage](deep-audit-20260911.inventory.json),
+107 member docs and six exact outer mirrors. At its recorded baseline it confirmed
+the blank public TUI GIF, reviewed the dark diagnostic proposal and recorded CI
+failures, unexecuted cells and the missing Head/admission/native/verifier chain.
+The [updated work order](xbabe2-development-closeout.md) gives bounded implementation
+packets, all fifteen surfaces, daily CLI/channels, complete failure campaigns,
+installed/provider/media milestones and all active research/profile/WP obligations.
+Historical Hub f431/Kernel899 required passes remain exact component evidence;
+Portal d00's admitted required failed after fast/build. Concurrent proposals and later
+documentation cannot inherit those passes. All G/profile/HOLD statuses stay unchanged.
+
+The older dated observations below remain historical evidence; use the latest audit
+for current repairs and re-read exact source before implementation.
+
+The [first measured implementation cycle](deep-audit-20260911.md#first-measured-implementation-cycle)
+adds reviewed authentication/alias/startup repairs, exact Submissions, refusal
+before provider launch, failed-proposal preservation and console recovery.
+Late temporary reports/reviews are unavailable. Durable r13 rehashes, but excludes
+CLI19, current Kernel run/diagnostics, rendered24, Git100, c575 and planning-refresh
+originals. Historical observations require recovered originals or fresh execution
+before current acceptance. Source commits survive; the availability correction has
+durable review e1ed240a. The retained Claude temporary-directory probe is separate
+from provider execution and did not require a directory ownership repair.
+Kernel `16e1152`/tree513278e1 integrates diagnostic2 reviewed6892ab99 over22015ba1.
+The1326/1280 inventory remains; historical required failed24 pass/one startup/1255 unexecuted. R1 built/listed
+successfully, then falsely refused an access-time change while copying evidence.
+R2 failed22/26 on the custody directory's0775 ancestry. After the recorded same-inode
+0700 correction, r3 passed26/26 with zero skips, result8bc7eaf5. Independent84582dc2
+accepts this local diagnostic subset; it does not establish the original failure's
+cause or close full required. Preserved full required-r1 at16e1152 exited100:680/1280
+completed,678 passed/two failed/600 unexecuted; no later lanes ran. The original startup
+case passed2.544s. Listener path replacement hit an overlong Unix socket path; restart
+fault cleanup reported a surviving descendant. Accepted harness diagnosticffae9758
+supports short TMPDIR and active adopted-zombie reaping; its deferred sample follows
+test end and cannot prove state-Z throughout the two-second wait. No product repair is inferred.
+Fresh required-r2 on clean16e1152 exits0, result82f207df:1280 fast,5 lint-receipt and34
+contract cases pass with zero failed/skipped cases; all mapped lanes finish and lock releases.
+Before/after source/index/tools match. Independent26e07c77 accepts local required only;
+continuous source monitoring, current Tuiwright and installed/hosted credit remain separate.
+Durable Head, owner/epoch recovery, real task/Candidate production, shared budgets,
+useful gates, independent verification and contained native lifecycle remain open.
+Portal b291 required/coverage and b64 rendered24 remain historical observations,
+subject to the missing late originals above. Current b64 required c575 refused before
+tests on directory-identity drift. Current required/coverage, occupied-listener
+negative and native/hosted qualification remain pending. Fresh ABI14/loader review27d64574
+and fixed required-launch preparation9b977a3f are accepted within those scopes only;
+REQUIRED2 final admission7b7ff5ba refused .git timestamp drift at23:09:17.609583282; all8261 files matched.
+No selector/intent/tests; cause unassigned. Exact owner cancellation eb2bc74d retained83 entries,
+verified161f12e0: exit137, no OOM, container removed, no cleanup errors. No proof credit.
+BulletGit `bd054116`/treec0ab now passes canonical audit-components and custody routes:
+100 selected=100 completed,100 pass/zero skips,26 shell cases plus bootstrap checks;
+resultf433ba76, native binary0e190025 and JUnitf6e571ae are retained durably. Source,
+index and tools match before/after; independent126e788b accepts the local runtime evidence.
+The uncalled Python observer2 is retired at15e484d5/tree60cf2233 after review0fe4c724;
+the remaining242 tracked files are unchanged. Full required-r1 at15e exits1:fast62 pass,
+lint refuses non-executable bootstrap helpers; later lanes did not run. The mode-only
+repair preserves bytes, acceptedfb6f0b60/integratedd774b5f. Required-r2 exposed stale171 contract pin;
+fresh enumeration62/271/333 includes the100 real auditor cases, review91868520, integratedad62fe3.
+Required-r3 onad62 exits1, resulta80264ce:62 fast pass, exact333 inventory passes, then formatting
+refuses seven files; contract/security/docs unexecuted. Originals retained; formatting repair pending.
+Original r1 failed on Just1.21 parsing the real score recipe, before nextest/custody.
+The reviewed doctor0dbb and private JUnit-store repair are integrated; actual old1.21
+refusal/new1.51 acceptance and lint-x checks pass. Current full required/native audit
+remain pending. Last9510 audit stays72/85(raw83), three hard/six soft; no floor changed.
+Hub9463675 retains reviewed entry/caption/strict-byte corrections. New e31f963/tree0ea8db22
+integrates primary-status and scratch fixture4, independent3660d9d4:12 actual wrapper cases,
+doctor/custody/scratch controls pass; original9 status failures and host-capacity defect retained.
+Doctor/tool and VHS image prerequisites pass; full required and complete failure-artifact custody pending.
+Checker1f1a was released at21:11; independent aefb82d2 review does not accept full
+media qualification. Peak/stripe/one-good-frame acceptance, generated command/Attempt/
+receipt labels, unbound provider claims and GIF-derived/optional masters remain unresolved.
+Only the strict50,000,000-byte boundary is fixed, with baseline-only review5680b27e.
+The larger checker0148 remains unaccepted in preserved stash22c97f9269c44d096f00c5317dcc9bc0173ba4ec
+(receipt50a4a295); the working checker is reviewed1b3f7261. Full Hub/recording proof remain pending.
+The dated20:11 public-state observations remain: aggregate3b7b474b has zero workflows
+and root LICENSE/SECURITY/CONTRIBUTING404; all five private-reporting settings disabled.
+Hub58a742ce/Kernel088e53ad push passes bind different remote subjects. Diagnostic GIFs
+have separate sources/times, provider none/null Candidate, four Portal frames and a
+padded TUI raster. The earlier narrow Claude DOGFOOD_RUN remains historical component
+evidence, separate from installed three-provider and synchronized campaign acceptance.
+No result here clears Operating HOLD, installed admission, aggregate delivery or a profile.
 
 The [9 September deep audit](deep-audit-20260909.md) records the current production
 bridge, all CI execution gaps, actual account/runtime discovery, media defects and
@@ -51,6 +123,16 @@ Reviewed local CI adapter/transfer/generator packets (`5b11bfb3`, `599b2ae8`,
 component evidence. Portal passes 183 unit tests; final complete and hosted checks
 remain required. The typed inventory stays unchanged and blocked.
 
+The [10 September closeout update](xbabe2-development-closeout.md) records local
+Portal checkpoint `2aa9f90a` and its independently reviewed conversation-recovery,
+authenticated-owner and proof-monitor component work. Its 360 unit, 24 Chromium
+and five portable bundle results remain separate observations pending a complete
+admitted current-source proof and hosted execution. The selected public format is
+paired synchronized GIF excerpts plus uninterrupted full recordings and transcripts;
+no existing fixture capture or HOLD-only navigation clip satisfies the real
+Head/provider/integration demonstration. All product and profile statuses remain
+unchanged.
+
 Exact historical accepted subjects and failed attempts remain in the
 [checkpoint](production-prerequisite-checkpoints.md),
 [health observations](health-observations-20260908.md) and
@@ -70,7 +152,7 @@ Production admission, supervised upgrades, account-aware dispatch, termination
 and durable finalization, browser response-loss recovery, complete hosted CI and
 all profile campaigns remain open. All G1–G18 remain `DESIGNED`; all 18 product
 plus two diagnostic profiles remain `BLOCKED`. The typed inventory is unchanged:
-this documentation packet claims no newly admitted runtime evidence.
+this documentation packet admits no installed or provider execution.
 
 This is the best-known current gap inventory, not a completeness proof. Every
 blocked capability listed below has an owner document, a fail-closed checker,

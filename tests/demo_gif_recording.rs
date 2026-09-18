@@ -1,5 +1,8 @@
 #![cfg(target_os = "linux")]
 
+#[path = "support/demo_gif_readiness.rs"]
+mod readiness;
+
 use std::{
     fs,
     os::unix::fs::{PermissionsExt, symlink},
@@ -100,11 +103,14 @@ fn child_exit_and_signal_are_preserved_without_completion_credit() {
 #[test]
 fn timeout_escalates_ignored_signals_with_an_independent_bound() {
     let started = Instant::now();
-    // Alarm is a last resort even if the recorder is regressed.
-    let (_, output, receipt) = run(
-        "import signal,time;signal.alarm(5);signal.signal(signal.SIGTERM,signal.SIG_IGN);signal.signal(signal.SIGHUP,signal.SIG_IGN);print('ready',flush=True);time.sleep(10)",
-        &["--max-seconds", "0.2"],
+    // Child signal dispositions must be acknowledged before the parent's
+    // capture loop can time out; interpreter startup is not the escalation test.
+    let root = private_tempdir();
+    let output = readiness::capture(
+        root.path(),
+        &hub().join("scripts/lib/demo-gif-pty-record.py"),
     );
+    let receipt = report(root.path());
     assert!(started.elapsed() < Duration::from_secs(3));
     assert_eq!(output.status.code(), Some(124));
     assert_eq!(receipt["stop_reason"], "TIMEOUT");

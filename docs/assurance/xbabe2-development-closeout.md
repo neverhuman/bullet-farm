@@ -2,120 +2,72 @@
 
 Status: **Implementation detail; no production or release admission**  
 Owner: Bullet Farm maintainers  
-Last reviewed: 2026-09-11
+Last reviewed: 2026-09-12
 
-This is subordinate to the [full-product plan](full-product-dogfood-plan.md),
-[G1–G18 register](product-gaps.md) and existing typed profile inventory.
+This follows the [full-product plan](full-product-dogfood-plan.md), [G1–G18 register](product-gaps.md) and typed profile inventory.
 The [health checkpoint](health-checkpoint-20260909.md) records accepted subjects
 and retained failures. Those authorities and the existing DF/WP identifiers remain
 unchanged; this document supplies the detailed execution and verification order.
 
-This work order refines the existing DF packets for everyday development on xbabe2.
-It does not replace the gap register, change a profile definition, or treat a
-native CLI demonstration as the production transaction. Recorder, browser capture,
-renderer, verifier, fixtures and local commands are product source: they must be
-tracked in the supporting members and included in `neverhuman/bulletfarm`.
-
 ## Current evidence and immediate corrections
 
-As of Hub `58a742ce` / Kernel `088e53ad` (2026-09-11 ASAP on `main`; closeout
-merge was Hub `4609eb9` / Kernel `53f6d96`): Hub #16/#17 and Kernel #18 are
-on `main`. Public TUI is the dark HOLD + PENDING-rows tape. `just console`
-can start `worker-loop.sh`. A loopback claim typed
-`COMMAND_CODING_HARNESS_UNBOUND` (verification key); that is a typed refuse,
-not “three PENDING and no worker.” Cursor Fork B stays typed. Production
-gitd settlement and enrolled three-provider attempt→proposal stay unclosed.
-Scheduled remains named, not “all CI green.” HOLD is printed.
+The [gap register](product-gaps.md) and [first measured cycle](deep-audit-20260911.md#first-measured-implementation-cycle)
+retain exact current subjects, accepted checks, failed runs, proposals and artifact
+availability, including the 159-file baseline and 18-source/12-evidence capsule.
+Recover missing originals or rerun into durable storage; fragments cannot reconstruct
+acceptance. Preserve rejected bytes/stashes; unknown failure causes remain unknown.
+H1/H2 require current member/family/native-audit/hosted/aggregate proof; U1 also needs
+actual current Tuiwright/Playwright and installed behavior. M1 retains blank/stripe/
+one-frame/wrong-subject failures. R1 and every profile await semantic admission.
+The 165 findings / 28 cap occurrences remain triage; each disposition needs exact source,
+fingerprint, reproducer, review and result. Continuously monitor changed-and-restored
+source, overflow and tool/config/lookup drift through compilation/final read-back;
+ending hashes alone cannot prove custody. Gate admission precedes launch. Preserve
+zero-spawn versus post-spawn failure, uncertain cost, nonzero exit, timeout and missing
+completion separately: process spawn, CLI exit and billed turn are distinct observations.
 
-| Subject | Established evidence | Remaining qualification |
-| --- | --- | --- |
-| Hub `258c8467`, tree `2cfe419a` | Complete required lane: 819 distinct passing tests, all five mapped lanes, pinned models and independent review. GNU time 22:41.98; maximum child RSS 1,792,340 KiB; new private target about 4.17 GB logical. | Later changes need their own mapped proof; this is local component evidence. |
-| Kernel `02bf7c5`, tree `6fd94de4` | Complete standalone required pass: 1,075 standalone plus 34 contract identities. | Later native-provider source at5858e843 and current separate edits remain subject to independent review, inventory regeneration and complete proof. |
-| Hub publication `eb6c9cc` / `912dddf` | Source timeout budgets and GitHub destination integrated after independent review, 36 publication tests and 50 actual wrapper cases. | New exact-source aggregate, complete mapped proof and hosted activation remain required; Current974f5de2 adds actual BulletGit source-scan transfer/activation;51 other member profiles and five final refusals remain unavailable. |
-| Portal `29d02c34`, tree `e6f8dc71` | Complete standalone required:183 unit tests,14 mocked browser tests, five bundle tests, all five lanes; independent artifact readback9c0343ca;92.234732seconds. | Actual farmd, coverage, family, hosted and native-provider campaigns retain separate acceptance. |
-| Four-member family retry | BulletGit, Kernel standalone/family and Portal standalone checks completed. The run then correctly refused changed Kernel source after stage 5. | No complete family PASS. Stages 6–7 did not run; do not attach earlier successes to the changed source. Preserve both the earlier temporary-directory failure and this source-drift failure. |
-| Primary GitHub | Fresh 9 September read-back still identifies `f8ce28e6`, zero workflows/runs/rulesets/open PRs, unprotected main. | Full source publication, workflow execution, required checks, review protection and tested-main read-back. |
-| Auditor | The immutable Jankurai 1.7.0 artifact has verified GitHub provenance. Its selected dependency closure omits reviewed fixes. | An admitted source closure, detector regressions, reproducibility/clean-environment execution and actual full audits. Provenance alone admits no score. |
-| Media | Actual recorder, browser, RGB/master and GIF-timing component tests; retained synthetic browser frames and private historical captures. | Real application/backend/provider activity, actual Codex/Claude/Cursor/Antigravity implementation tasks, production TUI capture, 1080p geometry, accessibility/color acceptance and export verification. |
+## Packet order, faster delivery and retiring Markdown coordination
 
-The initial 165 findings and 28 cap occurrences remain triage inputs, not 193
-confirmed defects. Every disposition needs the source subject, finding fingerprint,
-reproducer, repair or auditor correction, independent review and acceptance receipt.
+One integrator, two disjoint workers and one independent reviewer use canonical
+checkouts and at most four exact files per packet. Each names the operator behavior,
+dependency, negative case and semantic consumer; measure usable transitions.
 
-Native gate-selection and capture behavior needs exact-source qualification: validate a nonempty,
-bounded selection against the authoritative gate catalog before preparing or
-launching any provider. Construct request/transcript validation before dispatch.
-Unknown or stale gates must cause zero provider launches. A newly added error enum
-must distinguish a failure before spawn from a failed capture after spawn. Preserve
-failure evidence and uncertain cost for the latter, including read failures,
-truncation, canaries, nonzero exit, timeout and missing terminal frames. A forked
-process, a CLI exit and a billed model turn are separate observations.
+| Ordered work / existing IDs | Concrete next delivery and completion condition |
+| --- | --- |
+| H1/H2, C1 first measured cycle | Recover or rerun missing late proof into durable private storage. Retain accepted Kernel26/Git100+custody and current Kernel required26e07c77 within scope; current Portal/Git/Hub lanes and native audit remain. Repair reviewed media semantics; checker writer release is complete. Reconcile remote088e53ad/58a742ce with local source. |
+| R1/R2 plus T1 second measured cycle | Implement the preserved fresh-generation consumer and supervised schema-27 upgrade; persist task revision/repository/base/scope/criteria/gates/dependencies and server-owned graph/WorkPackage/Variant/Candidate source together. A restart must recover the same admitted task without fabricated relations. |
+| T2/T3/U1 connected Head | Add durable account capacity/budgets, turn/start/native identities and assistant history consumer together. Current history rejects assistant rows and message receipts assume the original pending outbox; preserve historical receipts while admitting new Head progress. Deliver goal→clarification→accepted task in the real CLI, with response-loss/restart tests. |
+| T3/T4 native execution | One supervisor owns both protocol and native-terminal modes, fenced controller epochs, input delivery state, containment and observed process termination. Same-stack fixtures must exercise real child starts and every recovery boundary before live admission. Unknown termination retains custody/reservations. |
+| T5/T6 independent outcome | Produce complete Candidate sources, normalize observed edits, execute admitted useful project gates and reconstruct under independent verifier/effect identities. Settle artifacts/Attempt/leases/audit atomically before cleanup; test cleanup/expiry/requeue and ambiguous effects, not just a returned terminate error. |
+| C1/C2/H3/H4 delivery track | In parallel, finish audited source/tool prerequisites, score90/zero-cap/zero-hard release policy, current event/cell artifact validation, aggregate generation and five exact protection packets. Keep local85 audit ratchets distinct from the stricter release floor; no unavailable result passes. |
+| R/P/D1 first admitted task | Applicable exact-source checks → predecessor admission/checkpoint and supervised upgrade → real task/WorkPackage producer → durable Head → contained worker/Runner → Candidate and useful independent gates → signed installed service and qualified Claude/Codex/Cursor accounts → approved integration/read-back. Prove detach/restart on this same path before retiring manual coordination. Start when admission passes; twelve tasks and seven-day survival follow. |
+| D2/D3/M1 adoption and publication | Begin the twelve-task campaign immediately after first admission; prepare capture tooling earlier, record continuous originals during real use, then Antigravity/sixteen tasks, lifecycle/public preview and seven-day matched daily-use acceptance. Team/saga/universal certification stays later and explicit. |
 
-## Packet order and acceptance contracts
-
-Each row is a workstream implemented as separately reviewed packets of at most
-four claimed files. A row is not permission to claim its entire surface. Root owns
-integration; two workers implement disjoint packets; an independent reviewer
-challenges both the implementation and the evidence. Canonical checkouts only.
-
-| Order / governing packet | Concrete implementation | Required evidence before advancing |
-| --- | --- | --- |
-| H1 / DF-W0a | Finish the reviewed timeout, GitHub destination and documentation packets. Reconcile new Kernel changes; preserve all failed runs and uncommitted source. | Focused positive/negative tests, exact file hashes, independent review, clean committed subjects and regenerated inventories. No static success badge substitutes for a run. |
-| H2 / DF-W0a/b | Complete clean member checks and dependency-ordered family proof using private targets and a short, private temporary root. Obtain all writers' freeze acknowledgement first. | Exact four commit/tree pairs, raw selected/completed IDs, fresh reports, no failed or skipped selected tests, exact declared profile selections/exclusions, no unexpected zero-test execution, final source/config/tool read-back, released proof locks. A source change invalidates the combined run. |
-| H3 / DF-706 | Admit the canonical Jankurai family, including policy/exit/conformance consistency, inventory classification and safe/unsafe detector pairs. Replace the Python auditor launcher with the admitted Rust executable. | Immutable component tags and full source/dependency provenance; checksum and signature verification; clean-environment execution; tests retain unsafe-case detection. Keep old reports. |
-| H4 / DF-706 | Close actual security/correctness findings, contract-purpose drift, generated/manual misclassification, owner/test omissions, large authored files and duplicated verifiers. Unify each repository's full-scan policy. | Actual full audits at floor 90, zero caps and zero hard findings; all remaining medium dispositions explicitly reviewed. No lower CLI override, fake generated header or broad path exclusion. |
-| C1 / DF-W0a, DF-706 | Activate exact-source aggregate CI using the current 53-job/55-invocation catalog and existing lane scripts. Preserve timeouts, dependencies, matrices, triggers and artifacts. | Every implemented job executes its real lane and validates retained artifacts; unsupported profiles fail explicitly. Complete applicable PR and deliberately triggered scheduled campaigns pass on the exact candidate. |
-| C2 / DF-104, DF-502 | Synchronize accepted member refs, immutable tags and the primary aggregate. Use a new publication request for changed subjects or destination. | Fresh remote ancestry/base read-back, expected-old writes, complete history scan, exact source tags/review branch, PR, tested merge subject, approval, protected integration and resulting main/run/artifact read-back. |
-| R1 / DF-R4–R7, DF-DOG0 | Complete both-location preserved-generation admission and final locked validation; persist admission references and exact retry/restart handling. | Reviewed retained inputs, authenticated independent review and the actual operator checkpoint. Preserve the incident separately. An omitted optional argument is not admission. |
-| R2 / DF-204/205 | Implement supervised schema 22→23 upgrade and subsequent execution migrations through it. | Exclusive maintenance custody, prefix-aware verified backup, one transactional migration, reopen/read-back, external authority high-water, interrupted retry, collision handling, quarantine-preserving rollback. |
-| T1 / DF-101–103, DF-201/202, DF-602 | Define accounts, enrollments, quota buckets, reservations, launch grants, operational runs, proposals and operator commands in the authoritative wire source; generate Rust/JSON Schema/OpenAPI/TypeScript. | Closed schemas, canonical bytes, unknown/duplicate/stale/overflow refusals, generated drift checks and contract agreement across all consumers. |
-| T2 / DF-202/203 | Connect `POST /api/v1/commands` to one durable admission transaction: authority/revision/idempotency, capacity reservation, nonce consumption, run allocation and dispatch outbox. | Concurrent submissions, duplicate keys, lost response, process death at every write boundary and restart return one persisted command/run without duplicate dispatch or capacity. |
-| T3 / DF-302/303 | Connect production Runner to exact account/model/effort/runtime/snapshot/checkpoint/policy/gates/reservation/deadline; persist supervision and results. | Hostile startup/configuration, resource exhaustion, ambiguous start, acknowledged interruption and process-tree teardown proofs. Capacity remains held until termination or authoritative reconciliation is evidenced. |
-| T4 / DF-204, DF-401 | Repair termination ordering and durable stop ownership. Success, cleanup and lease release must follow verified termination; unresolved execution must not expire into redispatch. | Failed/false/missing acknowledgement, capture failure, supervisor death, heartbeat expiry and restart cannot report success or authorize a successor while execution may survive. Test both immediate cleanup and delayed TTL reclaim. |
-| T5 / DF-401/503 | Complete preimage-bound proposals and atomic Candidate finalization: preserved Candidate, Attempt transition, lease settlement, audit event and verifier outbox. | Invalid proposal validation occurs before consuming a one-use mutation permit where no effect has occurred; stale bases, limits, interruption and response-loss proofs preserve original identities. Rebase/repair creates a new Candidate and invalidates affected review. |
-| T6 / DF-501/502 | Connect independent verifier and governed human integration. | Writer cannot issue its own accepted review; exact Candidate/ProofBundle/check/merge bindings; missing, stale, skipped or failed evidence refuses; post-integration reconstruction matches source and target. |
-| U1 / DF-601–605 | Add task graphs, dependencies, acceptance criteria, exact path ownership, context capsules, handoffs, review/cancel/freeze/resume/account commands and an atomic Shift Brief. | Durable command IDs survive response loss, reload, reconnect and server restart; malformed/stale/gapped SSE triggers reconciliation; organization isolation, session/CSRF/RBAC and accessibility tests pass. |
-| D1 / DF-701 | Run a fake provider through the same real API/ledger/Runner/containment/BulletGit/supervisor/artifacts/verifier path before credentialed coding. | No alternate simulator-only ingress or fixture self-signing can promote this to production acceptance; retained failure matrix and independent reconstruction pass. |
-| P1 / DF-303, W8 | Independently qualify Codex, Claude and Cursor subscription/runtime/account closures on xbabe2. | Each provider completes the real transaction with exact model provenance, quota evidence, safe startup, interruption, isolation and failure/restart receipts. A successful provider cannot qualify another. |
-| M1 / DF-604/706 | Build and verify real 1080p TUI and web recordings locally using tracked Rust/TypeScript tooling. | Native frames, actual production task IDs and timestamps, exact tool/source subjects, pixel/timing checks, original lossless masters and an independently checked export. |
-| D2 / W8 internal campaign | Run twelve bounded accepted implementations, four per provider, plus mixed-provider collaboration using Bullet on Bullet. | Exact task/attempt/model/account/runtime/source/proposal/review/test/merge/receipt chain; failed attempts retained; operators can interrupt, recover and explain every outcome. |
-| D3 / W8 observation | Observe the integrated tasks for seven days against comparable manually coordinated work. | Measured human effort, time to integration, recovery/review effort, duplicates, repairs, quota and escaped defects; actual surviving changes, no synthetic productivity claim. |
-
-T3 is provider-capable wiring only: it admits no live execution before T4
-durable stop/reclaim guarantees, D1 same-stack fake-provider proof and the
-required operational/account checkpoints. M1 tooling is implemented and tested
-before D2; actual recordings span D2 and are retained through D3 observation.
-
-T4 cannot be closed by moving an ignored `terminate()` error to a later return.
-Current cleanup and heartbeat expiry can still release/requeue work. Paused states
-also expire; retaining an absorbing quarantined Attempt with its lease can obstruct
-global expiry, while releasing that lease removes writer custody. Define and test
-the durable stop/redispatch ownership contract first. Reuse the existing retained
-worker state and exact settlement machinery where suitable; introduce any new
-execution tables only through the supervised upgrade mechanism.
+Integrate repeated private preparation into the existing Bash CI wrapper and Rust
+monitor: automatic inventory/tool binding, fresh admission, retained reports and
+continuous custody. Reuse qualified immutable mechanisms, never stale results.
+Keep private build caches, serialize heavy work on xbabe2, review disjoint work
+while it runs, and measure build/test/review/queue/operator-wait time separately.
+Cursor rotated the4,502,552-byte chat at20:18 after the refused c575 container
+settled. Root verified archive6eea5e6b and its original writer-prefix hash. Future
+rotations require actual writer/reader handoff; retain byte-offset segment bindings.
+Import history as provenance only. New claims, leases, budgets, handoffs, retries,
+incidents and approval prompts must become Bullet-owned records visible in CLI/Portal;
+Markdown becomes an export. Prove second-agent/lost-client/daemon-restart recovery
+without manual log edits; the frozen coordinator is never silently recovered.
 
 ## The real production connection, in implementation order
 
-The latest instruction prioritizes fixing real production execution. A separately
+The audit and plan prioritize a connected real production implementation. A separately
 launched signed-in CLI, read-only proposal receipt or harness-exception GIF does
 not fulfill it. Keep simulator controls for deterministic fault tests, explicitly
 selected and labelled; production selection must never fall back to them.
 
-The source trace is pinned to Kernel `5858e843` / tree `af4b9138` and BulletGit
-`6cf10e70` / tree `bb20b4af`, with Hub admission at `974f5de2`. External native
-adapter changes after these subjects require separate review and new proof.
-
-| Current boundary | Exact source and behavior | Work still required |
-| --- | --- | --- |
-| HTTP admission | Kernel `crates/adapters/src/sqlite/commands.rs::submit_command` atomically records command, dispatch outbox and event; exact retries validate all three. | Typed coding request, authority/revision, account capacity, run and launch-nonce binding in that same admission transaction. |
-| Worker | `apps/bullet-runner/src/bin/bullet-command-worker/{child.rs,receipt/provider.rs}` selects `transaction_offline` and requires `sim`, credential-free, transaction-ineligible receipt fields. | Native production dispatch and authoritative settlement with durable recovery. Preserve the component receipt's original meaning. |
-| Runner | `apps/bullet-runner/src/main.rs` accepts only `sim`; `crates/runner/src/attempt.rs::start_request` supplies no model/budget. | Native session factory and one admitted account/model/effort/runtime/reservation subject carried through the Attempt. |
-| Claude | Application `dogfood_run.rs` invokes an enrolled real stream-JSON runtime under containment; it produces a read-only proposal and separately refuses general live authority. | Reviewed exit/usage fixes, explicit model/effort, cancellable native session and valid production launch admission. Provider-reported cost is not independently verified subscription billing. |
-| Other providers | Native transport and protocol components exist. Codex dispatch retains a `0.0.0` runtime placeholder; Cursor and Antigravity text pings emit no normalized coding events. | Installed-schema qualification and real structured coding sessions for each account; text pings do not qualify Cursor ACP or Antigravity coding. |
-| Writer | Gitd `daemon_handlers.rs::apply_proposal` consumes its permit before repository semantic validation; Kernel accepts1024 operations, Git128 plus32MiB aggregate. | Pre-effect validation, aligned contract bounds, retained final validation and direct refusal/ambiguity controls. |
-| Completion | Runner `attempt/drive.rs` discards a termination error and cleans before lease release; this path does not atomically enqueue verification. | Durable stop ownership and Candidate/Attempt/lease/audit/verifier-outbox transaction before cleanup. |
-| Verifier | Product `apps/bullet-verifier/src/main.rs` always refuses signed-intent admission. | Implement admitted request consumption, independently owned execution/artifacts and accepted evidence; then governed human integration. |
-| Deployment | Schema inspection recognizes22-to23 but says the upgrade operation is absent. Coordinator fresh admission refuses incomplete incident input. | Supervised upgrade and complete two-location admission, with actual operator checkpoints. These are implementation tasks, not permanent excuses to use fixture authority. |
+The [dated audit](deep-audit-20260911.md#runtime-gaps-that-block-the-daily-product)
+replaces the older Kernel5858e843/BulletGit6cf10e70 mechanism snapshot. Preserve
+that history; re-read current consumers before each packet. Preserved Cursor
+Kernel task-admission proposals remain separately reviewed input and cannot inherit
+earlier proofs or supply fabricated task/WorkPackage/Candidate authority.
 
 The following are subdivisions of R/T/P/U/M above, not new completion gates.
 Path sets identify candidate edits; each owner must first re-read current source,
@@ -124,12 +76,12 @@ Independent review and mapped checks are required before integration.
 
 | Packet / owner lane | Proposed implementation and existing mechanism to reuse | Direct acceptance and dependency |
 | --- | --- | --- |
-| T3a / worker1 | Finish Claude `src/{dogfood.rs,parse.rs,parse/results.rs}` and `tests/dogfood_dispatch_pairs.rs`: validated usage prefix, failure-terminal usage, explicit successful exit and timeout handling, bounded cost conversion and opaque-capture UNKNOWN. | Actual harmless child exit0/1/signal/timeout, late malformed output after valid usage, overflow and capture failure; original Conformance event ordering unchanged. No new account call. This packet is currently under independent review. |
+| T3a / worker1 | Finish Claude `src/{dogfood.rs,parse.rs,parse/results.rs}` and `tests/dogfood_dispatch_pairs.rs`: validated usage prefix, failure-terminal usage, explicit successful exit and timeout handling, bounded cost conversion and opaque-capture UNKNOWN. | Actual harmless child exit zero/1/signal/timeout, late malformed output after valid usage, overflow and capture failure; original Conformance event ordering unchanged. No new account call. Reconcile the retained review and subsequent changes before assigning new work. |
 | T5a / worker2 | Gitd handler and workspace validation seam, plus direct daemon tests: perform non-publishing prevalidation (temporary indexes/Git objects may be written), validate malformed/bounds/attempt/checkpoint/scope/preimage subjects before a permit is consumed, then repeat necessary validation under writer custody. | Known no-effect refusal leaves permit available and daemon usable; valid retry succeeds. A failure after a possible mutation still becomes UNKNOWN and freezes. Never classify every error as safely aborted. Can proceed alongside T3a. |
-| T1a / worker1 | Reconcile Kernel proposal Rust and authored JSON limits with BulletGit's128-operation/32MiB envelope; authoritative agreement tests and per-write UTF-8 byte validation. |128/129 operations, exact/over aggregate bytes, multibyte content, duplicates, unsafe paths and stale preimages; accepted proposal cannot exceed the writer's envelope. Do not enlarge limits to silence the mismatch. Before first real Candidate. |
+| T1a / worker1 | Reconcile Kernel proposal Rust and authored JSON limits with BulletGit's128-operation/32 MiB envelope; authoritative agreement tests and per-write UTF-8 byte validation. |128/129 operations, exact/over aggregate bytes, multibyte content, duplicates, unsafe paths and stale preimages; accepted proposal cannot exceed the writer's envelope. Do not enlarge limits to silence the mismatch. Before first real Candidate. |
 | T3b / native adapter owner | Keep admission/containment composition in application or Runner; keep provider protocol/process ownership in harness. Reuse `HarnessAdapter`, normalized events, prepared command factory and externally held `DispatchSignal`. | No application↔harness dependency cycle; no simulator construction for a real provider; start/send/events/terminate belong to one invocation. A late or previous TurnCompleted cannot satisfy another turn. Depends on T3a; may be proved with harmless process fixtures before live authority. |
 | R1a / integration + worker | Extend complete two-location admission types/consumer and persist references into Genesis. Revalidate retained inventories, replay/dispositions, independent review and four source subjects under the final initialization lock. | Omitted input, moved incident bytes, changed review or source, partial preservation, collisions and every process-death boundary refuse or retry exactly without losing bytes. Prepare the final operator packet before requesting the checkpoint. Operating HOLD stays effective until it passes. |
-| R2a / storage owner | Build `bullet farm upgrade`22-to23 using existing verified prefix backup and schema inspection. Add explicit maintenance ownership, journal, transactional migration, close/reopen readback and quarantine-preserving rollback. | Competing daemon/upgrader refuses; injected failure and process death at backup/DDL/commit/reopen boundaries preserve recoverability. Retry uses the same intent, not a new database. External authority high-water cannot move backwards. Before new execution tables. |
+| R2a / storage owner | Complete the supported supervised upgrade path through schema27 and new append-only execution migrations, reusing verified prefix backup and schema inspection. Add explicit maintenance ownership, journal, transactional migration, close/reopen readback and quarantine-preserving rollback. | Competing daemon/upgrader refuses; injected failure and process death at backup/DDL/commit/reopen boundaries preserve recoverability. Retry uses the same intent, not a new database. External authority high-water cannot move backwards. Before new execution tables. |
 | T1b / contract owner | Define a closed coding-command and admitted execution subject in authoritative contracts. Generate Rust/JSON Schema/OpenAPI/TypeScript through existing generators. Bind organization, task/revision, account/credential generation, model/effort, runtime/passport, source/checkpoint/scope, policy/gates, reservation, nonce and deadline. | Unknown/duplicate/stale fields, overflow, malformed IDs, wrong tenant, missing model and mismatched generations refuse. Generator drift and cross-consumer agreement pass. No untyped payload becomes execution authority. |
 | T2a / storage owner | Through supervised migrations, connect account enrollment, quota buckets, invocation reservations, operational run and dispatch state. Extend the existing immediate command transaction; reuse exact request/retry/outbox/event logic. | Concurrent duplicates allocate one run/reservation/outbox and consume the authorized nonce once. Conflicting retry refuses. Failure at every write boundary leaves all-or-nothing state. Response loss/restart and an exact retry after authority later advances return the original identity without authorizing a second launch. Depends on R2a/T1b. |
 | T4a / supervision owner | Persist execution start intent, possible/confirmed start, cancellation, stop observation and reconciliation; retain the exact owner/runtime/process subject. Reuse worker retained stages and authenticated readback. | Parent death before/after spawn, capture failure, lost start/stop response, inherited descendants, timeout and heartbeat expiry cannot free capacity or redispatch while execution may survive. Never signal a recycled PID/process group. Unknown liability remains reserved. |
@@ -137,7 +89,12 @@ Independent review and mapped checks are required before integration.
 | T5b / storage + writer | Atomically finalize preserved Candidate, Attempt transition, lease settlement, audit event and verifier outbox; store exact proposal/base/head/tree and preservation identities. Perform workspace cleanup only after durable completion. | Kill/restart and lost response before/after each boundary retain one Candidate and enqueue one verification request. No further provider call to recover completed work. Rebase/repair creates a new Candidate and invalidates previous reviews. |
 | T6a / verifier owner | Wire the existing clean-room verifier to signed VerificationIntent admission, trusted key lifecycle/durable nonce use, separate service UID and artifact custody, exact Candidate and immutable gate/tool subjects. | Writer cannot mint accepted review/evidence or alter verifier artifacts. Wrong/stale intent, replay, missing/skipped gate, changed tool/source or failed gate refuses. Actual verifier service runs and independent readback checks signed outputs. Prepare deployment inputs while coding; do not leave this layer permanently open. |
 | T6b / integration owner | Connect accepted evidence and human review to existing expected-old integration and effect readback. Keep Candidate publication distinct from target integration. | A stale review/changed Candidate/advanced target blocks integration. Lost publication response reconciles exact original intent. Read back tested merge subject and resulting target tree; no self-approval by the implementation worker. |
-| U1a / Portal/TUI owner | Add typed coding submission and persisted command/run projections using existing pending-command reconciliation. Show real account/model, active paths, dependencies, review, quota and stop/recovery status. | Actual farmd browser/TUI tests cover response loss, reload/reconnect/restart, malformed/stale/gapped events, organization separation and accessible focus/status. A green process exit cannot make an UNKNOWN run green. |
+| U1a.1 / CLI storage owner; first | **Proposed durable composer journal.** Reuse Kernel `apps/bullet/src/coding/journal.rs` and `auth/store.rs`; current envelopes alone do not persist drafts, settlement or an active-slot completion relationship. Commit draft revision, owner/destination, frozen command identity and exact serialized request before dispatch; atomically persist receipt plus draft completion before clearing the active pointer. Preserve existing journals and exact retries. Split storage, migration and tests into separately claimed packets of at most four files. | Kill/reload before and after every persistence boundary, disk/full-store failure, duplicate submit and two clients must recover one original intent. PENDING reserves the slot; archiving exact FAILED/UNKNOWN preserves historical recovery. No successful-looking receipt or reopened draft may mint a replacement identity. This is client persistence, not task execution admission. |
+| U1a.2 / CLI submission owner; after U1a.1 | **Proposed output-free authenticated API and bounded worker.** Reuse Kernel `apps/bullet/src/coding.rs`, `coding/task.rs`, `coding/http.rs` and journal preparation; preserve `RunCodingTaskPayload` validation, Origin/CSRF and expected-session acknowledgement. Separate result/progress values from terminal printing; the TUI must not call the printing `coding::run` dispatcher or perform blocking HTTP in its event loop. Add bounded request/results carrying the frozen command and owner generation. | Observe committed journal bytes before the actual POST to `/api/v1/commands`; malformed provider/task refuses before POST. Withhold HTTP while resizing/navigating/detaching; no unbounded queue or duplicate enqueue. Lost response retains the original ID and UNKNOWN outcome. Missing/mismatched session acknowledgement rejects the body, including absence/refusal results. |
+| U1a.3 / TUI interaction owner; after U1a.2 | **Proposed in-console task composer.** Extend Kernel `apps/bullet/src/tui.rs` with a dedicated composer module, renderer and focused interaction tests, keeping each packet at most four files. Collect title/objective, repository/base, scope/criteria, admitted gate IDs/dependencies, account/provider/model/effort, budget/deadline; show a review step before intentional submission. Opening the pane only edits a draft. Existing `coding/task.rs` validates the resulting contract; a shell-command hint is not a composer. | Test multiline Unicode/paste, Tab/BackTab, Escape/reopen and composition-safe submission. Editor text containing j/k/r/? must never navigate or refresh. Repeated submit and detach during dispatch preserve one identity and discoverable settlement. Render narrow/normal/wide layouts, ANSI/truecolor/NO_COLOR and error plus persistent shortcuts; do not count a screenshot as execution proof. |
+| U1a.4 / client recovery owner; before accepting the composer | **Proposed owner-bound recovery.** Extend Kernel `apps/bullet/src/tui/loader.rs`, journal recovery and the composer consumer with operator/session/origin/local-auth epoch checks on every asynchronous result. Current loader checks credential identity around reads; adding a mutation worker must not let its delayed results bypass those checks. Retain each owner's private drafts/history and reconcile the selected original row through authenticated reads before replay. | Replace credentials during request, deliver old-owner success/failure after new login, remove credentials, lose response, restart and switch drafts. Old results cannot clear or populate the new owner's view. Only authenticated owner-bound absence permits exact replay; storage failure leaves recoverable state. Preserve focus, scroll, selection and loaded bounded pages on refresh. |
+| U1a.5 / Head owner; with T2/T3 prerequisites | **Proposed real Head consumer.** Kernel `crates/application/src/conversations/records.rs` currently defines saved-message receipts and `conversation_head_turn` references; these are not an executing Head. Implement one active durable turn, immutable input/history boundary, account/model/effort and shared reservation; persist launch intent, native identity, output/prompts/blockers/usage and final reply. Queue later messages; accepted task creation must use the same server admission consumer. Migrations remain append-only after the supported prefix. | Lost start acknowledgement, daemon death, later messages, stale output, quota exhaustion and provider failure cannot create concurrent/replacement invocations or reset budgets. A saved message remains visibly distinct from a Head reply and admitted task. Actual admitted provider execution and task decomposition are required before advertising automatic tasking. |
+| U1a.6 / TUI/Portal projections owner; after authoritative producers | **Proposed truthful task/provider panes.** Reuse Kernel `apps/bullet/src/tui/model.rs`, `tui/submissions.rs` and the `coding/task.rs` accepted-task reader, then generated Portal consumers in a separate packet. Current Submissions contains command records; do not invent missions/Tasks/Attempts from their IDs. Show accepted task/runtime selection, blockers, observed native account/model/session, dependencies and review/evidence only from compatible authoritative subjects. | Test unrelated snapshot watermarks, missing producers, stale/duplicate records and requested-versus-effective model. Message saved, Head replied, Candidate preserved, verified and integrated remain distinct. Execute actual farmd TUI/browser suites with restart and response loss; a zero exit or synthetic provider label cannot qualify live execution. |
 | D1 / integration + reviewer | Exercise these production services using a deterministic provider driver solely to force failures and concurrency; do not use the simulator-only command child as a second route. | Same ingress, admission transaction, workload worker, containment, writer, independent verifier and integration boundary; full duplicate/start/stop/finalization matrix retained. No live-provider credit. Before credentialed mutation. |
 | P1a / account owner | Qualify Claude's admitted installed native schema, explicit model/effort, safe subscription home/configuration, structured proposal, notifications, cancellation and quota reporting. | One bounded real implementation through the production HTTP command, independently verified and human-integrated. Repeat exact submission and restart after response loss without a second invocation. No read-only explanation prompt. |
 | P1b / account owner | Qualify Codex App Server from its actual installed schema/version; thread/session/turn correlation, explicit model/effort/cwd, structured proposal, permissions and acknowledged interruption; multiple quota buckets. | Independent real coding transaction plus schema/model drift, out-of-order events, malformed proposal and cancellation controls. Claude success cannot qualify Codex. |
@@ -145,52 +102,120 @@ Independent review and mapped checks are required before integration.
 | P1d / account owner | Inspect and admit Antigravity's installed supported coding protocol and complete dependency/account closure; drive structured proposals and bounded cancellation through the same production path. | Independent actual implementation and failure/restart proof. No guessed ACP compatibility or empty event stream accepted as coding evidence. Required for the requested four-provider media. |
 | M1 / media owner | Migrate owned PTY/supervision/manifest/render checks to Rust and browser code to TypeScript. Capture the actual TUI and styled Vite/React Portal from the same production ledger/run identities. | Native1920×1080, bright accessible colors/sharp text, continuous timestamps, original lossless masters, independent decoded-pixel/timing inspection and each GIF strictly<50,000,000bytes. All code and fixtures ship in main; no staged screenshots or capture output replacing the product path. |
 
-The first live acceptance task should be small enough to review completely: one
-real Bullet Rust or TypeScript behavior change with an existing test that fails
-before the change and passes afterward. Select its exact source base, paths,
-expected behavior and deadline before launch. Record the authenticated command,
-run/Attempt, account generation, model/effort/runtime, actual events and exit,
-proposal/preimages, Candidate, gate outputs, independent review, human integration
-and final reconstructed tree. Keep account secrets private; derived public evidence
-identifies the account generation without exporting credentials.
+## Durable Head, conversation and admission acceptance
 
-First prove Claude end to end, then independently Codex and Cursor, then
-Antigravity. This is execution order, not permission to omit a provider. Continue
-the twelve-task campaign and mixed-provider change below; Antigravity adds its
-qualified implementation tasks before claiming the four-provider demonstration.
-The seven-day survival window starts after actual integrated changes exist.
+Keep `POST /api/v1/commands` as the sole domain-command mutation ingress; dedicated
+authentication/session lifecycle routes retain Origin, CSRF, owner and exact-session
+acknowledgement checks. Generate Rust, JSON
+Schema, OpenAPI and TypeScript from authoritative contracts; remove duplicate
+handwritten DTOs. Add execution tables through supported append-only upgrades,
+preserving schema-27 history, IDs and exact historical retries. Follow
+ADR0018's corrected successor rule: migration24 belongs to operator sessions. Obsolete new
+authority-bearing submissions refuse explicitly; historical reads remain valid.
+
+| Packet / existing workstream | Implementation and failure acceptance |
+| --- | --- |
+| Conversation / U1,T1,T2 | Preserve exact human message/cursor. The journal commits draft revision, envelope, exact serialized bytes and destination before POST; stores receipts and completion selector atomically; unchanged settled drafts never mint a new command. Test reload at each transaction, two-tab contention, detach after settlement, storage failure, archived exact FAILED/UNKNOWN recovery and reserved PENDING. No secrets in the journal. |
+| Historical recovery / U1 | Reconcile the selected saved row using authoritative reads and original request identity. Preserve old receipts separately from later reconciliation. A terminal failure cannot silently become a fresh attempt. Bound receipt recovery around its exact sequence; retain loaded history windows with no permanent 10,000-message ceiling. |
+| Owner binding / U1,T1 | Every projection and SSE reconnect captures operator/session/origin/auth epoch, sends the expected session and validates acknowledgement before body, absence or frames. Only authenticated owner-bound absence may permit exact replay. Auth changes abort requests/streams/cursors/callbacks and clear old displayed data while retaining that owner's durable history. Delayed errors cannot clear a newer login. Refuse backends lacking session binding. |
+| Navigation / U1 | Preserve thread, all loaded page windows, scroll, selection, focus and draft on ordinary refresh; pages remain at most 100. Cancel thread generations; reject duplicate subjects, regressing watermarks, broken parents and invalid cursors. SSE invalidates queries; gaps trigger explicit authoritative resynchronization. |
+| Head / T2,T3,U1 | One active durable turn per conversation; pin immutable input, visible-history boundary, runtime/account/model/effort and shared budget. Persist start intent, native identity, output/prompts/proposals/blockers/usage and final response. Queue later messages; stale output cannot overwrite newer state. Reconcile ambiguous start before any replacement. Head task creation calls the same validated admission consumer. |
+| Scheduler / T2,T4 | Persist accepted task/revision/base/repository/scope/criteria/gates/dependencies/account/budget/deadline. Allocate run/nonce/reservation server-side; revalidate dependencies at claim. Enforce two implementation workers, one invocation/account including Head/guidance, two repairs, one escalation, eight total invocations and 60 minutes with no reset. Retain quota and unknown liabilities through restart; expose every queue blocker and verifier backpressure. Fix current 16-call validation allowance. |
+| Native lifecycle / T3,T4 | Persist native session/turn/process identities, requested/effective model/effort, prompt/event/usage/steering/recovery subjects. Acknowledge send, steer, prompt response, interrupt, terminate and resume; unsupported operations refuse. Queued cancel prevents launch; active Stop stays STOPPING until observed. Unknown termination retains capacity/custody/artifacts. Detach never cancels. Account pause blocks launches; farm freeze also blocks mutations; Stop remains explicit. Unfreeze revives no stale grant. |
+| Candidate / T1,T5,T6 | Generate matching limits: 128 operations, 1 MiB per write, 32 MiB aggregate UTF-8 content, 16 selected gates, bounded metadata/preimages and worst-case escaped transport bytes. Fix current Kernel/BulletGit aggregate/gate/transport disagreements. After observed termination atomically preserve Candidate/artifacts, settle the outcome-specific Attempt, lease/reservation, audit and verifier outbox. Failed-run proposals remain recoverable artifacts and never promote the Attempt to success. Cleanup requires its preservation receipt. Independent workcells/keys/nonces/UIDs follow ADR0016–0018; prepare the two-approver carrier before signer activation. |
+
+Project-gate recipes are immutable admitted subjects, not provider-supplied shell
+strings. Bind executable/toolchain, fixed argv, environment/workdir, Candidate/base,
+dependencies/configuration closure, resource limits, selected tests and report parser.
+Repository build scripts remain untrusted executable input. Recipe changes invalidate
+affected evidence. Require selected/completed identities and actual assertions;
+PONG, zero tests, ignored required tests, stale reports or exit zero alone cannot pass.
+The actual worker→fresh Runner→one-use child-start regression needs valid task,
+Candidate and lease fixtures; an unrelated early refusal must fail that regression.
+
+An accepted goal authorizes implementation within its scope. Missing required
+intent is clarified; exact external effects still need approval. Head explanations
+reference real task/Attempt/Candidate/gate/review/integration records. Message
+saved, Head replied, Candidate preserved, independently verified and integrated
+are separate visible outcomes.
+
+## Make the CLI and all operational surfaces useful every day
+
+The operator's earlier report records an installed binary showing the old command menu. On September 12 the integrator rechecked the current user-installed `bullet` in a real PTY: no arguments opened the HOLD console without usage output, and Ctrl+C detached with exit zero. The pending palette/footer and split-loader repairs remain uninstalled; this entrypoint observation provides no provider-execution evidence. Current coding submission has validated v2 task payloads, a pre-POST envelope journal and expected-session HTTP acknowledgement; the durable composer relationships, mutation worker and executing Head above remain proposed. Re-read current source and requalify the installed subject after integration; earlier CI cannot accept pending bytes.
+
+U1a.1–U1a.6 are ordered subdivisions of existing U1/T1/T2/T3, not new gates or a second dashboard. Ship the explicit task composer after U1a.1–U1a.4 pass; automatic conversational decomposition additionally requires U1a.5 and server task/execution admission. Truthful U1a.6 views may be developed alongside producers but unavailable subjects stay unavailable. Preserve the four delivery gates below and all eighteen profiles.
+
+Rust owns backend, CLI/TUI, supervision and evidence; retain Vite/TypeScript/React
+for the Portal and TypeScript browser automation. SSH plus a forwarded same-origin
+Portal is the initial access path. A terminal/browser connection never owns daemon
+lifetime. Avoid a framework migration or a second command/permission engine.
+
+| Door / foundation | Required behavior and acceptance |
+| --- | --- |
+| `bullet`, `bulletfarm` | Equivalent default interactive Head conversation: goal, working plan, current progress, blockers and exact approvals. Preserve existing subcommands/exit contracts. Piped input and `--json` have documented stable noninteractive semantics. |
+| `bullet chat`, `bullet tui` | Explicit create/continue/list/recover conversations; full mission→task→Attempt→native session browsing, attach/detach and durable history. Opening any row/palette/dialog never mutates. |
+| `bullet setup` | Guided GitHub aggregate/source onboarding with Jeryu compatibility, admitted bootstrap tools and working `just setup`, private authentication, provider selection/readiness, access verification and optional linking. Missing prerequisites give exact remediation; no credential retrieval from logs. |
+| Power-user adoption | Publish a tested Cursor/Claude/Codex workflow and capability matrix, shell completions, stable configuration/JSON contracts, recovery examples and actionable diagnostics. Measure time from a clean install to the first verified change with strangers; maintain contribution/release/upgrade guidance without promising interchangeable vendor flags. |
+| README / M1,C1 | Repair Hub README, publication/root/README and loopback/source guides together: product purpose/status, verified installation, one goal→approved change walkthrough, native attach/recovery, provider capability matrix, paired labelled media/full originals/transcripts/provenance, contribution/security links. Generate the aggregate from exact members. Until installed acceptance, label diagnostics and unavailable commands explicitly; never advertise future chat/setup/serve as working. |
+| `bullet serve` | Ensure installed supervised service is running and print access instructions; explicit `--foreground` development mode uses selected persistent state. Refuse to imply installation from a local binary or an agent's terminal session. |
+| TUI interaction | Header connection/workspace/operator/freshness; navigation; main conversation/view; inspector criteria/scope/blockers/lifecycle/evidence/actions; footer controls/acknowledgement. Midnight background, readable text, cyan navigation, amber prompts, monochrome and NO_COLOR. Keep Ctrl+K, Tab/BackTab, arrows/j/k, Enter, Escape, ?, r and ordinary-view Ctrl+C detach without stealing editor text. Multiline Enter/newline and Ctrl+Enter/submit are composition-safe. |
+| Native terminals (T3/T4/U1) | `bullet agent <provider>`, `sessions` and `attach` bind an admitted task/account to explicit `protocol` or `native_terminal` mode. Rust PTY custody survives client/SSH disconnects; authenticated observers share one acknowledged controller with a fenced epoch. Persist bounded ordered input before writes; retain unknown delivery without replay. In native terminals Ctrl+C reaches the provider and Ctrl+] then `d` detaches. Head and human cannot control one invocation concurrently. Both modes require the same admitted containment, budget and preservation boundaries; unknown providers refuse before launch. |
+| Terminal boundaries | Preserve ordered input/output, actor, geometry, resize and paste; distinguish persisted/written/unknown input and reject duplicate or stale-epoch delivery. Use a bounded terminal renderer with no clipboard, command or authority effects. Label unmanaged processes external; import requires supported checkpoints and reconciled custody, never PID discovery alone. |
+| First paint | Render navigable shell before credential discovery/network. Six simultaneous clients independently resize/navigate/detach through connecting, missing credentials, credential lock, unreachable server, expired/revoked auth, reauthentication and recovery. Restore terminal state on all exits; preserve noninteractive refusal. |
+| Portal foundations | Accessible React table cells with durable row keys; exhaustive surface dispatch; compatible atomic snapshots instead of sequential per-mission reads. Shared semantic tokens, links/observation/status/timelines; bounded sequence-aware cache with cancellation/deduplication. Precompile validators; remove packaged CSP unsafe-eval/unsafe-inline dependence. Keep Head expandable, plus fifteen surfaces and Shift Brief. |
+| Shared actions | Generate exact subject/revision, validated inputs, availability/refusal, durable command identity and progress/enforcement acknowledgement for CLI/TUI/Portal/palette. Approval shows exact Candidate/base/head/tree, gates/review, destination/expected old ref, expiry and required approvers. Changed subjects invalidate approval; ambiguous effects reconcile before retry. |
+
+| Operational surface | Durable acceptance content |
+| --- | --- |
+| Control Tower | Goals, running/queued work, blockers, approvals, service state and capacity. |
+| Mission Graph | Exact task revision, dependencies, criteria and scope; keyboard-accessible list alternative. |
+| Cognitive Router | Eligible/excluded account/model routes, reasons, chosen route and provenance. |
+| Fusion Lab | Independent contributions, disagreement, selection, supporting evidence and residual uncertainty. |
+| Fleet | Worker/account occupancy, leases, process identities, quota and queue blockers. |
+| Live Attempt | Prompts, native events, steering, usage, preservation and recovery timeline. |
+| Session Supervisor | Native session/turn identity and acknowledged lifecycle controls. |
+| Context Lineage | Parents/successors, compression facts, retained dissent and invalidation. |
+| Quota and Capacity | Observations, reservations, unknown liabilities, availability and deadlines. |
+| Struggle and Escalation | Recorded trigger, proposed intervention and actual outcome. |
+| Behavior Center | Rule observations, enforcement, remediation and receipts across the full inventory. |
+| Workspace Hygiene | Base/scope/dirty state, artifacts, preservation and cleanup eligibility. |
+| Merge Rail | Candidate→gates→independent review→approval→protected update→authoritative read-back. |
+| Quality Lab | Gate results/provenance; unknown, flaky and infrastructure outcomes remain distinct. |
+| Incidents and Audit | Searchable events, contradictions, interruptions and exact reconciliation. |
+
+A surface with no durable backend subject stays incomplete. Raw records remain
+under technical details and `--json`; purposeful displays replace generic JSON.
+Shift Brief must join compatible atomic subjects and retain Nightshift continuation,
+referral, adjudication and preservation-gated retirement semantics.
+
+[Slack Socket Mode](https://docs.slack.dev/apis/events-api/using-socket-mode/) and [Telegram long polling](https://core.telegram.org/bots/api#getupdates) are Rust adapters to the same command
+consumer. Pair immutable platform user/workspace/chat IDs through expiring one-use
+links; explicitly authorize each destination/thread. Persist/deduplicate inbound
+before acknowledgement/offset advance and persist outbound intent/observed message
+identity. Reconcile ambiguous delivery rather than blindly resend; test reconnect,
+rate limits, revocation and polling restart. Platform login is not Bullet authority.
+
+Keep per-user preferences separate from authority policy. Project configuration may
+propose instructions/gates/tools, but cannot grant credentials, wider scope or effects.
+Telemetry is off by default; diagnostic export is explicit, reviewable and secret-safe,
+with provider-specific data handling documented separately.
 
 ## Fast verification while implementing the connection
 
-Use direct existing lane commands in private targets. For Kernel changes, run the
-focused Rust test target first, then the repository's mapped `fast`, `contract`
-or `required` lane according to the owner map. For Git writer changes, run the
-direct daemon/refusal tests and complete member `scripts/ci-local.sh required`.
-For Portal changes, use pinned Node22.23.2/npm10.9.8 for typecheck and focused
-Vitest tests, then complete `scripts/ci-local.sh required`; mocked browser tests
-and real-farmd tests retain separate identities. Root alone owns full proof locks.
-
-Do not infer a production pass from these component commands. Add the actual
-credential-free production transaction campaign to the existing lane scripts and
-then the separately admitted xbabe2 native-account campaign. The latter must
-invoke the product command and inspect durable API/ledger/worker/verifier results,
-not just call `bullet dogfood read-only` or parse a supplied transcript. Its exact
-reproduction command is published only after the implementation exists and is
-tested; an invented CLI example must not masquerade as an executable runbook.
-
-Measure two completed packet cycles before forecasting dates. The critical path
-is admission/upgrade → typed durable run and stop ownership → native workload
-worker → atomic Candidate completion → independent verifier/integration → actual
-account qualifications. Writer repairs, provider protocol work, CI adapters and
-capture-tool migration can proceed alongside that path within the two-worker
-limit. Provision verifier/service custody, publication App authority and dedicated
-workers early with concrete reviewable packets; preserve the final operator action
-as a named dependency rather than consuming credentials through ordinary PR CI.
+Use existing focused commands in private targets, then mapped fast/contract/required
+lanes; root alone owns full proof locks. Portal uses Node 22.23.2/npm 10.9.8; mocked
+browser and actual farmd cases keep separate identities. Add the credential-free
+production transaction campaign to existing lanes, then admitted xbabe2 account runs.
+Inspect actual command/API/ledger/worker/verifier outcomes; neither read-only dogfood
+nor supplied transcripts substitute. Publish reproduction commands only after they
+exist and pass. Parallelize writer/protocol/CI/capture work within two worker slots;
+prepare verifier/service/App custody early, keeping credentials out of ordinary PR CI.
 
 ## Rapid CI without weakening the acceptance gate
 
 Fast feedback and complete acceptance are distinct jobs using the same reviewed
 scripts. Do not create another CI engine or silently substitute a smaller suite.
+Preserve Portal's 88% coverage floor/exclusions and every other admitted quality floor.
 
 | Campaign | Execution and target | Required output / failure behavior |
 | --- | --- | --- |
@@ -201,14 +226,9 @@ scripts. Do not create another CI engine or silently substitute a smaller suite.
 | Credentialed xbabe2 | Dedicated isolated worker for provider qualification, real coding tasks, interruption/restart, account/quota and native capture. | Private credential custody, sanitized derived outputs and exact execution receipts. Ordinary PRs receive no subscription, signing or publication credentials. |
 | Privileged/lifecycle/native | Separate admitted workers for containment, service identities, upgrade/install/rollback and five-platform certification. | Named infrastructure blocker until actual execution. Cross-compilation or a workflow definition does not certify a platform. |
 
-Hub commits5b11bfb,599b2ae and974f5de integrate BulletGit's actual source-scan
-adapter, cross-job verified tool transfer and generated workflow activation.
-Focused36 publication tests,50 wrapper cases and23 transfer controls pass locally;
-these are component tests, not hosted job execution.51 other member profiles and
-five final refusals still need execution support. Implement the remaining adapters
-by reusing their reviewed lane scripts and exact validators; preserve original
-matrices/dependencies/triggers/timeouts/artifacts. Keep unsupported profiles and
-the final incomplete-campaign gate failing until implemented and executed.
+Historical Hub source-scan transfer/activation components do not establish the
+remaining executors. Enumerate actual current profiles and execute each real lane;
+keep unsupported profiles and the final incomplete-campaign gate non-passing.
 
 Admit Rust toolchains/MSRV and Cargo configuration, Node 22.23.2, npm 10.9.8,
 browser binaries and immutable tool subjects. Cache keys include member identity,
@@ -222,9 +242,13 @@ The stable final required check rejects every missing, skipped, cancelled, neutr
 malformed, stale or failed predecessor or artifact. It verifies exact matrix
 identities and selected/completed test sets rather than trusting a job name or
 green process exit. Preserve real `GITHUB_SHA`; record source commit/tree separately.
-Configure required checks, human approval, stale-review dismissal and no force-push
-or deletion on primary main after the complete checks actually operate. Read back
-both the tested merge subject and the resulting protected main.
+Prepare protection packets for all five mains: current required checks, at least one
+independent approval, stale-review dismissal and approval of the latest substantive
+change by someone other than its author/pusher, conversation resolution, administrator
+enforcement, no force-push/deletion and qualified merge-queue behavior. Resolve the
+historical merge refusal through its actual approval mechanism. Derive push/PR/merge-group/
+manual/scheduled applicability from current configuration; manual lane execution does
+not prove cron. Read back the tested merge subject and resulting protected main.
 
 ## Separate subscription qualifications
 
@@ -250,7 +274,26 @@ sparse updates, external usage, expiry, contradictory readings and exhaustion mu
 survive restart. Retain the existing 80% warning, 95% alert and exhaustion pause.
 Manual snapshots are explicitly `OPERATOR_REPORTED`, finite, expire within one
 hour or reset and cannot override later vendor exhaustion. Unknown charge is
-`UNPRICED`, not zero. Provider failure cannot silently move work to another account.
+`UNPRICED`, not zero. Provider failure cannot silently move work to another account or switch an authenticated
+subscription to billable API credentials.
+
+All three initial providers need admitted native version/account/configuration,
+containment and lifecycle eligibility before daily use. Coding qualification runs use
+explicit bounded qualification authority and produce their own task receipts; never
+require a task's future receipt to authorize that same task. Full provider-profile
+certification remains an independent semantic decision.
+
+## Adversarial acceptance through the existing transaction campaign
+
+Extend the existing twelve-boundary campaign; these are required cases, not a second coordinator.
+
+| Existing owner | Cases that must reach the intended production boundary |
+| --- | --- |
+| U1 submission/ownership | Response loss before/after commit, duplicate submit, reload during settlement, two tabs, archived recovery, storage failure; cookie replacement, stale CSRF, delayed unauthorized responses, old-owner SSE, thread switching and loaded-page/focus/scroll preservation. |
+| T3/T4 native custody | Competing controllers, stale epochs, duplicate input, detach during prompts, ambiguous PTY delivery; PID reuse, surviving descendants, setsid, broker death around exec, stuck cleanup, held pipes and infinite output. |
+| T3 containment/outcome | Credential/config replacement, hooks/MCP, inherited FDs, symlink/hardlink/proc escapes, canonical writes and direct forge/network effects; failed exit with valid proposal, success without usable output, stale/malformed events, unsupported controls and billed execution with lost transcript. |
+| T1/T5/T6 proofs/effects | Zero-test success, missing identities, stale reports, dependency/recipe drift, changed-and-restored compilation; self-review, changed Candidate/base/gates/destination, expired approval, duplicate effects and response-loss read-back. |
+| U1/R/M channels/lifecycle/media | Unauthorized/duplicate events, revocation/reconnect, polling restart and ambiguous outbound delivery; interrupted upgrade, rollback, disk exhaustion, partial artifacts, frame loss/collision, decoder failure, oversized export and mismatched identities. |
 
 ## Twelve tasks and one demonstrable collaborative change
 
@@ -267,7 +310,7 @@ contract/backend change, its generated TypeScript/React consumer and an independ
 adversarial review. Assign those roles explicitly, preserve dependencies and
 handoffs, and have a human integrate the reviewed Candidate. The implementation
 workers and reviewer must not share completion authority. Include a duplicate
-submission, stale base, provider failure, quota fallback, explicit account change,
+submission, stale base, provider failure, quota handling, explicit account change,
 bounded repair/escalation and a restart in the retained campaign.
 
 Limits remain one active invocation per account, two implementation workers,
@@ -290,7 +333,7 @@ until the seven-day observation and matched manual baseline support it.
    the admitted tools; they must not become a second policy or state authority.
    Prove Rust behavior against the retained recorder interruption, EOF, custody,
    output-bound and timing regressions before replacing the old implementation.
-3. Provide an actual bright/high-contrast product theme for both TUI and web.
+3. Provide the actual midnight/cyan/amber, high-contrast product theme for TUI and web.
    Use sharp text and saturated, distinguishable status colors with textual
    labels; measure contrast and keyboard/focus behavior. Capture the selected
    real theme rather than brightening or recoloring frames afterward.
@@ -311,55 +354,155 @@ until the seven-day observation and matched manual baseline support it.
    qualification. The initial twelve Codex/Claude/Cursor tasks remain the earlier
    milestone; qualify and retain the corresponding Antigravity implementation
    tasks before claiming the requested four-provider demonstration complete.
-7. Preserve original PNGs and terminal stream/transcript privately, with a
-   pixel-exact FFV1 master and hashes. GIF has a 256-color palette and centisecond
-   timing: accept a lossless GIF only when an independent decoder proves exact
-   source-pixel equality and the admitted timing bounds. Otherwise fail strict
-   lossless GIF acceptance and retain the exact master; never label a quantized
-   derivative lossless. Any final-frame hold is an explicit display policy.
-   Each 1920×1080 TUI or web GIF must be strictly below 50,000,000 bytes (decimal
-   MB); equality fails. Check the actual completed file in both render and
-   independent verification. Preserve oversized failures and their original
-   masters; do not meet the bound by dimming, recoloring or dropping frames.
+7. Preserve original PNGs, terminal stream/transcript and hashed pixel-exact FFV1
+   masters. GIF's 256-color/centisecond limits permit a lossless claim only after
+   independent source-pixel/timing equality; otherwise retain the exact master and
+   label the derivative accurately. Any final-frame hold is an explicit policy.
+   Publish two labelled contiguous native 1920×1080 excerpts, TUI and Portal, linked
+   to uninterrupted recordings from before submission through authoritative read-back.
+   Both cover the same campaign interval after stream offsets; manifests bind full
+   recording hash, timebase, offsets, interval and first/last frame. Retain all interior
+   frames in order, with no interpolation, speed change or omission; independently
+   verify declared centisecond quantization. Each completed GIF must be strictly below
+   50,000,000 bytes in render and independent checks; equality fails. Preserve oversized
+   or failed derivatives/masters and repair or repeat qualification. Never meet the
+   bound by dimming, recoloring, reducing geometry or dropping frames.
 8. Test failure paths: absent or drifted tools, renderer error, dropped/colliding
    frames, wrong dimensions, timing flattening, truncation, disk exhaustion,
    interrupted capture, incomplete provider termination and mismatched task IDs.
-   Refuse export on missing evidence. Retain failures instead of overwriting a
+   Reject the known blank clip, stripe-only and one-good-frame fixtures, malformed/truncated
+   decoder output and wrong-source exports; require visible product landmarks/activity
+   throughout the required phases. Refuse export on missing evidence. Retain failures instead of overwriting a
    successful-looking output file.
 9. Separate private capture from reviewed public export. Credentials, private
    account homes and raw secrets never become committed assets. Select a bounded
    public task whose real output can be exported; preserve any redaction history
    and original private evidence. Exported media, transcript and reproduction
    manifest must identify their exact public source subjects.
+   Keep application source executed, installed release artifact and later
+   documentation/media publication commit as three distinct subjects. A README
+   commit cannot relabel older execution. Pair each GIF with full playback,
+   accessible transcript, poster, provenance, demonstrated evidence class and
+   current certification status. Prepare the exact README/media PR and publication
+   packet before the user's exact approval. After approved publication to
+   `neverhuman/bulletfarm`, fetch assets back and check hashes, dimensions, playback
+   and links. Reuse on a later publication commit requires an admitted subject-binding
+   contract for the unchanged runtime artifacts.
 10. Verify local reproduction from the accepted aggregate with admitted tools:
     rebuild the capture/render/check code, reproduce the encoded output from
     retained inputs and independently check it. A new provider execution has its
     own task/run identity; deterministic rendering does not imply deterministic
     model output or repeat billing authorization.
 
+## Public consumption and versioned delivery prerequisites
+
+Regenerate exact reviewed members/root templates; explain aggregate/member use and
+repair host-specific manifests/absent-file instructions without relaxing custody.
+Publish root Apache-2.0, third-party notices, security/support/contribution/ownership,
+issue forms, PR template and adopted conduct policy. Enable private vulnerability
+reporting before linking it. Verify unauthenticated onboarding under unrelated homes,
+spaces, shallow histories and supported archives; local files do not prove publication.
+New installations create their own admitted state without xbabe2 incident files or
+credentials. xbabe2 retains complete preservation/admission and operator checkpoint.
+Distinguish prototype export/verify/import from supported schema-27 append-only upgrades;
+retain IDs/high-water and historical five-target manifest validation.
+
+## Acceptance campaign, installation and versioned delivery
+
+Freeze xbabe2 hardware/load, SSH/forwarding, browser/runtime/font/tool versions and
+benchmark inputs before measuring. Exercise 10,000 items with bounded pages/queues;
+measure heap, event backlog, overload and render latency in Chromium, Firefox and
+WebKit. Targets below are required acceptance, not current performance claims.
+
+| Measure | Target |
+| --- | --- |
+| TUI first paint / key-to-paint | p95 ≤250 ms including withheld credentials/network / p95 ≤100 ms. |
+| Portal usable shell | ≤1 second warm, ≤2 seconds cold under admitted forwarding. |
+| Projection lag / scheduler decision | p95 <1 s, p99 <3 s / p95 <100 ms, p99 <500 ms. |
+| Lease / warm workspace | p99 <100 ms / p95 <5 seconds. |
+| Steer/cancel acknowledgement / forced process-tree stop / lost-run detection | p95 <2 s / p95 <15 s / p95 <30 s. |
+
+Require zero known [WCAG2.2 A/AA](https://www.w3.org/WAI/WCAG22/quickref/) violations, automated plus manual keyboard and
+screen-reader acceptance: focus restoration, semantic tables/landmarks, live
+announcements, reduced motion, reflow, contrast, accessible graphs and applicable
+target sizing. Execute the full twelve-boundary production transaction campaign
+from the governing contracts, plus the client/channel/install/media failure matrix
+in the audit; do not replace either inventory with representative happy paths. Preserve original failures and separately identify component,
+installed, provider, independent-effect, research and publication evidence.
+
+Build a versioned signed Ubuntu package with equivalent entrypoints, embedded
+Portal, checksums/verification tools, CycloneDX/SPDX SBOMs, provenance/signer/time,
+configuration, service units, migrations and rollback assets. Use `/usr/lib/bullet`,
+`/etc/bullet`, `/var/lib/bullet`, `/run/bullet` and separate supervised identities.
+Qualify two clean installs of the same signed subject, activation/reboot, supported
+upgrade/interrupted retry, backup/restore, rollback preserving authority high-water,
+retained uninstall/reinstall, disaster recovery, disk exhaustion and partial artifacts.
+An admitted locally staged signed artifact can qualify installation before media
+publication; publishing the evidence must not be its own circular prerequisite.
+
+| Delivery stage | Ordered engineering exit; names are milestones, not certification shortcuts |
+| --- | --- |
+| First measured cycle / foundation | Recover missing late originals or rerun; preserve accepted Kernel26/Git100+custody and Kernel required26e07c77 within scope. Complete current Portal/Git/Hub lanes/native audit/hosted admission, repair rejected media semantics and publish reviewed guidance through approved generation. |
+| Second measured cycle / connected execution | Durable Head→server admission→native lifecycle/recovery→atomic Candidate→independent verifier. Complete fresh-generation consumer and supervised upgrade; prepare concrete operator packets. |
+| Delivery foundation / internal alpha | Close all checks applicable to the admitted Ubuntu/initial-three-provider product, with actual auditor/native custody and member/aggregate event artifacts, reviewed protection and integration. Keep independent platform/forge/evolution/team/saga obligations active without treating their unrelated breadth as an extra first-task prerequisite. |
+| First admitted dogfood | Signed persistent service and qualified Claude/Codex/Cursor perform the first real task through Candidate, verification and approved integration. Begin here once admission passes. |
+| Initial campaign | Twelve accepted tasks through the admitted product, both advertised interfaces, mixed-provider lineage and recovery evidence. |
+| Four-provider public preview | Independently qualify Antigravity and sixteen tasks; record synchronized native TUI/Portal full originals and excerpts, accessible transcript/provenance, reviewed exact publication and public fetch-back. |
+| Daily-use release candidate | Seven-day surviving-change observation, matched manual human-time/cost baseline, security/accessibility/performance and lifecycle acceptance; stranger onboarding succeeds. |
+| Stable/profile releases | Semantic consumers accept every applicable requirement. Retain separate self-hosted/universal/evolution/team/saga and platform/forge/provider qualifications; never turn a preview into blanket certification. |
+
+Use the current gap/audit evidence to select the next unpassed lane. Preserve every
+failure; no reduced floor/exclusion, neutral 78, receipt-existence check or stale run
+can close a predicate. Portable, installed, live, independent-effect, research and
+publication evidence remain separate through final aggregation.
+
+Full-program work continues after the showcase: map all84 behavior rules,23 context
+kinds and20 Git capabilities; implement T0–T5, NS-0–NS-10 and all active cognition/
+context/fusion/routing/negative-knowledge/struggle/composition/evolution requirements.
+Complete frozen search/archive/allocation, matched studies, calibration/holdouts,
+contamination/missingness/all-in costs and shadow/canary/drift/rollback. Evaluate
+no guidance, raw local guidance, generated local guidance and an equally budgeted
+no-graph guide; pin immutable artifacts to Attempt/adapter and charge the same
+budget. Guidance stays disabled absent independently accepted improvement; adverse
+or inconclusive results are retained. Canary/promotion require their own exact act.
+
+Certify four providers, Jeryu/GitHub App/GitLab.com/exact self-managed GitLab, Linux
+x86_64/aarch64, macOS x86_64/aarch64 and Windows x86_64 independently. Implement
+PostgreSQL authority, remote identities/workers/verifiers, object storage, replication,
+fencing/partitions/failover/freeze/recovery for team before saga's staged Candidates,
+compatible dependencies, truthful partial effects, quarantine/compensation/forward
+repair. Finish active WP preservation, managed/connect-existing Jeryu, signed auditor,
+reproducible paper/brief/source/PDF publication, independent security/accessibility,
+two rubric-preserving re-scores and stranger lifecycle acceptance. Keep GP/Jope,
+the twenty superseded and three refused corpus dispositions and retired WP-18 excluded.
+Map every active G/W/DF/WP and NS obligation in both directions to implementation,
+invariant, test, evidence, review and profile. Preserve dormant W11/W12 legacy sentinels,
+then remove public open leaves atomically under accepted contracts; these obligations
+are distinct from the closure roadmap's Wave 11 team/saga label.
+
+Operator packets cover fresh admission, signing/release, exact provider scopes,
+forge destinations, branch administration, exact merges/publication and evolution.
+Prepare immutable inputs, required authority, negative tests, expiry/revocation,
+rollback/reconciliation and independent review before the final approval request.
+Continue independent engineering while those acts await action. Forecast only after
+two measured cycles, including review repairs, native-host/account waits and the
+mandatory observation interval. Community adoption and productivity are outcomes
+to measure through real use; neither can be guaranteed by a release name.
+
 ## Exit checkpoints and final read-back
 
-The earliest **proper internal development** milestone requires clean local health,
-working exact-source CI and protected GitHub delivery, admitted operational custody,
-the real durable coding transaction, three separately qualified subscriptions,
-reviewable collaborative work, interruption/restart recovery and retained evidence.
-Useful dogfood acceptance additionally requires twelve accepted tasks and seven-day
-survival. Live media may document an admitted internal campaign with that narrower
-scope; it must not claim `self-hosted-v1` or universal certification early.
+The four gates are **engineering foundation**, **admitted internal dogfood**, **public
+preview**, and **complete documented product**. Every applicable predicate must pass;
+missing/skipped/unavailable/stale results are nonpassing. The first task needs exact-source
+CI/protected GitHub delivery, admitted custody, signed service, three qualified subscriptions,
+real coding/independent verification/approved integration and detach/restart evidence.
+Twelve tasks and seven-day survival establish sustained daily use afterward. Media may
+document that narrower admitted campaign; it cannot claim early GA/universal certification.
+Full completion requires every active obligation and all eighteen product profiles in
+[the existing typed inventory](../../policy/assurance-inventory-v1.json); diagnostics confer no release authority.
+Preserve `self-hosted-v1`'s Ubuntu/Claude/Jeryu contract. Evolution, breadth and team
+may proceed in parallel after their actual prerequisites; saga follows team. Remove no profile.
 
-Full completion still requires the signed twelve-boundary campaign, production
-custody separation and historical recovery, Ubuntu packaging and two clean installs,
-all lifecycle/backup/upgrade/rollback proofs, durable cognition/routing/evolution,
-Jeryu self-hosting, Antigravity, remaining forge adapters, five platform slices,
-then `team-v1` and `saga-v1`, plus active post-V1 obligations and retired dispositions.
-All 18 product profiles must pass independently under the existing typed inventory.
-Do not remove a required profile to make the release page green.
-
-For every accepted packet, reconcile this plan, the health checkpoint and G1–G18
-register with the typed inventory; unchanged blocked statuses may retain identical
-canonical JSON bytes. Record exact source commits/trees, review/PR/merge subjects,
-workflow digests, run/attempt/matrix identities, selected/completed tests, artifact
-and package digests, provider/account/runtime generations, task receipts and profile
-receipts. Final read-back must come from actual local/remote consumers, not this
-document or a chat claim. Forecast dates only after two measured implementation
-cycles, separating infrastructure waits from the mandatory observation window.
+Reconcile each accepted packet with this plan/checkpoint/G1–G18/typed inventory; unchanged blocked JSON
+may retain its bytes. Bind commits/trees/reviews/PRs/merges, workflows/runs/attempts/matrices, actual test
+identities, artifacts/packages, accounts/runtimes/tasks/profile receipts. Read back from real consumers.

@@ -209,6 +209,22 @@
       "command": "just check",
       "purpose": "verify fuse and onboarding scripts"
     },
+    "scripts/operator-console.sh": {
+      "command": "bash scripts/operator-console-test.sh",
+      "purpose": "verify disposable launcher startup, same-origin readiness and process cleanup; no installed or provider qualification"
+    },
+    "scripts/operator-console-test.sh": {
+      "command": "bash scripts/operator-console-test.sh",
+      "purpose": "verify disposable launcher startup, same-origin readiness and process cleanup; no installed or provider qualification"
+    },
+    "scripts/portal.sh": {
+      "command": "bash scripts/operator-console-test.sh",
+      "purpose": "verify disposable launcher startup, same-origin readiness and process cleanup; no installed or provider qualification"
+    },
+    "scripts/dogfood/serve.sh": {
+      "command": "bash scripts/operator-console-test.sh",
+      "purpose": "verify disposable launcher startup, same-origin readiness and process cleanup; no installed or provider qualification"
+    },
     "scripts/readme-live-custody-test.sh": {
       "command": "bash scripts/readme-live-custody-test.sh",
       "purpose": "prove offline capture normalization, exact source/artifact custody, and refusal without provider execution"

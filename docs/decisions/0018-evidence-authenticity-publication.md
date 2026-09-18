@@ -378,6 +378,8 @@ Farm component lanes then proceed:
 
 **SD-BI-n** co-lands with each new nested-test lane and owns only `ops/ci/lib.sh` and the accepted ADR 0017 cap-safe `crates/bullet-wire/tests/canonical_hostile/inventory_tests.rs`; it updates exact inventory/count/digest sentinels so every intermediate head is green and makes no semantic change. **W12-GI** uses those same two support paths and co-lands with W12-G0.
 
+K-SDB4 must append after the supported schema-27 prefix and every later accepted migration present when its claim is prepared. Preserve all historical migration IDs, names, checksums, and bytes; migration 24 remains `0024_operator_sessions.sql`. This ADR reserves no migration number. Its directory reference grants no file ownership: the four-file packet cannot start until the exact next successor filename is bound to the current reviewed catalog.
+
 Kernel must first extract, not copy, secure high-water storage:
 
 13. **K-SDB0:** new `crates/adapters/src/external_high_water/mod.rs`, new     `crates/adapters/src/external_high_water/storage.rs`, new     `crates/adapters/src/external_high_water/tests.rs`, `crates/adapters/src/lib.rs`.
@@ -385,7 +387,7 @@ Kernel must first extract, not copy, secure high-water storage:
 15. **K-SDB1:** `crates/domain/src/schema_bundle.rs` only.
 16. **K-SDB2:** new `crates/application/src/verification.rs`, new     `crates/application/src/verification/intent.rs`, new     `crates/application/src/verification/publication.rs`, `crates/application/src/lib.rs`.
 17. **K-SDB3:** new `crates/verifier/src/supervisor.rs`, new     `crates/verifier/src/runtime_observation.rs`, `crates/verifier/src/lib.rs`, new     `crates/verifier/tests/runtime_observation.rs`.
-18. **K-SDB4:** new `db/migrations/0024_verification_publication.sql`,     `crates/adapters/src/sqlite/migrations/catalog.rs`,     `crates/adapters/src/sqlite/migrations/tests/late.rs`, `crates/adapters/src/sqlite/mod.rs`.
+18. **K-SDB4:** one new verification-publication SQL migration under `db/migrations/` (exact unused successor version/path frozen in the claim before edits),     `crates/adapters/src/sqlite/migrations/catalog.rs`,     `crates/adapters/src/sqlite/migrations/tests/late.rs`, `crates/adapters/src/sqlite/mod.rs`.
 19. **K-SDB5:** new `crates/adapters/src/sqlite/verification.rs`, new     `crates/adapters/src/sqlite/verification/publication.rs`, new     `crates/adapters/tests/verification_publication.rs`, `crates/adapters/src/sqlite/mod.rs`.
 20. **K-SDB6:** new `crates/adapters/src/verification_high_water/mod.rs`, new     `crates/adapters/src/verification_high_water/tests.rs`,     `crates/adapters/src/external_high_water/mod.rs`, `crates/adapters/src/lib.rs`.
 21. **K-SDB7:** `crates/verifier/src/signed_chain.rs`, `crates/verifier/src/signed_chain/records.rs`, `crates/verifier/src/signed_chain/validation.rs`, `crates/verifier/src/signed_chain/crypto.rs`; it imports Farm wire/carriers and removes duplicate fixture authority. **K-SDB7H** co-lands with only `crates/verifier/tests/signed_chain.rs`.

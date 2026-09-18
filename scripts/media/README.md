@@ -202,7 +202,7 @@ unexpected field are both refused.
 | `release_eligible` | must be `false` |
 
 Checks that are re-derived rather than trusted: GIF geometry via `ffprobe`
-**and** the GIF header; `gif.sha256`/`gif.bytes`; size ≤ 50,000,000 bytes; native
+**and** the GIF header; `gif.sha256`/`gif.bytes`; size strictly < 50,000,000 bytes; native
 GIF delays (each ≥ 2 cs) against decoded PTS (strictly increasing, same count);
 total duration in (0, 900] s; the retained master's sha256; the cast's UTF-8,
 event shape, monotone timing and grid against `terminal.cols`/`rows`; the canvas

@@ -11,7 +11,7 @@ const UBUNTU: &str = "ubuntu-24.04";
 const MATRIX: &str = "${{ matrix.os }}";
 const PORTABLE: [&str; 2] = ["macos-15", "windows-2025"];
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Eq, PartialEq, Serialize)]
 pub(super) struct Job {
     pub id: &'static str,
     pub needs: Vec<&'static str>,
@@ -185,7 +185,7 @@ pub(super) fn reviewed() -> Vec<Workflow> {
         ),
         (
             "bullet-portal",
-            "60931e893c27c8b91a0beada139469074f2802c1488409acbb8f79d1bd7411b9",
+            "6637ec9e3d1ba4d971c229ca0aa04dd022d8ec86b67188680a355ff81b595dc1",
             "83e80d3f981ef39d4f7a84fbf06b6ffb9d05254c491525eed6c8941bb697da22",
         ),
     ];
@@ -224,12 +224,12 @@ pub(super) fn canonical_catalog(workflows: &[Workflow]) -> Result<Vec<Workflow>>
         .map(|w| (w.member, w.path))
         .collect::<BTreeSet<_>>();
     require(
-        workflows.len() == 8 && actual == expected,
+        workflows.len() == expected.len() && actual == expected,
         "PUBLICATION_CI_WORKFLOW_INVENTORY_INVALID",
     )?;
     let mut catalog = workflows.to_vec();
     catalog.sort_by_key(|w| (w.member, w.path));
-    let mut counts = (0, 0, 0);
+    let reviewed = reviewed();
     for workflow in &mut catalog {
         require(
             workflow.scope
@@ -280,9 +280,6 @@ pub(super) fn canonical_catalog(workflows: &[Workflow]) -> Result<Vec<Workflow>>
                     || (item.runner == MATRIX && item.os == PORTABLE),
                 "PUBLICATION_CI_MATRIX_INVALID",
             )?;
-            counts.0 += usize::from(workflow.scope == "REQUIRED");
-            counts.1 += usize::from(workflow.scope == "SCHEDULED");
-            counts.2 += item.os.len().max(1);
         }
         let mut reached = BTreeSet::new();
         loop {
@@ -297,10 +294,25 @@ pub(super) fn canonical_catalog(workflows: &[Workflow]) -> Result<Vec<Workflow>>
             }
         }
         require(reached == ids, "PUBLICATION_CI_DEPENDENCY_CYCLE")?;
+        let mut expected_jobs = reviewed
+            .iter()
+            .find(|w| w.member == workflow.member && w.path == workflow.path)
+            .expect("workflow inventory validated above")
+            .jobs
+            .clone();
+        expected_jobs.sort_by_key(|j| j.id);
+        for item in &mut expected_jobs {
+            item.needs.sort();
+            item.os.sort();
+        }
+        require(
+            ids == expected_jobs.iter().map(|j| j.id).collect(),
+            "PUBLICATION_CI_JOB_INVENTORY_INVALID",
+        )?;
+        require(
+            workflow.jobs == expected_jobs,
+            "PUBLICATION_CI_JOB_TOPOLOGY_INVALID",
+        )?;
     }
-    require(
-        counts == (27, 26, 55),
-        "PUBLICATION_CI_JOB_INVENTORY_INVALID",
-    )?;
     Ok(catalog)
 }
